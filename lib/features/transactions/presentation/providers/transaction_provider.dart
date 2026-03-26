@@ -1,0 +1,99 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+// ...existing code...
+import 'package:smartbudget/data/repositories/transaction_repository_impl.dart';
+import 'package:smartbudget/domain/entities/transaction.dart';
+import 'package:smartbudget/domain/repositories/transaction_repository.dart';
+import 'package:smartbudget/intelligence/analyzers/spending_analyzer.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
+
+part 'transaction_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+TransactionRepository transactionRepository(TransactionRepositoryRef ref) {
+  final database = ref.watch(databaseProvider);
+  return TransactionRepositoryImpl(database);
+}
+
+@riverpod
+class TransactionList extends _$TransactionList {
+  @override
+  Future<List<Transaction>> build({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? category,
+  }) async {
+    final repo = ref.watch(transactionRepositoryProvider);
+    return repo.getTransactions(
+      startDate: startDate,
+      endDate: endDate,
+      category: category,
+    );
+  }
+
+  Future<void> addTransaction(Transaction transaction) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(transactionRepositoryProvider);
+      await repo.addTransaction(transaction);
+
+      // Invalidate related providers
+      ref.invalidate(spendingProfileProvider);
+      ref.invalidate(recentTransactionsProvider);
+
+      return repo.getTransactions();
+    });
+  }
+
+  Future<void> deleteTransaction(String id) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(transactionRepositoryProvider);
+      await repo.deleteTransaction(id);
+      return repo.getTransactions();
+    });
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(transactionRepositoryProvider);
+      return repo.getTransactions();
+    });
+  }
+
+  Future<void> updateTransaction(Transaction transaction) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(transactionRepositoryProvider);
+      await repo.updateTransaction(transaction);
+      ref.invalidate(spendingProfileProvider);
+      ref.invalidate(recentTransactionsProvider);
+      return repo.getTransactions();
+    });
+  }
+}
+
+@riverpod
+Future<List<Transaction>> recentTransactions(RecentTransactionsRef ref) async {
+  final repo = ref.watch(transactionRepositoryProvider);
+  final now = DateTime.now();
+  final start = DateTime(now.year, now.month, 1);
+  return repo.getTransactions(startDate: start, endDate: now);
+}
+
+@riverpod
+Future<SpendingProfile> spendingProfile(SpendingProfileRef ref) async {
+  final transactions = await ref.watch(recentTransactionsProvider.future);
+  final analyzer = SpendingAnalyzer();
+  final now = DateTime.now();
+  return analyzer.analyze(transactions, now);
+}
+
+@riverpod
+Future<void> recurringTransactions(RecurringTransactionsRef ref) async {
+  final repo = ref.watch(transactionRepositoryProvider);
+  await repo.generateRecurringTransactions();
+}
