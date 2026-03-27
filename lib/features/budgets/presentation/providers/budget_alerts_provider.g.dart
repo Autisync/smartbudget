@@ -1,0 +1,25 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'budget_alerts_provider.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+String _$budgetAlertsHash() => r'8628a2f3b6db5bc6f7fa77b16a102eb54c9d9009';
+
+/// See also [budgetAlerts].
+@ProviderFor(budgetAlerts)
+final budgetAlertsProvider =
+    AutoDisposeFutureProvider<List<BudgetAlert>>.internal(
+  budgetAlerts,
+  name: r'budgetAlertsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$budgetAlertsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef BudgetAlertsRef = AutoDisposeFutureProviderRef<List<BudgetAlert>>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

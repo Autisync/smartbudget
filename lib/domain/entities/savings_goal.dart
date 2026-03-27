@@ -13,5 +13,7 @@ class SavingsGoal with _$SavingsGoal {
     DateTime? deadline,
     required GoalPriority priority,
     String? color,
+    @Default(false) bool autoAllocate,
+    DateTime? createdAt,
   }) = _SavingsGoal;
 }

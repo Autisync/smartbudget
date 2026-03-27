@@ -80,5 +80,55 @@ final biometricAuthServiceProvider = Provider<BiometricAuthService>.internal(
 );
 
 typedef BiometricAuthServiceRef = ProviderRef<BiometricAuthService>;
+String _$recurringSchedulerServiceHash() =>
+    r'91bd9644364ba73dff192be78f6324125a29b1ee';
+
+/// See also [recurringSchedulerService].
+@ProviderFor(recurringSchedulerService)
+final recurringSchedulerServiceProvider =
+    Provider<RecurringSchedulerService>.internal(
+  recurringSchedulerService,
+  name: r'recurringSchedulerServiceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$recurringSchedulerServiceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef RecurringSchedulerServiceRef = ProviderRef<RecurringSchedulerService>;
+String _$notificationServiceHash() =>
+    r'015117d47fe71bf44664bf802ad1290b1e2492d4';
+
+/// See also [notificationService].
+@ProviderFor(notificationService)
+final notificationServiceProvider = Provider<NotificationService>.internal(
+  notificationService,
+  name: r'notificationServiceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$notificationServiceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef NotificationServiceRef = ProviderRef<NotificationService>;
+String _$subscriptionRepositoryHash() =>
+    r'0a4dc9ddebe2a4f014faadb8546aee3172f26c41';
+
+/// See also [subscriptionRepository].
+@ProviderFor(subscriptionRepository)
+final subscriptionRepositoryProvider =
+    Provider<SubscriptionRepositoryImpl>.internal(
+  subscriptionRepository,
+  name: r'subscriptionRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$subscriptionRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef SubscriptionRepositoryRef = ProviderRef<SubscriptionRepositoryImpl>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

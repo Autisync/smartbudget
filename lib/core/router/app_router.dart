@@ -7,7 +7,9 @@ import 'package:smartbudget/features/transactions/presentation/screens/add_trans
 import 'package:smartbudget/features/transactions/presentation/screens/edit_transaction_screen.dart';
 import 'package:smartbudget/features/transactions/presentation/screens/transaction_list_screen.dart';
 import 'package:smartbudget/features/budgets/presentation/screens/budget_screen.dart';
+import 'package:smartbudget/features/savings/presentation/screens/savings_screen.dart';
 import 'package:smartbudget/features/insights/presentation/screens/insights_screen.dart';
+import 'package:smartbudget/features/subscriptions/presentation/screens/subscriptions_screen.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 
@@ -66,6 +68,14 @@ GoRouter router(RouterRef ref) {
             builder: (context, state) => const BudgetScreen(),
           ),
           GoRoute(
+            path: '/savings',
+            builder: (context, state) => const SavingsScreen(),
+          ),
+          GoRoute(
+            path: '/subscriptions',
+            builder: (context, state) => const SubscriptionsScreen(),
+          ),
+          GoRoute(
             path: '/insights',
             builder: (context, state) => const InsightsScreen(),
           ),
@@ -111,6 +121,16 @@ class ScaffoldWithNavBar extends StatelessWidget {
             label: 'Budgets',
           ),
           NavigationDestination(
+            icon: Icon(Icons.savings_outlined),
+            selectedIcon: Icon(Icons.savings),
+            label: 'Savings',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.subscriptions_outlined),
+            selectedIcon: Icon(Icons.subscriptions),
+            label: 'Subscriptions',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.insights_outlined),
             selectedIcon: Icon(Icons.insights),
             label: 'Insights',
@@ -124,7 +144,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/transactions')) return 1;
     if (location.startsWith('/budgets')) return 2;
-    if (location.startsWith('/insights')) return 3;
+    if (location.startsWith('/savings')) return 3;
+    if (location.startsWith('/subscriptions')) return 4;
+    if (location.startsWith('/insights')) return 5;
     return 0;
   }
 
@@ -140,6 +162,12 @@ class ScaffoldWithNavBar extends StatelessWidget {
         GoRouter.of(context).go('/budgets');
         break;
       case 3:
+        GoRouter.of(context).go('/savings');
+        break;
+      case 4:
+        GoRouter.of(context).go('/subscriptions');
+        break;
+      case 5:
         GoRouter.of(context).go('/insights');
         break;
     }

@@ -23,6 +23,8 @@ mixin _$SavingsGoal {
   DateTime? get deadline => throw _privateConstructorUsedError;
   GoalPriority get priority => throw _privateConstructorUsedError;
   String? get color => throw _privateConstructorUsedError;
+  bool get autoAllocate => throw _privateConstructorUsedError;
+  DateTime? get createdAt => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $SavingsGoalCopyWith<SavingsGoal> get copyWith =>
@@ -42,7 +44,9 @@ abstract class $SavingsGoalCopyWith<$Res> {
       double savedAmount,
       DateTime? deadline,
       GoalPriority priority,
-      String? color});
+      String? color,
+      bool autoAllocate,
+      DateTime? createdAt});
 }
 
 /// @nodoc
@@ -65,6 +69,8 @@ class _$SavingsGoalCopyWithImpl<$Res, $Val extends SavingsGoal>
     Object? deadline = freezed,
     Object? priority = null,
     Object? color = freezed,
+    Object? autoAllocate = null,
+    Object? createdAt = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -95,6 +101,14 @@ class _$SavingsGoalCopyWithImpl<$Res, $Val extends SavingsGoal>
           ? _value.color
           : color // ignore: cast_nullable_to_non_nullable
               as String?,
+      autoAllocate: null == autoAllocate
+          ? _value.autoAllocate
+          : autoAllocate // ignore: cast_nullable_to_non_nullable
+              as bool,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -114,7 +128,9 @@ abstract class _$$SavingsGoalImplCopyWith<$Res>
       double savedAmount,
       DateTime? deadline,
       GoalPriority priority,
-      String? color});
+      String? color,
+      bool autoAllocate,
+      DateTime? createdAt});
 }
 
 /// @nodoc
@@ -135,6 +151,8 @@ class __$$SavingsGoalImplCopyWithImpl<$Res>
     Object? deadline = freezed,
     Object? priority = null,
     Object? color = freezed,
+    Object? autoAllocate = null,
+    Object? createdAt = freezed,
   }) {
     return _then(_$SavingsGoalImpl(
       id: null == id
@@ -165,6 +183,14 @@ class __$$SavingsGoalImplCopyWithImpl<$Res>
           ? _value.color
           : color // ignore: cast_nullable_to_non_nullable
               as String?,
+      autoAllocate: null == autoAllocate
+          ? _value.autoAllocate
+          : autoAllocate // ignore: cast_nullable_to_non_nullable
+              as bool,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -179,7 +205,9 @@ class _$SavingsGoalImpl implements _SavingsGoal {
       required this.savedAmount,
       this.deadline,
       required this.priority,
-      this.color});
+      this.color,
+      this.autoAllocate = false,
+      this.createdAt});
 
   @override
   final String id;
@@ -195,10 +223,15 @@ class _$SavingsGoalImpl implements _SavingsGoal {
   final GoalPriority priority;
   @override
   final String? color;
+  @override
+  @JsonKey()
+  final bool autoAllocate;
+  @override
+  final DateTime? createdAt;
 
   @override
   String toString() {
-    return 'SavingsGoal(id: $id, title: $title, targetAmount: $targetAmount, savedAmount: $savedAmount, deadline: $deadline, priority: $priority, color: $color)';
+    return 'SavingsGoal(id: $id, title: $title, targetAmount: $targetAmount, savedAmount: $savedAmount, deadline: $deadline, priority: $priority, color: $color, autoAllocate: $autoAllocate, createdAt: $createdAt)';
   }
 
   @override
@@ -216,12 +249,16 @@ class _$SavingsGoalImpl implements _SavingsGoal {
                 other.deadline == deadline) &&
             (identical(other.priority, priority) ||
                 other.priority == priority) &&
-            (identical(other.color, color) || other.color == color));
+            (identical(other.color, color) || other.color == color) &&
+            (identical(other.autoAllocate, autoAllocate) ||
+                other.autoAllocate == autoAllocate) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, id, title, targetAmount,
-      savedAmount, deadline, priority, color);
+      savedAmount, deadline, priority, color, autoAllocate, createdAt);
 
   @JsonKey(ignore: true)
   @override
@@ -238,7 +275,9 @@ abstract class _SavingsGoal implements SavingsGoal {
       required final double savedAmount,
       final DateTime? deadline,
       required final GoalPriority priority,
-      final String? color}) = _$SavingsGoalImpl;
+      final String? color,
+      final bool autoAllocate,
+      final DateTime? createdAt}) = _$SavingsGoalImpl;
 
   @override
   String get id;
@@ -254,6 +293,10 @@ abstract class _SavingsGoal implements SavingsGoal {
   GoalPriority get priority;
   @override
   String? get color;
+  @override
+  bool get autoAllocate;
+  @override
+  DateTime? get createdAt;
   @override
   @JsonKey(ignore: true)
   _$$SavingsGoalImplCopyWith<_$SavingsGoalImpl> get copyWith =>

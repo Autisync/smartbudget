@@ -12,6 +12,8 @@ class Transactions extends Table {
   IntColumn get recurrence =>
       intEnum<TransactionRecurrence>().withDefault(const Constant(0))();
   BoolColumn get isRecurring => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get lastGeneratedAt => dateTime().nullable()();
+  DateTimeColumn get nextDueAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
@@ -41,6 +43,7 @@ class Budgets extends Table {
   IntColumn get period => intEnum<BudgetPeriod>()();
   DateTimeColumn get startDate => dateTime()();
   DateTimeColumn get endDate => dateTime().nullable()();
+  IntColumn get alertThreshold => integer().withDefault(const Constant(80))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
 
   @override
@@ -55,6 +58,29 @@ class SavingsGoals extends Table {
   DateTimeColumn get deadline => dateTime().nullable()();
   IntColumn get priority => intEnum<GoalPriority>()();
   TextColumn get color => text().nullable()();
+  BoolColumn get autoAllocate => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class Subscriptions extends Table {
+  TextColumn get id => text().clientDefault(() => _generateUuid())();
+  TextColumn get name => text()();
+  TextColumn get description => text().nullable()();
+  RealColumn get amount => real()();
+  TextColumn get currency => text().withLength(min: 3, max: 3)();
+  IntColumn get billingCycle => intEnum<BillingCycle>()();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get nextBillingDate => dateTime()();
+  DateTimeColumn get endDate => dateTime().nullable()();
+  TextColumn get category => text()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  TextColumn get paymentMethod => text().nullable()();
+  TextColumn get website => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -70,6 +96,8 @@ enum BudgetPeriod { weekly, monthly, yearly }
 enum TransactionRecurrence { none, daily, weekly, monthly, yearly }
 
 enum GoalPriority { low, medium, high, critical }
+
+enum BillingCycle { weekly, monthly, quarterly, yearly }
 
 String _generateUuid() {
   // Simple UUID v4 generator

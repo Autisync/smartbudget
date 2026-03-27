@@ -23,6 +23,7 @@ mixin _$Budget {
   BudgetPeriod get period => throw _privateConstructorUsedError;
   DateTime get startDate => throw _privateConstructorUsedError;
   DateTime? get endDate => throw _privateConstructorUsedError;
+  int get alertThreshold => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -42,6 +43,7 @@ abstract class $BudgetCopyWith<$Res> {
       BudgetPeriod period,
       DateTime startDate,
       DateTime? endDate,
+      int alertThreshold,
       bool isActive});
 }
 
@@ -65,6 +67,7 @@ class _$BudgetCopyWithImpl<$Res, $Val extends Budget>
     Object? period = null,
     Object? startDate = null,
     Object? endDate = freezed,
+    Object? alertThreshold = null,
     Object? isActive = null,
   }) {
     return _then(_value.copyWith(
@@ -96,6 +99,10 @@ class _$BudgetCopyWithImpl<$Res, $Val extends Budget>
           ? _value.endDate
           : endDate // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      alertThreshold: null == alertThreshold
+          ? _value.alertThreshold
+          : alertThreshold // ignore: cast_nullable_to_non_nullable
+              as int,
       isActive: null == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
@@ -119,6 +126,7 @@ abstract class _$$BudgetImplCopyWith<$Res> implements $BudgetCopyWith<$Res> {
       BudgetPeriod period,
       DateTime startDate,
       DateTime? endDate,
+      int alertThreshold,
       bool isActive});
 }
 
@@ -140,6 +148,7 @@ class __$$BudgetImplCopyWithImpl<$Res>
     Object? period = null,
     Object? startDate = null,
     Object? endDate = freezed,
+    Object? alertThreshold = null,
     Object? isActive = null,
   }) {
     return _then(_$BudgetImpl(
@@ -171,6 +180,10 @@ class __$$BudgetImplCopyWithImpl<$Res>
           ? _value.endDate
           : endDate // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      alertThreshold: null == alertThreshold
+          ? _value.alertThreshold
+          : alertThreshold // ignore: cast_nullable_to_non_nullable
+              as int,
       isActive: null == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
@@ -190,6 +203,7 @@ class _$BudgetImpl implements _Budget {
       required this.period,
       required this.startDate,
       this.endDate,
+      this.alertThreshold = 80,
       this.isActive = true});
 
   @override
@@ -208,11 +222,14 @@ class _$BudgetImpl implements _Budget {
   final DateTime? endDate;
   @override
   @JsonKey()
+  final int alertThreshold;
+  @override
+  @JsonKey()
   final bool isActive;
 
   @override
   String toString() {
-    return 'Budget(id: $id, category: $category, limitAmount: $limitAmount, currency: $currency, period: $period, startDate: $startDate, endDate: $endDate, isActive: $isActive)';
+    return 'Budget(id: $id, category: $category, limitAmount: $limitAmount, currency: $currency, period: $period, startDate: $startDate, endDate: $endDate, alertThreshold: $alertThreshold, isActive: $isActive)';
   }
 
   @override
@@ -231,13 +248,15 @@ class _$BudgetImpl implements _Budget {
             (identical(other.startDate, startDate) ||
                 other.startDate == startDate) &&
             (identical(other.endDate, endDate) || other.endDate == endDate) &&
+            (identical(other.alertThreshold, alertThreshold) ||
+                other.alertThreshold == alertThreshold) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, id, category, limitAmount,
-      currency, period, startDate, endDate, isActive);
+      currency, period, startDate, endDate, alertThreshold, isActive);
 
   @JsonKey(ignore: true)
   @override
@@ -255,6 +274,7 @@ abstract class _Budget implements Budget {
       required final BudgetPeriod period,
       required final DateTime startDate,
       final DateTime? endDate,
+      final int alertThreshold,
       final bool isActive}) = _$BudgetImpl;
 
   @override
@@ -271,6 +291,8 @@ abstract class _Budget implements Budget {
   DateTime get startDate;
   @override
   DateTime? get endDate;
+  @override
+  int get alertThreshold;
   @override
   bool get isActive;
   @override

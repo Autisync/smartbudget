@@ -18,6 +18,7 @@ class BudgetRepositoryImpl implements BudgetRepository {
       period: Value(budget.period),
       startDate: Value(budget.startDate),
       endDate: Value(budget.endDate),
+      alertThreshold: Value(budget.alertThreshold),
       isActive: Value(budget.isActive),
     ));
   }
@@ -39,6 +40,7 @@ class BudgetRepositoryImpl implements BudgetRepository {
       period: row.period,
       startDate: row.startDate,
       endDate: row.endDate,
+      alertThreshold: row.alertThreshold,
       isActive: row.isActive,
     );
   }
@@ -70,6 +72,7 @@ class BudgetRepositoryImpl implements BudgetRepository {
       period: Value(budget.period),
       startDate: Value(budget.startDate),
       endDate: Value(budget.endDate),
+      alertThreshold: Value(budget.alertThreshold),
       isActive: Value(budget.isActive),
     ));
   }

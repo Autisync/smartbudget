@@ -13,6 +13,7 @@ class Budget with _$Budget {
     required BudgetPeriod period,
     required DateTime startDate,
     DateTime? endDate,
+    @Default(80) int alertThreshold,
     @Default(true) bool isActive,
   }) = _Budget;
 }

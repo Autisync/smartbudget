@@ -19,12 +19,13 @@ String _randomHex(int length) {
   return s.substring(s.length - length);
 }
 
-@DriftDatabase(tables: [Transactions, Accounts, Budgets, SavingsGoals])
+@DriftDatabase(
+    tables: [Transactions, Accounts, Budgets, SavingsGoals, Subscriptions])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -34,6 +35,16 @@ class AppDatabase extends _$AppDatabase {
         onUpgrade: (Migrator m, int from, int to) async {
           if (from < 2) {
             await m.addColumn(transactions, transactions.recurrence);
+          }
+          if (from < 3) {
+            await m.addColumn(transactions, transactions.lastGeneratedAt);
+            await m.addColumn(transactions, transactions.nextDueAt);
+            await m.addColumn(budgets, budgets.alertThreshold);
+            await m.addColumn(savingsGoals, savingsGoals.autoAllocate);
+            await m.addColumn(savingsGoals, savingsGoals.createdAt);
+          }
+          if (from < 4) {
+            await m.createTable(subscriptions);
           }
         },
       );
@@ -196,5 +207,41 @@ class AppDatabase extends _$AppDatabase {
     final q = select(transactions);
     q.where((t) => t.isSynced.equals(false));
     return await q.get();
+  }
+
+  // Subscription Queries
+  Future<List<Subscription>> getSubscriptions() {
+    final query = select(subscriptions)..where((s) => s.isActive.equals(true));
+    return query.get();
+  }
+
+  Future<List<Subscription>> getDueSubscriptions(DateTime date) {
+    final startOfMonth = DateTime(date.year, date.month, 1);
+    final endOfMonth = DateTime(date.year, date.month + 1, 0);
+
+    final query = select(subscriptions)
+      ..where((s) => s.isActive.equals(true))
+      ..where(
+          (s) => s.nextBillingDate.isBetweenValues(startOfMonth, endOfMonth));
+
+    return query.get();
+  }
+
+  Future<void> insertSubscription(SubscriptionsCompanion subscription) async {
+    await into(subscriptions)
+        .insert(subscription, mode: InsertMode.insertOrReplace);
+  }
+
+  Future<void> updateSubscription(SubscriptionsCompanion subscription) async {
+    await update(subscriptions).replace(subscription);
+  }
+
+  Future<void> deleteSubscription(String id) async {
+    await (delete(subscriptions)..where((s) => s.id.equals(id))).go();
+  }
+
+  Future<Subscription?> getSubscriptionById(String id) async {
+    final query = select(subscriptions)..where((s) => s.id.equals(id));
+    return query.getSingleOrNull();
   }
 }

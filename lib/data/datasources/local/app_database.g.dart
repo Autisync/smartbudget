@@ -78,6 +78,18 @@ class $TransactionsTable extends Transactions
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("is_recurring" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _lastGeneratedAtMeta =
+      const VerificationMeta('lastGeneratedAt');
+  @override
+  late final GeneratedColumn<DateTime> lastGeneratedAt =
+      GeneratedColumn<DateTime>('last_generated_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _nextDueAtMeta =
+      const VerificationMeta('nextDueAt');
+  @override
+  late final GeneratedColumn<DateTime> nextDueAt = GeneratedColumn<DateTime>(
+      'next_due_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -116,6 +128,8 @@ class $TransactionsTable extends Transactions
         note,
         recurrence,
         isRecurring,
+        lastGeneratedAt,
+        nextDueAt,
         createdAt,
         updatedAt,
         isSynced
@@ -175,6 +189,18 @@ class $TransactionsTable extends Transactions
           isRecurring.isAcceptableOrUnknown(
               data['is_recurring']!, _isRecurringMeta));
     }
+    if (data.containsKey('last_generated_at')) {
+      context.handle(
+          _lastGeneratedAtMeta,
+          lastGeneratedAt.isAcceptableOrUnknown(
+              data['last_generated_at']!, _lastGeneratedAtMeta));
+    }
+    if (data.containsKey('next_due_at')) {
+      context.handle(
+          _nextDueAtMeta,
+          nextDueAt.isAcceptableOrUnknown(
+              data['next_due_at']!, _nextDueAtMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -218,6 +244,10 @@ class $TransactionsTable extends Transactions
               .read(DriftSqlType.int, data['${effectivePrefix}recurrence'])!),
       isRecurring: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_recurring'])!,
+      lastGeneratedAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}last_generated_at']),
+      nextDueAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}next_due_at']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       updatedAt: attachedDatabase.typeMapping
@@ -250,6 +280,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   final String? note;
   final TransactionRecurrence recurrence;
   final bool isRecurring;
+  final DateTime? lastGeneratedAt;
+  final DateTime? nextDueAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isSynced;
@@ -264,6 +296,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       this.note,
       required this.recurrence,
       required this.isRecurring,
+      this.lastGeneratedAt,
+      this.nextDueAt,
       required this.createdAt,
       required this.updatedAt,
       required this.isSynced});
@@ -288,6 +322,12 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           $TransactionsTable.$converterrecurrence.toSql(recurrence));
     }
     map['is_recurring'] = Variable<bool>(isRecurring);
+    if (!nullToAbsent || lastGeneratedAt != null) {
+      map['last_generated_at'] = Variable<DateTime>(lastGeneratedAt);
+    }
+    if (!nullToAbsent || nextDueAt != null) {
+      map['next_due_at'] = Variable<DateTime>(nextDueAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['is_synced'] = Variable<bool>(isSynced);
@@ -306,6 +346,12 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       recurrence: Value(recurrence),
       isRecurring: Value(isRecurring),
+      lastGeneratedAt: lastGeneratedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastGeneratedAt),
+      nextDueAt: nextDueAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextDueAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       isSynced: Value(isSynced),
@@ -328,6 +374,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       recurrence: $TransactionsTable.$converterrecurrence
           .fromJson(serializer.fromJson<int>(json['recurrence'])),
       isRecurring: serializer.fromJson<bool>(json['isRecurring']),
+      lastGeneratedAt: serializer.fromJson<DateTime?>(json['lastGeneratedAt']),
+      nextDueAt: serializer.fromJson<DateTime?>(json['nextDueAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isSynced: serializer.fromJson<bool>(json['isSynced']),
@@ -349,6 +397,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       'recurrence': serializer.toJson<int>(
           $TransactionsTable.$converterrecurrence.toJson(recurrence)),
       'isRecurring': serializer.toJson<bool>(isRecurring),
+      'lastGeneratedAt': serializer.toJson<DateTime?>(lastGeneratedAt),
+      'nextDueAt': serializer.toJson<DateTime?>(nextDueAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isSynced': serializer.toJson<bool>(isSynced),
@@ -366,6 +416,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           Value<String?> note = const Value.absent(),
           TransactionRecurrence? recurrence,
           bool? isRecurring,
+          Value<DateTime?> lastGeneratedAt = const Value.absent(),
+          Value<DateTime?> nextDueAt = const Value.absent(),
           DateTime? createdAt,
           DateTime? updatedAt,
           bool? isSynced}) =>
@@ -380,6 +432,10 @@ class Transaction extends DataClass implements Insertable<Transaction> {
         note: note.present ? note.value : this.note,
         recurrence: recurrence ?? this.recurrence,
         isRecurring: isRecurring ?? this.isRecurring,
+        lastGeneratedAt: lastGeneratedAt.present
+            ? lastGeneratedAt.value
+            : this.lastGeneratedAt,
+        nextDueAt: nextDueAt.present ? nextDueAt.value : this.nextDueAt,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         isSynced: isSynced ?? this.isSynced,
@@ -398,6 +454,10 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           data.recurrence.present ? data.recurrence.value : this.recurrence,
       isRecurring:
           data.isRecurring.present ? data.isRecurring.value : this.isRecurring,
+      lastGeneratedAt: data.lastGeneratedAt.present
+          ? data.lastGeneratedAt.value
+          : this.lastGeneratedAt,
+      nextDueAt: data.nextDueAt.present ? data.nextDueAt.value : this.nextDueAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
@@ -417,6 +477,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           ..write('note: $note, ')
           ..write('recurrence: $recurrence, ')
           ..write('isRecurring: $isRecurring, ')
+          ..write('lastGeneratedAt: $lastGeneratedAt, ')
+          ..write('nextDueAt: $nextDueAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isSynced: $isSynced')
@@ -436,6 +498,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       note,
       recurrence,
       isRecurring,
+      lastGeneratedAt,
+      nextDueAt,
       createdAt,
       updatedAt,
       isSynced);
@@ -453,6 +517,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           other.note == this.note &&
           other.recurrence == this.recurrence &&
           other.isRecurring == this.isRecurring &&
+          other.lastGeneratedAt == this.lastGeneratedAt &&
+          other.nextDueAt == this.nextDueAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.isSynced == this.isSynced);
@@ -469,6 +535,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   final Value<String?> note;
   final Value<TransactionRecurrence> recurrence;
   final Value<bool> isRecurring;
+  final Value<DateTime?> lastGeneratedAt;
+  final Value<DateTime?> nextDueAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isSynced;
@@ -484,6 +552,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.note = const Value.absent(),
     this.recurrence = const Value.absent(),
     this.isRecurring = const Value.absent(),
+    this.lastGeneratedAt = const Value.absent(),
+    this.nextDueAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
@@ -500,6 +570,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.note = const Value.absent(),
     this.recurrence = const Value.absent(),
     this.isRecurring = const Value.absent(),
+    this.lastGeneratedAt = const Value.absent(),
+    this.nextDueAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
@@ -521,6 +593,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Expression<String>? note,
     Expression<int>? recurrence,
     Expression<bool>? isRecurring,
+    Expression<DateTime>? lastGeneratedAt,
+    Expression<DateTime>? nextDueAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? isSynced,
@@ -537,6 +611,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       if (note != null) 'note': note,
       if (recurrence != null) 'recurrence': recurrence,
       if (isRecurring != null) 'is_recurring': isRecurring,
+      if (lastGeneratedAt != null) 'last_generated_at': lastGeneratedAt,
+      if (nextDueAt != null) 'next_due_at': nextDueAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isSynced != null) 'is_synced': isSynced,
@@ -555,6 +631,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       Value<String?>? note,
       Value<TransactionRecurrence>? recurrence,
       Value<bool>? isRecurring,
+      Value<DateTime?>? lastGeneratedAt,
+      Value<DateTime?>? nextDueAt,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
       Value<bool>? isSynced,
@@ -570,6 +648,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       note: note ?? this.note,
       recurrence: recurrence ?? this.recurrence,
       isRecurring: isRecurring ?? this.isRecurring,
+      lastGeneratedAt: lastGeneratedAt ?? this.lastGeneratedAt,
+      nextDueAt: nextDueAt ?? this.nextDueAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isSynced: isSynced ?? this.isSynced,
@@ -612,6 +692,12 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     if (isRecurring.present) {
       map['is_recurring'] = Variable<bool>(isRecurring.value);
     }
+    if (lastGeneratedAt.present) {
+      map['last_generated_at'] = Variable<DateTime>(lastGeneratedAt.value);
+    }
+    if (nextDueAt.present) {
+      map['next_due_at'] = Variable<DateTime>(nextDueAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -640,6 +726,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
           ..write('note: $note, ')
           ..write('recurrence: $recurrence, ')
           ..write('isRecurring: $isRecurring, ')
+          ..write('lastGeneratedAt: $lastGeneratedAt, ')
+          ..write('nextDueAt: $nextDueAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isSynced: $isSynced, ')
@@ -1086,6 +1174,14 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
   late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
       'end_date', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _alertThresholdMeta =
+      const VerificationMeta('alertThreshold');
+  @override
+  late final GeneratedColumn<int> alertThreshold = GeneratedColumn<int>(
+      'alert_threshold', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(80));
   static const VerificationMeta _isActiveMeta =
       const VerificationMeta('isActive');
   @override
@@ -1105,6 +1201,7 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
         period,
         startDate,
         endDate,
+        alertThreshold,
         isActive
       ];
   @override
@@ -1151,6 +1248,12 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
       context.handle(_endDateMeta,
           endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta));
     }
+    if (data.containsKey('alert_threshold')) {
+      context.handle(
+          _alertThresholdMeta,
+          alertThreshold.isAcceptableOrUnknown(
+              data['alert_threshold']!, _alertThresholdMeta));
+    }
     if (data.containsKey('is_active')) {
       context.handle(_isActiveMeta,
           isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
@@ -1179,6 +1282,8 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}start_date'])!,
       endDate: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}end_date']),
+      alertThreshold: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}alert_threshold'])!,
       isActive: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
     );
@@ -1201,6 +1306,7 @@ class Budget extends DataClass implements Insertable<Budget> {
   final BudgetPeriod period;
   final DateTime startDate;
   final DateTime? endDate;
+  final int alertThreshold;
   final bool isActive;
   const Budget(
       {required this.id,
@@ -1210,6 +1316,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       required this.period,
       required this.startDate,
       this.endDate,
+      required this.alertThreshold,
       required this.isActive});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1226,6 +1333,7 @@ class Budget extends DataClass implements Insertable<Budget> {
     if (!nullToAbsent || endDate != null) {
       map['end_date'] = Variable<DateTime>(endDate);
     }
+    map['alert_threshold'] = Variable<int>(alertThreshold);
     map['is_active'] = Variable<bool>(isActive);
     return map;
   }
@@ -1241,6 +1349,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       endDate: endDate == null && nullToAbsent
           ? const Value.absent()
           : Value(endDate),
+      alertThreshold: Value(alertThreshold),
       isActive: Value(isActive),
     );
   }
@@ -1257,6 +1366,7 @@ class Budget extends DataClass implements Insertable<Budget> {
           .fromJson(serializer.fromJson<int>(json['period'])),
       startDate: serializer.fromJson<DateTime>(json['startDate']),
       endDate: serializer.fromJson<DateTime?>(json['endDate']),
+      alertThreshold: serializer.fromJson<int>(json['alertThreshold']),
       isActive: serializer.fromJson<bool>(json['isActive']),
     );
   }
@@ -1272,6 +1382,7 @@ class Budget extends DataClass implements Insertable<Budget> {
           serializer.toJson<int>($BudgetsTable.$converterperiod.toJson(period)),
       'startDate': serializer.toJson<DateTime>(startDate),
       'endDate': serializer.toJson<DateTime?>(endDate),
+      'alertThreshold': serializer.toJson<int>(alertThreshold),
       'isActive': serializer.toJson<bool>(isActive),
     };
   }
@@ -1284,6 +1395,7 @@ class Budget extends DataClass implements Insertable<Budget> {
           BudgetPeriod? period,
           DateTime? startDate,
           Value<DateTime?> endDate = const Value.absent(),
+          int? alertThreshold,
           bool? isActive}) =>
       Budget(
         id: id ?? this.id,
@@ -1293,6 +1405,7 @@ class Budget extends DataClass implements Insertable<Budget> {
         period: period ?? this.period,
         startDate: startDate ?? this.startDate,
         endDate: endDate.present ? endDate.value : this.endDate,
+        alertThreshold: alertThreshold ?? this.alertThreshold,
         isActive: isActive ?? this.isActive,
       );
   Budget copyWithCompanion(BudgetsCompanion data) {
@@ -1305,6 +1418,9 @@ class Budget extends DataClass implements Insertable<Budget> {
       period: data.period.present ? data.period.value : this.period,
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
       endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      alertThreshold: data.alertThreshold.present
+          ? data.alertThreshold.value
+          : this.alertThreshold,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
     );
   }
@@ -1319,6 +1435,7 @@ class Budget extends DataClass implements Insertable<Budget> {
           ..write('period: $period, ')
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
+          ..write('alertThreshold: $alertThreshold, ')
           ..write('isActive: $isActive')
           ..write(')'))
         .toString();
@@ -1326,7 +1443,7 @@ class Budget extends DataClass implements Insertable<Budget> {
 
   @override
   int get hashCode => Object.hash(id, category, limitAmount, currency, period,
-      startDate, endDate, isActive);
+      startDate, endDate, alertThreshold, isActive);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1338,6 +1455,7 @@ class Budget extends DataClass implements Insertable<Budget> {
           other.period == this.period &&
           other.startDate == this.startDate &&
           other.endDate == this.endDate &&
+          other.alertThreshold == this.alertThreshold &&
           other.isActive == this.isActive);
 }
 
@@ -1349,6 +1467,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
   final Value<BudgetPeriod> period;
   final Value<DateTime> startDate;
   final Value<DateTime?> endDate;
+  final Value<int> alertThreshold;
   final Value<bool> isActive;
   final Value<int> rowid;
   const BudgetsCompanion({
@@ -1359,6 +1478,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     this.period = const Value.absent(),
     this.startDate = const Value.absent(),
     this.endDate = const Value.absent(),
+    this.alertThreshold = const Value.absent(),
     this.isActive = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1370,6 +1490,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     required BudgetPeriod period,
     required DateTime startDate,
     this.endDate = const Value.absent(),
+    this.alertThreshold = const Value.absent(),
     this.isActive = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : category = Value(category),
@@ -1385,6 +1506,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     Expression<int>? period,
     Expression<DateTime>? startDate,
     Expression<DateTime>? endDate,
+    Expression<int>? alertThreshold,
     Expression<bool>? isActive,
     Expression<int>? rowid,
   }) {
@@ -1396,6 +1518,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       if (period != null) 'period': period,
       if (startDate != null) 'start_date': startDate,
       if (endDate != null) 'end_date': endDate,
+      if (alertThreshold != null) 'alert_threshold': alertThreshold,
       if (isActive != null) 'is_active': isActive,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1409,6 +1532,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       Value<BudgetPeriod>? period,
       Value<DateTime>? startDate,
       Value<DateTime?>? endDate,
+      Value<int>? alertThreshold,
       Value<bool>? isActive,
       Value<int>? rowid}) {
     return BudgetsCompanion(
@@ -1419,6 +1543,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       period: period ?? this.period,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
+      alertThreshold: alertThreshold ?? this.alertThreshold,
       isActive: isActive ?? this.isActive,
       rowid: rowid ?? this.rowid,
     );
@@ -1449,6 +1574,9 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     if (endDate.present) {
       map['end_date'] = Variable<DateTime>(endDate.value);
     }
+    if (alertThreshold.present) {
+      map['alert_threshold'] = Variable<int>(alertThreshold.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -1468,6 +1596,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
           ..write('period: $period, ')
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
+          ..write('alertThreshold: $alertThreshold, ')
           ..write('isActive: $isActive, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1525,9 +1654,36 @@ class $SavingsGoalsTable extends SavingsGoals
   late final GeneratedColumn<String> color = GeneratedColumn<String>(
       'color', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _autoAllocateMeta =
+      const VerificationMeta('autoAllocate');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, title, targetAmount, savedAmount, deadline, priority, color];
+  late final GeneratedColumn<bool> autoAllocate = GeneratedColumn<bool>(
+      'auto_allocate', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("auto_allocate" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        title,
+        targetAmount,
+        savedAmount,
+        deadline,
+        priority,
+        color,
+        autoAllocate,
+        createdAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1570,6 +1726,16 @@ class $SavingsGoalsTable extends SavingsGoals
       context.handle(
           _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
     }
+    if (data.containsKey('auto_allocate')) {
+      context.handle(
+          _autoAllocateMeta,
+          autoAllocate.isAcceptableOrUnknown(
+              data['auto_allocate']!, _autoAllocateMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
     return context;
   }
 
@@ -1594,6 +1760,10 @@ class $SavingsGoalsTable extends SavingsGoals
           .read(DriftSqlType.int, data['${effectivePrefix}priority'])!),
       color: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}color']),
+      autoAllocate: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}auto_allocate'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
   }
 
@@ -1614,6 +1784,8 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
   final DateTime? deadline;
   final GoalPriority priority;
   final String? color;
+  final bool autoAllocate;
+  final DateTime createdAt;
   const SavingsGoal(
       {required this.id,
       required this.title,
@@ -1621,7 +1793,9 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
       required this.savedAmount,
       this.deadline,
       required this.priority,
-      this.color});
+      this.color,
+      required this.autoAllocate,
+      required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1639,6 +1813,8 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
     }
+    map['auto_allocate'] = Variable<bool>(autoAllocate);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
@@ -1654,6 +1830,8 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
       priority: Value(priority),
       color:
           color == null && nullToAbsent ? const Value.absent() : Value(color),
+      autoAllocate: Value(autoAllocate),
+      createdAt: Value(createdAt),
     );
   }
 
@@ -1669,6 +1847,8 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
       priority: $SavingsGoalsTable.$converterpriority
           .fromJson(serializer.fromJson<int>(json['priority'])),
       color: serializer.fromJson<String?>(json['color']),
+      autoAllocate: serializer.fromJson<bool>(json['autoAllocate']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
@@ -1683,6 +1863,8 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
       'priority': serializer
           .toJson<int>($SavingsGoalsTable.$converterpriority.toJson(priority)),
       'color': serializer.toJson<String?>(color),
+      'autoAllocate': serializer.toJson<bool>(autoAllocate),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
@@ -1693,7 +1875,9 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
           double? savedAmount,
           Value<DateTime?> deadline = const Value.absent(),
           GoalPriority? priority,
-          Value<String?> color = const Value.absent()}) =>
+          Value<String?> color = const Value.absent(),
+          bool? autoAllocate,
+          DateTime? createdAt}) =>
       SavingsGoal(
         id: id ?? this.id,
         title: title ?? this.title,
@@ -1702,6 +1886,8 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
         deadline: deadline.present ? deadline.value : this.deadline,
         priority: priority ?? this.priority,
         color: color.present ? color.value : this.color,
+        autoAllocate: autoAllocate ?? this.autoAllocate,
+        createdAt: createdAt ?? this.createdAt,
       );
   SavingsGoal copyWithCompanion(SavingsGoalsCompanion data) {
     return SavingsGoal(
@@ -1715,6 +1901,10 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
       deadline: data.deadline.present ? data.deadline.value : this.deadline,
       priority: data.priority.present ? data.priority.value : this.priority,
       color: data.color.present ? data.color.value : this.color,
+      autoAllocate: data.autoAllocate.present
+          ? data.autoAllocate.value
+          : this.autoAllocate,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
@@ -1727,14 +1917,16 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
           ..write('savedAmount: $savedAmount, ')
           ..write('deadline: $deadline, ')
           ..write('priority: $priority, ')
-          ..write('color: $color')
+          ..write('color: $color, ')
+          ..write('autoAllocate: $autoAllocate, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, title, targetAmount, savedAmount, deadline, priority, color);
+  int get hashCode => Object.hash(id, title, targetAmount, savedAmount,
+      deadline, priority, color, autoAllocate, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1745,7 +1937,9 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
           other.savedAmount == this.savedAmount &&
           other.deadline == this.deadline &&
           other.priority == this.priority &&
-          other.color == this.color);
+          other.color == this.color &&
+          other.autoAllocate == this.autoAllocate &&
+          other.createdAt == this.createdAt);
 }
 
 class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
@@ -1756,6 +1950,8 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
   final Value<DateTime?> deadline;
   final Value<GoalPriority> priority;
   final Value<String?> color;
+  final Value<bool> autoAllocate;
+  final Value<DateTime> createdAt;
   final Value<int> rowid;
   const SavingsGoalsCompanion({
     this.id = const Value.absent(),
@@ -1765,6 +1961,8 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
     this.deadline = const Value.absent(),
     this.priority = const Value.absent(),
     this.color = const Value.absent(),
+    this.autoAllocate = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SavingsGoalsCompanion.insert({
@@ -1775,6 +1973,8 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
     this.deadline = const Value.absent(),
     required GoalPriority priority,
     this.color = const Value.absent(),
+    this.autoAllocate = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : title = Value(title),
         targetAmount = Value(targetAmount),
@@ -1787,6 +1987,8 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
     Expression<DateTime>? deadline,
     Expression<int>? priority,
     Expression<String>? color,
+    Expression<bool>? autoAllocate,
+    Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1797,6 +1999,8 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
       if (deadline != null) 'deadline': deadline,
       if (priority != null) 'priority': priority,
       if (color != null) 'color': color,
+      if (autoAllocate != null) 'auto_allocate': autoAllocate,
+      if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1809,6 +2013,8 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
       Value<DateTime?>? deadline,
       Value<GoalPriority>? priority,
       Value<String?>? color,
+      Value<bool>? autoAllocate,
+      Value<DateTime>? createdAt,
       Value<int>? rowid}) {
     return SavingsGoalsCompanion(
       id: id ?? this.id,
@@ -1818,6 +2024,8 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
       deadline: deadline ?? this.deadline,
       priority: priority ?? this.priority,
       color: color ?? this.color,
+      autoAllocate: autoAllocate ?? this.autoAllocate,
+      createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1847,6 +2055,12 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
     if (color.present) {
       map['color'] = Variable<String>(color.value);
     }
+    if (autoAllocate.present) {
+      map['auto_allocate'] = Variable<bool>(autoAllocate.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1863,6 +2077,741 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
           ..write('deadline: $deadline, ')
           ..write('priority: $priority, ')
           ..write('color: $color, ')
+          ..write('autoAllocate: $autoAllocate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SubscriptionsTable extends Subscriptions
+    with TableInfo<$SubscriptionsTable, Subscription> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SubscriptionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => _generateUuid());
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+      'amount', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _currencyMeta =
+      const VerificationMeta('currency');
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+      'currency', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 3, maxTextLength: 3),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _billingCycleMeta =
+      const VerificationMeta('billingCycle');
+  @override
+  late final GeneratedColumnWithTypeConverter<BillingCycle, int> billingCycle =
+      GeneratedColumn<int>('billing_cycle', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<BillingCycle>(
+              $SubscriptionsTable.$converterbillingCycle);
+  static const VerificationMeta _startDateMeta =
+      const VerificationMeta('startDate');
+  @override
+  late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
+      'start_date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _nextBillingDateMeta =
+      const VerificationMeta('nextBillingDate');
+  @override
+  late final GeneratedColumn<DateTime> nextBillingDate =
+      GeneratedColumn<DateTime>('next_billing_date', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _endDateMeta =
+      const VerificationMeta('endDate');
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+      'end_date', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+      'category', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _isActiveMeta =
+      const VerificationMeta('isActive');
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+      'is_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _paymentMethodMeta =
+      const VerificationMeta('paymentMethod');
+  @override
+  late final GeneratedColumn<String> paymentMethod = GeneratedColumn<String>(
+      'payment_method', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _websiteMeta =
+      const VerificationMeta('website');
+  @override
+  late final GeneratedColumn<String> website = GeneratedColumn<String>(
+      'website', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        name,
+        description,
+        amount,
+        currency,
+        billingCycle,
+        startDate,
+        nextBillingDate,
+        endDate,
+        category,
+        isActive,
+        paymentMethod,
+        website,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'subscriptions';
+  @override
+  VerificationContext validateIntegrity(Insertable<Subscription> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('amount')) {
+      context.handle(_amountMeta,
+          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(_currencyMeta,
+          currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta));
+    } else if (isInserting) {
+      context.missing(_currencyMeta);
+    }
+    context.handle(_billingCycleMeta, const VerificationResult.success());
+    if (data.containsKey('start_date')) {
+      context.handle(_startDateMeta,
+          startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta));
+    } else if (isInserting) {
+      context.missing(_startDateMeta);
+    }
+    if (data.containsKey('next_billing_date')) {
+      context.handle(
+          _nextBillingDateMeta,
+          nextBillingDate.isAcceptableOrUnknown(
+              data['next_billing_date']!, _nextBillingDateMeta));
+    } else if (isInserting) {
+      context.missing(_nextBillingDateMeta);
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(_endDateMeta,
+          endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta));
+    }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(_isActiveMeta,
+          isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
+    }
+    if (data.containsKey('payment_method')) {
+      context.handle(
+          _paymentMethodMeta,
+          paymentMethod.isAcceptableOrUnknown(
+              data['payment_method']!, _paymentMethodMeta));
+    }
+    if (data.containsKey('website')) {
+      context.handle(_websiteMeta,
+          website.isAcceptableOrUnknown(data['website']!, _websiteMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Subscription map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Subscription(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      amount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}amount'])!,
+      currency: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}currency'])!,
+      billingCycle: $SubscriptionsTable.$converterbillingCycle.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.int, data['${effectivePrefix}billing_cycle'])!),
+      startDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}start_date'])!,
+      nextBillingDate: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}next_billing_date'])!,
+      endDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_date']),
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category'])!,
+      isActive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
+      paymentMethod: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}payment_method']),
+      website: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}website']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $SubscriptionsTable createAlias(String alias) {
+    return $SubscriptionsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<BillingCycle, int, int> $converterbillingCycle =
+      const EnumIndexConverter<BillingCycle>(BillingCycle.values);
+}
+
+class Subscription extends DataClass implements Insertable<Subscription> {
+  final String id;
+  final String name;
+  final String? description;
+  final double amount;
+  final String currency;
+  final BillingCycle billingCycle;
+  final DateTime startDate;
+  final DateTime nextBillingDate;
+  final DateTime? endDate;
+  final String category;
+  final bool isActive;
+  final String? paymentMethod;
+  final String? website;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Subscription(
+      {required this.id,
+      required this.name,
+      this.description,
+      required this.amount,
+      required this.currency,
+      required this.billingCycle,
+      required this.startDate,
+      required this.nextBillingDate,
+      this.endDate,
+      required this.category,
+      required this.isActive,
+      this.paymentMethod,
+      this.website,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['amount'] = Variable<double>(amount);
+    map['currency'] = Variable<String>(currency);
+    {
+      map['billing_cycle'] = Variable<int>(
+          $SubscriptionsTable.$converterbillingCycle.toSql(billingCycle));
+    }
+    map['start_date'] = Variable<DateTime>(startDate);
+    map['next_billing_date'] = Variable<DateTime>(nextBillingDate);
+    if (!nullToAbsent || endDate != null) {
+      map['end_date'] = Variable<DateTime>(endDate);
+    }
+    map['category'] = Variable<String>(category);
+    map['is_active'] = Variable<bool>(isActive);
+    if (!nullToAbsent || paymentMethod != null) {
+      map['payment_method'] = Variable<String>(paymentMethod);
+    }
+    if (!nullToAbsent || website != null) {
+      map['website'] = Variable<String>(website);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  SubscriptionsCompanion toCompanion(bool nullToAbsent) {
+    return SubscriptionsCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      amount: Value(amount),
+      currency: Value(currency),
+      billingCycle: Value(billingCycle),
+      startDate: Value(startDate),
+      nextBillingDate: Value(nextBillingDate),
+      endDate: endDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDate),
+      category: Value(category),
+      isActive: Value(isActive),
+      paymentMethod: paymentMethod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paymentMethod),
+      website: website == null && nullToAbsent
+          ? const Value.absent()
+          : Value(website),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Subscription.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Subscription(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      amount: serializer.fromJson<double>(json['amount']),
+      currency: serializer.fromJson<String>(json['currency']),
+      billingCycle: $SubscriptionsTable.$converterbillingCycle
+          .fromJson(serializer.fromJson<int>(json['billingCycle'])),
+      startDate: serializer.fromJson<DateTime>(json['startDate']),
+      nextBillingDate: serializer.fromJson<DateTime>(json['nextBillingDate']),
+      endDate: serializer.fromJson<DateTime?>(json['endDate']),
+      category: serializer.fromJson<String>(json['category']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      paymentMethod: serializer.fromJson<String?>(json['paymentMethod']),
+      website: serializer.fromJson<String?>(json['website']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'amount': serializer.toJson<double>(amount),
+      'currency': serializer.toJson<String>(currency),
+      'billingCycle': serializer.toJson<int>(
+          $SubscriptionsTable.$converterbillingCycle.toJson(billingCycle)),
+      'startDate': serializer.toJson<DateTime>(startDate),
+      'nextBillingDate': serializer.toJson<DateTime>(nextBillingDate),
+      'endDate': serializer.toJson<DateTime?>(endDate),
+      'category': serializer.toJson<String>(category),
+      'isActive': serializer.toJson<bool>(isActive),
+      'paymentMethod': serializer.toJson<String?>(paymentMethod),
+      'website': serializer.toJson<String?>(website),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Subscription copyWith(
+          {String? id,
+          String? name,
+          Value<String?> description = const Value.absent(),
+          double? amount,
+          String? currency,
+          BillingCycle? billingCycle,
+          DateTime? startDate,
+          DateTime? nextBillingDate,
+          Value<DateTime?> endDate = const Value.absent(),
+          String? category,
+          bool? isActive,
+          Value<String?> paymentMethod = const Value.absent(),
+          Value<String?> website = const Value.absent(),
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      Subscription(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        description: description.present ? description.value : this.description,
+        amount: amount ?? this.amount,
+        currency: currency ?? this.currency,
+        billingCycle: billingCycle ?? this.billingCycle,
+        startDate: startDate ?? this.startDate,
+        nextBillingDate: nextBillingDate ?? this.nextBillingDate,
+        endDate: endDate.present ? endDate.value : this.endDate,
+        category: category ?? this.category,
+        isActive: isActive ?? this.isActive,
+        paymentMethod:
+            paymentMethod.present ? paymentMethod.value : this.paymentMethod,
+        website: website.present ? website.value : this.website,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  Subscription copyWithCompanion(SubscriptionsCompanion data) {
+    return Subscription(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description:
+          data.description.present ? data.description.value : this.description,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      billingCycle: data.billingCycle.present
+          ? data.billingCycle.value
+          : this.billingCycle,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      nextBillingDate: data.nextBillingDate.present
+          ? data.nextBillingDate.value
+          : this.nextBillingDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      category: data.category.present ? data.category.value : this.category,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      paymentMethod: data.paymentMethod.present
+          ? data.paymentMethod.value
+          : this.paymentMethod,
+      website: data.website.present ? data.website.value : this.website,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Subscription(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('amount: $amount, ')
+          ..write('currency: $currency, ')
+          ..write('billingCycle: $billingCycle, ')
+          ..write('startDate: $startDate, ')
+          ..write('nextBillingDate: $nextBillingDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('category: $category, ')
+          ..write('isActive: $isActive, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('website: $website, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      name,
+      description,
+      amount,
+      currency,
+      billingCycle,
+      startDate,
+      nextBillingDate,
+      endDate,
+      category,
+      isActive,
+      paymentMethod,
+      website,
+      createdAt,
+      updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Subscription &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.amount == this.amount &&
+          other.currency == this.currency &&
+          other.billingCycle == this.billingCycle &&
+          other.startDate == this.startDate &&
+          other.nextBillingDate == this.nextBillingDate &&
+          other.endDate == this.endDate &&
+          other.category == this.category &&
+          other.isActive == this.isActive &&
+          other.paymentMethod == this.paymentMethod &&
+          other.website == this.website &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> description;
+  final Value<double> amount;
+  final Value<String> currency;
+  final Value<BillingCycle> billingCycle;
+  final Value<DateTime> startDate;
+  final Value<DateTime> nextBillingDate;
+  final Value<DateTime?> endDate;
+  final Value<String> category;
+  final Value<bool> isActive;
+  final Value<String?> paymentMethod;
+  final Value<String?> website;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const SubscriptionsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.billingCycle = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.nextBillingDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.category = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
+    this.website = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SubscriptionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.description = const Value.absent(),
+    required double amount,
+    required String currency,
+    required BillingCycle billingCycle,
+    required DateTime startDate,
+    required DateTime nextBillingDate,
+    this.endDate = const Value.absent(),
+    required String category,
+    this.isActive = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
+    this.website = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : name = Value(name),
+        amount = Value(amount),
+        currency = Value(currency),
+        billingCycle = Value(billingCycle),
+        startDate = Value(startDate),
+        nextBillingDate = Value(nextBillingDate),
+        category = Value(category);
+  static Insertable<Subscription> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<double>? amount,
+    Expression<String>? currency,
+    Expression<int>? billingCycle,
+    Expression<DateTime>? startDate,
+    Expression<DateTime>? nextBillingDate,
+    Expression<DateTime>? endDate,
+    Expression<String>? category,
+    Expression<bool>? isActive,
+    Expression<String>? paymentMethod,
+    Expression<String>? website,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (amount != null) 'amount': amount,
+      if (currency != null) 'currency': currency,
+      if (billingCycle != null) 'billing_cycle': billingCycle,
+      if (startDate != null) 'start_date': startDate,
+      if (nextBillingDate != null) 'next_billing_date': nextBillingDate,
+      if (endDate != null) 'end_date': endDate,
+      if (category != null) 'category': category,
+      if (isActive != null) 'is_active': isActive,
+      if (paymentMethod != null) 'payment_method': paymentMethod,
+      if (website != null) 'website': website,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SubscriptionsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? name,
+      Value<String?>? description,
+      Value<double>? amount,
+      Value<String>? currency,
+      Value<BillingCycle>? billingCycle,
+      Value<DateTime>? startDate,
+      Value<DateTime>? nextBillingDate,
+      Value<DateTime?>? endDate,
+      Value<String>? category,
+      Value<bool>? isActive,
+      Value<String?>? paymentMethod,
+      Value<String?>? website,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return SubscriptionsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      amount: amount ?? this.amount,
+      currency: currency ?? this.currency,
+      billingCycle: billingCycle ?? this.billingCycle,
+      startDate: startDate ?? this.startDate,
+      nextBillingDate: nextBillingDate ?? this.nextBillingDate,
+      endDate: endDate ?? this.endDate,
+      category: category ?? this.category,
+      isActive: isActive ?? this.isActive,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      website: website ?? this.website,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (billingCycle.present) {
+      map['billing_cycle'] = Variable<int>(
+          $SubscriptionsTable.$converterbillingCycle.toSql(billingCycle.value));
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<DateTime>(startDate.value);
+    }
+    if (nextBillingDate.present) {
+      map['next_billing_date'] = Variable<DateTime>(nextBillingDate.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (paymentMethod.present) {
+      map['payment_method'] = Variable<String>(paymentMethod.value);
+    }
+    if (website.present) {
+      map['website'] = Variable<String>(website.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SubscriptionsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('amount: $amount, ')
+          ..write('currency: $currency, ')
+          ..write('billingCycle: $billingCycle, ')
+          ..write('startDate: $startDate, ')
+          ..write('nextBillingDate: $nextBillingDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('category: $category, ')
+          ..write('isActive: $isActive, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('website: $website, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1876,12 +2825,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AccountsTable accounts = $AccountsTable(this);
   late final $BudgetsTable budgets = $BudgetsTable(this);
   late final $SavingsGoalsTable savingsGoals = $SavingsGoalsTable(this);
+  late final $SubscriptionsTable subscriptions = $SubscriptionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [transactions, accounts, budgets, savingsGoals];
+      [transactions, accounts, budgets, savingsGoals, subscriptions];
 }
 
 typedef $$TransactionsTableCreateCompanionBuilder = TransactionsCompanion
@@ -1896,6 +2846,8 @@ typedef $$TransactionsTableCreateCompanionBuilder = TransactionsCompanion
   Value<String?> note,
   Value<TransactionRecurrence> recurrence,
   Value<bool> isRecurring,
+  Value<DateTime?> lastGeneratedAt,
+  Value<DateTime?> nextDueAt,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<bool> isSynced,
@@ -1913,6 +2865,8 @@ typedef $$TransactionsTableUpdateCompanionBuilder = TransactionsCompanion
   Value<String?> note,
   Value<TransactionRecurrence> recurrence,
   Value<bool> isRecurring,
+  Value<DateTime?> lastGeneratedAt,
+  Value<DateTime?> nextDueAt,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<bool> isSynced,
@@ -1963,6 +2917,13 @@ class $$TransactionsTableFilterComposer
   ColumnFilters<bool> get isRecurring => $composableBuilder(
       column: $table.isRecurring, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<DateTime> get lastGeneratedAt => $composableBuilder(
+      column: $table.lastGeneratedAt,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get nextDueAt => $composableBuilder(
+      column: $table.nextDueAt, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
@@ -2011,6 +2972,13 @@ class $$TransactionsTableOrderingComposer
 
   ColumnOrderings<bool> get isRecurring => $composableBuilder(
       column: $table.isRecurring, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastGeneratedAt => $composableBuilder(
+      column: $table.lastGeneratedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get nextDueAt => $composableBuilder(
+      column: $table.nextDueAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
@@ -2062,6 +3030,12 @@ class $$TransactionsTableAnnotationComposer
   GeneratedColumn<bool> get isRecurring => $composableBuilder(
       column: $table.isRecurring, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get lastGeneratedAt => $composableBuilder(
+      column: $table.lastGeneratedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get nextDueAt =>
+      $composableBuilder(column: $table.nextDueAt, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -2108,6 +3082,8 @@ class $$TransactionsTableTableManager extends RootTableManager<
             Value<String?> note = const Value.absent(),
             Value<TransactionRecurrence> recurrence = const Value.absent(),
             Value<bool> isRecurring = const Value.absent(),
+            Value<DateTime?> lastGeneratedAt = const Value.absent(),
+            Value<DateTime?> nextDueAt = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<bool> isSynced = const Value.absent(),
@@ -2124,6 +3100,8 @@ class $$TransactionsTableTableManager extends RootTableManager<
             note: note,
             recurrence: recurrence,
             isRecurring: isRecurring,
+            lastGeneratedAt: lastGeneratedAt,
+            nextDueAt: nextDueAt,
             createdAt: createdAt,
             updatedAt: updatedAt,
             isSynced: isSynced,
@@ -2140,6 +3118,8 @@ class $$TransactionsTableTableManager extends RootTableManager<
             Value<String?> note = const Value.absent(),
             Value<TransactionRecurrence> recurrence = const Value.absent(),
             Value<bool> isRecurring = const Value.absent(),
+            Value<DateTime?> lastGeneratedAt = const Value.absent(),
+            Value<DateTime?> nextDueAt = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<bool> isSynced = const Value.absent(),
@@ -2156,6 +3136,8 @@ class $$TransactionsTableTableManager extends RootTableManager<
             note: note,
             recurrence: recurrence,
             isRecurring: isRecurring,
+            lastGeneratedAt: lastGeneratedAt,
+            nextDueAt: nextDueAt,
             createdAt: createdAt,
             updatedAt: updatedAt,
             isSynced: isSynced,
@@ -2388,6 +3370,7 @@ typedef $$BudgetsTableCreateCompanionBuilder = BudgetsCompanion Function({
   required BudgetPeriod period,
   required DateTime startDate,
   Value<DateTime?> endDate,
+  Value<int> alertThreshold,
   Value<bool> isActive,
   Value<int> rowid,
 });
@@ -2399,6 +3382,7 @@ typedef $$BudgetsTableUpdateCompanionBuilder = BudgetsCompanion Function({
   Value<BudgetPeriod> period,
   Value<DateTime> startDate,
   Value<DateTime?> endDate,
+  Value<int> alertThreshold,
   Value<bool> isActive,
   Value<int> rowid,
 });
@@ -2435,6 +3419,10 @@ class $$BudgetsTableFilterComposer
   ColumnFilters<DateTime> get endDate => $composableBuilder(
       column: $table.endDate, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<int> get alertThreshold => $composableBuilder(
+      column: $table.alertThreshold,
+      builder: (column) => ColumnFilters(column));
+
   ColumnFilters<bool> get isActive => $composableBuilder(
       column: $table.isActive, builder: (column) => ColumnFilters(column));
 }
@@ -2468,6 +3456,10 @@ class $$BudgetsTableOrderingComposer
 
   ColumnOrderings<DateTime> get endDate => $composableBuilder(
       column: $table.endDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get alertThreshold => $composableBuilder(
+      column: $table.alertThreshold,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isActive => $composableBuilder(
       column: $table.isActive, builder: (column) => ColumnOrderings(column));
@@ -2503,6 +3495,9 @@ class $$BudgetsTableAnnotationComposer
   GeneratedColumn<DateTime> get endDate =>
       $composableBuilder(column: $table.endDate, builder: (column) => column);
 
+  GeneratedColumn<int> get alertThreshold => $composableBuilder(
+      column: $table.alertThreshold, builder: (column) => column);
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 }
@@ -2537,6 +3532,7 @@ class $$BudgetsTableTableManager extends RootTableManager<
             Value<BudgetPeriod> period = const Value.absent(),
             Value<DateTime> startDate = const Value.absent(),
             Value<DateTime?> endDate = const Value.absent(),
+            Value<int> alertThreshold = const Value.absent(),
             Value<bool> isActive = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2548,6 +3544,7 @@ class $$BudgetsTableTableManager extends RootTableManager<
             period: period,
             startDate: startDate,
             endDate: endDate,
+            alertThreshold: alertThreshold,
             isActive: isActive,
             rowid: rowid,
           ),
@@ -2559,6 +3556,7 @@ class $$BudgetsTableTableManager extends RootTableManager<
             required BudgetPeriod period,
             required DateTime startDate,
             Value<DateTime?> endDate = const Value.absent(),
+            Value<int> alertThreshold = const Value.absent(),
             Value<bool> isActive = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2570,6 +3568,7 @@ class $$BudgetsTableTableManager extends RootTableManager<
             period: period,
             startDate: startDate,
             endDate: endDate,
+            alertThreshold: alertThreshold,
             isActive: isActive,
             rowid: rowid,
           ),
@@ -2601,6 +3600,8 @@ typedef $$SavingsGoalsTableCreateCompanionBuilder = SavingsGoalsCompanion
   Value<DateTime?> deadline,
   required GoalPriority priority,
   Value<String?> color,
+  Value<bool> autoAllocate,
+  Value<DateTime> createdAt,
   Value<int> rowid,
 });
 typedef $$SavingsGoalsTableUpdateCompanionBuilder = SavingsGoalsCompanion
@@ -2612,6 +3613,8 @@ typedef $$SavingsGoalsTableUpdateCompanionBuilder = SavingsGoalsCompanion
   Value<DateTime?> deadline,
   Value<GoalPriority> priority,
   Value<String?> color,
+  Value<bool> autoAllocate,
+  Value<DateTime> createdAt,
   Value<int> rowid,
 });
 
@@ -2646,6 +3649,12 @@ class $$SavingsGoalsTableFilterComposer
 
   ColumnFilters<String> get color => $composableBuilder(
       column: $table.color, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get autoAllocate => $composableBuilder(
+      column: $table.autoAllocate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$SavingsGoalsTableOrderingComposer
@@ -2678,6 +3687,13 @@ class $$SavingsGoalsTableOrderingComposer
 
   ColumnOrderings<String> get color => $composableBuilder(
       column: $table.color, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get autoAllocate => $composableBuilder(
+      column: $table.autoAllocate,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$SavingsGoalsTableAnnotationComposer
@@ -2709,6 +3725,12 @@ class $$SavingsGoalsTableAnnotationComposer
 
   GeneratedColumn<String> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<bool> get autoAllocate => $composableBuilder(
+      column: $table.autoAllocate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
 class $$SavingsGoalsTableTableManager extends RootTableManager<
@@ -2744,6 +3766,8 @@ class $$SavingsGoalsTableTableManager extends RootTableManager<
             Value<DateTime?> deadline = const Value.absent(),
             Value<GoalPriority> priority = const Value.absent(),
             Value<String?> color = const Value.absent(),
+            Value<bool> autoAllocate = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SavingsGoalsCompanion(
@@ -2754,6 +3778,8 @@ class $$SavingsGoalsTableTableManager extends RootTableManager<
             deadline: deadline,
             priority: priority,
             color: color,
+            autoAllocate: autoAllocate,
+            createdAt: createdAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -2764,6 +3790,8 @@ class $$SavingsGoalsTableTableManager extends RootTableManager<
             Value<DateTime?> deadline = const Value.absent(),
             required GoalPriority priority,
             Value<String?> color = const Value.absent(),
+            Value<bool> autoAllocate = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SavingsGoalsCompanion.insert(
@@ -2774,6 +3802,8 @@ class $$SavingsGoalsTableTableManager extends RootTableManager<
             deadline: deadline,
             priority: priority,
             color: color,
+            autoAllocate: autoAllocate,
+            createdAt: createdAt,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -2798,6 +3828,336 @@ typedef $$SavingsGoalsTableProcessedTableManager = ProcessedTableManager<
     ),
     SavingsGoal,
     PrefetchHooks Function()>;
+typedef $$SubscriptionsTableCreateCompanionBuilder = SubscriptionsCompanion
+    Function({
+  Value<String> id,
+  required String name,
+  Value<String?> description,
+  required double amount,
+  required String currency,
+  required BillingCycle billingCycle,
+  required DateTime startDate,
+  required DateTime nextBillingDate,
+  Value<DateTime?> endDate,
+  required String category,
+  Value<bool> isActive,
+  Value<String?> paymentMethod,
+  Value<String?> website,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$SubscriptionsTableUpdateCompanionBuilder = SubscriptionsCompanion
+    Function({
+  Value<String> id,
+  Value<String> name,
+  Value<String?> description,
+  Value<double> amount,
+  Value<String> currency,
+  Value<BillingCycle> billingCycle,
+  Value<DateTime> startDate,
+  Value<DateTime> nextBillingDate,
+  Value<DateTime?> endDate,
+  Value<String> category,
+  Value<bool> isActive,
+  Value<String?> paymentMethod,
+  Value<String?> website,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$SubscriptionsTableFilterComposer
+    extends Composer<_$AppDatabase, $SubscriptionsTable> {
+  $$SubscriptionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get currency => $composableBuilder(
+      column: $table.currency, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<BillingCycle, BillingCycle, int>
+      get billingCycle => $composableBuilder(
+          column: $table.billingCycle,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<DateTime> get startDate => $composableBuilder(
+      column: $table.startDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get nextBillingDate => $composableBuilder(
+      column: $table.nextBillingDate,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get paymentMethod => $composableBuilder(
+      column: $table.paymentMethod, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get website => $composableBuilder(
+      column: $table.website, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$SubscriptionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SubscriptionsTable> {
+  $$SubscriptionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+      column: $table.currency, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get billingCycle => $composableBuilder(
+      column: $table.billingCycle,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get startDate => $composableBuilder(
+      column: $table.startDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get nextBillingDate => $composableBuilder(
+      column: $table.nextBillingDate,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get paymentMethod => $composableBuilder(
+      column: $table.paymentMethod,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get website => $composableBuilder(
+      column: $table.website, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$SubscriptionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SubscriptionsTable> {
+  $$SubscriptionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<BillingCycle, int> get billingCycle =>
+      $composableBuilder(
+          column: $table.billingCycle, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get nextBillingDate => $composableBuilder(
+      column: $table.nextBillingDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<String> get paymentMethod => $composableBuilder(
+      column: $table.paymentMethod, builder: (column) => column);
+
+  GeneratedColumn<String> get website =>
+      $composableBuilder(column: $table.website, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$SubscriptionsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SubscriptionsTable,
+    Subscription,
+    $$SubscriptionsTableFilterComposer,
+    $$SubscriptionsTableOrderingComposer,
+    $$SubscriptionsTableAnnotationComposer,
+    $$SubscriptionsTableCreateCompanionBuilder,
+    $$SubscriptionsTableUpdateCompanionBuilder,
+    (
+      Subscription,
+      BaseReferences<_$AppDatabase, $SubscriptionsTable, Subscription>
+    ),
+    Subscription,
+    PrefetchHooks Function()> {
+  $$SubscriptionsTableTableManager(_$AppDatabase db, $SubscriptionsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SubscriptionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SubscriptionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SubscriptionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<double> amount = const Value.absent(),
+            Value<String> currency = const Value.absent(),
+            Value<BillingCycle> billingCycle = const Value.absent(),
+            Value<DateTime> startDate = const Value.absent(),
+            Value<DateTime> nextBillingDate = const Value.absent(),
+            Value<DateTime?> endDate = const Value.absent(),
+            Value<String> category = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            Value<String?> paymentMethod = const Value.absent(),
+            Value<String?> website = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SubscriptionsCompanion(
+            id: id,
+            name: name,
+            description: description,
+            amount: amount,
+            currency: currency,
+            billingCycle: billingCycle,
+            startDate: startDate,
+            nextBillingDate: nextBillingDate,
+            endDate: endDate,
+            category: category,
+            isActive: isActive,
+            paymentMethod: paymentMethod,
+            website: website,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            required String name,
+            Value<String?> description = const Value.absent(),
+            required double amount,
+            required String currency,
+            required BillingCycle billingCycle,
+            required DateTime startDate,
+            required DateTime nextBillingDate,
+            Value<DateTime?> endDate = const Value.absent(),
+            required String category,
+            Value<bool> isActive = const Value.absent(),
+            Value<String?> paymentMethod = const Value.absent(),
+            Value<String?> website = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SubscriptionsCompanion.insert(
+            id: id,
+            name: name,
+            description: description,
+            amount: amount,
+            currency: currency,
+            billingCycle: billingCycle,
+            startDate: startDate,
+            nextBillingDate: nextBillingDate,
+            endDate: endDate,
+            category: category,
+            isActive: isActive,
+            paymentMethod: paymentMethod,
+            website: website,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$SubscriptionsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SubscriptionsTable,
+    Subscription,
+    $$SubscriptionsTableFilterComposer,
+    $$SubscriptionsTableOrderingComposer,
+    $$SubscriptionsTableAnnotationComposer,
+    $$SubscriptionsTableCreateCompanionBuilder,
+    $$SubscriptionsTableUpdateCompanionBuilder,
+    (
+      Subscription,
+      BaseReferences<_$AppDatabase, $SubscriptionsTable, Subscription>
+    ),
+    Subscription,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2810,4 +4170,6 @@ class $AppDatabaseManager {
       $$BudgetsTableTableManager(_db, _db.budgets);
   $$SavingsGoalsTableTableManager get savingsGoals =>
       $$SavingsGoalsTableTableManager(_db, _db.savingsGoals);
+  $$SubscriptionsTableTableManager get subscriptions =>
+      $$SubscriptionsTableTableManager(_db, _db.subscriptions);
 }

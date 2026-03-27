@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
 import 'package:smartbudget/data/models/tables.dart' show TransactionType;
 
 class DashboardScreen extends ConsumerWidget {
@@ -12,6 +13,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currencyFormat = NumberFormat.currency(symbol: '\$');
     final allTxAsync = ref.watch(transactionListProvider());
+    final alertsAsync = ref.watch(budgetAlertsProvider);
     ref.watch(recurringTransactionsProvider);
     final spendingAsync = ref.watch(spendingProfileProvider);
     final recentAsync = ref.watch(recentTransactionsProvider);
@@ -88,6 +90,48 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     loading: () => const _LoadingCard(),
                     error: (err, st) => const _ErrorCard(),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Budget Alerts
+                  alertsAsync.when(
+                    data: (alerts) {
+                      if (alerts.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Text('No active budget alerts'),
+                        );
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: alerts.map((alert) {
+                          final color =
+                              alert.overLimit ? Colors.red : Colors.orange;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Icon(Icons.warning, color: color, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '${alert.category} ${alert.overLimit ? 'exceeded' : 'nearing'} ${alert.threshold}% (${(alert.progress * 100).toStringAsFixed(1)}%)',
+                                    style: TextStyle(color: color),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Text('Checking alerts...'),
+                    ),
+                    error: (err, st) => Text('Alert error: $err'),
                   ),
 
                   const SizedBox(height: 24),

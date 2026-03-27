@@ -2,8 +2,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart';
+import 'package:smartbudget/core/services/recurring_scheduler_service.dart';
+import 'package:smartbudget/core/services/notification_service.dart';
 import 'package:smartbudget/core/services/encryption_service.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart';
+import 'package:smartbudget/data/repositories/subscription_repository_impl.dart';
 
 part 'core_providers.g.dart';
 
@@ -43,4 +46,23 @@ BiometricAuthService biometricAuthService(BiometricAuthServiceRef ref) {
   final localAuth = ref.watch(localAuthProvider);
   final storage = ref.watch(secureStorageProvider);
   return BiometricAuthService(localAuth, storage);
+}
+
+@Riverpod(keepAlive: true)
+RecurringSchedulerService recurringSchedulerService(
+    RecurringSchedulerServiceRef ref) {
+  final database = ref.watch(databaseProvider);
+  return RecurringSchedulerService(database);
+}
+
+@Riverpod(keepAlive: true)
+NotificationService notificationService(NotificationServiceRef ref) {
+  return NotificationService();
+}
+
+@Riverpod(keepAlive: true)
+SubscriptionRepositoryImpl subscriptionRepository(
+    SubscriptionRepositoryRef ref) {
+  final database = ref.watch(databaseProvider);
+  return SubscriptionRepositoryImpl(database);
 }
