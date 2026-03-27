@@ -20,12 +20,12 @@ String _randomHex(int length) {
 }
 
 @DriftDatabase(
-    tables: [Transactions, Accounts, Budgets, SavingsGoals, Subscriptions])
+    tables: [Transactions, Accounts, Budgets, SavingsGoals, Subscriptions, Devices, AuthLogs, SecuritySettings])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -45,6 +45,11 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 4) {
             await m.createTable(subscriptions);
+          }
+          if (from < 5) {
+            await m.createTable(devices);
+            await m.createTable(authLogs);
+            await m.createTable(securitySettings);
           }
         },
       );
@@ -213,6 +218,30 @@ class AppDatabase extends _$AppDatabase {
   Future<List<Subscription>> getSubscriptions() {
     final query = select(subscriptions)..where((s) => s.isActive.equals(true));
     return query.get();
+  }
+
+  Future<SecuritySetting?> getSecuritySettings() {
+    final query = select(securitySettings)..limit(1);
+    return query.getSingleOrNull();
+  }
+
+  Future<void> upsertSecuritySettings(
+      SecuritySettingsCompanion setting) async {
+    await into(securitySettings)
+        .insert(setting, mode: InsertMode.insertOrReplace);
+  }
+
+  Future<List<AuthLog>> getAuthLogs({int limit = 20}) {
+    final query = select(authLogs)
+      ..orderBy([
+        (a) => OrderingTerm.desc(a.timestamp),
+      ])
+      ..limit(limit);
+    return query.get();
+  }
+
+  Future<void> insertAuthLog(AuthLogsCompanion log) async {
+    await into(authLogs).insert(log);
   }
 
   Future<List<Subscription>> getDueSubscriptions(DateTime date) {

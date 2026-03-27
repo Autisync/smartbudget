@@ -24,7 +24,9 @@ mixin _$BudgetAlert {
   bool get overLimit => throw _privateConstructorUsedError;
   DateTime get generatedAt => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of BudgetAlert
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $BudgetAlertCopyWith<BudgetAlert> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -55,6 +57,8 @@ class _$BudgetAlertCopyWithImpl<$Res, $Val extends BudgetAlert>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of BudgetAlert
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -125,6 +129,8 @@ class __$$BudgetAlertImplCopyWithImpl<$Res>
       _$BudgetAlertImpl _value, $Res Function(_$BudgetAlertImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of BudgetAlert
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -226,7 +232,9 @@ class _$BudgetAlertImpl implements _BudgetAlert {
   int get hashCode => Object.hash(runtimeType, budgetId, category, progress,
       threshold, nearLimit, overLimit, generatedAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of BudgetAlert
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$BudgetAlertImplCopyWith<_$BudgetAlertImpl> get copyWith =>
@@ -257,8 +265,11 @@ abstract class _BudgetAlert implements BudgetAlert {
   bool get overLimit;
   @override
   DateTime get generatedAt;
+
+  /// Create a copy of BudgetAlert
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$BudgetAlertImplCopyWith<_$BudgetAlertImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

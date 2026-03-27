@@ -21,6 +21,8 @@ final transactionRepositoryProvider = Provider<TransactionRepository>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef TransactionRepositoryRef = ProviderRef<TransactionRepository>;
 String _$recentTransactionsHash() =>
     r'51375331e007bb47be5c6aca5900922006c25527';
@@ -38,6 +40,8 @@ final recentTransactionsProvider =
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef RecentTransactionsRef = AutoDisposeFutureProviderRef<List<Transaction>>;
 String _$spendingProfileHash() => r'102fb9416b5d6e1a9c761aa152ce5d6c902a060c';
 
@@ -54,7 +58,29 @@ final spendingProfileProvider =
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef SpendingProfileRef = AutoDisposeFutureProviderRef<SpendingProfile>;
+String _$cashflowPredictionHash() =>
+    r'a05b1af74d7c3f347456101954f2e1c0e82d41f8';
+
+/// See also [cashflowPrediction].
+@ProviderFor(cashflowPrediction)
+final cashflowPredictionProvider =
+    AutoDisposeFutureProvider<CashflowPrediction>.internal(
+  cashflowPrediction,
+  name: r'cashflowPredictionProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$cashflowPredictionHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CashflowPredictionRef
+    = AutoDisposeFutureProviderRef<CashflowPrediction>;
 String _$recurringTransactionsHash() =>
     r'21c3732074a6632a63c656d78ebf27563ae2ad1e';
 
@@ -70,6 +96,8 @@ final recurringTransactionsProvider = AutoDisposeFutureProvider<void>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef RecurringTransactionsRef = AutoDisposeFutureProviderRef<void>;
 String _$transactionListHash() => r'ae453c29c758f083dca028e16c68edc62a9918f6';
 
@@ -255,6 +283,8 @@ class TransactionListProvider extends AutoDisposeAsyncNotifierProviderImpl<
   }
 }
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 mixin TransactionListRef
     on AutoDisposeAsyncNotifierProviderRef<List<Transaction>> {
   /// The parameter `startDate` of this provider.
@@ -280,4 +310,4 @@ class _TransactionListProviderElement
   String? get category => (origin as TransactionListProvider).category;
 }
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

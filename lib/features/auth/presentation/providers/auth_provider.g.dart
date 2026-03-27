@@ -6,7 +6,7 @@ part of 'auth_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authControllerHash() => r'4ce6cc8ceee9365c8054733e1c873772c6a8d6ab';
+String _$authControllerHash() => r'378852fdd78dbdef7b910e139c7766879ce3abfc';
 
 /// See also [AuthController].
 @ProviderFor(AuthController)
@@ -23,4 +23,4 @@ final authControllerProvider =
 
 typedef _$AuthController = AutoDisposeAsyncNotifier<bool>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

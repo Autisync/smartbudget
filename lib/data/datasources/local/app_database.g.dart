@@ -36,7 +36,6 @@ class $TransactionsTable extends Transactions
           GeneratedColumn.checkTextLength(minTextLength: 3, maxTextLength: 3),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
-  static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumnWithTypeConverter<TransactionType, int> type =
       GeneratedColumn<int>('type', aliasedName, false,
@@ -58,8 +57,6 @@ class $TransactionsTable extends Transactions
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
       'note', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _recurrenceMeta =
-      const VerificationMeta('recurrence');
   @override
   late final GeneratedColumnWithTypeConverter<TransactionRecurrence, int>
       recurrence = GeneratedColumn<int>('recurrence', aliasedName, false,
@@ -165,7 +162,6 @@ class $TransactionsTable extends Transactions
     } else if (isInserting) {
       context.missing(_currencyMeta);
     }
-    context.handle(_typeMeta, const VerificationResult.success());
     if (data.containsKey('category')) {
       context.handle(_categoryMeta,
           category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
@@ -182,7 +178,6 @@ class $TransactionsTable extends Transactions
       context.handle(
           _noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
     }
-    context.handle(_recurrenceMeta, const VerificationResult.success());
     if (data.containsKey('is_recurring')) {
       context.handle(
           _isRecurringMeta,
@@ -757,7 +752,6 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
           GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
-  static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumnWithTypeConverter<AccountType, int> type =
       GeneratedColumn<int>('type', aliasedName, false,
@@ -820,7 +814,6 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    context.handle(_typeMeta, const VerificationResult.success());
     if (data.containsKey('balance')) {
       context.handle(_balanceMeta,
           balance.isAcceptableOrUnknown(data['balance']!, _balanceMeta));
@@ -1156,7 +1149,6 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
   late final GeneratedColumn<String> currency = GeneratedColumn<String>(
       'currency', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _periodMeta = const VerificationMeta('period');
   @override
   late final GeneratedColumnWithTypeConverter<BudgetPeriod, int> period =
       GeneratedColumn<int>('period', aliasedName, false,
@@ -1237,7 +1229,6 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
     } else if (isInserting) {
       context.missing(_currencyMeta);
     }
-    context.handle(_periodMeta, const VerificationResult.success());
     if (data.containsKey('start_date')) {
       context.handle(_startDateMeta,
           startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta));
@@ -1642,8 +1633,6 @@ class $SavingsGoalsTable extends SavingsGoals
   late final GeneratedColumn<DateTime> deadline = GeneratedColumn<DateTime>(
       'deadline', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _priorityMeta =
-      const VerificationMeta('priority');
   @override
   late final GeneratedColumnWithTypeConverter<GoalPriority, int> priority =
       GeneratedColumn<int>('priority', aliasedName, false,
@@ -1721,7 +1710,6 @@ class $SavingsGoalsTable extends SavingsGoals
       context.handle(_deadlineMeta,
           deadline.isAcceptableOrUnknown(data['deadline']!, _deadlineMeta));
     }
-    context.handle(_priorityMeta, const VerificationResult.success());
     if (data.containsKey('color')) {
       context.handle(
           _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
@@ -2123,8 +2111,6 @@ class $SubscriptionsTable extends Subscriptions
           GeneratedColumn.checkTextLength(minTextLength: 3, maxTextLength: 3),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
-  static const VerificationMeta _billingCycleMeta =
-      const VerificationMeta('billingCycle');
   @override
   late final GeneratedColumnWithTypeConverter<BillingCycle, int> billingCycle =
       GeneratedColumn<int>('billing_cycle', aliasedName, false,
@@ -2248,7 +2234,6 @@ class $SubscriptionsTable extends Subscriptions
     } else if (isInserting) {
       context.missing(_currencyMeta);
     }
-    context.handle(_billingCycleMeta, const VerificationResult.success());
     if (data.containsKey('start_date')) {
       context.handle(_startDateMeta,
           startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta));
@@ -2818,6 +2803,1418 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
   }
 }
 
+class $DevicesTable extends Devices with TableInfo<$DevicesTable, Device> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DevicesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => _generateUuid());
+  static const VerificationMeta _deviceNameMeta =
+      const VerificationMeta('deviceName');
+  @override
+  late final GeneratedColumn<String> deviceName = GeneratedColumn<String>(
+      'device_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _deviceIdMeta =
+      const VerificationMeta('deviceId');
+  @override
+  late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
+      'device_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _platformMeta =
+      const VerificationMeta('platform');
+  @override
+  late final GeneratedColumn<String> platform = GeneratedColumn<String>(
+      'platform', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _osVersionMeta =
+      const VerificationMeta('osVersion');
+  @override
+  late final GeneratedColumn<String> osVersion = GeneratedColumn<String>(
+      'os_version', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _appVersionMeta =
+      const VerificationMeta('appVersion');
+  @override
+  late final GeneratedColumn<String> appVersion = GeneratedColumn<String>(
+      'app_version', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _isTrustedMeta =
+      const VerificationMeta('isTrusted');
+  @override
+  late final GeneratedColumn<bool> isTrusted = GeneratedColumn<bool>(
+      'is_trusted', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_trusted" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isActiveMeta =
+      const VerificationMeta('isActive');
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+      'is_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _lastAuthAtMeta =
+      const VerificationMeta('lastAuthAt');
+  @override
+  late final GeneratedColumn<DateTime> lastAuthAt = GeneratedColumn<DateTime>(
+      'last_auth_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _registeredAtMeta =
+      const VerificationMeta('registeredAt');
+  @override
+  late final GeneratedColumn<DateTime> registeredAt = GeneratedColumn<DateTime>(
+      'registered_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        deviceName,
+        deviceId,
+        platform,
+        osVersion,
+        appVersion,
+        isTrusted,
+        isActive,
+        lastAuthAt,
+        registeredAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'devices';
+  @override
+  VerificationContext validateIntegrity(Insertable<Device> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('device_name')) {
+      context.handle(
+          _deviceNameMeta,
+          deviceName.isAcceptableOrUnknown(
+              data['device_name']!, _deviceNameMeta));
+    } else if (isInserting) {
+      context.missing(_deviceNameMeta);
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(_deviceIdMeta,
+          deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta));
+    } else if (isInserting) {
+      context.missing(_deviceIdMeta);
+    }
+    if (data.containsKey('platform')) {
+      context.handle(_platformMeta,
+          platform.isAcceptableOrUnknown(data['platform']!, _platformMeta));
+    } else if (isInserting) {
+      context.missing(_platformMeta);
+    }
+    if (data.containsKey('os_version')) {
+      context.handle(_osVersionMeta,
+          osVersion.isAcceptableOrUnknown(data['os_version']!, _osVersionMeta));
+    } else if (isInserting) {
+      context.missing(_osVersionMeta);
+    }
+    if (data.containsKey('app_version')) {
+      context.handle(
+          _appVersionMeta,
+          appVersion.isAcceptableOrUnknown(
+              data['app_version']!, _appVersionMeta));
+    } else if (isInserting) {
+      context.missing(_appVersionMeta);
+    }
+    if (data.containsKey('is_trusted')) {
+      context.handle(_isTrustedMeta,
+          isTrusted.isAcceptableOrUnknown(data['is_trusted']!, _isTrustedMeta));
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(_isActiveMeta,
+          isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
+    }
+    if (data.containsKey('last_auth_at')) {
+      context.handle(
+          _lastAuthAtMeta,
+          lastAuthAt.isAcceptableOrUnknown(
+              data['last_auth_at']!, _lastAuthAtMeta));
+    } else if (isInserting) {
+      context.missing(_lastAuthAtMeta);
+    }
+    if (data.containsKey('registered_at')) {
+      context.handle(
+          _registeredAtMeta,
+          registeredAt.isAcceptableOrUnknown(
+              data['registered_at']!, _registeredAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Device map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Device(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      deviceName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}device_name'])!,
+      deviceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}device_id'])!,
+      platform: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}platform'])!,
+      osVersion: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}os_version'])!,
+      appVersion: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}app_version'])!,
+      isTrusted: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_trusted'])!,
+      isActive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
+      lastAuthAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_auth_at'])!,
+      registeredAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}registered_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $DevicesTable createAlias(String alias) {
+    return $DevicesTable(attachedDatabase, alias);
+  }
+}
+
+class Device extends DataClass implements Insertable<Device> {
+  final String id;
+  final String deviceName;
+  final String deviceId;
+  final String platform;
+  final String osVersion;
+  final String appVersion;
+  final bool isTrusted;
+  final bool isActive;
+  final DateTime lastAuthAt;
+  final DateTime registeredAt;
+  final DateTime updatedAt;
+  const Device(
+      {required this.id,
+      required this.deviceName,
+      required this.deviceId,
+      required this.platform,
+      required this.osVersion,
+      required this.appVersion,
+      required this.isTrusted,
+      required this.isActive,
+      required this.lastAuthAt,
+      required this.registeredAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['device_name'] = Variable<String>(deviceName);
+    map['device_id'] = Variable<String>(deviceId);
+    map['platform'] = Variable<String>(platform);
+    map['os_version'] = Variable<String>(osVersion);
+    map['app_version'] = Variable<String>(appVersion);
+    map['is_trusted'] = Variable<bool>(isTrusted);
+    map['is_active'] = Variable<bool>(isActive);
+    map['last_auth_at'] = Variable<DateTime>(lastAuthAt);
+    map['registered_at'] = Variable<DateTime>(registeredAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  DevicesCompanion toCompanion(bool nullToAbsent) {
+    return DevicesCompanion(
+      id: Value(id),
+      deviceName: Value(deviceName),
+      deviceId: Value(deviceId),
+      platform: Value(platform),
+      osVersion: Value(osVersion),
+      appVersion: Value(appVersion),
+      isTrusted: Value(isTrusted),
+      isActive: Value(isActive),
+      lastAuthAt: Value(lastAuthAt),
+      registeredAt: Value(registeredAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Device.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Device(
+      id: serializer.fromJson<String>(json['id']),
+      deviceName: serializer.fromJson<String>(json['deviceName']),
+      deviceId: serializer.fromJson<String>(json['deviceId']),
+      platform: serializer.fromJson<String>(json['platform']),
+      osVersion: serializer.fromJson<String>(json['osVersion']),
+      appVersion: serializer.fromJson<String>(json['appVersion']),
+      isTrusted: serializer.fromJson<bool>(json['isTrusted']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      lastAuthAt: serializer.fromJson<DateTime>(json['lastAuthAt']),
+      registeredAt: serializer.fromJson<DateTime>(json['registeredAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'deviceName': serializer.toJson<String>(deviceName),
+      'deviceId': serializer.toJson<String>(deviceId),
+      'platform': serializer.toJson<String>(platform),
+      'osVersion': serializer.toJson<String>(osVersion),
+      'appVersion': serializer.toJson<String>(appVersion),
+      'isTrusted': serializer.toJson<bool>(isTrusted),
+      'isActive': serializer.toJson<bool>(isActive),
+      'lastAuthAt': serializer.toJson<DateTime>(lastAuthAt),
+      'registeredAt': serializer.toJson<DateTime>(registeredAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Device copyWith(
+          {String? id,
+          String? deviceName,
+          String? deviceId,
+          String? platform,
+          String? osVersion,
+          String? appVersion,
+          bool? isTrusted,
+          bool? isActive,
+          DateTime? lastAuthAt,
+          DateTime? registeredAt,
+          DateTime? updatedAt}) =>
+      Device(
+        id: id ?? this.id,
+        deviceName: deviceName ?? this.deviceName,
+        deviceId: deviceId ?? this.deviceId,
+        platform: platform ?? this.platform,
+        osVersion: osVersion ?? this.osVersion,
+        appVersion: appVersion ?? this.appVersion,
+        isTrusted: isTrusted ?? this.isTrusted,
+        isActive: isActive ?? this.isActive,
+        lastAuthAt: lastAuthAt ?? this.lastAuthAt,
+        registeredAt: registeredAt ?? this.registeredAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  Device copyWithCompanion(DevicesCompanion data) {
+    return Device(
+      id: data.id.present ? data.id.value : this.id,
+      deviceName:
+          data.deviceName.present ? data.deviceName.value : this.deviceName,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+      platform: data.platform.present ? data.platform.value : this.platform,
+      osVersion: data.osVersion.present ? data.osVersion.value : this.osVersion,
+      appVersion:
+          data.appVersion.present ? data.appVersion.value : this.appVersion,
+      isTrusted: data.isTrusted.present ? data.isTrusted.value : this.isTrusted,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      lastAuthAt:
+          data.lastAuthAt.present ? data.lastAuthAt.value : this.lastAuthAt,
+      registeredAt: data.registeredAt.present
+          ? data.registeredAt.value
+          : this.registeredAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Device(')
+          ..write('id: $id, ')
+          ..write('deviceName: $deviceName, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('platform: $platform, ')
+          ..write('osVersion: $osVersion, ')
+          ..write('appVersion: $appVersion, ')
+          ..write('isTrusted: $isTrusted, ')
+          ..write('isActive: $isActive, ')
+          ..write('lastAuthAt: $lastAuthAt, ')
+          ..write('registeredAt: $registeredAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, deviceName, deviceId, platform, osVersion,
+      appVersion, isTrusted, isActive, lastAuthAt, registeredAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Device &&
+          other.id == this.id &&
+          other.deviceName == this.deviceName &&
+          other.deviceId == this.deviceId &&
+          other.platform == this.platform &&
+          other.osVersion == this.osVersion &&
+          other.appVersion == this.appVersion &&
+          other.isTrusted == this.isTrusted &&
+          other.isActive == this.isActive &&
+          other.lastAuthAt == this.lastAuthAt &&
+          other.registeredAt == this.registeredAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DevicesCompanion extends UpdateCompanion<Device> {
+  final Value<String> id;
+  final Value<String> deviceName;
+  final Value<String> deviceId;
+  final Value<String> platform;
+  final Value<String> osVersion;
+  final Value<String> appVersion;
+  final Value<bool> isTrusted;
+  final Value<bool> isActive;
+  final Value<DateTime> lastAuthAt;
+  final Value<DateTime> registeredAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const DevicesCompanion({
+    this.id = const Value.absent(),
+    this.deviceName = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.platform = const Value.absent(),
+    this.osVersion = const Value.absent(),
+    this.appVersion = const Value.absent(),
+    this.isTrusted = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.lastAuthAt = const Value.absent(),
+    this.registeredAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DevicesCompanion.insert({
+    this.id = const Value.absent(),
+    required String deviceName,
+    required String deviceId,
+    required String platform,
+    required String osVersion,
+    required String appVersion,
+    this.isTrusted = const Value.absent(),
+    this.isActive = const Value.absent(),
+    required DateTime lastAuthAt,
+    this.registeredAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : deviceName = Value(deviceName),
+        deviceId = Value(deviceId),
+        platform = Value(platform),
+        osVersion = Value(osVersion),
+        appVersion = Value(appVersion),
+        lastAuthAt = Value(lastAuthAt);
+  static Insertable<Device> custom({
+    Expression<String>? id,
+    Expression<String>? deviceName,
+    Expression<String>? deviceId,
+    Expression<String>? platform,
+    Expression<String>? osVersion,
+    Expression<String>? appVersion,
+    Expression<bool>? isTrusted,
+    Expression<bool>? isActive,
+    Expression<DateTime>? lastAuthAt,
+    Expression<DateTime>? registeredAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (deviceName != null) 'device_name': deviceName,
+      if (deviceId != null) 'device_id': deviceId,
+      if (platform != null) 'platform': platform,
+      if (osVersion != null) 'os_version': osVersion,
+      if (appVersion != null) 'app_version': appVersion,
+      if (isTrusted != null) 'is_trusted': isTrusted,
+      if (isActive != null) 'is_active': isActive,
+      if (lastAuthAt != null) 'last_auth_at': lastAuthAt,
+      if (registeredAt != null) 'registered_at': registeredAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DevicesCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? deviceName,
+      Value<String>? deviceId,
+      Value<String>? platform,
+      Value<String>? osVersion,
+      Value<String>? appVersion,
+      Value<bool>? isTrusted,
+      Value<bool>? isActive,
+      Value<DateTime>? lastAuthAt,
+      Value<DateTime>? registeredAt,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return DevicesCompanion(
+      id: id ?? this.id,
+      deviceName: deviceName ?? this.deviceName,
+      deviceId: deviceId ?? this.deviceId,
+      platform: platform ?? this.platform,
+      osVersion: osVersion ?? this.osVersion,
+      appVersion: appVersion ?? this.appVersion,
+      isTrusted: isTrusted ?? this.isTrusted,
+      isActive: isActive ?? this.isActive,
+      lastAuthAt: lastAuthAt ?? this.lastAuthAt,
+      registeredAt: registeredAt ?? this.registeredAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (deviceName.present) {
+      map['device_name'] = Variable<String>(deviceName.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (platform.present) {
+      map['platform'] = Variable<String>(platform.value);
+    }
+    if (osVersion.present) {
+      map['os_version'] = Variable<String>(osVersion.value);
+    }
+    if (appVersion.present) {
+      map['app_version'] = Variable<String>(appVersion.value);
+    }
+    if (isTrusted.present) {
+      map['is_trusted'] = Variable<bool>(isTrusted.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (lastAuthAt.present) {
+      map['last_auth_at'] = Variable<DateTime>(lastAuthAt.value);
+    }
+    if (registeredAt.present) {
+      map['registered_at'] = Variable<DateTime>(registeredAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DevicesCompanion(')
+          ..write('id: $id, ')
+          ..write('deviceName: $deviceName, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('platform: $platform, ')
+          ..write('osVersion: $osVersion, ')
+          ..write('appVersion: $appVersion, ')
+          ..write('isTrusted: $isTrusted, ')
+          ..write('isActive: $isActive, ')
+          ..write('lastAuthAt: $lastAuthAt, ')
+          ..write('registeredAt: $registeredAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AuthLogsTable extends AuthLogs with TableInfo<$AuthLogsTable, AuthLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AuthLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => _generateUuid());
+  static const VerificationMeta _deviceIdMeta =
+      const VerificationMeta('deviceId');
+  @override
+  late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
+      'device_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<AuthLogType, int> authType =
+      GeneratedColumn<int>('auth_type', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<AuthLogType>($AuthLogsTable.$converterauthType);
+  @override
+  late final GeneratedColumnWithTypeConverter<AuthStatus, int> status =
+      GeneratedColumn<int>('status', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<AuthStatus>($AuthLogsTable.$converterstatus);
+  static const VerificationMeta _ipAddressMeta =
+      const VerificationMeta('ipAddress');
+  @override
+  late final GeneratedColumn<String> ipAddress = GeneratedColumn<String>(
+      'ip_address', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _userAgentMeta =
+      const VerificationMeta('userAgent');
+  @override
+  late final GeneratedColumn<String> userAgent = GeneratedColumn<String>(
+      'user_agent', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _failedAttemptsMeta =
+      const VerificationMeta('failedAttempts');
+  @override
+  late final GeneratedColumn<int> failedAttempts = GeneratedColumn<int>(
+      'failed_attempts', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _timestampMeta =
+      const VerificationMeta('timestamp');
+  @override
+  late final GeneratedColumn<DateTime> timestamp = GeneratedColumn<DateTime>(
+      'timestamp', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        deviceId,
+        authType,
+        status,
+        ipAddress,
+        userAgent,
+        failedAttempts,
+        timestamp
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'auth_logs';
+  @override
+  VerificationContext validateIntegrity(Insertable<AuthLog> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(_deviceIdMeta,
+          deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta));
+    } else if (isInserting) {
+      context.missing(_deviceIdMeta);
+    }
+    if (data.containsKey('ip_address')) {
+      context.handle(_ipAddressMeta,
+          ipAddress.isAcceptableOrUnknown(data['ip_address']!, _ipAddressMeta));
+    }
+    if (data.containsKey('user_agent')) {
+      context.handle(_userAgentMeta,
+          userAgent.isAcceptableOrUnknown(data['user_agent']!, _userAgentMeta));
+    }
+    if (data.containsKey('failed_attempts')) {
+      context.handle(
+          _failedAttemptsMeta,
+          failedAttempts.isAcceptableOrUnknown(
+              data['failed_attempts']!, _failedAttemptsMeta));
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(_timestampMeta,
+          timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {deviceId, timestamp},
+      ];
+  @override
+  AuthLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AuthLog(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      deviceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}device_id'])!,
+      authType: $AuthLogsTable.$converterauthType.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}auth_type'])!),
+      status: $AuthLogsTable.$converterstatus.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
+      ipAddress: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}ip_address']),
+      userAgent: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_agent']),
+      failedAttempts: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}failed_attempts'])!,
+      timestamp: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}timestamp'])!,
+    );
+  }
+
+  @override
+  $AuthLogsTable createAlias(String alias) {
+    return $AuthLogsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<AuthLogType, int, int> $converterauthType =
+      const EnumIndexConverter<AuthLogType>(AuthLogType.values);
+  static JsonTypeConverter2<AuthStatus, int, int> $converterstatus =
+      const EnumIndexConverter<AuthStatus>(AuthStatus.values);
+}
+
+class AuthLog extends DataClass implements Insertable<AuthLog> {
+  final String id;
+  final String deviceId;
+  final AuthLogType authType;
+  final AuthStatus status;
+  final String? ipAddress;
+  final String? userAgent;
+  final int failedAttempts;
+  final DateTime timestamp;
+  const AuthLog(
+      {required this.id,
+      required this.deviceId,
+      required this.authType,
+      required this.status,
+      this.ipAddress,
+      this.userAgent,
+      required this.failedAttempts,
+      required this.timestamp});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['device_id'] = Variable<String>(deviceId);
+    {
+      map['auth_type'] =
+          Variable<int>($AuthLogsTable.$converterauthType.toSql(authType));
+    }
+    {
+      map['status'] =
+          Variable<int>($AuthLogsTable.$converterstatus.toSql(status));
+    }
+    if (!nullToAbsent || ipAddress != null) {
+      map['ip_address'] = Variable<String>(ipAddress);
+    }
+    if (!nullToAbsent || userAgent != null) {
+      map['user_agent'] = Variable<String>(userAgent);
+    }
+    map['failed_attempts'] = Variable<int>(failedAttempts);
+    map['timestamp'] = Variable<DateTime>(timestamp);
+    return map;
+  }
+
+  AuthLogsCompanion toCompanion(bool nullToAbsent) {
+    return AuthLogsCompanion(
+      id: Value(id),
+      deviceId: Value(deviceId),
+      authType: Value(authType),
+      status: Value(status),
+      ipAddress: ipAddress == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ipAddress),
+      userAgent: userAgent == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userAgent),
+      failedAttempts: Value(failedAttempts),
+      timestamp: Value(timestamp),
+    );
+  }
+
+  factory AuthLog.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AuthLog(
+      id: serializer.fromJson<String>(json['id']),
+      deviceId: serializer.fromJson<String>(json['deviceId']),
+      authType: $AuthLogsTable.$converterauthType
+          .fromJson(serializer.fromJson<int>(json['authType'])),
+      status: $AuthLogsTable.$converterstatus
+          .fromJson(serializer.fromJson<int>(json['status'])),
+      ipAddress: serializer.fromJson<String?>(json['ipAddress']),
+      userAgent: serializer.fromJson<String?>(json['userAgent']),
+      failedAttempts: serializer.fromJson<int>(json['failedAttempts']),
+      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'deviceId': serializer.toJson<String>(deviceId),
+      'authType': serializer
+          .toJson<int>($AuthLogsTable.$converterauthType.toJson(authType)),
+      'status': serializer
+          .toJson<int>($AuthLogsTable.$converterstatus.toJson(status)),
+      'ipAddress': serializer.toJson<String?>(ipAddress),
+      'userAgent': serializer.toJson<String?>(userAgent),
+      'failedAttempts': serializer.toJson<int>(failedAttempts),
+      'timestamp': serializer.toJson<DateTime>(timestamp),
+    };
+  }
+
+  AuthLog copyWith(
+          {String? id,
+          String? deviceId,
+          AuthLogType? authType,
+          AuthStatus? status,
+          Value<String?> ipAddress = const Value.absent(),
+          Value<String?> userAgent = const Value.absent(),
+          int? failedAttempts,
+          DateTime? timestamp}) =>
+      AuthLog(
+        id: id ?? this.id,
+        deviceId: deviceId ?? this.deviceId,
+        authType: authType ?? this.authType,
+        status: status ?? this.status,
+        ipAddress: ipAddress.present ? ipAddress.value : this.ipAddress,
+        userAgent: userAgent.present ? userAgent.value : this.userAgent,
+        failedAttempts: failedAttempts ?? this.failedAttempts,
+        timestamp: timestamp ?? this.timestamp,
+      );
+  AuthLog copyWithCompanion(AuthLogsCompanion data) {
+    return AuthLog(
+      id: data.id.present ? data.id.value : this.id,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+      authType: data.authType.present ? data.authType.value : this.authType,
+      status: data.status.present ? data.status.value : this.status,
+      ipAddress: data.ipAddress.present ? data.ipAddress.value : this.ipAddress,
+      userAgent: data.userAgent.present ? data.userAgent.value : this.userAgent,
+      failedAttempts: data.failedAttempts.present
+          ? data.failedAttempts.value
+          : this.failedAttempts,
+      timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AuthLog(')
+          ..write('id: $id, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('authType: $authType, ')
+          ..write('status: $status, ')
+          ..write('ipAddress: $ipAddress, ')
+          ..write('userAgent: $userAgent, ')
+          ..write('failedAttempts: $failedAttempts, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, deviceId, authType, status, ipAddress,
+      userAgent, failedAttempts, timestamp);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AuthLog &&
+          other.id == this.id &&
+          other.deviceId == this.deviceId &&
+          other.authType == this.authType &&
+          other.status == this.status &&
+          other.ipAddress == this.ipAddress &&
+          other.userAgent == this.userAgent &&
+          other.failedAttempts == this.failedAttempts &&
+          other.timestamp == this.timestamp);
+}
+
+class AuthLogsCompanion extends UpdateCompanion<AuthLog> {
+  final Value<String> id;
+  final Value<String> deviceId;
+  final Value<AuthLogType> authType;
+  final Value<AuthStatus> status;
+  final Value<String?> ipAddress;
+  final Value<String?> userAgent;
+  final Value<int> failedAttempts;
+  final Value<DateTime> timestamp;
+  final Value<int> rowid;
+  const AuthLogsCompanion({
+    this.id = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.authType = const Value.absent(),
+    this.status = const Value.absent(),
+    this.ipAddress = const Value.absent(),
+    this.userAgent = const Value.absent(),
+    this.failedAttempts = const Value.absent(),
+    this.timestamp = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AuthLogsCompanion.insert({
+    this.id = const Value.absent(),
+    required String deviceId,
+    required AuthLogType authType,
+    required AuthStatus status,
+    this.ipAddress = const Value.absent(),
+    this.userAgent = const Value.absent(),
+    this.failedAttempts = const Value.absent(),
+    this.timestamp = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : deviceId = Value(deviceId),
+        authType = Value(authType),
+        status = Value(status);
+  static Insertable<AuthLog> custom({
+    Expression<String>? id,
+    Expression<String>? deviceId,
+    Expression<int>? authType,
+    Expression<int>? status,
+    Expression<String>? ipAddress,
+    Expression<String>? userAgent,
+    Expression<int>? failedAttempts,
+    Expression<DateTime>? timestamp,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (deviceId != null) 'device_id': deviceId,
+      if (authType != null) 'auth_type': authType,
+      if (status != null) 'status': status,
+      if (ipAddress != null) 'ip_address': ipAddress,
+      if (userAgent != null) 'user_agent': userAgent,
+      if (failedAttempts != null) 'failed_attempts': failedAttempts,
+      if (timestamp != null) 'timestamp': timestamp,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AuthLogsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? deviceId,
+      Value<AuthLogType>? authType,
+      Value<AuthStatus>? status,
+      Value<String?>? ipAddress,
+      Value<String?>? userAgent,
+      Value<int>? failedAttempts,
+      Value<DateTime>? timestamp,
+      Value<int>? rowid}) {
+    return AuthLogsCompanion(
+      id: id ?? this.id,
+      deviceId: deviceId ?? this.deviceId,
+      authType: authType ?? this.authType,
+      status: status ?? this.status,
+      ipAddress: ipAddress ?? this.ipAddress,
+      userAgent: userAgent ?? this.userAgent,
+      failedAttempts: failedAttempts ?? this.failedAttempts,
+      timestamp: timestamp ?? this.timestamp,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (authType.present) {
+      map['auth_type'] = Variable<int>(
+          $AuthLogsTable.$converterauthType.toSql(authType.value));
+    }
+    if (status.present) {
+      map['status'] =
+          Variable<int>($AuthLogsTable.$converterstatus.toSql(status.value));
+    }
+    if (ipAddress.present) {
+      map['ip_address'] = Variable<String>(ipAddress.value);
+    }
+    if (userAgent.present) {
+      map['user_agent'] = Variable<String>(userAgent.value);
+    }
+    if (failedAttempts.present) {
+      map['failed_attempts'] = Variable<int>(failedAttempts.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<DateTime>(timestamp.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AuthLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('authType: $authType, ')
+          ..write('status: $status, ')
+          ..write('ipAddress: $ipAddress, ')
+          ..write('userAgent: $userAgent, ')
+          ..write('failedAttempts: $failedAttempts, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SecuritySettingsTable extends SecuritySettings
+    with TableInfo<$SecuritySettingsTable, SecuritySetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SecuritySettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => _generateUuid());
+  static const VerificationMeta _sessionTimeoutMeta =
+      const VerificationMeta('sessionTimeout');
+  @override
+  late final GeneratedColumn<int> sessionTimeout = GeneratedColumn<int>(
+      'session_timeout', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(300));
+  static const VerificationMeta _biometricEnabledMeta =
+      const VerificationMeta('biometricEnabled');
+  @override
+  late final GeneratedColumn<bool> biometricEnabled = GeneratedColumn<bool>(
+      'biometric_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("biometric_enabled" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _pinEnabledMeta =
+      const VerificationMeta('pinEnabled');
+  @override
+  late final GeneratedColumn<bool> pinEnabled = GeneratedColumn<bool>(
+      'pin_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("pin_enabled" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _maxFailedAttemptsMeta =
+      const VerificationMeta('maxFailedAttempts');
+  @override
+  late final GeneratedColumn<int> maxFailedAttempts = GeneratedColumn<int>(
+      'max_failed_attempts', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(5));
+  static const VerificationMeta _lockoutDurationMeta =
+      const VerificationMeta('lockoutDuration');
+  @override
+  late final GeneratedColumn<int> lockoutDuration = GeneratedColumn<int>(
+      'lockout_duration', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(900));
+  static const VerificationMeta _lastSecurityUpdateMeta =
+      const VerificationMeta('lastSecurityUpdate');
+  @override
+  late final GeneratedColumn<DateTime> lastSecurityUpdate =
+      GeneratedColumn<DateTime>('last_security_update', aliasedName, false,
+          type: DriftSqlType.dateTime,
+          requiredDuringInsert: false,
+          defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        sessionTimeout,
+        biometricEnabled,
+        pinEnabled,
+        maxFailedAttempts,
+        lockoutDuration,
+        lastSecurityUpdate
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'security_settings';
+  @override
+  VerificationContext validateIntegrity(Insertable<SecuritySetting> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('session_timeout')) {
+      context.handle(
+          _sessionTimeoutMeta,
+          sessionTimeout.isAcceptableOrUnknown(
+              data['session_timeout']!, _sessionTimeoutMeta));
+    }
+    if (data.containsKey('biometric_enabled')) {
+      context.handle(
+          _biometricEnabledMeta,
+          biometricEnabled.isAcceptableOrUnknown(
+              data['biometric_enabled']!, _biometricEnabledMeta));
+    }
+    if (data.containsKey('pin_enabled')) {
+      context.handle(
+          _pinEnabledMeta,
+          pinEnabled.isAcceptableOrUnknown(
+              data['pin_enabled']!, _pinEnabledMeta));
+    }
+    if (data.containsKey('max_failed_attempts')) {
+      context.handle(
+          _maxFailedAttemptsMeta,
+          maxFailedAttempts.isAcceptableOrUnknown(
+              data['max_failed_attempts']!, _maxFailedAttemptsMeta));
+    }
+    if (data.containsKey('lockout_duration')) {
+      context.handle(
+          _lockoutDurationMeta,
+          lockoutDuration.isAcceptableOrUnknown(
+              data['lockout_duration']!, _lockoutDurationMeta));
+    }
+    if (data.containsKey('last_security_update')) {
+      context.handle(
+          _lastSecurityUpdateMeta,
+          lastSecurityUpdate.isAcceptableOrUnknown(
+              data['last_security_update']!, _lastSecurityUpdateMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SecuritySetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SecuritySetting(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      sessionTimeout: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}session_timeout'])!,
+      biometricEnabled: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}biometric_enabled'])!,
+      pinEnabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}pin_enabled'])!,
+      maxFailedAttempts: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}max_failed_attempts'])!,
+      lockoutDuration: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}lockout_duration'])!,
+      lastSecurityUpdate: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime,
+          data['${effectivePrefix}last_security_update'])!,
+    );
+  }
+
+  @override
+  $SecuritySettingsTable createAlias(String alias) {
+    return $SecuritySettingsTable(attachedDatabase, alias);
+  }
+}
+
+class SecuritySetting extends DataClass implements Insertable<SecuritySetting> {
+  final String id;
+  final int sessionTimeout;
+  final bool biometricEnabled;
+  final bool pinEnabled;
+  final int maxFailedAttempts;
+  final int lockoutDuration;
+  final DateTime lastSecurityUpdate;
+  const SecuritySetting(
+      {required this.id,
+      required this.sessionTimeout,
+      required this.biometricEnabled,
+      required this.pinEnabled,
+      required this.maxFailedAttempts,
+      required this.lockoutDuration,
+      required this.lastSecurityUpdate});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['session_timeout'] = Variable<int>(sessionTimeout);
+    map['biometric_enabled'] = Variable<bool>(biometricEnabled);
+    map['pin_enabled'] = Variable<bool>(pinEnabled);
+    map['max_failed_attempts'] = Variable<int>(maxFailedAttempts);
+    map['lockout_duration'] = Variable<int>(lockoutDuration);
+    map['last_security_update'] = Variable<DateTime>(lastSecurityUpdate);
+    return map;
+  }
+
+  SecuritySettingsCompanion toCompanion(bool nullToAbsent) {
+    return SecuritySettingsCompanion(
+      id: Value(id),
+      sessionTimeout: Value(sessionTimeout),
+      biometricEnabled: Value(biometricEnabled),
+      pinEnabled: Value(pinEnabled),
+      maxFailedAttempts: Value(maxFailedAttempts),
+      lockoutDuration: Value(lockoutDuration),
+      lastSecurityUpdate: Value(lastSecurityUpdate),
+    );
+  }
+
+  factory SecuritySetting.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SecuritySetting(
+      id: serializer.fromJson<String>(json['id']),
+      sessionTimeout: serializer.fromJson<int>(json['sessionTimeout']),
+      biometricEnabled: serializer.fromJson<bool>(json['biometricEnabled']),
+      pinEnabled: serializer.fromJson<bool>(json['pinEnabled']),
+      maxFailedAttempts: serializer.fromJson<int>(json['maxFailedAttempts']),
+      lockoutDuration: serializer.fromJson<int>(json['lockoutDuration']),
+      lastSecurityUpdate:
+          serializer.fromJson<DateTime>(json['lastSecurityUpdate']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sessionTimeout': serializer.toJson<int>(sessionTimeout),
+      'biometricEnabled': serializer.toJson<bool>(biometricEnabled),
+      'pinEnabled': serializer.toJson<bool>(pinEnabled),
+      'maxFailedAttempts': serializer.toJson<int>(maxFailedAttempts),
+      'lockoutDuration': serializer.toJson<int>(lockoutDuration),
+      'lastSecurityUpdate': serializer.toJson<DateTime>(lastSecurityUpdate),
+    };
+  }
+
+  SecuritySetting copyWith(
+          {String? id,
+          int? sessionTimeout,
+          bool? biometricEnabled,
+          bool? pinEnabled,
+          int? maxFailedAttempts,
+          int? lockoutDuration,
+          DateTime? lastSecurityUpdate}) =>
+      SecuritySetting(
+        id: id ?? this.id,
+        sessionTimeout: sessionTimeout ?? this.sessionTimeout,
+        biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+        pinEnabled: pinEnabled ?? this.pinEnabled,
+        maxFailedAttempts: maxFailedAttempts ?? this.maxFailedAttempts,
+        lockoutDuration: lockoutDuration ?? this.lockoutDuration,
+        lastSecurityUpdate: lastSecurityUpdate ?? this.lastSecurityUpdate,
+      );
+  SecuritySetting copyWithCompanion(SecuritySettingsCompanion data) {
+    return SecuritySetting(
+      id: data.id.present ? data.id.value : this.id,
+      sessionTimeout: data.sessionTimeout.present
+          ? data.sessionTimeout.value
+          : this.sessionTimeout,
+      biometricEnabled: data.biometricEnabled.present
+          ? data.biometricEnabled.value
+          : this.biometricEnabled,
+      pinEnabled:
+          data.pinEnabled.present ? data.pinEnabled.value : this.pinEnabled,
+      maxFailedAttempts: data.maxFailedAttempts.present
+          ? data.maxFailedAttempts.value
+          : this.maxFailedAttempts,
+      lockoutDuration: data.lockoutDuration.present
+          ? data.lockoutDuration.value
+          : this.lockoutDuration,
+      lastSecurityUpdate: data.lastSecurityUpdate.present
+          ? data.lastSecurityUpdate.value
+          : this.lastSecurityUpdate,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SecuritySetting(')
+          ..write('id: $id, ')
+          ..write('sessionTimeout: $sessionTimeout, ')
+          ..write('biometricEnabled: $biometricEnabled, ')
+          ..write('pinEnabled: $pinEnabled, ')
+          ..write('maxFailedAttempts: $maxFailedAttempts, ')
+          ..write('lockoutDuration: $lockoutDuration, ')
+          ..write('lastSecurityUpdate: $lastSecurityUpdate')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, sessionTimeout, biometricEnabled,
+      pinEnabled, maxFailedAttempts, lockoutDuration, lastSecurityUpdate);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SecuritySetting &&
+          other.id == this.id &&
+          other.sessionTimeout == this.sessionTimeout &&
+          other.biometricEnabled == this.biometricEnabled &&
+          other.pinEnabled == this.pinEnabled &&
+          other.maxFailedAttempts == this.maxFailedAttempts &&
+          other.lockoutDuration == this.lockoutDuration &&
+          other.lastSecurityUpdate == this.lastSecurityUpdate);
+}
+
+class SecuritySettingsCompanion extends UpdateCompanion<SecuritySetting> {
+  final Value<String> id;
+  final Value<int> sessionTimeout;
+  final Value<bool> biometricEnabled;
+  final Value<bool> pinEnabled;
+  final Value<int> maxFailedAttempts;
+  final Value<int> lockoutDuration;
+  final Value<DateTime> lastSecurityUpdate;
+  final Value<int> rowid;
+  const SecuritySettingsCompanion({
+    this.id = const Value.absent(),
+    this.sessionTimeout = const Value.absent(),
+    this.biometricEnabled = const Value.absent(),
+    this.pinEnabled = const Value.absent(),
+    this.maxFailedAttempts = const Value.absent(),
+    this.lockoutDuration = const Value.absent(),
+    this.lastSecurityUpdate = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SecuritySettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.sessionTimeout = const Value.absent(),
+    this.biometricEnabled = const Value.absent(),
+    this.pinEnabled = const Value.absent(),
+    this.maxFailedAttempts = const Value.absent(),
+    this.lockoutDuration = const Value.absent(),
+    this.lastSecurityUpdate = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  static Insertable<SecuritySetting> custom({
+    Expression<String>? id,
+    Expression<int>? sessionTimeout,
+    Expression<bool>? biometricEnabled,
+    Expression<bool>? pinEnabled,
+    Expression<int>? maxFailedAttempts,
+    Expression<int>? lockoutDuration,
+    Expression<DateTime>? lastSecurityUpdate,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionTimeout != null) 'session_timeout': sessionTimeout,
+      if (biometricEnabled != null) 'biometric_enabled': biometricEnabled,
+      if (pinEnabled != null) 'pin_enabled': pinEnabled,
+      if (maxFailedAttempts != null) 'max_failed_attempts': maxFailedAttempts,
+      if (lockoutDuration != null) 'lockout_duration': lockoutDuration,
+      if (lastSecurityUpdate != null)
+        'last_security_update': lastSecurityUpdate,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SecuritySettingsCompanion copyWith(
+      {Value<String>? id,
+      Value<int>? sessionTimeout,
+      Value<bool>? biometricEnabled,
+      Value<bool>? pinEnabled,
+      Value<int>? maxFailedAttempts,
+      Value<int>? lockoutDuration,
+      Value<DateTime>? lastSecurityUpdate,
+      Value<int>? rowid}) {
+    return SecuritySettingsCompanion(
+      id: id ?? this.id,
+      sessionTimeout: sessionTimeout ?? this.sessionTimeout,
+      biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+      pinEnabled: pinEnabled ?? this.pinEnabled,
+      maxFailedAttempts: maxFailedAttempts ?? this.maxFailedAttempts,
+      lockoutDuration: lockoutDuration ?? this.lockoutDuration,
+      lastSecurityUpdate: lastSecurityUpdate ?? this.lastSecurityUpdate,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionTimeout.present) {
+      map['session_timeout'] = Variable<int>(sessionTimeout.value);
+    }
+    if (biometricEnabled.present) {
+      map['biometric_enabled'] = Variable<bool>(biometricEnabled.value);
+    }
+    if (pinEnabled.present) {
+      map['pin_enabled'] = Variable<bool>(pinEnabled.value);
+    }
+    if (maxFailedAttempts.present) {
+      map['max_failed_attempts'] = Variable<int>(maxFailedAttempts.value);
+    }
+    if (lockoutDuration.present) {
+      map['lockout_duration'] = Variable<int>(lockoutDuration.value);
+    }
+    if (lastSecurityUpdate.present) {
+      map['last_security_update'] =
+          Variable<DateTime>(lastSecurityUpdate.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SecuritySettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionTimeout: $sessionTimeout, ')
+          ..write('biometricEnabled: $biometricEnabled, ')
+          ..write('pinEnabled: $pinEnabled, ')
+          ..write('maxFailedAttempts: $maxFailedAttempts, ')
+          ..write('lockoutDuration: $lockoutDuration, ')
+          ..write('lastSecurityUpdate: $lastSecurityUpdate, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2826,12 +4223,24 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $BudgetsTable budgets = $BudgetsTable(this);
   late final $SavingsGoalsTable savingsGoals = $SavingsGoalsTable(this);
   late final $SubscriptionsTable subscriptions = $SubscriptionsTable(this);
+  late final $DevicesTable devices = $DevicesTable(this);
+  late final $AuthLogsTable authLogs = $AuthLogsTable(this);
+  late final $SecuritySettingsTable securitySettings =
+      $SecuritySettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [transactions, accounts, budgets, savingsGoals, subscriptions];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        transactions,
+        accounts,
+        budgets,
+        savingsGoals,
+        subscriptions,
+        devices,
+        authLogs,
+        securitySettings
+      ];
 }
 
 typedef $$TransactionsTableCreateCompanionBuilder = TransactionsCompanion
@@ -4158,6 +5567,692 @@ typedef $$SubscriptionsTableProcessedTableManager = ProcessedTableManager<
     ),
     Subscription,
     PrefetchHooks Function()>;
+typedef $$DevicesTableCreateCompanionBuilder = DevicesCompanion Function({
+  Value<String> id,
+  required String deviceName,
+  required String deviceId,
+  required String platform,
+  required String osVersion,
+  required String appVersion,
+  Value<bool> isTrusted,
+  Value<bool> isActive,
+  required DateTime lastAuthAt,
+  Value<DateTime> registeredAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$DevicesTableUpdateCompanionBuilder = DevicesCompanion Function({
+  Value<String> id,
+  Value<String> deviceName,
+  Value<String> deviceId,
+  Value<String> platform,
+  Value<String> osVersion,
+  Value<String> appVersion,
+  Value<bool> isTrusted,
+  Value<bool> isActive,
+  Value<DateTime> lastAuthAt,
+  Value<DateTime> registeredAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$DevicesTableFilterComposer
+    extends Composer<_$AppDatabase, $DevicesTable> {
+  $$DevicesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get deviceName => $composableBuilder(
+      column: $table.deviceName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get deviceId => $composableBuilder(
+      column: $table.deviceId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get platform => $composableBuilder(
+      column: $table.platform, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get osVersion => $composableBuilder(
+      column: $table.osVersion, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get appVersion => $composableBuilder(
+      column: $table.appVersion, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isTrusted => $composableBuilder(
+      column: $table.isTrusted, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastAuthAt => $composableBuilder(
+      column: $table.lastAuthAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get registeredAt => $composableBuilder(
+      column: $table.registeredAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$DevicesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DevicesTable> {
+  $$DevicesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get deviceName => $composableBuilder(
+      column: $table.deviceName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get deviceId => $composableBuilder(
+      column: $table.deviceId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get platform => $composableBuilder(
+      column: $table.platform, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get osVersion => $composableBuilder(
+      column: $table.osVersion, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get appVersion => $composableBuilder(
+      column: $table.appVersion, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isTrusted => $composableBuilder(
+      column: $table.isTrusted, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastAuthAt => $composableBuilder(
+      column: $table.lastAuthAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get registeredAt => $composableBuilder(
+      column: $table.registeredAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DevicesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DevicesTable> {
+  $$DevicesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get deviceName => $composableBuilder(
+      column: $table.deviceName, builder: (column) => column);
+
+  GeneratedColumn<String> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+
+  GeneratedColumn<String> get platform =>
+      $composableBuilder(column: $table.platform, builder: (column) => column);
+
+  GeneratedColumn<String> get osVersion =>
+      $composableBuilder(column: $table.osVersion, builder: (column) => column);
+
+  GeneratedColumn<String> get appVersion => $composableBuilder(
+      column: $table.appVersion, builder: (column) => column);
+
+  GeneratedColumn<bool> get isTrusted =>
+      $composableBuilder(column: $table.isTrusted, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastAuthAt => $composableBuilder(
+      column: $table.lastAuthAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get registeredAt => $composableBuilder(
+      column: $table.registeredAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$DevicesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DevicesTable,
+    Device,
+    $$DevicesTableFilterComposer,
+    $$DevicesTableOrderingComposer,
+    $$DevicesTableAnnotationComposer,
+    $$DevicesTableCreateCompanionBuilder,
+    $$DevicesTableUpdateCompanionBuilder,
+    (Device, BaseReferences<_$AppDatabase, $DevicesTable, Device>),
+    Device,
+    PrefetchHooks Function()> {
+  $$DevicesTableTableManager(_$AppDatabase db, $DevicesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DevicesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DevicesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DevicesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> deviceName = const Value.absent(),
+            Value<String> deviceId = const Value.absent(),
+            Value<String> platform = const Value.absent(),
+            Value<String> osVersion = const Value.absent(),
+            Value<String> appVersion = const Value.absent(),
+            Value<bool> isTrusted = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            Value<DateTime> lastAuthAt = const Value.absent(),
+            Value<DateTime> registeredAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DevicesCompanion(
+            id: id,
+            deviceName: deviceName,
+            deviceId: deviceId,
+            platform: platform,
+            osVersion: osVersion,
+            appVersion: appVersion,
+            isTrusted: isTrusted,
+            isActive: isActive,
+            lastAuthAt: lastAuthAt,
+            registeredAt: registeredAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            required String deviceName,
+            required String deviceId,
+            required String platform,
+            required String osVersion,
+            required String appVersion,
+            Value<bool> isTrusted = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            required DateTime lastAuthAt,
+            Value<DateTime> registeredAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DevicesCompanion.insert(
+            id: id,
+            deviceName: deviceName,
+            deviceId: deviceId,
+            platform: platform,
+            osVersion: osVersion,
+            appVersion: appVersion,
+            isTrusted: isTrusted,
+            isActive: isActive,
+            lastAuthAt: lastAuthAt,
+            registeredAt: registeredAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DevicesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DevicesTable,
+    Device,
+    $$DevicesTableFilterComposer,
+    $$DevicesTableOrderingComposer,
+    $$DevicesTableAnnotationComposer,
+    $$DevicesTableCreateCompanionBuilder,
+    $$DevicesTableUpdateCompanionBuilder,
+    (Device, BaseReferences<_$AppDatabase, $DevicesTable, Device>),
+    Device,
+    PrefetchHooks Function()>;
+typedef $$AuthLogsTableCreateCompanionBuilder = AuthLogsCompanion Function({
+  Value<String> id,
+  required String deviceId,
+  required AuthLogType authType,
+  required AuthStatus status,
+  Value<String?> ipAddress,
+  Value<String?> userAgent,
+  Value<int> failedAttempts,
+  Value<DateTime> timestamp,
+  Value<int> rowid,
+});
+typedef $$AuthLogsTableUpdateCompanionBuilder = AuthLogsCompanion Function({
+  Value<String> id,
+  Value<String> deviceId,
+  Value<AuthLogType> authType,
+  Value<AuthStatus> status,
+  Value<String?> ipAddress,
+  Value<String?> userAgent,
+  Value<int> failedAttempts,
+  Value<DateTime> timestamp,
+  Value<int> rowid,
+});
+
+class $$AuthLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $AuthLogsTable> {
+  $$AuthLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get deviceId => $composableBuilder(
+      column: $table.deviceId, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<AuthLogType, AuthLogType, int> get authType =>
+      $composableBuilder(
+          column: $table.authType,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<AuthStatus, AuthStatus, int> get status =>
+      $composableBuilder(
+          column: $table.status,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get ipAddress => $composableBuilder(
+      column: $table.ipAddress, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userAgent => $composableBuilder(
+      column: $table.userAgent, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get failedAttempts => $composableBuilder(
+      column: $table.failedAttempts,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get timestamp => $composableBuilder(
+      column: $table.timestamp, builder: (column) => ColumnFilters(column));
+}
+
+class $$AuthLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AuthLogsTable> {
+  $$AuthLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get deviceId => $composableBuilder(
+      column: $table.deviceId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get authType => $composableBuilder(
+      column: $table.authType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get ipAddress => $composableBuilder(
+      column: $table.ipAddress, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userAgent => $composableBuilder(
+      column: $table.userAgent, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get failedAttempts => $composableBuilder(
+      column: $table.failedAttempts,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get timestamp => $composableBuilder(
+      column: $table.timestamp, builder: (column) => ColumnOrderings(column));
+}
+
+class $$AuthLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AuthLogsTable> {
+  $$AuthLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<AuthLogType, int> get authType =>
+      $composableBuilder(column: $table.authType, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<AuthStatus, int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get ipAddress =>
+      $composableBuilder(column: $table.ipAddress, builder: (column) => column);
+
+  GeneratedColumn<String> get userAgent =>
+      $composableBuilder(column: $table.userAgent, builder: (column) => column);
+
+  GeneratedColumn<int> get failedAttempts => $composableBuilder(
+      column: $table.failedAttempts, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get timestamp =>
+      $composableBuilder(column: $table.timestamp, builder: (column) => column);
+}
+
+class $$AuthLogsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $AuthLogsTable,
+    AuthLog,
+    $$AuthLogsTableFilterComposer,
+    $$AuthLogsTableOrderingComposer,
+    $$AuthLogsTableAnnotationComposer,
+    $$AuthLogsTableCreateCompanionBuilder,
+    $$AuthLogsTableUpdateCompanionBuilder,
+    (AuthLog, BaseReferences<_$AppDatabase, $AuthLogsTable, AuthLog>),
+    AuthLog,
+    PrefetchHooks Function()> {
+  $$AuthLogsTableTableManager(_$AppDatabase db, $AuthLogsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AuthLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AuthLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AuthLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> deviceId = const Value.absent(),
+            Value<AuthLogType> authType = const Value.absent(),
+            Value<AuthStatus> status = const Value.absent(),
+            Value<String?> ipAddress = const Value.absent(),
+            Value<String?> userAgent = const Value.absent(),
+            Value<int> failedAttempts = const Value.absent(),
+            Value<DateTime> timestamp = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AuthLogsCompanion(
+            id: id,
+            deviceId: deviceId,
+            authType: authType,
+            status: status,
+            ipAddress: ipAddress,
+            userAgent: userAgent,
+            failedAttempts: failedAttempts,
+            timestamp: timestamp,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            required String deviceId,
+            required AuthLogType authType,
+            required AuthStatus status,
+            Value<String?> ipAddress = const Value.absent(),
+            Value<String?> userAgent = const Value.absent(),
+            Value<int> failedAttempts = const Value.absent(),
+            Value<DateTime> timestamp = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AuthLogsCompanion.insert(
+            id: id,
+            deviceId: deviceId,
+            authType: authType,
+            status: status,
+            ipAddress: ipAddress,
+            userAgent: userAgent,
+            failedAttempts: failedAttempts,
+            timestamp: timestamp,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$AuthLogsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $AuthLogsTable,
+    AuthLog,
+    $$AuthLogsTableFilterComposer,
+    $$AuthLogsTableOrderingComposer,
+    $$AuthLogsTableAnnotationComposer,
+    $$AuthLogsTableCreateCompanionBuilder,
+    $$AuthLogsTableUpdateCompanionBuilder,
+    (AuthLog, BaseReferences<_$AppDatabase, $AuthLogsTable, AuthLog>),
+    AuthLog,
+    PrefetchHooks Function()>;
+typedef $$SecuritySettingsTableCreateCompanionBuilder
+    = SecuritySettingsCompanion Function({
+  Value<String> id,
+  Value<int> sessionTimeout,
+  Value<bool> biometricEnabled,
+  Value<bool> pinEnabled,
+  Value<int> maxFailedAttempts,
+  Value<int> lockoutDuration,
+  Value<DateTime> lastSecurityUpdate,
+  Value<int> rowid,
+});
+typedef $$SecuritySettingsTableUpdateCompanionBuilder
+    = SecuritySettingsCompanion Function({
+  Value<String> id,
+  Value<int> sessionTimeout,
+  Value<bool> biometricEnabled,
+  Value<bool> pinEnabled,
+  Value<int> maxFailedAttempts,
+  Value<int> lockoutDuration,
+  Value<DateTime> lastSecurityUpdate,
+  Value<int> rowid,
+});
+
+class $$SecuritySettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $SecuritySettingsTable> {
+  $$SecuritySettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sessionTimeout => $composableBuilder(
+      column: $table.sessionTimeout,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get biometricEnabled => $composableBuilder(
+      column: $table.biometricEnabled,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get pinEnabled => $composableBuilder(
+      column: $table.pinEnabled, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get maxFailedAttempts => $composableBuilder(
+      column: $table.maxFailedAttempts,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get lockoutDuration => $composableBuilder(
+      column: $table.lockoutDuration,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastSecurityUpdate => $composableBuilder(
+      column: $table.lastSecurityUpdate,
+      builder: (column) => ColumnFilters(column));
+}
+
+class $$SecuritySettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SecuritySettingsTable> {
+  $$SecuritySettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sessionTimeout => $composableBuilder(
+      column: $table.sessionTimeout,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get biometricEnabled => $composableBuilder(
+      column: $table.biometricEnabled,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get pinEnabled => $composableBuilder(
+      column: $table.pinEnabled, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get maxFailedAttempts => $composableBuilder(
+      column: $table.maxFailedAttempts,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get lockoutDuration => $composableBuilder(
+      column: $table.lockoutDuration,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastSecurityUpdate => $composableBuilder(
+      column: $table.lastSecurityUpdate,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$SecuritySettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SecuritySettingsTable> {
+  $$SecuritySettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get sessionTimeout => $composableBuilder(
+      column: $table.sessionTimeout, builder: (column) => column);
+
+  GeneratedColumn<bool> get biometricEnabled => $composableBuilder(
+      column: $table.biometricEnabled, builder: (column) => column);
+
+  GeneratedColumn<bool> get pinEnabled => $composableBuilder(
+      column: $table.pinEnabled, builder: (column) => column);
+
+  GeneratedColumn<int> get maxFailedAttempts => $composableBuilder(
+      column: $table.maxFailedAttempts, builder: (column) => column);
+
+  GeneratedColumn<int> get lockoutDuration => $composableBuilder(
+      column: $table.lockoutDuration, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastSecurityUpdate => $composableBuilder(
+      column: $table.lastSecurityUpdate, builder: (column) => column);
+}
+
+class $$SecuritySettingsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SecuritySettingsTable,
+    SecuritySetting,
+    $$SecuritySettingsTableFilterComposer,
+    $$SecuritySettingsTableOrderingComposer,
+    $$SecuritySettingsTableAnnotationComposer,
+    $$SecuritySettingsTableCreateCompanionBuilder,
+    $$SecuritySettingsTableUpdateCompanionBuilder,
+    (
+      SecuritySetting,
+      BaseReferences<_$AppDatabase, $SecuritySettingsTable, SecuritySetting>
+    ),
+    SecuritySetting,
+    PrefetchHooks Function()> {
+  $$SecuritySettingsTableTableManager(
+      _$AppDatabase db, $SecuritySettingsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SecuritySettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SecuritySettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SecuritySettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<int> sessionTimeout = const Value.absent(),
+            Value<bool> biometricEnabled = const Value.absent(),
+            Value<bool> pinEnabled = const Value.absent(),
+            Value<int> maxFailedAttempts = const Value.absent(),
+            Value<int> lockoutDuration = const Value.absent(),
+            Value<DateTime> lastSecurityUpdate = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SecuritySettingsCompanion(
+            id: id,
+            sessionTimeout: sessionTimeout,
+            biometricEnabled: biometricEnabled,
+            pinEnabled: pinEnabled,
+            maxFailedAttempts: maxFailedAttempts,
+            lockoutDuration: lockoutDuration,
+            lastSecurityUpdate: lastSecurityUpdate,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<int> sessionTimeout = const Value.absent(),
+            Value<bool> biometricEnabled = const Value.absent(),
+            Value<bool> pinEnabled = const Value.absent(),
+            Value<int> maxFailedAttempts = const Value.absent(),
+            Value<int> lockoutDuration = const Value.absent(),
+            Value<DateTime> lastSecurityUpdate = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SecuritySettingsCompanion.insert(
+            id: id,
+            sessionTimeout: sessionTimeout,
+            biometricEnabled: biometricEnabled,
+            pinEnabled: pinEnabled,
+            maxFailedAttempts: maxFailedAttempts,
+            lockoutDuration: lockoutDuration,
+            lastSecurityUpdate: lastSecurityUpdate,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$SecuritySettingsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SecuritySettingsTable,
+    SecuritySetting,
+    $$SecuritySettingsTableFilterComposer,
+    $$SecuritySettingsTableOrderingComposer,
+    $$SecuritySettingsTableAnnotationComposer,
+    $$SecuritySettingsTableCreateCompanionBuilder,
+    $$SecuritySettingsTableUpdateCompanionBuilder,
+    (
+      SecuritySetting,
+      BaseReferences<_$AppDatabase, $SecuritySettingsTable, SecuritySetting>
+    ),
+    SecuritySetting,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4172,4 +6267,10 @@ class $AppDatabaseManager {
       $$SavingsGoalsTableTableManager(_db, _db.savingsGoals);
   $$SubscriptionsTableTableManager get subscriptions =>
       $$SubscriptionsTableTableManager(_db, _db.subscriptions);
+  $$DevicesTableTableManager get devices =>
+      $$DevicesTableTableManager(_db, _db.devices);
+  $$AuthLogsTableTableManager get authLogs =>
+      $$AuthLogsTableTableManager(_db, _db.authLogs);
+  $$SecuritySettingsTableTableManager get securitySettings =>
+      $$SecuritySettingsTableTableManager(_db, _db.securitySettings);
 }

@@ -99,6 +99,64 @@ enum GoalPriority { low, medium, high, critical }
 
 enum BillingCycle { weekly, monthly, quarterly, yearly }
 
+enum AuthLogType { biometric, pin, password }
+
+enum AuthStatus { success, failed, lockedOut }
+
+class Devices extends Table {
+  TextColumn get id => text().clientDefault(() => _generateUuid())();
+  TextColumn get deviceName => text()(); // e.g., "iPhone 14 Pro", "MacBook Air"
+  TextColumn get deviceId => text().unique()(); // Platform-specific device ID
+  TextColumn get platform => text()(); // iOS, Android, macOS, Windows
+  TextColumn get osVersion => text()();
+  TextColumn get appVersion => text()();
+  BoolColumn get isTrusted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get lastAuthAt => dateTime()();
+  DateTimeColumn get registeredAt =>
+      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class AuthLogs extends Table {
+  TextColumn get id => text().clientDefault(() => _generateUuid())();
+  TextColumn get deviceId => text()(); // FK to Devices
+  IntColumn get authType =>
+      intEnum<AuthLogType>()(); // biometric, pin, password
+  IntColumn get status => intEnum<AuthStatus>()(); // success, failed, lockedOut
+  TextColumn get ipAddress => text().nullable()();
+  TextColumn get userAgent => text().nullable()();
+  IntColumn get failedAttempts => integer().withDefault(const Constant(0))();
+  DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {deviceId, timestamp},
+      ];
+}
+
+class SecuritySettings extends Table {
+  TextColumn get id => text().clientDefault(() => _generateUuid())();
+  IntColumn get sessionTimeout =>
+      integer().withDefault(const Constant(300))(); // 5 minutes in seconds
+  BoolColumn get biometricEnabled =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get pinEnabled => boolean().withDefault(const Constant(false))();
+  IntColumn get maxFailedAttempts => integer().withDefault(const Constant(5))();
+  IntColumn get lockoutDuration =>
+      integer().withDefault(const Constant(900))(); // 15 minutes in seconds
+  DateTimeColumn get lastSecurityUpdate =>
+      dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 String _generateUuid() {
   // Simple UUID v4 generator
   return '${_randomHex(8)}-${_randomHex(4)}-4${_randomHex(3)}-${_randomHex(4)}-${_randomHex(12)}';

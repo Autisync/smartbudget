@@ -26,4 +26,21 @@ class Subscription with _$Subscription {
 
   factory Subscription.fromJson(Map<String, dynamic> json) =>
       _$SubscriptionFromJson(json);
+
+  const Subscription._();
+
+  double get monthlyCost {
+    switch (billingCycle) {
+      case BillingCycle.weekly:
+        return amount * 4.33;
+      case BillingCycle.monthly:
+        return amount;
+      case BillingCycle.quarterly:
+        return amount / 3;
+      case BillingCycle.yearly:
+        return amount / 12;
+    }
+  }
+
+  DateTime get nextDueDate => nextBillingDate;
 }

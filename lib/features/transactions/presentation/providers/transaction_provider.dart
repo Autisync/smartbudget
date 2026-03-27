@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-// ...existing code...
+import 'package:smartbudget/intelligence/predictors/cashflow_predictor.dart';
 import 'package:smartbudget/data/repositories/transaction_repository_impl.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/domain/repositories/transaction_repository.dart';
@@ -90,6 +90,19 @@ Future<SpendingProfile> spendingProfile(SpendingProfileRef ref) async {
   final analyzer = SpendingAnalyzer();
   final now = DateTime.now();
   return analyzer.analyze(transactions, now);
+}
+
+@riverpod
+Future<CashflowPrediction> cashflowPrediction(
+    CashflowPredictionRef ref) async {
+  final repo = ref.watch(transactionRepositoryProvider);
+  final transactions = await repo.getTransactions();
+  final currentBalance = transactions.fold<double>(0.0, (sum, tx) {
+    return tx.isIncome ? sum + tx.amount : sum - tx.amount;
+  });
+
+  final predictor = CashflowPredictor();
+  return predictor.predict(transactions, DateTime.now(), currentBalance);
 }
 
 @riverpod

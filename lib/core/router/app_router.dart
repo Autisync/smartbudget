@@ -10,6 +10,8 @@ import 'package:smartbudget/features/budgets/presentation/screens/budget_screen.
 import 'package:smartbudget/features/savings/presentation/screens/savings_screen.dart';
 import 'package:smartbudget/features/insights/presentation/screens/insights_screen.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/subscriptions_screen.dart';
+import 'package:smartbudget/features/reports/presentation/screens/reports_screen.dart';
+import 'package:smartbudget/features/auth/presentation/screens/security_screen.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 
@@ -76,8 +78,16 @@ GoRouter router(RouterRef ref) {
             builder: (context, state) => const SubscriptionsScreen(),
           ),
           GoRoute(
+            path: '/reports',
+            builder: (context, state) => const ReportsScreen(),
+          ),
+          GoRoute(
             path: '/insights',
             builder: (context, state) => const InsightsScreen(),
+          ),
+          GoRoute(
+            path: '/security',
+            builder: (context, state) => const SecurityScreen(),
           ),
         ],
       ),
@@ -99,44 +109,114 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final useRail = width >= 900;
+
     return Scaffold(
-      body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _calculateSelectedIndex(context),
-        onDestinationSelected: (index) => _onItemTapped(index, context),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
-            label: 'Transactions',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
-            label: 'Budgets',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.savings_outlined),
-            selectedIcon: Icon(Icons.savings),
-            label: 'Savings',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.subscriptions_outlined),
-            selectedIcon: Icon(Icons.subscriptions),
-            label: 'Subscriptions',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
-            label: 'Insights',
-          ),
-        ],
-      ),
+      body: useRail
+          ? Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _calculateSelectedIndex(context),
+                  onDestinationSelected: (index) =>
+                      _onItemTapped(index, context),
+                  labelType: NavigationRailLabelType.all,
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.receipt_long_outlined),
+                      selectedIcon: Icon(Icons.receipt_long),
+                      label: Text('Transactions'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.account_balance_wallet_outlined),
+                      selectedIcon: Icon(Icons.account_balance_wallet),
+                      label: Text('Budgets'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.savings_outlined),
+                      selectedIcon: Icon(Icons.savings),
+                      label: Text('Savings'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.subscriptions_outlined),
+                      selectedIcon: Icon(Icons.subscriptions),
+                      label: Text('Subscriptions'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.description_outlined),
+                      selectedIcon: Icon(Icons.description),
+                      label: Text('Reports'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.insights_outlined),
+                      selectedIcon: Icon(Icons.insights),
+                      label: Text('Insights'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.security_outlined),
+                      selectedIcon: Icon(Icons.security),
+                      label: Text('Security'),
+                    ),
+                  ],
+                ),
+                const VerticalDivider(width: 1),
+                Expanded(child: child),
+              ],
+            )
+          : child,
+      bottomNavigationBar: useRail
+          ? null
+          : NavigationBar(
+              selectedIndex: _calculateSelectedIndex(context),
+              onDestinationSelected: (index) => _onItemTapped(index, context),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.receipt_long_outlined),
+                  selectedIcon: Icon(Icons.receipt_long),
+                  label: 'Transactions',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.account_balance_wallet_outlined),
+                  selectedIcon: Icon(Icons.account_balance_wallet),
+                  label: 'Budgets',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.savings_outlined),
+                  selectedIcon: Icon(Icons.savings),
+                  label: 'Savings',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.subscriptions_outlined),
+                  selectedIcon: Icon(Icons.subscriptions),
+                  label: 'Subscriptions',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.description_outlined),
+                  selectedIcon: Icon(Icons.description),
+                  label: 'Reports',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.insights_outlined),
+                  selectedIcon: Icon(Icons.insights),
+                  label: 'Insights',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.security_outlined),
+                  selectedIcon: Icon(Icons.security),
+                  label: 'Security',
+                ),
+              ],
+            ),
     );
   }
 
@@ -146,7 +226,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
     if (location.startsWith('/budgets')) return 2;
     if (location.startsWith('/savings')) return 3;
     if (location.startsWith('/subscriptions')) return 4;
-    if (location.startsWith('/insights')) return 5;
+    if (location.startsWith('/reports')) return 5;
+    if (location.startsWith('/insights')) return 6;
+    if (location.startsWith('/security')) return 7;
     return 0;
   }
 
@@ -168,7 +250,13 @@ class ScaffoldWithNavBar extends StatelessWidget {
         GoRouter.of(context).go('/subscriptions');
         break;
       case 5:
+        GoRouter.of(context).go('/reports');
+        break;
+      case 6:
         GoRouter.of(context).go('/insights');
+        break;
+      case 7:
+        GoRouter.of(context).go('/security');
         break;
     }
   }

@@ -21,6 +21,8 @@ final subscriptionListProvider =
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef SubscriptionListRef = AutoDisposeFutureProviderRef<List<Subscription>>;
 String _$dueSubscriptionsHash() => r'b3a7c8a43bea54531c450c94d0f803733a26e635';
 
@@ -37,6 +39,8 @@ final dueSubscriptionsProvider =
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef DueSubscriptionsRef = AutoDisposeFutureProviderRef<List<Subscription>>;
 String _$subscriptionHash() => r'53e9d2998e461c9fefcd32d605621acb546d873e';
 
@@ -174,6 +178,8 @@ class SubscriptionProvider extends AutoDisposeFutureProvider<Subscription?> {
   }
 }
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 mixin SubscriptionRef on AutoDisposeFutureProviderRef<Subscription?> {
   /// The parameter `id` of this provider.
   String get id;
@@ -188,4 +194,4 @@ class _SubscriptionProviderElement
   String get id => (origin as SubscriptionProvider).id;
 }
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

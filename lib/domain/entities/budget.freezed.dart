@@ -26,7 +26,9 @@ mixin _$Budget {
   int get alertThreshold => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Budget
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $BudgetCopyWith<Budget> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -57,6 +59,8 @@ class _$BudgetCopyWithImpl<$Res, $Val extends Budget>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Budget
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -138,6 +142,8 @@ class __$$BudgetImplCopyWithImpl<$Res>
       _$BudgetImpl _value, $Res Function(_$BudgetImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Budget
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -258,7 +264,9 @@ class _$BudgetImpl implements _Budget {
   int get hashCode => Object.hash(runtimeType, id, category, limitAmount,
       currency, period, startDate, endDate, alertThreshold, isActive);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Budget
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$BudgetImplCopyWith<_$BudgetImpl> get copyWith =>
@@ -295,8 +303,11 @@ abstract class _Budget implements Budget {
   int get alertThreshold;
   @override
   bool get isActive;
+
+  /// Create a copy of Budget
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$BudgetImplCopyWith<_$BudgetImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -310,7 +321,9 @@ mixin _$BudgetProgress {
   bool get isOverBudget => throw _privateConstructorUsedError;
   bool get isNearLimit => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of BudgetProgress
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $BudgetProgressCopyWith<BudgetProgress> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -342,6 +355,8 @@ class _$BudgetProgressCopyWithImpl<$Res, $Val extends BudgetProgress>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of BudgetProgress
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -380,6 +395,8 @@ class _$BudgetProgressCopyWithImpl<$Res, $Val extends BudgetProgress>
     ) as $Val);
   }
 
+  /// Create a copy of BudgetProgress
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $BudgetCopyWith<$Res> get budget {
@@ -417,6 +434,8 @@ class __$$BudgetProgressImplCopyWithImpl<$Res>
       _$BudgetProgressImpl _value, $Res Function(_$BudgetProgressImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of BudgetProgress
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -506,7 +525,9 @@ class _$BudgetProgressImpl implements _BudgetProgress {
   int get hashCode => Object.hash(runtimeType, budget, spent, remaining,
       percentage, isOverBudget, isNearLimit);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of BudgetProgress
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$BudgetProgressImplCopyWith<_$BudgetProgressImpl> get copyWith =>
@@ -535,8 +556,11 @@ abstract class _BudgetProgress implements BudgetProgress {
   bool get isOverBudget;
   @override
   bool get isNearLimit;
+
+  /// Create a copy of BudgetProgress
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$BudgetProgressImplCopyWith<_$BudgetProgressImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

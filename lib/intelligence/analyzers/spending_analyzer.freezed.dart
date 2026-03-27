@@ -24,7 +24,9 @@ mixin _$SpendingProfile {
   TrendDirection get trend => throw _privateConstructorUsedError;
   double get topCategoryPercentage => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SpendingProfile
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SpendingProfileCopyWith<SpendingProfile> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -54,6 +56,8 @@ class _$SpendingProfileCopyWithImpl<$Res, $Val extends SpendingProfile>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of SpendingProfile
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -118,6 +122,8 @@ class __$$SpendingProfileImplCopyWithImpl<$Res>
       _$SpendingProfileImpl _value, $Res Function(_$SpendingProfileImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of SpendingProfile
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -229,7 +235,9 @@ class _$SpendingProfileImpl implements _SpendingProfile {
       trend,
       topCategoryPercentage);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SpendingProfile
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SpendingProfileImplCopyWith<_$SpendingProfileImpl> get copyWith =>
@@ -258,8 +266,11 @@ abstract class _SpendingProfile implements SpendingProfile {
   TrendDirection get trend;
   @override
   double get topCategoryPercentage;
+
+  /// Create a copy of SpendingProfile
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SpendingProfileImplCopyWith<_$SpendingProfileImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -271,7 +282,9 @@ mixin _$SpendingAnomaly {
   String get reason => throw _privateConstructorUsedError;
   double get deviationPercentage => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SpendingAnomaly
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SpendingAnomalyCopyWith<SpendingAnomaly> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -301,6 +314,8 @@ class _$SpendingAnomalyCopyWithImpl<$Res, $Val extends SpendingAnomaly>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of SpendingAnomaly
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -329,6 +344,8 @@ class _$SpendingAnomalyCopyWithImpl<$Res, $Val extends SpendingAnomaly>
     ) as $Val);
   }
 
+  /// Create a copy of SpendingAnomaly
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $TransactionCopyWith<$Res> get transaction {
@@ -364,6 +381,8 @@ class __$$SpendingAnomalyImplCopyWithImpl<$Res>
       _$SpendingAnomalyImpl _value, $Res Function(_$SpendingAnomalyImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of SpendingAnomaly
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -434,7 +453,9 @@ class _$SpendingAnomalyImpl implements _SpendingAnomaly {
   int get hashCode => Object.hash(
       runtimeType, transaction, severity, reason, deviationPercentage);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SpendingAnomaly
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SpendingAnomalyImplCopyWith<_$SpendingAnomalyImpl> get copyWith =>
@@ -457,8 +478,11 @@ abstract class _SpendingAnomaly implements SpendingAnomaly {
   String get reason;
   @override
   double get deviationPercentage;
+
+  /// Create a copy of SpendingAnomaly
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SpendingAnomalyImplCopyWith<_$SpendingAnomalyImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

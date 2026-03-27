@@ -19,6 +19,8 @@ final databaseProvider = Provider<AppDatabase>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef DatabaseRef = ProviderRef<AppDatabase>;
 String _$secureStorageHash() => r'ed88dce95a08c3d0173da54e8f23d477851f8d59';
 
@@ -34,6 +36,8 @@ final secureStorageProvider = Provider<FlutterSecureStorage>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef SecureStorageRef = ProviderRef<FlutterSecureStorage>;
 String _$localAuthHash() => r'558740d844521301fb1fcae6c4964a039532dc12';
 
@@ -48,6 +52,8 @@ final localAuthProvider = Provider<LocalAuthentication>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef LocalAuthRef = ProviderRef<LocalAuthentication>;
 String _$encryptionServiceHash() => r'8698a024ded3e2f6d40c2dce6ddcf482980d70d7';
 
@@ -63,6 +69,8 @@ final encryptionServiceProvider = Provider<EncryptionService>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef EncryptionServiceRef = ProviderRef<EncryptionService>;
 String _$biometricAuthServiceHash() =>
     r'eb4075adfc8308feec3dae56b9f55218a2b6a35f';
@@ -79,7 +87,26 @@ final biometricAuthServiceProvider = Provider<BiometricAuthService>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef BiometricAuthServiceRef = ProviderRef<BiometricAuthService>;
+String _$securityServiceHash() => r'79ce7f4fb4e76bc79267162526b7554460d5e904';
+
+/// See also [securityService].
+@ProviderFor(securityService)
+final securityServiceProvider = Provider<SecurityService>.internal(
+  securityService,
+  name: r'securityServiceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$securityServiceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SecurityServiceRef = ProviderRef<SecurityService>;
 String _$recurringSchedulerServiceHash() =>
     r'91bd9644364ba73dff192be78f6324125a29b1ee';
 
@@ -96,6 +123,8 @@ final recurringSchedulerServiceProvider =
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef RecurringSchedulerServiceRef = ProviderRef<RecurringSchedulerService>;
 String _$notificationServiceHash() =>
     r'015117d47fe71bf44664bf802ad1290b1e2492d4';
@@ -112,6 +141,8 @@ final notificationServiceProvider = Provider<NotificationService>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef NotificationServiceRef = ProviderRef<NotificationService>;
 String _$subscriptionRepositoryHash() =>
     r'0a4dc9ddebe2a4f014faadb8546aee3172f26c41';
@@ -129,6 +160,8 @@ final subscriptionRepositoryProvider =
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef SubscriptionRepositoryRef = ProviderRef<SubscriptionRepositoryImpl>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -23,7 +23,9 @@ mixin _$CashflowPrediction {
   String get recommendation => throw _privateConstructorUsedError;
   DateTime get predictionDate => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of CashflowPrediction
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $CashflowPredictionCopyWith<CashflowPrediction> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -53,6 +55,8 @@ class _$CashflowPredictionCopyWithImpl<$Res, $Val extends CashflowPrediction>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of CashflowPrediction
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -117,6 +121,8 @@ class __$$CashflowPredictionImplCopyWithImpl<$Res>
       $Res Function(_$CashflowPredictionImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of CashflowPrediction
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -214,7 +220,9 @@ class _$CashflowPredictionImpl implements _CashflowPrediction {
       recommendation,
       predictionDate);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of CashflowPrediction
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$CashflowPredictionImplCopyWith<_$CashflowPredictionImpl> get copyWith =>
@@ -243,8 +251,11 @@ abstract class _CashflowPrediction implements CashflowPrediction {
   String get recommendation;
   @override
   DateTime get predictionDate;
+
+  /// Create a copy of CashflowPrediction
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CashflowPredictionImplCopyWith<_$CashflowPredictionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

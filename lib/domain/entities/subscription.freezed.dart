@@ -36,8 +36,12 @@ mixin _$Subscription {
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
+  /// Serializes this Subscription to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Subscription
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SubscriptionCopyWith<Subscription> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -76,6 +80,8 @@ class _$SubscriptionCopyWithImpl<$Res, $Val extends Subscription>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Subscription
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -194,6 +200,8 @@ class __$$SubscriptionImplCopyWithImpl<$Res>
       _$SubscriptionImpl _value, $Res Function(_$SubscriptionImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Subscription
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -280,7 +288,7 @@ class __$$SubscriptionImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$SubscriptionImpl implements _Subscription {
+class _$SubscriptionImpl extends _Subscription {
   const _$SubscriptionImpl(
       {required this.id,
       required this.name,
@@ -296,7 +304,8 @@ class _$SubscriptionImpl implements _Subscription {
       this.paymentMethod,
       this.website,
       required this.createdAt,
-      required this.updatedAt});
+      required this.updatedAt})
+      : super._();
 
   factory _$SubscriptionImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubscriptionImplFromJson(json);
@@ -370,7 +379,7 @@ class _$SubscriptionImpl implements _Subscription {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -390,7 +399,9 @@ class _$SubscriptionImpl implements _Subscription {
       createdAt,
       updatedAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Subscription
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SubscriptionImplCopyWith<_$SubscriptionImpl> get copyWith =>
@@ -404,7 +415,7 @@ class _$SubscriptionImpl implements _Subscription {
   }
 }
 
-abstract class _Subscription implements Subscription {
+abstract class _Subscription extends Subscription {
   const factory _Subscription(
       {required final String id,
       required final String name,
@@ -421,6 +432,7 @@ abstract class _Subscription implements Subscription {
       final String? website,
       required final DateTime createdAt,
       required final DateTime updatedAt}) = _$SubscriptionImpl;
+  const _Subscription._() : super._();
 
   factory _Subscription.fromJson(Map<String, dynamic> json) =
       _$SubscriptionImpl.fromJson;
@@ -455,8 +467,11 @@ abstract class _Subscription implements Subscription {
   DateTime get createdAt;
   @override
   DateTime get updatedAt;
+
+  /// Create a copy of Subscription
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SubscriptionImplCopyWith<_$SubscriptionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

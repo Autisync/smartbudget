@@ -21,6 +21,8 @@ final savingsGoalRepositoryProvider = Provider<SavingsGoalRepository>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef SavingsGoalRepositoryRef = ProviderRef<SavingsGoalRepository>;
 String _$savingsGoalListHash() => r'3752efd5564510d34ab3e2578ba472d8d1208748';
 
@@ -39,4 +41,4 @@ final savingsGoalListProvider = AutoDisposeAsyncNotifierProvider<
 
 typedef _$SavingsGoalList = AutoDisposeAsyncNotifier<List<SavingsGoal>>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

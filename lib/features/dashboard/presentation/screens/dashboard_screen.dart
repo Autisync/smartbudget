@@ -46,7 +46,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
-                onPressed: () {},
+                onPressed: () => context.push('/security'),
               ),
             ],
           ),
