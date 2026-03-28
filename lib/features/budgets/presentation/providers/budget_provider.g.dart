@@ -207,7 +207,7 @@ class _BudgetSpendingProviderElement
   DateTime get end => (origin as BudgetSpendingProvider).end;
 }
 
-String _$budgetListHash() => r'18f71ebf19f5408b9e22346ad53dce0b64d678a6';
+String _$budgetListHash() => r'b731ba27896d9b24f6cf2885e4e559e7830d7d15';
 
 /// See also [BudgetList].
 @ProviderFor(BudgetList)

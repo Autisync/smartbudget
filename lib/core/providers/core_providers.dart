@@ -8,6 +8,8 @@ import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/services/security_service.dart';
 import 'package:smartbudget/core/services/recurring_scheduler_service.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
+import 'package:smartbudget/core/services/notification_preferences_service.dart';
+import 'package:smartbudget/core/services/rollover_policy_service.dart';
 import 'package:smartbudget/core/services/encryption_service.dart';
 import 'package:smartbudget/core/services/theme_service.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart';
@@ -72,6 +74,44 @@ final themeModeControllerProvider =
     StateNotifierProvider<ThemeModeController, ThemeMode>((ref) {
   final themeService = ref.watch(themeServiceProvider);
   return ThemeModeController(themeService);
+});
+
+final rolloverPolicyServiceProvider = Provider<RolloverPolicyService>((ref) {
+  final storage = ref.watch(secureStorageProvider);
+  return RolloverPolicyService(storage);
+});
+
+final rolloverPolicyControllerProvider =
+    StateNotifierProvider<RolloverPolicyController, RolloverPolicy>((ref) {
+  final service = ref.watch(rolloverPolicyServiceProvider);
+  return RolloverPolicyController(service);
+});
+
+final notificationPreferencesServiceProvider =
+    Provider<NotificationPreferencesService>((ref) {
+  final storage = ref.watch(secureStorageProvider);
+  return NotificationPreferencesService(storage);
+});
+
+final notificationPreferencesControllerProvider = StateNotifierProvider<
+    NotificationPreferencesController, NotificationPreferences>((ref) {
+  final service = ref.watch(notificationPreferencesServiceProvider);
+  return NotificationPreferencesController(service);
+});
+
+final notificationNextEligibleProvider =
+    FutureProvider.family<DateTime?, String>((ref, categoryKey) async {
+  ref.watch(notificationPreferencesControllerProvider);
+  final service = ref.watch(notificationPreferencesServiceProvider);
+  return service.nextEligibleDispatch(categoryKey);
+});
+
+final notificationDispatchStatusProvider =
+    FutureProvider.family<NotificationDispatchStatus, String>(
+        (ref, categoryKey) async {
+  ref.watch(notificationPreferencesControllerProvider);
+  final service = ref.watch(notificationPreferencesServiceProvider);
+  return service.dispatchStatus(categoryKey);
 });
 
 @Riverpod(keepAlive: true)

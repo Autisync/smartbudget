@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:smartbudget/features/dashboard/presentation/screens/financial_health_screen.dart';
 import 'package:smartbudget/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:smartbudget/features/transactions/presentation/screens/edit_transaction_screen.dart';
 import 'package:smartbudget/features/transactions/presentation/screens/transaction_list_screen.dart';
@@ -128,6 +129,10 @@ GoRouter router(RouterRef ref) {
           GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: '/health',
+            builder: (context, state) => const FinancialHealthScreen(),
           ),
           GoRoute(
             path: '/security',
@@ -273,6 +278,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
     if (location.startsWith('/reports')) return 5;
     if (location.startsWith('/insights')) return 6;
     if (location.startsWith('/settings')) return 7;
+    if (location.startsWith('/health')) return 0;
     if (location.startsWith('/security')) return 7;
     return 0;
   }

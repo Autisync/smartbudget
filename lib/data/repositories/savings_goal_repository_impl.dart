@@ -40,6 +40,8 @@ class SavingsGoalRepositoryImpl implements SavingsGoalRepository {
               deadline: row.deadline,
               priority: row.priority,
               color: row.color,
+              autoAllocate: row.autoAllocate,
+              createdAt: row.createdAt,
             ))
         .toList();
   }
@@ -71,6 +73,8 @@ class SavingsGoalRepositoryImpl implements SavingsGoalRepository {
       deadline: Value(goal.deadline),
       priority: Value(goal.priority),
       color: Value(goal.color),
+      autoAllocate: Value(goal.autoAllocate),
+      createdAt: Value(goal.createdAt ?? DateTime.now()),
     ));
   }
 }

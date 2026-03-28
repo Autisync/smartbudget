@@ -24,7 +24,7 @@ final savingsGoalRepositoryProvider = Provider<SavingsGoalRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SavingsGoalRepositoryRef = ProviderRef<SavingsGoalRepository>;
-String _$savingsGoalListHash() => r'3752efd5564510d34ab3e2578ba472d8d1208748';
+String _$savingsGoalListHash() => r'12acc3d7af2987f16a799a85f375110cc7a0b46c';
 
 /// See also [SavingsGoalList].
 @ProviderFor(SavingsGoalList)
@@ -40,5 +40,21 @@ final savingsGoalListProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$SavingsGoalList = AutoDisposeAsyncNotifier<List<SavingsGoal>>;
+String _$savingsNudgesHash() => r'c2977d5ff6f9cbcc239d33bee6e225bb325c496c';
+
+/// See also [SavingsNudges].
+@ProviderFor(SavingsNudges)
+final savingsNudgesProvider =
+    AsyncNotifierProvider<SavingsNudges, List<SavingsNudge>>.internal(
+  SavingsNudges.new,
+  name: r'savingsNudgesProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$savingsNudgesHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SavingsNudges = AsyncNotifier<List<SavingsNudge>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

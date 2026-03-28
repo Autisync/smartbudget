@@ -57,6 +57,7 @@ class BudgetRepositoryImpl implements BudgetRepository {
               period: row.period,
               startDate: row.startDate,
               endDate: row.endDate,
+              alertThreshold: row.alertThreshold,
               isActive: row.isActive,
             ))
         .toList();

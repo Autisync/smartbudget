@@ -2,18 +2,96 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/domain/entities/budget_alert.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
+import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
 import 'package:smartbudget/data/models/tables.dart' show TransactionType;
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  ProviderSubscription<AsyncValue<List<BudgetAlert>>>? _alertSubscription;
+  ProviderSubscription<AsyncValue<FinancialHealthSnapshot>>?
+      _healthSubscription;
+  final Set<String> _notifiedBudgetAlertIds = <String>{};
+  bool _healthInsightSent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _alertSubscription = ref.listenManual<AsyncValue<List<BudgetAlert>>>(
+      budgetAlertsProvider,
+      (previous, next) {
+        next.whenData((alerts) async {
+          final notificationService = ref.read(notificationServiceProvider);
+          final preferencesService = ref.read(notificationPreferencesServiceProvider);
+
+          for (final alert in alerts) {
+            final key = '${alert.budgetId}-${alert.overLimit}-${alert.nearLimit}';
+            if (_notifiedBudgetAlertIds.contains(key)) continue;
+
+            final canSend = await preferencesService.shouldDispatch('budgetAlerts');
+            if (!canSend) break;
+
+            _notifiedBudgetAlertIds.add(key);
+            final title = alert.overLimit ? 'Budget Exceeded!' : 'Budget Alert';
+            final body =
+                '${alert.category} spending is at ${(alert.progress * 100).toStringAsFixed(1)}% of limit';
+            await notificationService.showBudgetAlert(
+              title: title,
+              body: body,
+              payload: alert.budgetId,
+            );
+          }
+        });
+      },
+    );
+
+    _healthSubscription =
+        ref.listenManual<AsyncValue<FinancialHealthSnapshot>>(
+      financialHealthProvider,
+      (previous, next) {
+        next.whenData((health) async {
+          if (_healthInsightSent) return;
+          if (health.totalScore >= 60) return;
+
+          final preferencesService =
+              ref.read(notificationPreferencesServiceProvider);
+          final canSend = await preferencesService.shouldDispatch('healthInsights');
+          if (!canSend) return;
+
+          _healthInsightSent = true;
+          await ref.read(notificationServiceProvider).showSavingsNudge(
+                title: 'Financial health needs attention',
+                body:
+                    'Your score is ${health.totalScore.toStringAsFixed(0)}. Review the Health details for actions.',
+                payload: 'health_insight',
+              );
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _alertSubscription?.close();
+    _healthSubscription?.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(symbol: '\$');
     final allTxAsync = ref.watch(transactionListProvider());
     final alertsAsync = ref.watch(budgetAlertsProvider);
+    final healthAsync = ref.watch(financialHealthProvider);
     ref.watch(recurringTransactionsProvider);
     final spendingAsync = ref.watch(spendingProfileProvider);
     final recentAsync = ref.watch(recentTransactionsProvider);
@@ -71,6 +149,18 @@ class DashboardScreen extends ConsumerWidget {
                           .fold(0.0, (sum, t) => sum + t.amount),
                       orElse: () => 0.0,
                     ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  healthAsync.when(
+                    data: (health) => _FinancialHealthCard(
+                      score: health.totalScore,
+                      budgetComponent: health.budgetDisciplineScore,
+                      savingsComponent: health.savingsMomentumScore,
+                      onViewDetails: () => context.push('/health'),
+                    ),
+                    loading: () => const _LoadingCard(),
+                    error: (_, __) => const _ErrorCard(),
                   ),
                   const SizedBox(height: 24),
 
@@ -444,6 +534,85 @@ class _SpendingOverview extends StatelessWidget {
       default:
         return '→ Stable';
     }
+  }
+}
+
+class _FinancialHealthCard extends StatelessWidget {
+  const _FinancialHealthCard({
+    required this.score,
+    required this.budgetComponent,
+    required this.savingsComponent,
+    required this.onViewDetails,
+  });
+
+  final double score;
+  final double budgetComponent;
+  final double savingsComponent;
+  final VoidCallback onViewDetails;
+
+  @override
+  Widget build(BuildContext context) {
+    final roundedScore = score.round();
+    final toneColor = roundedScore >= 80
+        ? Colors.green
+        : roundedScore >= 60
+            ? Colors.orange
+            : Colors.red;
+    final label = roundedScore >= 80
+        ? 'Strong'
+        : roundedScore >= 60
+            ? 'Needs attention'
+            : 'At risk';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Financial Health',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              Chip(
+                label: Text('$roundedScore/100 • $label'),
+                backgroundColor: toneColor.withValues(alpha: 0.14),
+                labelStyle: TextStyle(color: toneColor),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: score / 100,
+            minHeight: 8,
+            color: toneColor,
+            backgroundColor: Theme.of(context).dividerColor.withValues(alpha: 0.4),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Budget discipline: ${budgetComponent.toStringAsFixed(0)} • Savings momentum: ${savingsComponent.toStringAsFixed(0)}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: onViewDetails,
+              child: const Text('View details'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -2,14 +2,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:smartbudget/domain/entities/budget_alert.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
-import 'package:smartbudget/core/providers/core_providers.dart';
 
 part 'budget_alerts_provider.g.dart';
 
 @riverpod
 Future<List<BudgetAlert>> budgetAlerts(BudgetAlertsRef ref) async {
   final budgets = await ref.watch(budgetListProvider.future);
-  final notificationService = ref.watch(notificationServiceProvider);
   final alerts = <BudgetAlert>[];
 
   for (final budget in budgets) {
@@ -38,16 +36,6 @@ Future<List<BudgetAlert>> budgetAlerts(BudgetAlertsRef ref) async {
       );
 
       alerts.add(alert);
-
-      // Send notification for new alerts
-      final title = overLimit ? 'Budget Exceeded!' : 'Budget Alert';
-      final body =
-          '${budget.category} spending is at ${(progress * 100).toStringAsFixed(1)}% of limit';
-      await notificationService.showBudgetAlert(
-        title: title,
-        body: body,
-        payload: budget.id,
-      );
     }
   }
 
