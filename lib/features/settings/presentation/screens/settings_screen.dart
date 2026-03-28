@@ -14,13 +14,14 @@ class SettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final themeMode = ref.watch(themeModeControllerProvider);
     final rolloverPolicy = ref.watch(rolloverPolicyControllerProvider);
-    final notificationPrefs = ref.watch(notificationPreferencesControllerProvider);
+    final notificationPrefs =
+        ref.watch(notificationPreferencesControllerProvider);
     final budgetNextEligible =
-      ref.watch(notificationDispatchStatusProvider('budgetAlerts'));
+        ref.watch(notificationDispatchStatusProvider('budgetAlerts'));
     final savingsNextEligible =
-      ref.watch(notificationDispatchStatusProvider('savingsNudges'));
+        ref.watch(notificationDispatchStatusProvider('savingsNudges'));
     final healthNextEligible =
-      ref.watch(notificationDispatchStatusProvider('healthInsights'));
+        ref.watch(notificationDispatchStatusProvider('healthInsights'));
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
@@ -74,7 +75,8 @@ class SettingsScreen extends ConsumerWidget {
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             title: const Text('Auto-rollover budgets'),
-            subtitle: const Text('Automatically start a new cycle when a budget period ends.'),
+            subtitle: const Text(
+                'Automatically start a new cycle when a budget period ends.'),
             value: rolloverPolicy.autoRolloverEnabled,
             onChanged: (value) async {
               await ref
@@ -85,7 +87,8 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Rollover day'),
-            subtitle: const Text('Used for monthly/yearly budget cycle boundaries.'),
+            subtitle:
+                const Text('Used for monthly/yearly budget cycle boundaries.'),
             trailing: DropdownButton<int>(
               value: rolloverPolicy.rolloverDay,
               items: List.generate(
@@ -117,7 +120,8 @@ class SettingsScreen extends ConsumerWidget {
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             title: const Text('Enable notifications'),
-            subtitle: const Text('Master switch for all budget/savings alerts.'),
+            subtitle:
+                const Text('Master switch for all budget/savings alerts.'),
             value: notificationPrefs.enabled,
             onChanged: (value) async {
               await ref
@@ -148,7 +152,8 @@ class SettingsScreen extends ConsumerWidget {
                   ? (value) async {
                       if (value == null) return;
                       await ref
-                          .read(notificationPreferencesControllerProvider.notifier)
+                          .read(notificationPreferencesControllerProvider
+                              .notifier)
                           .setFrequency(value);
                     }
                   : null,
@@ -167,13 +172,16 @@ class SettingsScreen extends ConsumerWidget {
                   value: notificationPrefs.quietHoursStart,
                   items: List.generate(
                     24,
-                    (i) => DropdownMenuItem(value: i, child: Text('${i.toString().padLeft(2, '0')}h')),
+                    (i) => DropdownMenuItem(
+                        value: i,
+                        child: Text('${i.toString().padLeft(2, '0')}h')),
                   ),
                   onChanged: notificationPrefs.enabled
                       ? (value) async {
                           if (value == null) return;
                           await ref
-                              .read(notificationPreferencesControllerProvider.notifier)
+                              .read(notificationPreferencesControllerProvider
+                                  .notifier)
                               .setQuietHours(
                                 start: value,
                                 end: notificationPrefs.quietHoursEnd,
@@ -186,13 +194,16 @@ class SettingsScreen extends ConsumerWidget {
                   value: notificationPrefs.quietHoursEnd,
                   items: List.generate(
                     24,
-                    (i) => DropdownMenuItem(value: i, child: Text('${i.toString().padLeft(2, '0')}h')),
+                    (i) => DropdownMenuItem(
+                        value: i,
+                        child: Text('${i.toString().padLeft(2, '0')}h')),
                   ),
                   onChanged: notificationPrefs.enabled
                       ? (value) async {
                           if (value == null) return;
                           await ref
-                              .read(notificationPreferencesControllerProvider.notifier)
+                              .read(notificationPreferencesControllerProvider
+                                  .notifier)
                               .setQuietHours(
                                 start: notificationPrefs.quietHoursStart,
                                 end: value,
@@ -210,7 +221,8 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: notificationPrefs.enabled
                 ? (value) async {
                     await ref
-                        .read(notificationPreferencesControllerProvider.notifier)
+                        .read(
+                            notificationPreferencesControllerProvider.notifier)
                         .setCategoryEnabled('budgetAlerts', value);
                   }
                 : null,
@@ -222,7 +234,8 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: notificationPrefs.enabled
                 ? (value) async {
                     await ref
-                        .read(notificationPreferencesControllerProvider.notifier)
+                        .read(
+                            notificationPreferencesControllerProvider.notifier)
                         .setCategoryEnabled('savingsNudges', value);
                   }
                 : null,
@@ -234,7 +247,8 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: notificationPrefs.enabled
                 ? (value) async {
                     await ref
-                        .read(notificationPreferencesControllerProvider.notifier)
+                        .read(
+                            notificationPreferencesControllerProvider.notifier)
                         .setCategoryEnabled('healthInsights', value);
                   }
                 : null,

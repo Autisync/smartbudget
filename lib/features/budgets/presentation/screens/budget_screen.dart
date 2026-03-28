@@ -56,7 +56,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     const SizedBox(height: 12),
                     const Text(
                       'Set your first monthly budget',
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -95,7 +96,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                      color:
+                          Theme.of(context).dividerColor.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Column(
@@ -103,9 +105,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     children: [
                       Text(
                         'Budget portfolio',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -174,7 +177,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                   key: ValueKey('budget-${budget.id}'),
                   direction: DismissDirection.horizontal,
                   background: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.green.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
@@ -190,7 +194,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     ),
                   ),
                   secondaryBackground: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.orange.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
@@ -223,7 +228,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     return false;
                   },
                   child: Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(
@@ -246,7 +252,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                     const SizedBox(height: 2),
                                     Text(
                                       '${_periodLabel(budget.period)} cycle • Alert ${budget.alertThreshold}%',
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
                                     ),
                                   ],
                                 ),
@@ -293,21 +300,24 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                               final remaining = budget.limitAmount - spent;
                               final usagePercentage = usage * 100;
                               final daysLeft = endDate
-                                  .difference(DateTime(now.year, now.month, now.day))
+                                  .difference(
+                                      DateTime(now.year, now.month, now.day))
                                   .inDays;
-                              final paceDailySpend = now.difference(budget.startDate).inDays <= 0
-                                  ? spent
-                                  : spent /
-                                      now
-                                          .difference(DateTime(
-                                            budget.startDate.year,
-                                            budget.startDate.month,
-                                            budget.startDate.day,
-                                          ))
-                                          .inDays;
-                              final projectedSpend =
-                                  spent + (paceDailySpend * daysLeft.clamp(0, 365));
-                              final projectedOverrun = projectedSpend - budget.limitAmount;
+                              final paceDailySpend =
+                                  now.difference(budget.startDate).inDays <= 0
+                                      ? spent
+                                      : spent /
+                                          now
+                                              .difference(DateTime(
+                                                budget.startDate.year,
+                                                budget.startDate.month,
+                                                budget.startDate.day,
+                                              ))
+                                              .inDays;
+                              final projectedSpend = spent +
+                                  (paceDailySpend * daysLeft.clamp(0, 365));
+                              final projectedOverrun =
+                                  projectedSpend - budget.limitAmount;
 
                               final statusColor = usagePercentage < 70
                                   ? Colors.green
@@ -328,11 +338,16 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      _StatusChip(label: status, color: statusColor),
+                                      _StatusChip(
+                                          label: status, color: statusColor),
                                       const SizedBox(width: 8),
                                       Text(
-                                        daysLeft < 0 ? 'Period ended' : '$daysLeft days left',
-                                        style: Theme.of(context).textTheme.bodySmall,
+                                        daysLeft < 0
+                                            ? 'Period ended'
+                                            : '$daysLeft days left',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
                                       ),
                                     ],
                                   ),
@@ -348,7 +363,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                     },
                                     borderRadius: BorderRadius.circular(8),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         LinearProgressIndicator(
                                           value: progress,
@@ -363,7 +379,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                         ),
                                         Text(
                                           'Tap bar to view transactions in this category',
-                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
                                                 fontSize: 11,
                                               ),
                                         ),
@@ -377,7 +396,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                         'At this pace, you may exceed this budget by ${currencyFormat.format(projectedOverrun)}',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: Theme.of(context).colorScheme.error,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .error,
                                         ),
                                       ),
                                     ),
@@ -592,7 +613,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                         }
                       },
                       child: Text(
-                        existingBudget == null ? 'Save budget' : 'Update budget',
+                        existingBudget == null
+                            ? 'Save budget'
+                            : 'Update budget',
                       ),
                     ),
                   ],

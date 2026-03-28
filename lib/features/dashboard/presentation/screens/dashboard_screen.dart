@@ -31,13 +31,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       (previous, next) {
         next.whenData((alerts) async {
           final notificationService = ref.read(notificationServiceProvider);
-          final preferencesService = ref.read(notificationPreferencesServiceProvider);
+          final preferencesService =
+              ref.read(notificationPreferencesServiceProvider);
 
           for (final alert in alerts) {
-            final key = '${alert.budgetId}-${alert.overLimit}-${alert.nearLimit}';
+            final key =
+                '${alert.budgetId}-${alert.overLimit}-${alert.nearLimit}';
             if (_notifiedBudgetAlertIds.contains(key)) continue;
 
-            final canSend = await preferencesService.shouldDispatch('budgetAlerts');
+            final canSend =
+                await preferencesService.shouldDispatch('budgetAlerts');
             if (!canSend) break;
 
             _notifiedBudgetAlertIds.add(key);
@@ -54,8 +57,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       },
     );
 
-    _healthSubscription =
-        ref.listenManual<AsyncValue<FinancialHealthSnapshot>>(
+    _healthSubscription = ref.listenManual<AsyncValue<FinancialHealthSnapshot>>(
       financialHealthProvider,
       (previous, next) {
         next.whenData((health) async {
@@ -64,7 +66,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
           final preferencesService =
               ref.read(notificationPreferencesServiceProvider);
-          final canSend = await preferencesService.shouldDispatch('healthInsights');
+          final canSend =
+              await preferencesService.shouldDispatch('healthInsights');
           if (!canSend) return;
 
           _healthInsightSent = true;
@@ -595,7 +598,8 @@ class _FinancialHealthCard extends StatelessWidget {
             value: score / 100,
             minHeight: 8,
             color: toneColor,
-            backgroundColor: Theme.of(context).dividerColor.withValues(alpha: 0.4),
+            backgroundColor:
+                Theme.of(context).dividerColor.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 10),
           Text(

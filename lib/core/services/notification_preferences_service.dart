@@ -132,7 +132,8 @@ class NotificationPreferencesService {
   }
 
   Future<void> savePreferences(NotificationPreferences preferences) async {
-    await _storage.write(key: _keyPrefs, value: jsonEncode(preferences.toJson()));
+    await _storage.write(
+        key: _keyPrefs, value: jsonEncode(preferences.toJson()));
   }
 
   Future<bool> shouldDispatch(String categoryKey, {DateTime? now}) async {
@@ -141,7 +142,8 @@ class NotificationPreferencesService {
 
     if (!prefs.enabled) return false;
     if (!(prefs.categories[categoryKey] ?? false)) return false;
-    if (_isInQuietHours(currentTime, prefs.quietHoursStart, prefs.quietHoursEnd)) {
+    if (_isInQuietHours(
+        currentTime, prefs.quietHoursStart, prefs.quietHoursEnd)) {
       return false;
     }
 
@@ -204,8 +206,10 @@ class NotificationPreferencesService {
           )
         : currentTime;
 
-    final lastSentRaw = await _storage.read(key: '$_lastSentPrefix$categoryKey');
-    final lastSent = lastSentRaw == null ? null : DateTime.tryParse(lastSentRaw);
+    final lastSentRaw =
+        await _storage.read(key: '$_lastSentPrefix$categoryKey');
+    final lastSent =
+        lastSentRaw == null ? null : DateTime.tryParse(lastSentRaw);
     final frequencyReadyAt = switch (prefs.frequency) {
       NotificationFrequency.immediate => currentTime,
       NotificationFrequency.daily =>
@@ -222,7 +226,8 @@ class NotificationPreferencesService {
       candidate = frequencyReadyAt;
     }
 
-    if (_isInQuietHours(candidate, prefs.quietHoursStart, prefs.quietHoursEnd)) {
+    if (_isInQuietHours(
+        candidate, prefs.quietHoursStart, prefs.quietHoursEnd)) {
       candidate = _nextOutsideQuietHours(
         candidate,
         prefs.quietHoursStart,
@@ -235,7 +240,8 @@ class NotificationPreferencesService {
     }
 
     final blockedByFrequency = frequencyReadyAt.isAfter(currentTime) &&
-        (frequencyReadyAt.isAfter(quietReadyAt) || !quietReadyAt.isAfter(currentTime));
+        (frequencyReadyAt.isAfter(quietReadyAt) ||
+            !quietReadyAt.isAfter(currentTime));
 
     return NotificationDispatchStatus(
       nextEligibleAt: candidate,
@@ -245,7 +251,8 @@ class NotificationPreferencesService {
     );
   }
 
-  Future<DateTime?> nextEligibleDispatch(String categoryKey, {DateTime? now}) async {
+  Future<DateTime?> nextEligibleDispatch(String categoryKey,
+      {DateTime? now}) async {
     final status = await dispatchStatus(categoryKey, now: now);
     return status.nextEligibleAt;
   }

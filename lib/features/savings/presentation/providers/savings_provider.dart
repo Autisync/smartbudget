@@ -81,13 +81,13 @@ class SavingsNudges extends _$SavingsNudges {
         final createdAt = goal.createdAt ?? now;
         final totalDays = goal.deadline!.difference(createdAt).inDays;
         final elapsedDays = now.difference(createdAt).inDays;
-        final expectedProgress = totalDays <= 0
-            ? 1.0
-            : (elapsedDays / totalDays).clamp(0.0, 1.0);
+        final expectedProgress =
+            totalDays <= 0 ? 1.0 : (elapsedDays / totalDays).clamp(0.0, 1.0);
 
         if (progress + 0.05 < expectedProgress) {
           final behindAmount =
-              ((expectedProgress - progress) * goal.targetAmount).clamp(0, double.infinity);
+              ((expectedProgress - progress) * goal.targetAmount)
+                  .clamp(0, double.infinity);
           nudges.add(
             SavingsNudge(
               goalId: goal.id,

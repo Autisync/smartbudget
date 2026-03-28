@@ -160,6 +160,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final useRail = width >= 900;
+    final useCompactNav = !useRail && width < 700;
 
     return Scaffold(
       body: useRail
@@ -220,57 +221,74 @@ class ScaffoldWithNavBar extends StatelessWidget {
           : child,
       bottomNavigationBar: useRail
           ? null
-          : NavigationBar(
-              selectedIndex: _calculateSelectedIndex(context),
-              onDestinationSelected: (index) => _onItemTapped(index, context),
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home),
-                  label: 'Home',
+          : useCompactNav
+              ? _buildCompactNavBar(
+                  context,
+                  _calculateSelectedIndex(context, compact: true),
+                )
+              : NavigationBar(
+                  selectedIndex: _calculateSelectedIndex(context),
+                  onDestinationSelected: (index) =>
+                      _onItemTapped(index, context),
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.receipt_long_outlined),
+                      selectedIcon: Icon(Icons.receipt_long),
+                      label: 'Transactions',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.account_balance_wallet_outlined),
+                      selectedIcon: Icon(Icons.account_balance_wallet),
+                      label: 'Budgets',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.savings_outlined),
+                      selectedIcon: Icon(Icons.savings),
+                      label: 'Savings',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.subscriptions_outlined),
+                      selectedIcon: Icon(Icons.subscriptions),
+                      label: 'Subscriptions',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.description_outlined),
+                      selectedIcon: Icon(Icons.description),
+                      label: 'Reports',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.insights_outlined),
+                      selectedIcon: Icon(Icons.insights),
+                      label: 'Insights',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.settings_outlined),
+                      selectedIcon: Icon(Icons.settings),
+                      label: 'Settings',
+                    ),
+                  ],
                 ),
-                NavigationDestination(
-                  icon: Icon(Icons.receipt_long_outlined),
-                  selectedIcon: Icon(Icons.receipt_long),
-                  label: 'Transactions',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.account_balance_wallet_outlined),
-                  selectedIcon: Icon(Icons.account_balance_wallet),
-                  label: 'Budgets',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.savings_outlined),
-                  selectedIcon: Icon(Icons.savings),
-                  label: 'Savings',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.subscriptions_outlined),
-                  selectedIcon: Icon(Icons.subscriptions),
-                  label: 'Subscriptions',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.description_outlined),
-                  selectedIcon: Icon(Icons.description),
-                  label: 'Reports',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.insights_outlined),
-                  selectedIcon: Icon(Icons.insights),
-                  label: 'Insights',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.settings_outlined),
-                  selectedIcon: Icon(Icons.settings),
-                  label: 'Settings',
-                ),
-              ],
-            ),
     );
   }
 
-  int _calculateSelectedIndex(BuildContext context) {
+  // Compact bar layout:
+  //  0=Txns | 1=Budgets | 2=Home(center) | 3=Savings | 4=More
+  int _calculateSelectedIndex(BuildContext context, {bool compact = false}) {
     final location = GoRouterState.of(context).matchedLocation;
+    if (compact) {
+      if (location == '/') return 2;
+      if (location.startsWith('/transactions')) return 0;
+      if (location.startsWith('/budgets')) return 1;
+      if (location.startsWith('/savings')) return 3;
+      // everything else falls under More
+      return 4;
+    }
+
     if (location.startsWith('/transactions')) return 1;
     if (location.startsWith('/budgets')) return 2;
     if (location.startsWith('/savings')) return 3;
@@ -310,6 +328,205 @@ class ScaffoldWithNavBar extends StatelessWidget {
         GoRouter.of(context).go('/settings');
         break;
     }
+  }
+
+  Future<void> _onCompactItemTapped(int index, BuildContext context) async {
+    switch (index) {
+      case 0:
+        GoRouter.of(context).go('/transactions');
+        break;
+      case 1:
+        GoRouter.of(context).go('/budgets');
+        break;
+      case 2:
+        GoRouter.of(context).go('/');
+        break;
+      case 3:
+        GoRouter.of(context).go('/savings');
+        break;
+      case 4:
+        await _showMoreSheet(context);
+        break;
+    }
+  }
+
+  Widget _buildCompactNavBar(BuildContext context, int selectedIndex) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    Widget navItem({
+      required IconData icon,
+      required IconData selectedIcon,
+      required String label,
+      required int index,
+    }) {
+      final selected = selectedIndex == index;
+      return Expanded(
+        child: InkWell(
+          onTap: () => _onCompactItemTapped(index, context),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  selected ? selectedIcon : icon,
+                  size: 24,
+                  color: selected
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: selected
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 68,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              navItem(
+                icon: Icons.receipt_long_outlined,
+                selectedIcon: Icons.receipt_long,
+                label: 'Txns',
+                index: 0,
+              ),
+              navItem(
+                icon: Icons.account_balance_wallet_outlined,
+                selectedIcon: Icons.account_balance_wallet,
+                label: 'Budgets',
+                index: 1,
+              ),
+              // Center Home button
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _onCompactItemTapped(2, context),
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: selectedIndex == 2
+                              ? colorScheme.primary
+                              : colorScheme.primaryContainer,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  colorScheme.primary.withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.home,
+                          size: 26,
+                          color: selectedIndex == 2
+                              ? colorScheme.onPrimary
+                              : colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              navItem(
+                icon: Icons.savings_outlined,
+                selectedIcon: Icons.savings,
+                label: 'Savings',
+                index: 3,
+              ),
+              navItem(
+                icon: Icons.grid_view_outlined,
+                selectedIcon: Icons.grid_view,
+                label: 'More',
+                index: 4,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showMoreSheet(BuildContext context) async {
+    final router = GoRouter.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.subscriptions_outlined),
+                title: const Text('Subscriptions'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  router.go('/subscriptions');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.description_outlined),
+                title: const Text('Reports'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  router.go('/reports');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.insights_outlined),
+                title: const Text('Insights'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  router.go('/insights');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('Settings'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  router.go('/settings');
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 

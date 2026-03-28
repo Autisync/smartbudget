@@ -17,7 +17,8 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
   @override
   Widget build(BuildContext context) {
     final healthAsync = ref.watch(financialHealthProvider);
-    final trendAsync = ref.watch(financialHealthHistoryProvider(weeks: _selectedWeeks));
+    final trendAsync =
+        ref.watch(financialHealthHistoryProvider(weeks: _selectedWeeks));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Financial Health')),
@@ -44,7 +45,8 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                    color:
+                        Theme.of(context).dividerColor.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Column(
@@ -86,7 +88,8 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                       runSpacing: 6,
                       children: [
                         _HealthPill(label: statusText, color: toneColor),
-                        const _HealthPill(label: 'Update weekly', color: Colors.blue),
+                        const _HealthPill(
+                            label: 'Update weekly', color: Colors.blue),
                       ],
                     ),
                   ],
@@ -105,10 +108,11 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                   children: [
                     Text(
                       '$rounded / 100',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: toneColor,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: toneColor,
+                              ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -140,8 +144,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
               _FactorTile(
                 label: 'Savings momentum',
                 score: health.savingsMomentumScore,
-                description:
-                    'Measures goal progress and schedule adherence.',
+                description: 'Measures goal progress and schedule adherence.',
               ),
               _FactorTile(
                 label: 'Budget utilization',
@@ -401,10 +404,12 @@ class _HealthTrendCard extends StatelessWidget {
                           if (index < 0 || index >= points.length) {
                             return const SizedBox.shrink();
                           }
-                          final label = '${points[index].weekStart.month}/${points[index].weekStart.day}';
+                          final label =
+                              '${points[index].weekStart.month}/${points[index].weekStart.day}';
                           return Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text(label, style: const TextStyle(fontSize: 10)),
+                            child: Text(label,
+                                style: const TextStyle(fontSize: 10)),
                           );
                         },
                         reservedSize: 24,

@@ -240,7 +240,8 @@ class _FakeRolloverPolicyService extends RolloverPolicyService {
   Future<void> savePolicy(RolloverPolicy policy) async {}
 }
 
-class _FakeNotificationPreferencesService extends NotificationPreferencesService {
+class _FakeNotificationPreferencesService
+    extends NotificationPreferencesService {
   _FakeNotificationPreferencesService() : super(const _NoopSecureStorage());
 
   @override

@@ -64,10 +64,8 @@ class BudgetList extends _$BudgetList {
   }
 
   Future<void> _rolloverBudgetsIfNeeded(
-    BudgetRepository repo,
-    List<Budget> budgets,
-    {int? rolloverDay}
-  ) async {
+      BudgetRepository repo, List<Budget> budgets,
+      {int? rolloverDay}) async {
     final now = DateTime.now();
 
     for (final budget in budgets) {
@@ -113,7 +111,8 @@ class BudgetList extends _$BudgetList {
         final nextMonth = DateTime(startDate.year, startDate.month + 1, 1);
         final day = (rolloverDay ?? startDate.day).clamp(1, 31);
         final maxDay = DateTime(nextMonth.year, nextMonth.month + 1, 0).day;
-        return DateTime(nextMonth.year, nextMonth.month, day > maxDay ? maxDay : day);
+        return DateTime(
+            nextMonth.year, nextMonth.month, day > maxDay ? maxDay : day);
       case BudgetPeriod.yearly:
         final day = (rolloverDay ?? startDate.day).clamp(1, 31);
         final maxDay = DateTime(startDate.year + 1, startDate.month + 1, 0).day;

@@ -65,7 +65,8 @@ Future<FinancialHealthSnapshot> financialHealth(FinancialHealthRef ref) async {
 
   final budgetDisciplineScore = _computeBudgetDisciplineScore(alerts);
   final savingsMomentumScore = _computeSavingsMomentumScore(goals);
-  final budgetUtilizationScore = await _computeBudgetUtilizationScore(ref, budgets);
+  final budgetUtilizationScore =
+      await _computeBudgetUtilizationScore(ref, budgets);
 
   final totalScore = ((budgetDisciplineScore * 0.5) +
           (savingsMomentumScore * 0.35) +
@@ -76,7 +77,8 @@ Future<FinancialHealthSnapshot> financialHealth(FinancialHealthRef ref) async {
   final recommendations = <String>[];
 
   if (alerts.any((a) => a.overLimit)) {
-    recommendations.add('Reduce discretionary spending in categories that already exceeded budget.');
+    recommendations.add(
+        'Reduce discretionary spending in categories that already exceeded budget.');
   }
   if (alerts.where((a) => a.nearLimit && !a.overLimit).isNotEmpty) {
     recommendations.add('Rebalance near-limit budgets before the period ends.');
@@ -84,15 +86,18 @@ Future<FinancialHealthSnapshot> financialHealth(FinancialHealthRef ref) async {
 
   final behindGoals = _countBehindGoals(goals);
   if (behindGoals > 0) {
-    recommendations.add('Increase monthly contributions for $behindGoals goal(s) behind schedule.');
+    recommendations.add(
+        'Increase monthly contributions for $behindGoals goal(s) behind schedule.');
   }
 
   if (goals.where((g) => g.autoAllocate).isEmpty && goals.isNotEmpty) {
-    recommendations.add('Enable auto-allocation for at least one savings goal to improve consistency.');
+    recommendations.add(
+        'Enable auto-allocation for at least one savings goal to improve consistency.');
   }
 
   if (recommendations.isEmpty) {
-    recommendations.add('Keep your current pace and review your health score weekly.');
+    recommendations
+        .add('Keep your current pace and review your health score weekly.');
   }
 
   return FinancialHealthSnapshot(
@@ -131,9 +136,8 @@ Future<FinancialHealthTrendSnapshot> financialHealthHistory(
     final weekEnd = weekStart.add(const Duration(days: 6, hours: 23));
 
     final weeklyTx = transactions
-        .where((tx) =>
-            !tx.date.isBefore(weekStart) &&
-            !tx.date.isAfter(weekEnd))
+        .where(
+            (tx) => !tx.date.isBefore(weekStart) && !tx.date.isAfter(weekEnd))
         .toList();
 
     final weeklyIncome = weeklyTx
@@ -149,9 +153,7 @@ Future<FinancialHealthTrendSnapshot> financialHealthHistory(
 
     final budgetPressure = alerts.isEmpty
         ? 0.0
-        : alerts
-                .map((a) => a.progress)
-                .fold<double>(0.0, (sum, p) => sum + p) /
+        : alerts.map((a) => a.progress).fold<double>(0.0, (sum, p) => sum + p) /
             alerts.length;
 
     final savingsProgress = goals.isEmpty
@@ -163,7 +165,10 @@ Future<FinancialHealthTrendSnapshot> financialHealthHistory(
                 .fold<double>(0.0, (sum, p) => sum + p) /
             goals.length;
 
-    final score = ((cashflowRatio * 45) + 50 + (savingsProgress * 25) - (budgetPressure * 20))
+    final score = ((cashflowRatio * 45) +
+            50 +
+            (savingsProgress * 25) -
+            (budgetPressure * 20))
         .clamp(0, 100)
         .toDouble();
 
@@ -197,9 +202,8 @@ Future<FinancialHealthTrendSnapshot> financialHealthHistory(
     }
   }
 
-  final overallDelta = points.length < 2
-      ? 0.0
-      : points.last.score - points.first.score;
+  final overallDelta =
+      points.length < 2 ? 0.0 : points.last.score - points.first.score;
 
   return FinancialHealthTrendSnapshot(
     points: points,
@@ -230,7 +234,8 @@ double _computeBudgetDisciplineScore(List<dynamic> alerts) {
   if (alerts.isEmpty) return 100;
 
   final overLimitCount = alerts.where((a) => a.overLimit == true).length;
-  final nearLimitCount = alerts.where((a) => a.nearLimit == true && a.overLimit != true).length;
+  final nearLimitCount =
+      alerts.where((a) => a.nearLimit == true && a.overLimit != true).length;
   final penalty = (overLimitCount * 22) + (nearLimitCount * 10);
   return (100 - penalty).clamp(0, 100).toDouble();
 }
@@ -239,7 +244,9 @@ double _computeSavingsMomentumScore(List<SavingsGoal> goals) {
   if (goals.isEmpty) return 55;
 
   final averageProgress = goals
-          .map((g) => g.targetAmount > 0 ? (g.savedAmount / g.targetAmount).clamp(0.0, 1.0) : 0.0)
+          .map((g) => g.targetAmount > 0
+              ? (g.savedAmount / g.targetAmount).clamp(0.0, 1.0)
+              : 0.0)
           .fold<double>(0.0, (sum, value) => sum + value) /
       goals.length;
 

@@ -34,7 +34,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             final key = '${nudge.goalId}-${nudge.title}';
             if (_notifiedNudgeKeys.contains(key)) continue;
 
-            final canSend = await preferencesService.shouldDispatch('savingsNudges');
+            final canSend =
+                await preferencesService.shouldDispatch('savingsNudges');
             if (!canSend) break;
 
             _notifiedNudgeKeys.add(key);
@@ -94,7 +95,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             if (totalDays <= 0) return false;
             final elapsedDays = now.difference(createdAt).inDays;
             final expectedProgress = (elapsedDays / totalDays).clamp(0.0, 1.0);
-            final actualProgress = (goal.savedAmount / goal.targetAmount).clamp(0.0, 1.0);
+            final actualProgress =
+                (goal.savedAmount / goal.targetAmount).clamp(0.0, 1.0);
             return actualProgress + 0.05 < expectedProgress;
           }).length;
 
@@ -113,7 +115,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                     const SizedBox(height: 12),
                     const Text(
                       'Create your first savings goal',
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -142,7 +145,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                      color:
+                          Theme.of(context).dividerColor.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Column(
@@ -150,9 +154,10 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                     children: [
                       Text(
                         'Savings portfolio',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -193,7 +198,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                 data: (nudges) {
                   if (nudges.isEmpty) return const SizedBox.shrink();
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(
@@ -206,28 +212,38 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                           const SizedBox(height: 6),
                           ...nudges.take(3).map(
                                 (n) => Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Icon(
-                                        n.severity == SavingsNudgeSeverity.critical
+                                        n.severity ==
+                                                SavingsNudgeSeverity.critical
                                             ? Icons.error_outline
-                                            : n.severity == SavingsNudgeSeverity.warning
+                                            : n.severity ==
+                                                    SavingsNudgeSeverity.warning
                                                 ? Icons.warning_amber_outlined
                                                 : Icons.info_outline,
                                         size: 18,
-                                        color: n.severity == SavingsNudgeSeverity.critical
+                                        color: n.severity ==
+                                                SavingsNudgeSeverity.critical
                                             ? Colors.red
-                                            : n.severity == SavingsNudgeSeverity.warning
+                                            : n.severity ==
+                                                    SavingsNudgeSeverity.warning
                                                 ? Colors.orange
-                                                : Theme.of(context).colorScheme.primary,
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           n.message,
-                                          style: Theme.of(context).textTheme.bodySmall,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
                                         ),
                                       ),
                                     ],
@@ -298,9 +314,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                     ? (((goal.deadline!.difference(now).inDays) / 30).ceil())
                         .clamp(1, 120)
                     : 0;
-                final suggestedMonthly = hasDeadline
-                    ? remaining / monthsRemaining
-                    : remaining / 6;
+                final suggestedMonthly =
+                    hasDeadline ? remaining / monthsRemaining : remaining / 6;
                 final projectedLate = hasDeadline && suggestedMonthly > 0
                     ? _calculateProjectedDelayMonths(
                         goal,
@@ -328,7 +343,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                             PopupMenuButton<String>(
                               onSelected: (value) {
                                 if (value == 'edit') {
-                                  _openGoalForm(context, ref, existingGoal: goal);
+                                  _openGoalForm(context, ref,
+                                      existingGoal: goal);
                                 } else if (value == 'delete') {
                                   ref
                                       .read(savingsGoalListProvider.notifier)
@@ -458,9 +474,9 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
   }
 
   int _calculateProjectedDelayMonths(SavingsGoal goal, DateTime now) {
-    final elapsedMonths = (((now.difference(goal.createdAt ?? now).inDays) / 30)
-            .clamp(1, 120))
-        .toDouble();
+    final elapsedMonths =
+        (((now.difference(goal.createdAt ?? now).inDays) / 30).clamp(1, 120))
+            .toDouble();
     final currentRate = goal.savedAmount / elapsedMonths;
     if (currentRate <= 0 || goal.deadline == null) return 0;
 
@@ -622,15 +638,17 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                           ? null
                           : IconButton(
                               icon: const Icon(Icons.close),
-                              onPressed: () => setModalState(() => deadline = null),
+                              onPressed: () =>
+                                  setModalState(() => deadline = null),
                             ),
                       onTap: () async {
                         final picked = await showDatePicker(
                           context: context,
-                          initialDate:
-                              deadline ?? DateTime.now().add(const Duration(days: 90)),
+                          initialDate: deadline ??
+                              DateTime.now().add(const Duration(days: 90)),
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 3650)),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 3650)),
                         );
                         if (picked != null) {
                           setModalState(() => deadline = picked);
@@ -659,9 +677,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
     if (result == true) {
       final targetAmount = double.parse(targetController.text);
-      final savedAmount = double.parse(savedController.text)
-          .clamp(0, targetAmount)
-          .toDouble();
+      final savedAmount =
+          double.parse(savedController.text).clamp(0, targetAmount).toDouble();
 
       final goal = SavingsGoal(
         id: existingGoal?.id ?? const Uuid().v4(),
@@ -678,7 +695,9 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       if (existingGoal == null) {
         await ref.read(savingsGoalListProvider.notifier).addSavingsGoal(goal);
       } else {
-        await ref.read(savingsGoalListProvider.notifier).updateSavingsGoal(goal);
+        await ref
+            .read(savingsGoalListProvider.notifier)
+            .updateSavingsGoal(goal);
       }
     }
 
@@ -744,7 +763,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     final elapsedMonths =
         (((now.difference(goal.createdAt ?? now).inDays) / 30).clamp(1, 120))
             .toDouble();
-    final currentRate = goal.savedAmount > 0 ? goal.savedAmount / elapsedMonths : 0;
+    final currentRate =
+        goal.savedAmount > 0 ? goal.savedAmount / elapsedMonths : 0;
     final newRate = currentRate + monthlyIncrease;
     final remaining = (goal.targetAmount - goal.savedAmount).clamp(
       0,
