@@ -324,9 +324,14 @@ class LoginScreen extends ConsumerWidget {
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Secure Financial Management',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.72),
+              ),
             ),
             const SizedBox(height: 48),
             FilledButton.icon(

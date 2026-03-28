@@ -32,7 +32,10 @@ class LegalDocumentScreen extends StatelessWidget {
           Text(
             document.subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white70,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.72),
                 ),
           ),
           const SizedBox(height: 24),

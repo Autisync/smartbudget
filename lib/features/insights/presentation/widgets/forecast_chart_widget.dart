@@ -66,7 +66,7 @@ class ForecastChartWidget extends StatelessWidget {
                     drawVerticalLine: false,
                     horizontalInterval: maxY / 4,
                     getDrawingHorizontalLine: (value) => FlLine(
-                      color: Colors.grey.shade300,
+                      color: Theme.of(context).dividerColor,
                       strokeWidth: 1,
                     ),
                   ),
@@ -104,7 +104,7 @@ class ForecastChartWidget extends StatelessWidget {
                   lineTouchData: const LineTouchData(enabled: true),
                   borderData: FlBorderData(
                     show: true,
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   lineBarsData: [
                     LineChartBarData(

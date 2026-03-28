@@ -48,10 +48,12 @@ class InsightCard extends StatelessWidget {
                 ),
                 Text(
                   '${(insight.confidence * 100).toStringAsFixed(0)}%',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: Colors.grey.shade600),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.72),
+                      ),
                 ),
               ],
             ),

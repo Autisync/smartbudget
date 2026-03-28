@@ -61,7 +61,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           right: index == pages.length - 1 ? 0 : 8),
                       height: 6,
                       decoration: BoxDecoration(
-                        color: isActive ? Colors.tealAccent : Colors.white24,
+                        color: isActive
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(999),
                       ),
                     ),
@@ -111,7 +116,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           style:
                               Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     height: 1.5,
-                                    color: Colors.white70,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.72),
                                   ),
                         ),
                       ],
