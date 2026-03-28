@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -7,6 +9,7 @@ import 'package:smartbudget/core/services/security_service.dart';
 import 'package:smartbudget/core/services/recurring_scheduler_service.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
 import 'package:smartbudget/core/services/encryption_service.dart';
+import 'package:smartbudget/core/services/theme_service.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart';
 import 'package:smartbudget/data/repositories/subscription_repository_impl.dart';
 
@@ -58,6 +61,17 @@ final onboardingServiceProvider = Provider<OnboardingService>((ref) {
 final onboardingStatusProvider = FutureProvider<OnboardingStatus>((ref) async {
   final onboardingService = ref.watch(onboardingServiceProvider);
   return onboardingService.readStatus();
+});
+
+final themeServiceProvider = Provider<ThemeService>((ref) {
+  final storage = ref.watch(secureStorageProvider);
+  return ThemeService(storage);
+});
+
+final themeModeControllerProvider =
+    StateNotifierProvider<ThemeModeController, ThemeMode>((ref) {
+  final themeService = ref.watch(themeServiceProvider);
+  return ThemeModeController(themeService);
 });
 
 @Riverpod(keepAlive: true)

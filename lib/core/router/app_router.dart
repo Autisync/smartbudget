@@ -12,6 +12,7 @@ import 'package:smartbudget/features/insights/presentation/screens/insights_scre
 import 'package:smartbudget/features/subscriptions/presentation/screens/subscriptions_screen.dart';
 import 'package:smartbudget/features/reports/presentation/screens/reports_screen.dart';
 import 'package:smartbudget/features/auth/presentation/screens/security_screen.dart';
+import 'package:smartbudget/features/settings/presentation/screens/settings_screen.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/features/onboarding/presentation/screens/legal_document_screen.dart';
 import 'package:smartbudget/features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -44,9 +45,12 @@ GoRouter router(RouterRef ref) {
       final onboardingComplete = onboardingStatus.isReady;
 
       final isAuthenticated = authState.valueOrNull ?? false;
+      final isSplashRoute = state.matchedLocation == '/splash';
       final isAuthRoute = state.matchedLocation == '/login';
       final isOnboardingRoute = state.matchedLocation == '/onboarding';
       final isLegalRoute = state.matchedLocation.startsWith('/legal/');
+      final isPublicRoute =
+          isSplashRoute || isAuthRoute || isOnboardingRoute || isLegalRoute;
 
       if (!onboardingComplete && !isOnboardingRoute && !isLegalRoute) {
         return '/onboarding';
@@ -56,7 +60,7 @@ GoRouter router(RouterRef ref) {
         return isAuthenticated ? '/' : '/login';
       }
 
-      if (!isAuthenticated && !isAuthRoute) return '/login';
+      if (!isAuthenticated && !isPublicRoute) return '/login';
       if (isAuthenticated && isAuthRoute) return '/';
 
       return null;
@@ -120,6 +124,10 @@ GoRouter router(RouterRef ref) {
           GoRoute(
             path: '/insights',
             builder: (context, state) => const InsightsScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsScreen(),
           ),
           GoRoute(
             path: '/security',
@@ -194,9 +202,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
                       label: Text('Insights'),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.security_outlined),
-                      selectedIcon: Icon(Icons.security),
-                      label: Text('Security'),
+                      icon: Icon(Icons.settings_outlined),
+                      selectedIcon: Icon(Icons.settings),
+                      label: Text('Settings'),
                     ),
                   ],
                 ),
@@ -247,9 +255,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
                   label: 'Insights',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.security_outlined),
-                  selectedIcon: Icon(Icons.security),
-                  label: 'Security',
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: 'Settings',
                 ),
               ],
             ),
@@ -264,6 +272,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
     if (location.startsWith('/subscriptions')) return 4;
     if (location.startsWith('/reports')) return 5;
     if (location.startsWith('/insights')) return 6;
+    if (location.startsWith('/settings')) return 7;
     if (location.startsWith('/security')) return 7;
     return 0;
   }
@@ -292,7 +301,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
         GoRouter.of(context).go('/insights');
         break;
       case 7:
-        GoRouter.of(context).go('/security');
+        GoRouter.of(context).go('/settings');
         break;
     }
   }
