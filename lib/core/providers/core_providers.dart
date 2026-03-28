@@ -2,6 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart';
+import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/services/security_service.dart';
 import 'package:smartbudget/core/services/recurring_scheduler_service.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
@@ -48,6 +49,16 @@ BiometricAuthService biometricAuthService(BiometricAuthServiceRef ref) {
   final storage = ref.watch(secureStorageProvider);
   return BiometricAuthService(localAuth, storage);
 }
+
+final onboardingServiceProvider = Provider<OnboardingService>((ref) {
+  final storage = ref.watch(secureStorageProvider);
+  return OnboardingService(storage);
+});
+
+final onboardingStatusProvider = FutureProvider<OnboardingStatus>((ref) async {
+  final onboardingService = ref.watch(onboardingServiceProvider);
+  return onboardingService.readStatus();
+});
 
 @Riverpod(keepAlive: true)
 SecurityService securityService(SecurityServiceRef ref) {

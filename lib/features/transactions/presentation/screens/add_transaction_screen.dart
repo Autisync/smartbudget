@@ -166,7 +166,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
               // Recurrence
               DropdownButtonFormField<TransactionRecurrence>(
-                value: _recurrence,
+                initialValue: _recurrence,
                 decoration: const InputDecoration(
                   labelText: 'Recurrence',
                   prefixIcon: Icon(Icons.repeat),

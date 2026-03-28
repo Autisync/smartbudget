@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
@@ -28,27 +30,17 @@ class BiometricAuthService {
   Future<AuthStatus> authenticate({required String reason}) async {
     try {
       final isAvailable = await _localAuth.isDeviceSupported();
-      final canCheck = await _localAuth.canCheckBiometrics;
 
-      if (!isAvailable || !canCheck) {
+      if (!isAvailable) {
         return AuthStatus.notAvailable;
-      }
-
-      final availableBiometrics = await _localAuth.getAvailableBiometrics();
-      if (availableBiometrics.isEmpty) {
-        return AuthStatus.noBiometricsEnrolled;
       }
 
       // Keep the authenticate call simple to stay compatible across
       // local_auth versions. Avoid platform-specific message classes which
       // may not be available in all versions of the package.
-      final didAuthenticate = await _localAuth.authenticate(
-        localizedReason: reason,
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-          useErrorDialogs: true,
-        ),
+      final didAuthenticate = await _authenticateWithOptions(
+        reason: reason,
+        biometricOnly: true,
       );
 
       if (didAuthenticate) {
@@ -56,18 +48,53 @@ class BiometricAuthService {
         return AuthStatus.authenticated;
       }
 
+      if (Platform.isMacOS) {
+        final didAuthenticateWithDeviceAuth = await _authenticateWithOptions(
+          reason: reason,
+          biometricOnly: false,
+        );
+
+        if (didAuthenticateWithDeviceAuth) {
+          await _updateLastAuthTime();
+          return AuthStatus.authenticated;
+        }
+      }
+
       return AuthStatus.denied;
     } on PlatformException catch (e) {
-      if (e.code == auth_error.notAvailable) return AuthStatus.notAvailable;
-      if (e.code == auth_error.notEnrolled) {
+      final code = e.code.toLowerCase();
+
+      if (code == auth_error.notAvailable.toLowerCase() ||
+          code == 'notavailable') {
+        return AuthStatus.notAvailable;
+      }
+      if (code == auth_error.notEnrolled.toLowerCase() ||
+          code == 'notenrolled') {
         return AuthStatus.noBiometricsEnrolled;
       }
-      if (e.code == auth_error.lockedOut) return AuthStatus.lockedOut;
-      if (e.code == auth_error.permanentlyLockedOut) {
+      if (code == auth_error.lockedOut.toLowerCase() || code == 'lockedout') {
+        return AuthStatus.lockedOut;
+      }
+      if (code == auth_error.permanentlyLockedOut.toLowerCase() ||
+          code == 'permanentlylockedout') {
         return AuthStatus.permanentlyLockedOut;
       }
       return AuthStatus.error;
     }
+  }
+
+  Future<bool> _authenticateWithOptions({
+    required String reason,
+    required bool biometricOnly,
+  }) {
+    return _localAuth.authenticate(
+      localizedReason: reason,
+      options: AuthenticationOptions(
+        biometricOnly: biometricOnly,
+        stickyAuth: true,
+        useErrorDialogs: true,
+      ),
+    );
   }
 
   Future<void> _updateLastAuthTime() async {

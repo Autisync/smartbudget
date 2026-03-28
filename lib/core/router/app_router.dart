@@ -13,7 +13,11 @@ import 'package:smartbudget/features/subscriptions/presentation/screens/subscrip
 import 'package:smartbudget/features/reports/presentation/screens/reports_screen.dart';
 import 'package:smartbudget/features/auth/presentation/screens/security_screen.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
+import 'package:smartbudget/features/onboarding/presentation/screens/legal_document_screen.dart';
+import 'package:smartbudget/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
+import 'package:smartbudget/core/services/onboarding_service.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
 
 part 'app_router.g.dart';
 
@@ -23,16 +27,34 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 @riverpod
 GoRouter router(RouterRef ref) {
   final authState = ref.watch(authControllerProvider);
+  final onboardingState = ref.watch(onboardingStatusProvider);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
       // Wait for auth check to complete
-      if (authState.isLoading) return '/splash';
+      if (authState.isLoading || onboardingState.isLoading) return '/splash';
+
+      final onboardingStatus = onboardingState.valueOrNull ??
+          const OnboardingStatus(
+            onboardingComplete: false,
+            legalAccepted: false,
+          );
+      final onboardingComplete = onboardingStatus.isReady;
 
       final isAuthenticated = authState.valueOrNull ?? false;
       final isAuthRoute = state.matchedLocation == '/login';
+      final isOnboardingRoute = state.matchedLocation == '/onboarding';
+      final isLegalRoute = state.matchedLocation.startsWith('/legal/');
+
+      if (!onboardingComplete && !isOnboardingRoute && !isLegalRoute) {
+        return '/onboarding';
+      }
+
+      if (onboardingComplete && isOnboardingRoute) {
+        return isAuthenticated ? '/' : '/login';
+      }
 
       if (!isAuthenticated && !isAuthRoute) return '/login';
       if (isAuthenticated && isAuthRoute) return '/';
@@ -44,6 +66,20 @@ GoRouter router(RouterRef ref) {
         path: '/splash',
         builder: (context, state) =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/legal/terms',
+        builder: (context, state) =>
+            const LegalDocumentScreen(type: LegalDocumentType.terms),
+      ),
+      GoRoute(
+        path: '/legal/privacy',
+        builder: (context, state) =>
+            const LegalDocumentScreen(type: LegalDocumentType.privacy),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       ShellRoute(
@@ -290,8 +326,23 @@ class LoginScreen extends ConsumerWidget {
                     .read(authControllerProvider.notifier)
                     .authenticate();
                 if (result != bio.AuthStatus.authenticated && context.mounted) {
+                  final message = switch (result) {
+                    bio.AuthStatus.notAvailable =>
+                      'Biometric authentication is not available on this Mac. Verify Touch ID is enabled in System Settings.',
+                    bio.AuthStatus.noBiometricsEnrolled =>
+                      'No biometrics enrolled. Add Touch ID in System Settings and try again.',
+                    bio.AuthStatus.lockedOut =>
+                      'Biometric authentication is temporarily locked. Try again later.',
+                    bio.AuthStatus.permanentlyLockedOut =>
+                      'Biometric authentication is locked. Unlock with your device passcode first.',
+                    bio.AuthStatus.denied =>
+                      'Authentication was canceled or denied. Please try again.',
+                    bio.AuthStatus.error =>
+                      'Authentication failed due to a system error. Please try again.',
+                    bio.AuthStatus.authenticated => 'Authenticated',
+                  };
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Authentication failed: $result')),
+                    SnackBar(content: Text(message)),
                   );
                 }
               },
@@ -303,6 +354,21 @@ class LoginScreen extends ConsumerWidget {
                   vertical: 16,
                 ),
               ),
+            ),
+            const SizedBox(height: 20),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              children: [
+                TextButton(
+                  onPressed: () => GoRouter.of(context).push('/legal/terms'),
+                  child: const Text('Terms & Conditions'),
+                ),
+                TextButton(
+                  onPressed: () => GoRouter.of(context).push('/legal/privacy'),
+                  child: const Text('Privacy Policy'),
+                ),
+              ],
             ),
           ],
         ),

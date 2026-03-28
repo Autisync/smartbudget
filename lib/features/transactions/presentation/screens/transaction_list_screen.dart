@@ -43,10 +43,11 @@ class TransactionListScreen extends ConsumerWidget {
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 onDismissed: (_) async {
+                  final messenger = ScaffoldMessenger.of(context);
                   await ref
                       .read(transactionListProvider().notifier)
                       .deleteTransaction(tx.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(content: Text('Transaction deleted')),
                   );
                 },

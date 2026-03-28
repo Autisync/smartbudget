@@ -85,7 +85,7 @@ class CashflowPredictor {
     final mean = values.reduce((a, b) => a + b) / values.length;
     final variance =
         values.map((v) => (v - mean) * (v - mean)).reduce((a, b) => a + b) /
-        values.length;
+            values.length;
     final cv = mean > 0 ? (variance / mean).abs() : 1.0;
 
     // Higher variance = lower confidence

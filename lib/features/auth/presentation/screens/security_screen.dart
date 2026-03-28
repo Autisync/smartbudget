@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/security_provider.dart';
-import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class SecurityScreen extends ConsumerWidget {
   const SecurityScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final settingsAsync = ref.watch(securitySettingProvider);
     final logsAsync = ref.watch(authLogsProvider);
 
@@ -89,6 +92,34 @@ class SecurityScreen extends ConsumerWidget {
                     ref.invalidate(securitySettingProvider);
                   },
                 ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                l10n.legalAndOnboarding,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              ListTile(
+                title: Text(l10n.reviewTerms),
+                trailing: const Icon(Icons.open_in_new),
+                onTap: () => GoRouter.of(context).push('/legal/terms'),
+              ),
+              ListTile(
+                title: Text(l10n.reviewPrivacy),
+                trailing: const Icon(Icons.open_in_new),
+                onTap: () => GoRouter.of(context).push('/legal/privacy'),
+              ),
+              ListTile(
+                title: Text(l10n.restartOnboarding),
+                subtitle: Text(l10n.restartOnboardingSubtitle),
+                trailing: const Icon(Icons.refresh),
+                onTap: () async {
+                  final router = GoRouter.of(context);
+                  await ref.read(onboardingServiceProvider).resetOnboarding();
+                  ref.invalidate(onboardingStatusProvider);
+                  router.go('/onboarding');
+                },
               ),
               const SizedBox(height: 24),
               const Text(

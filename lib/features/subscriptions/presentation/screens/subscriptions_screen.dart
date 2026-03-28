@@ -43,7 +43,7 @@ class SubscriptionsScreen extends ConsumerWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .errorContainer
-                      .withOpacity(0.1),
+                      .withValues(alpha: 0.1),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

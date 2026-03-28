@@ -104,7 +104,7 @@ class SpendingAnalyzer {
       final mean = amounts.reduce((a, b) => a + b) / amounts.length;
       final variance =
           amounts.map((a) => pow(a - mean, 2)).reduce((a, b) => a + b) /
-          amounts.length;
+              amounts.length;
       final sd = sqrt(variance);
 
       if (sd == 0) return;
@@ -116,9 +116,8 @@ class SpendingAnalyzer {
           anomalies.add(
             SpendingAnomaly(
               transaction: tx,
-              severity: zScore > 3.5
-                  ? AnomalySeverity.high
-                  : AnomalySeverity.medium,
+              severity:
+                  zScore > 3.5 ? AnomalySeverity.high : AnomalySeverity.medium,
               reason:
                   'Spending ${zScore.toStringAsFixed(1)}x above your $category average',
               deviationPercentage: ((tx.amount - mean) / mean) * 100,
