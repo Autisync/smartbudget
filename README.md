@@ -81,5 +81,3 @@ SmartBudget is a privacy-first budgeting app built in Flutter, designed to help 
 - Expand anomaly explanations and alert notifications
 - Improve report filters and customizable export ranges
 - Consider cloud sync or multi-device account support
-
-If you want, I can also create a formatted slide-ready version or a one-page executive summary.
