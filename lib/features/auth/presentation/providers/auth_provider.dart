@@ -7,8 +7,15 @@ part 'auth_provider.g.dart';
 
 @riverpod
 class AuthController extends _$AuthController {
+  // Temporary bypass flag: set to false to restore biometric auth flow.
+  static const bool _authenticationTemporarilyDisabled = true;
+
   @override
   Future<bool> build() async {
+    if (_authenticationTemporarilyDisabled) {
+      return true;
+    }
+
     // Check if we need to authenticate
     final bioService = ref.read(biometricAuthServiceProvider);
     final securityService = ref.read(securityServiceProvider);
@@ -26,6 +33,11 @@ class AuthController extends _$AuthController {
   }
 
   Future<AuthStatus> authenticate() async {
+    if (_authenticationTemporarilyDisabled) {
+      state = const AsyncValue.data(true);
+      return AuthStatus.authenticated;
+    }
+
     final bioService = ref.read(biometricAuthServiceProvider);
     final securityService = ref.read(securityServiceProvider);
     final result = await bioService.authenticate(
