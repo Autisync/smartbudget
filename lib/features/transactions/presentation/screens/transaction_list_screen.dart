@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/data/models/tables.dart'
     show TransactionType, TransactionRecurrence;
@@ -29,15 +30,24 @@ class TransactionListScreen extends ConsumerWidget {
           if (transactions.isEmpty) {
             return const Center(child: Text('No transactions yet'));
           }
-          return ListView.builder(
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
             itemCount: transactions.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final tx = transactions[index];
+              final isExpense = tx.type == TransactionType.expense;
+              final amountColor = isExpense
+                  ? Theme.of(context).colorScheme.error
+                  : const Color(0xFF059669);
               return Dismissible(
                 key: ValueKey(tx.id),
                 direction: DismissDirection.endToStart,
                 background: Container(
-                  color: Colors.red,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.error,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 16),
                   child: const Icon(Icons.delete, color: Colors.white),
@@ -51,48 +61,129 @@ class TransactionListScreen extends ConsumerWidget {
                     const SnackBar(content: Text('Transaction deleted')),
                   );
                 },
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: tx.type == TransactionType.expense
-                        ? Colors.redAccent
-                        : Colors.greenAccent,
-                    child: Icon(
-                      tx.type == TransactionType.expense
-                          ? Icons.arrow_downward
-                          : Icons.arrow_upward,
-                      color: Colors.white,
-                      size: 20,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(22),
+                    onTap: () {
+                      context.push('/transactions/edit/${tx.id}');
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: AppSurfaces.elevated(
+                        context,
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: amountColor.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Icon(
+                              isExpense
+                                  ? Icons.arrow_outward_rounded
+                                  : Icons.arrow_downward_rounded,
+                              color: amountColor,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        tx.category,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ),
+                                    if (tx.recurrence !=
+                                        TransactionRecurrence.none) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primaryContainer,
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                        ),
+                                        child: Text(
+                                          tx.recurrence.name,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onPrimaryContainer,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  tx.note?.isNotEmpty == true
+                                      ? tx.note!
+                                      : 'No note',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: amountColor,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                DateFormat('MMM dd').format(tx.date),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  title: Row(
-                    children: [
-                      Text(tx.category),
-                      if (tx.recurrence != TransactionRecurrence.none) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            tx.recurrence.name,
-                            style: const TextStyle(
-                                fontSize: 10, color: Colors.blue),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  subtitle: Text(tx.note ?? 'No note'),
-                  trailing: Text(
-                    '${tx.type == TransactionType.expense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  onTap: () {
-                    context.push('/transactions/edit/${tx.id}');
-                  },
                 ),
               );
             },

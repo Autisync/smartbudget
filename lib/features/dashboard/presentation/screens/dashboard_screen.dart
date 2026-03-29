@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +24,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       _healthSubscription;
   final Set<String> _notifiedBudgetAlertIds = <String>{};
   bool _healthInsightSent = false;
+  bool _isAppBarScrolled = false;
+
+  void _updateAppBarScrollState(double offset) {
+    const threshold = 8.0;
+    final shouldShowFill = offset > threshold;
+    if (shouldShowFill == _isAppBarScrolled) return;
+    if (!mounted) return;
+    setState(() => _isAppBarScrolled = shouldShowFill);
+  }
 
   @override
   void initState() {
@@ -92,6 +103,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(symbol: '\$');
+    final colorScheme = Theme.of(context).colorScheme;
     final allTxAsync = ref.watch(transactionListProvider());
     final alertsAsync = ref.watch(budgetAlertsProvider);
     final healthAsync = ref.watch(financialHealthProvider);
@@ -100,206 +112,325 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final recentAsync = ref.watch(recentTransactionsProvider);
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 120,
-            floating: true,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'SmartBudget',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification.metrics.axis == Axis.vertical) {
+            _updateAppBarScrollState(notification.metrics.pixels);
+          }
+          return false;
+        },
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 120,
+              floating: true,
+              pinned: true,
+              backgroundColor: colorScheme.surface.withValues(
+                alpha: _isAppBarScrolled ? 0.88 : 0,
               ),
-              centerTitle: false,
-              titlePadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () => context.push('/settings'),
-              ),
-            ],
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              flexibleSpace: Stack(
+                fit: StackFit.expand,
                 children: [
-                  // Balance Card
-                  _BalanceCard(
-                    currencyFormat: currencyFormat,
-                    income: allTxAsync.maybeWhen(
-                      data: (transactions) => transactions
-                          .where((tx) => tx.type == TransactionType.income)
-                          .fold(0.0, (sum, t) => sum + t.amount),
-                      orElse: () => 0.0,
-                    ),
-                    expenses: allTxAsync.maybeWhen(
-                      data: (transactions) => transactions
-                          .where((tx) => tx.type == TransactionType.expense)
-                          .fold(0.0, (sum, t) => sum + t.amount),
-                      orElse: () => 0.0,
-                    ),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    child: _isAppBarScrolled
+                        ? ClipRect(
+                            key: const ValueKey('app-bar-blur-on'),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                              child: Container(
+                                color:
+                                    colorScheme.surface.withValues(alpha: 0.08),
+                              ),
+                            ),
+                          )
+                        : const SizedBox(key: ValueKey('app-bar-blur-off')),
                   ),
-                  const SizedBox(height: 24),
-
-                  healthAsync.when(
-                    data: (health) => _FinancialHealthCard(
-                      score: health.totalScore,
-                      budgetComponent: health.budgetDisciplineScore,
-                      savingsComponent: health.savingsMomentumScore,
-                      onViewDetails: () => context.push('/health'),
-                    ),
-                    loading: () => const _LoadingCard(),
-                    error: (_, __) => const _ErrorCard(),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Spending Insights
-                  Text(
-                    'This Month',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+                  FlexibleSpaceBar(
+                    title: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.easeOut,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest.withValues(
+                          alpha: _isAppBarScrolled ? 0.9 : 0,
                         ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  spendingAsync.when(
-                    data: (profile) => _SpendingOverview(
-                      profile: profile,
-                      currencyFormat: currencyFormat,
-                    ),
-                    loading: () => const _LoadingCard(),
-                    error: (err, st) => const _ErrorCard(),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Budget Alerts
-                  alertsAsync.when(
-                    data: (alerts) {
-                      if (alerts.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Text('No active budget alerts'),
-                        );
-                      }
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: alerts.map((alert) {
-                          final color =
-                              alert.overLimit ? Colors.red : Colors.orange;
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                Icon(Icons.warning, color: color, size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    '${alert.category} ${alert.overLimit ? 'exceeded' : 'nearing'} ${alert.threshold}% (${(alert.progress * 100).toStringAsFixed(1)}%)',
-                                    style: TextStyle(color: color),
-                                  ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'SmartBudget',
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
                                 ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    },
-                    loading: () => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text('Checking alerts...'),
+                      ),
                     ),
-                    error: (err, st) => Text('Alert error: $err'),
+                    centerTitle: false,
+                    titlePadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // Recent Transactions
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Recent Transactions',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      TextButton(
-                        onPressed: () => context.push('/transactions'),
-                        child: const Text('See All'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
                 ],
               ),
-            ),
-          ),
-          recentAsync.when(
-            data: (transactions) => SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final tx = transactions[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: tx.type == TransactionType.expense
-                        ? Colors.redAccent
-                        : Colors.greenAccent,
-                    child: Icon(
-                      tx.type == TransactionType.expense
-                          ? Icons.arrow_downward
-                          : Icons.arrow_upward,
-                      color: Colors.white,
-                      size: 20,
+              actions: [
+                IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor:
+                        colorScheme.surfaceContainerHighest.withValues(
+                      alpha: _isAppBarScrolled ? 0.9 : 0,
                     ),
                   ),
-                  title: Text(tx.category),
-                  subtitle: Text(
-                    tx.note ?? 'No note',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  trailing: Text(
-                    '${tx.type == TransactionType.expense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
-                    style: TextStyle(
-                      color: tx.type == TransactionType.expense
-                          ? Colors.redAccent
-                          : Colors.greenAccent,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Inter',
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor:
+                        colorScheme.surfaceContainerHighest.withValues(
+                      alpha: _isAppBarScrolled ? 0.9 : 0,
                     ),
                   ),
-                );
-              }, childCount: transactions.take(5).length),
+                  icon: const Icon(Icons.settings_outlined),
+                  onPressed: () => context.push('/settings'),
+                ),
+                const SizedBox(width: 8),
+              ],
             ),
-            loading: () => const SliverToBoxAdapter(
-              child: Center(child: CircularProgressIndicator()),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Balance Card
+                    _BalanceCard(
+                      currencyFormat: currencyFormat,
+                      income: allTxAsync.maybeWhen(
+                        data: (transactions) => transactions
+                            .where((tx) => tx.type == TransactionType.income)
+                            .fold(0.0, (sum, t) => sum + t.amount),
+                        orElse: () => 0.0,
+                      ),
+                      expenses: allTxAsync.maybeWhen(
+                        data: (transactions) => transactions
+                            .where((tx) => tx.type == TransactionType.expense)
+                            .fold(0.0, (sum, t) => sum + t.amount),
+                        orElse: () => 0.0,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    healthAsync.when(
+                      data: (health) => _FinancialHealthCard(
+                        score: health.totalScore,
+                        budgetComponent: health.budgetDisciplineScore,
+                        savingsComponent: health.savingsMomentumScore,
+                        onViewDetails: () => context.push('/health'),
+                      ),
+                      loading: () => const _LoadingCard(),
+                      error: (_, __) => const _ErrorCard(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Spending Insights
+                    Text(
+                      'This Month',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    spendingAsync.when(
+                      data: (profile) => _SpendingOverview(
+                        profile: profile,
+                        currencyFormat: currencyFormat,
+                      ),
+                      loading: () => const _LoadingCard(),
+                      error: (err, st) => const _ErrorCard(),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Budget Alerts
+                    alertsAsync.when(
+                      data: (alerts) {
+                        if (alerts.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Text('No active budget alerts'),
+                          );
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: alerts.map((alert) {
+                            final color =
+                                alert.overLimit ? Colors.red : Colors.orange;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.warning, color: color, size: 18),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '${alert.category} ${alert.overLimit ? 'exceeded' : 'nearing'} ${alert.threshold}% (${(alert.progress * 100).toStringAsFixed(1)}%)',
+                                      style: TextStyle(color: color),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Text('Checking alerts...'),
+                      ),
+                      error: (err, st) => Text('Alert error: $err'),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Recent Transactions
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Recent Transactions',
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                        TextButton(
+                          onPressed: () => context.push('/transactions'),
+                          child: const Text('See All'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
             ),
-            error: (err, st) => const SliverToBoxAdapter(
-              child: Text('Error loading transactions'),
+            recentAsync.when(
+              data: (transactions) => SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final tx = transactions[index];
+                  final isExpense = tx.type == TransactionType.expense;
+                  final amountColor = isExpense
+                      ? Theme.of(context).colorScheme.error
+                      : const Color(0xFF059669);
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .shadow
+                                .withValues(alpha: 0.08),
+                            blurRadius: 18,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () =>
+                              context.push('/transactions/edit/${tx.id}'),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: amountColor.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Icon(
+                                  isExpense
+                                      ? Icons.arrow_outward_rounded
+                                      : Icons.arrow_downward_rounded,
+                                  color: amountColor,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tx.category,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      tx.note ?? 'No note',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
+                                style: TextStyle(
+                                  color: amountColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }, childCount: transactions.take(5).length),
+              ),
+              loading: () => const SliverToBoxAdapter(
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (err, st) => const SliverToBoxAdapter(
+                child: Text('Error loading transactions'),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/transactions/add'),
         icon: const Icon(Icons.add),
-        label: const Text('Add'),
+        label: const Text(''),
       ),
     );
   }
@@ -432,12 +563,19 @@ class _SpendingOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,8 +626,13 @@ class _SpendingOverview extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color.fromRGBO(255, 165, 0, 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border:
-                    Border.all(color: const Color.fromRGBO(255, 165, 0, 0.3)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color.fromRGBO(255, 165, 0, 0.12),
+                    blurRadius: 14,
+                    offset: Offset(0, 6),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -555,6 +698,7 @@ class _FinancialHealthCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final roundedScore = score.round();
     final toneColor = roundedScore >= 80
         ? Colors.green
@@ -570,9 +714,15 @@ class _FinancialHealthCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

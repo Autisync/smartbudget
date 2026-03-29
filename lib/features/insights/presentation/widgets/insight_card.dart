@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/intelligence/models/insight.dart';
 
 class InsightCard extends StatelessWidget {
@@ -19,8 +20,9 @@ class InsightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: AppSurfaces.elevated(context),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

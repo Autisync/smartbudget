@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
+import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
@@ -22,142 +25,204 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime _endDate = DateTime.now();
   bool _isGenerating = false;
+  bool _isAppBarScrolled = false;
+
+  void _updateAppBarScrollState(double offset) {
+    const threshold = 8.0;
+    final shouldShowFill = offset > threshold;
+    if (shouldShowFill == _isAppBarScrolled) return;
+    if (!mounted) return;
+    setState(() => _isAppBarScrolled = shouldShowFill);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reports & Export'),
+        title: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Text('Reports & Export'),
+        ),
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
+        ),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        flexibleSpace: Stack(
+          fit: StackFit.expand,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: _isAppBarScrolled
+                  ? ClipRect(
+                      key: const ValueKey('reports-appbar-blur-on'),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Container(
+                          color: colorScheme.surface.withValues(alpha: 0.08),
+                        ),
+                      ),
+                    )
+                  : const SizedBox(key: ValueKey('reports-appbar-blur-off')),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
+            style: IconButton.styleFrom(
+              backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+                alpha: _isAppBarScrolled ? 0.9 : 0,
+              ),
+            ),
             icon: const Icon(Icons.share),
             onPressed: _isGenerating ? null : _showExportOptions,
           ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Date Range Selector
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Report Period',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification.metrics.axis == Axis.vertical) {
+            _updateAppBarScrollState(notification.metrics.pixels);
+          }
+          return false;
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Date Range Selector
+              Container(
+                decoration: AppSurfaces.elevated(context),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Report Period',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('From'),
-                              TextButton(
-                                onPressed: () => _selectDate(context, true),
-                                child: Text(
-                                  DateFormat('MMM dd, yyyy').format(_startDate),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('From'),
+                                TextButton(
+                                  onPressed: () => _selectDate(context, true),
+                                  child: Text(
+                                    DateFormat('MMM dd, yyyy')
+                                        .format(_startDate),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('To'),
-                              TextButton(
-                                onPressed: () => _selectDate(context, false),
-                                child: Text(
-                                  DateFormat('MMM dd, yyyy').format(_endDate),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('To'),
+                                TextButton(
+                                  onPressed: () => _selectDate(context, false),
+                                  child: Text(
+                                    DateFormat('MMM dd, yyyy').format(_endDate),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Quick Period Buttons
-            const Text(
-              'Quick Select',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+              // Quick Period Buttons
+              const Text(
+                'Quick Select',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                _buildPeriodButton('This Week', _setThisWeek),
-                _buildPeriodButton('This Month', _setThisMonth),
-                _buildPeriodButton('Last Month', _setLastMonth),
-                _buildPeriodButton('Last 3 Months', _setLast3Months),
-                _buildPeriodButton('This Year', _setThisYear),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // Report Actions
-            const Text(
-              'Generate Reports',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  _buildPeriodButton('This Week', _setThisWeek),
+                  _buildPeriodButton('This Month', _setThisMonth),
+                  _buildPeriodButton('Last Month', _setLastMonth),
+                  _buildPeriodButton('Last 3 Months', _setLast3Months),
+                  _buildPeriodButton('This Year', _setThisYear),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
-            _buildReportCard(
-              'Financial Summary',
-              'Complete overview of income, expenses, and savings',
-              Icons.summarize,
-              _generateFinancialSummary,
-            ),
-            _buildReportCard(
-              'Transaction History',
-              'Detailed list of all transactions in the period',
-              Icons.receipt_long,
-              _generateTransactionHistory,
-            ),
-            _buildReportCard(
-              'Budget Analysis',
-              'Budget performance and spending patterns',
-              Icons.account_balance_wallet,
-              _generateBudgetAnalysis,
-            ),
-            _buildReportCard(
-              'Subscription Costs',
-              'Monthly breakdown of subscription expenses',
-              Icons.subscriptions,
-              _generateSubscriptionReport,
-            ),
-          ],
+
+              const SizedBox(height: 32),
+
+              // Report Actions
+              const Text(
+                'Generate Reports',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildReportCard(
+                'Financial Summary',
+                'Complete overview of income, expenses, and savings',
+                Icons.summarize,
+                _generateFinancialSummary,
+              ),
+              _buildReportCard(
+                'Transaction History',
+                'Detailed list of all transactions in the period',
+                Icons.receipt_long,
+                _generateTransactionHistory,
+              ),
+              _buildReportCard(
+                'Budget Analysis',
+                'Budget performance and spending patterns',
+                Icons.account_balance_wallet,
+                _generateBudgetAnalysis,
+              ),
+              _buildReportCard(
+                'Subscription Costs',
+                'Monthly breakdown of subscription expenses',
+                Icons.subscriptions,
+                _generateSubscriptionReport,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildPeriodButton(String label, VoidCallback onPressed) {
-    return OutlinedButton(
+    return ElevatedButton(
       onPressed: onPressed,
       child: Text(label),
     );
@@ -165,15 +230,45 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Widget _buildReportCard(
       String title, String description, IconData icon, VoidCallback onPressed) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: AppSurfaces.elevated(context),
       child: ListTile(
-        leading: Icon(icon, size: 32),
-        title: Text(title),
-        subtitle: Text(description),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Theme.of(context)
+                .colorScheme
+                .primaryContainer
+                .withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(
+            icon,
+            size: 24,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        title: Text(
+          title,
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(description),
+        ),
         trailing: _isGenerating
-            ? const CircularProgressIndicator()
-            : const Icon(Icons.arrow_forward_ios),
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.arrow_forward_ios_rounded, size: 18),
         onTap: _isGenerating ? null : onPressed,
       ),
     );

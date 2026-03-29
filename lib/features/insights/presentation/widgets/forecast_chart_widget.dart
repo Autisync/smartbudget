@@ -102,10 +102,7 @@ class ForecastChartWidget extends StatelessWidget {
                         sideTitles: SideTitles(showTitles: false)),
                   ),
                   lineTouchData: const LineTouchData(enabled: true),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: Border.all(color: Theme.of(context).dividerColor),
-                  ),
+                  borderData: FlBorderData(show: false),
                   lineBarsData: [
                     LineChartBarData(
                       spots: actualSpots,

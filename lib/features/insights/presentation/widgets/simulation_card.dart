@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/intelligence/analyzers/spending_analyzer.dart';
 import 'package:smartbudget/intelligence/predictors/cashflow_predictor.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
@@ -37,8 +38,9 @@ class _SimulationCardState extends State<SimulationCard> {
         ? widget.forecast.projectedMonthlySpend - scenarioSpend
         : 0.0;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: AppSurfaces.elevated(context),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

@@ -1,9 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 enum LegalDocumentType { terms, privacy }
 
-class LegalDocumentScreen extends StatelessWidget {
+class LegalDocumentScreen extends StatefulWidget {
   final LegalDocumentType type;
 
   const LegalDocumentScreen({
@@ -12,49 +14,111 @@ class LegalDocumentScreen extends StatelessWidget {
   });
 
   @override
+  State<LegalDocumentScreen> createState() => _LegalDocumentScreenState();
+}
+
+class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
+  bool _isAppBarScrolled = false;
+
+  void _updateAppBarScrollState(double offset) {
+    const threshold = 8.0;
+    final shouldShowFill = offset > threshold;
+    if (shouldShowFill == _isAppBarScrolled) return;
+    if (!mounted) return;
+    setState(() => _isAppBarScrolled = shouldShowFill);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final document = _documentFor(type, l10n);
+    final document = _documentFor(widget.type, l10n);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(document.title)),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            document.title,
-            style: Theme.of(context)
-                .textTheme
-                .headlineMedium
-                ?.copyWith(fontWeight: FontWeight.w700),
+      appBar: AppBar(
+        title: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
+            ),
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 8),
-          Text(
-            document.subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.72),
-                ),
-          ),
-          const SizedBox(height: 24),
-          for (final section in document.sections) ...[
+          child: Text(document.title),
+        ),
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
+        ),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        flexibleSpace: Stack(
+          fit: StackFit.expand,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: _isAppBarScrolled
+                  ? ClipRect(
+                      key: const ValueKey('legal-appbar-blur-on'),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Container(
+                          color: colorScheme.surface.withValues(alpha: 0.08),
+                        ),
+                      ),
+                    )
+                  : const SizedBox(key: ValueKey('legal-appbar-blur-off')),
+            ),
+          ],
+        ),
+      ),
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification.metrics.axis == Axis.vertical) {
+            _updateAppBarScrollState(notification.metrics.pixels);
+          }
+          return false;
+        },
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
             Text(
-              section.heading,
+              document.title,
               style: Theme.of(context)
                   .textTheme
-                  .titleMedium
+                  .headlineMedium
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(
-              section.body,
-              style: Theme.of(context).textTheme.bodyMedium,
+              document.subtitle,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.72),
+                  ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
+            for (final section in document.sections) ...[
+              Text(
+                section.heading,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                section.body,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 20),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
