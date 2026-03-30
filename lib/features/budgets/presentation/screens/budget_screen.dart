@@ -10,6 +10,7 @@ import 'package:smartbudget/domain/entities/budget.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:uuid/uuid.dart';
 
 class BudgetScreen extends ConsumerStatefulWidget {
@@ -47,7 +48,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   Widget build(BuildContext context) {
     final budgetsAsync = ref.watch(budgetListProvider);
     final alertsAsync = ref.watch(budgetAlertsProvider);
-    final currencyFormat = NumberFormat.currency(symbol: r'$');
+    final appCurrency = ref.watch(appCurrencyControllerProvider);
+    final currencyFormat = CurrencyUtils.getFormat(appCurrency);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -139,10 +141,21 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               0.0,
               (sum, budget) => sum + budget.limitAmount,
             );
+            final averageAlertThreshold = budgets.isEmpty
+                ? 0
+                : (budgets.fold<int>(
+                          0,
+                          (sum, budget) => sum + budget.alertThreshold,
+                        ) /
+                        budgets.length)
+                    .round();
             final riskCount = alertsAsync.maybeWhen(
               data: (alerts) => alerts.length,
               orElse: () => 0,
             );
+            final decisionMessage = riskCount > 0
+                ? '$riskCount budget${riskCount == 1 ? '' : 's'} need attention. Review the red and amber categories before adding new spend.'
+                : 'Your current budget setup is stable. Use rollover only after confirming categories still fit this month.';
 
             return ListView(
               children: [
@@ -167,50 +180,58 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Budget portfolio',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                        const SizedBox(height: 8),
                         Row(
                           children: [
-                            Expanded(
-                              child: _SummaryMetric(
-                                label: 'Categories',
-                                value: '${budgets.length}',
-                              ),
+                            Icon(
+                              Icons.tips_and_updates_outlined,
+                              color: colorScheme.primary,
                             ),
+                            const SizedBox(width: 10),
                             Expanded(
-                              child: _SummaryMetric(
-                                label: 'Total limit',
-                                value: currencyFormat.format(totalLimit),
-                              ),
-                            ),
-                            Expanded(
-                              child: _SummaryMetric(
-                                label: 'At risk',
-                                value: '$riskCount',
-                                valueColor: riskCount > 0
-                                    ? Theme.of(context).colorScheme.error
-                                    : Theme.of(context).colorScheme.primary,
+                              child: Text(
+                                'Budget portfolio',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        const Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
+                        const SizedBox(height: 4),
+                        Text(
+                          decisionMessage,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
                           children: [
-                            Chip(label: Text('Green <70%')),
-                            Chip(label: Text('Yellow 70-90%')),
-                            Chip(label: Text('Red >90%')),
+                            _CompactBudgetChip(
+                              label: 'Categories',
+                              value: '${budgets.length}',
+                            ),
+                            _CompactBudgetChip(
+                              label: 'Total Limit',
+                              value: currencyFormat.format(totalLimit),
+                            ),
+                            _CompactBudgetChip(
+                              label: 'At Risk',
+                              value: '$riskCount',
+                              valueColor: riskCount > 0
+                                  ? Theme.of(context).colorScheme.error
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                            _CompactBudgetChip(
+                              label: 'Avg Alert',
+                              value: '$averageAlertThreshold%',
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Align(
                           alignment: Alignment.centerLeft,
                           child: OutlinedButton.icon(
@@ -652,8 +673,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   }
 }
 
-class _SummaryMetric extends StatelessWidget {
-  const _SummaryMetric({
+class _CompactBudgetChip extends StatelessWidget {
+  const _CompactBudgetChip({
     required this.label,
     required this.value,
     this.valueColor,
@@ -665,19 +686,27 @@ class _SummaryMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: valueColor,
-              ),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: valueColor,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -30,6 +30,7 @@ mixin _$Subscription {
   DateTime get nextBillingDate => throw _privateConstructorUsedError;
   DateTime? get endDate => throw _privateConstructorUsedError;
   String get category => throw _privateConstructorUsedError;
+  SubscriptionImportance get importance => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   String? get paymentMethod => throw _privateConstructorUsedError;
   String? get website => throw _privateConstructorUsedError;
@@ -63,6 +64,7 @@ abstract class $SubscriptionCopyWith<$Res> {
       DateTime nextBillingDate,
       DateTime? endDate,
       String category,
+      SubscriptionImportance importance,
       bool isActive,
       String? paymentMethod,
       String? website,
@@ -95,6 +97,7 @@ class _$SubscriptionCopyWithImpl<$Res, $Val extends Subscription>
     Object? nextBillingDate = null,
     Object? endDate = freezed,
     Object? category = null,
+    Object? importance = null,
     Object? isActive = null,
     Object? paymentMethod = freezed,
     Object? website = freezed,
@@ -142,6 +145,10 @@ class _$SubscriptionCopyWithImpl<$Res, $Val extends Subscription>
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
               as String,
+      importance: null == importance
+          ? _value.importance
+          : importance // ignore: cast_nullable_to_non_nullable
+              as SubscriptionImportance,
       isActive: null == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
@@ -185,6 +192,7 @@ abstract class _$$SubscriptionImplCopyWith<$Res>
       DateTime nextBillingDate,
       DateTime? endDate,
       String category,
+      SubscriptionImportance importance,
       bool isActive,
       String? paymentMethod,
       String? website,
@@ -215,6 +223,7 @@ class __$$SubscriptionImplCopyWithImpl<$Res>
     Object? nextBillingDate = null,
     Object? endDate = freezed,
     Object? category = null,
+    Object? importance = null,
     Object? isActive = null,
     Object? paymentMethod = freezed,
     Object? website = freezed,
@@ -262,6 +271,10 @@ class __$$SubscriptionImplCopyWithImpl<$Res>
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
               as String,
+      importance: null == importance
+          ? _value.importance
+          : importance // ignore: cast_nullable_to_non_nullable
+              as SubscriptionImportance,
       isActive: null == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
@@ -300,6 +313,7 @@ class _$SubscriptionImpl extends _Subscription {
       required this.nextBillingDate,
       this.endDate,
       required this.category,
+      this.importance = SubscriptionImportance.medium,
       this.isActive = true,
       this.paymentMethod,
       this.website,
@@ -332,6 +346,9 @@ class _$SubscriptionImpl extends _Subscription {
   final String category;
   @override
   @JsonKey()
+  final SubscriptionImportance importance;
+  @override
+  @JsonKey()
   final bool isActive;
   @override
   final String? paymentMethod;
@@ -344,7 +361,7 @@ class _$SubscriptionImpl extends _Subscription {
 
   @override
   String toString() {
-    return 'Subscription(id: $id, name: $name, description: $description, amount: $amount, currency: $currency, billingCycle: $billingCycle, startDate: $startDate, nextBillingDate: $nextBillingDate, endDate: $endDate, category: $category, isActive: $isActive, paymentMethod: $paymentMethod, website: $website, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Subscription(id: $id, name: $name, description: $description, amount: $amount, currency: $currency, billingCycle: $billingCycle, startDate: $startDate, nextBillingDate: $nextBillingDate, endDate: $endDate, category: $category, importance: $importance, isActive: $isActive, paymentMethod: $paymentMethod, website: $website, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -368,6 +385,8 @@ class _$SubscriptionImpl extends _Subscription {
             (identical(other.endDate, endDate) || other.endDate == endDate) &&
             (identical(other.category, category) ||
                 other.category == category) &&
+            (identical(other.importance, importance) ||
+                other.importance == importance) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.paymentMethod, paymentMethod) ||
@@ -393,6 +412,7 @@ class _$SubscriptionImpl extends _Subscription {
       nextBillingDate,
       endDate,
       category,
+      importance,
       isActive,
       paymentMethod,
       website,
@@ -427,6 +447,7 @@ abstract class _Subscription extends Subscription {
       required final DateTime nextBillingDate,
       final DateTime? endDate,
       required final String category,
+      final SubscriptionImportance importance,
       final bool isActive,
       final String? paymentMethod,
       final String? website,
@@ -457,6 +478,8 @@ abstract class _Subscription extends Subscription {
   DateTime? get endDate;
   @override
   String get category;
+  @override
+  SubscriptionImportance get importance;
   @override
   bool get isActive;
   @override

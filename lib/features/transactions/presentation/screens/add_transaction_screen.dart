@@ -65,6 +65,17 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     setState(() => _isAppBarScrolled = shouldShowFill);
   }
 
+  void _closeScreen() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (GoRouter.of(context).canPop()) {
+        context.pop();
+        return;
+      }
+      context.go('/transactions');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -143,7 +154,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             ),
           ),
           icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
+          onPressed: _closeScreen,
         ),
       ),
       body: NotificationListener<ScrollNotification>(
@@ -329,10 +340,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
 
     if (mounted) {
-      context.pop();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Transaction saved')));
+      _closeScreen();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transaction saved')),
+      );
     }
   }
 

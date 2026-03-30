@@ -2141,6 +2141,14 @@ class $SubscriptionsTable extends Subscriptions
   late final GeneratedColumn<String> category = GeneratedColumn<String>(
       'category', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<SubscriptionImportance, int>
+      importance = GeneratedColumn<int>('importance', aliasedName, false,
+              type: DriftSqlType.int,
+              requiredDuringInsert: false,
+              defaultValue: const Constant(1))
+          .withConverter<SubscriptionImportance>(
+              $SubscriptionsTable.$converterimportance);
   static const VerificationMeta _isActiveMeta =
       const VerificationMeta('isActive');
   @override
@@ -2191,6 +2199,7 @@ class $SubscriptionsTable extends Subscriptions
         nextBillingDate,
         endDate,
         category,
+        importance,
         isActive,
         paymentMethod,
         website,
@@ -2310,6 +2319,9 @@ class $SubscriptionsTable extends Subscriptions
           .read(DriftSqlType.dateTime, data['${effectivePrefix}end_date']),
       category: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}category'])!,
+      importance: $SubscriptionsTable.$converterimportance.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.int, data['${effectivePrefix}importance'])!),
       isActive: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
       paymentMethod: attachedDatabase.typeMapping
@@ -2330,6 +2342,9 @@ class $SubscriptionsTable extends Subscriptions
 
   static JsonTypeConverter2<BillingCycle, int, int> $converterbillingCycle =
       const EnumIndexConverter<BillingCycle>(BillingCycle.values);
+  static JsonTypeConverter2<SubscriptionImportance, int, int>
+      $converterimportance = const EnumIndexConverter<SubscriptionImportance>(
+          SubscriptionImportance.values);
 }
 
 class Subscription extends DataClass implements Insertable<Subscription> {
@@ -2343,6 +2358,7 @@ class Subscription extends DataClass implements Insertable<Subscription> {
   final DateTime nextBillingDate;
   final DateTime? endDate;
   final String category;
+  final SubscriptionImportance importance;
   final bool isActive;
   final String? paymentMethod;
   final String? website;
@@ -2359,6 +2375,7 @@ class Subscription extends DataClass implements Insertable<Subscription> {
       required this.nextBillingDate,
       this.endDate,
       required this.category,
+      required this.importance,
       required this.isActive,
       this.paymentMethod,
       this.website,
@@ -2384,6 +2401,10 @@ class Subscription extends DataClass implements Insertable<Subscription> {
       map['end_date'] = Variable<DateTime>(endDate);
     }
     map['category'] = Variable<String>(category);
+    {
+      map['importance'] = Variable<int>(
+          $SubscriptionsTable.$converterimportance.toSql(importance));
+    }
     map['is_active'] = Variable<bool>(isActive);
     if (!nullToAbsent || paymentMethod != null) {
       map['payment_method'] = Variable<String>(paymentMethod);
@@ -2412,6 +2433,7 @@ class Subscription extends DataClass implements Insertable<Subscription> {
           ? const Value.absent()
           : Value(endDate),
       category: Value(category),
+      importance: Value(importance),
       isActive: Value(isActive),
       paymentMethod: paymentMethod == null && nullToAbsent
           ? const Value.absent()
@@ -2439,6 +2461,8 @@ class Subscription extends DataClass implements Insertable<Subscription> {
       nextBillingDate: serializer.fromJson<DateTime>(json['nextBillingDate']),
       endDate: serializer.fromJson<DateTime?>(json['endDate']),
       category: serializer.fromJson<String>(json['category']),
+      importance: $SubscriptionsTable.$converterimportance
+          .fromJson(serializer.fromJson<int>(json['importance'])),
       isActive: serializer.fromJson<bool>(json['isActive']),
       paymentMethod: serializer.fromJson<String?>(json['paymentMethod']),
       website: serializer.fromJson<String?>(json['website']),
@@ -2461,6 +2485,8 @@ class Subscription extends DataClass implements Insertable<Subscription> {
       'nextBillingDate': serializer.toJson<DateTime>(nextBillingDate),
       'endDate': serializer.toJson<DateTime?>(endDate),
       'category': serializer.toJson<String>(category),
+      'importance': serializer.toJson<int>(
+          $SubscriptionsTable.$converterimportance.toJson(importance)),
       'isActive': serializer.toJson<bool>(isActive),
       'paymentMethod': serializer.toJson<String?>(paymentMethod),
       'website': serializer.toJson<String?>(website),
@@ -2480,6 +2506,7 @@ class Subscription extends DataClass implements Insertable<Subscription> {
           DateTime? nextBillingDate,
           Value<DateTime?> endDate = const Value.absent(),
           String? category,
+          SubscriptionImportance? importance,
           bool? isActive,
           Value<String?> paymentMethod = const Value.absent(),
           Value<String?> website = const Value.absent(),
@@ -2496,6 +2523,7 @@ class Subscription extends DataClass implements Insertable<Subscription> {
         nextBillingDate: nextBillingDate ?? this.nextBillingDate,
         endDate: endDate.present ? endDate.value : this.endDate,
         category: category ?? this.category,
+        importance: importance ?? this.importance,
         isActive: isActive ?? this.isActive,
         paymentMethod:
             paymentMethod.present ? paymentMethod.value : this.paymentMethod,
@@ -2520,6 +2548,8 @@ class Subscription extends DataClass implements Insertable<Subscription> {
           : this.nextBillingDate,
       endDate: data.endDate.present ? data.endDate.value : this.endDate,
       category: data.category.present ? data.category.value : this.category,
+      importance:
+          data.importance.present ? data.importance.value : this.importance,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       paymentMethod: data.paymentMethod.present
           ? data.paymentMethod.value
@@ -2543,6 +2573,7 @@ class Subscription extends DataClass implements Insertable<Subscription> {
           ..write('nextBillingDate: $nextBillingDate, ')
           ..write('endDate: $endDate, ')
           ..write('category: $category, ')
+          ..write('importance: $importance, ')
           ..write('isActive: $isActive, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('website: $website, ')
@@ -2564,6 +2595,7 @@ class Subscription extends DataClass implements Insertable<Subscription> {
       nextBillingDate,
       endDate,
       category,
+      importance,
       isActive,
       paymentMethod,
       website,
@@ -2583,6 +2615,7 @@ class Subscription extends DataClass implements Insertable<Subscription> {
           other.nextBillingDate == this.nextBillingDate &&
           other.endDate == this.endDate &&
           other.category == this.category &&
+          other.importance == this.importance &&
           other.isActive == this.isActive &&
           other.paymentMethod == this.paymentMethod &&
           other.website == this.website &&
@@ -2601,6 +2634,7 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
   final Value<DateTime> nextBillingDate;
   final Value<DateTime?> endDate;
   final Value<String> category;
+  final Value<SubscriptionImportance> importance;
   final Value<bool> isActive;
   final Value<String?> paymentMethod;
   final Value<String?> website;
@@ -2618,6 +2652,7 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
     this.nextBillingDate = const Value.absent(),
     this.endDate = const Value.absent(),
     this.category = const Value.absent(),
+    this.importance = const Value.absent(),
     this.isActive = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.website = const Value.absent(),
@@ -2636,6 +2671,7 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
     required DateTime nextBillingDate,
     this.endDate = const Value.absent(),
     required String category,
+    this.importance = const Value.absent(),
     this.isActive = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.website = const Value.absent(),
@@ -2660,6 +2696,7 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
     Expression<DateTime>? nextBillingDate,
     Expression<DateTime>? endDate,
     Expression<String>? category,
+    Expression<int>? importance,
     Expression<bool>? isActive,
     Expression<String>? paymentMethod,
     Expression<String>? website,
@@ -2678,6 +2715,7 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
       if (nextBillingDate != null) 'next_billing_date': nextBillingDate,
       if (endDate != null) 'end_date': endDate,
       if (category != null) 'category': category,
+      if (importance != null) 'importance': importance,
       if (isActive != null) 'is_active': isActive,
       if (paymentMethod != null) 'payment_method': paymentMethod,
       if (website != null) 'website': website,
@@ -2698,6 +2736,7 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
       Value<DateTime>? nextBillingDate,
       Value<DateTime?>? endDate,
       Value<String>? category,
+      Value<SubscriptionImportance>? importance,
       Value<bool>? isActive,
       Value<String?>? paymentMethod,
       Value<String?>? website,
@@ -2715,6 +2754,7 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       endDate: endDate ?? this.endDate,
       category: category ?? this.category,
+      importance: importance ?? this.importance,
       isActive: isActive ?? this.isActive,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       website: website ?? this.website,
@@ -2758,6 +2798,10 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
     if (category.present) {
       map['category'] = Variable<String>(category.value);
     }
+    if (importance.present) {
+      map['importance'] = Variable<int>(
+          $SubscriptionsTable.$converterimportance.toSql(importance.value));
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -2792,6 +2836,7 @@ class SubscriptionsCompanion extends UpdateCompanion<Subscription> {
           ..write('nextBillingDate: $nextBillingDate, ')
           ..write('endDate: $endDate, ')
           ..write('category: $category, ')
+          ..write('importance: $importance, ')
           ..write('isActive: $isActive, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('website: $website, ')
@@ -5249,6 +5294,7 @@ typedef $$SubscriptionsTableCreateCompanionBuilder = SubscriptionsCompanion
   required DateTime nextBillingDate,
   Value<DateTime?> endDate,
   required String category,
+  Value<SubscriptionImportance> importance,
   Value<bool> isActive,
   Value<String?> paymentMethod,
   Value<String?> website,
@@ -5268,6 +5314,7 @@ typedef $$SubscriptionsTableUpdateCompanionBuilder = SubscriptionsCompanion
   Value<DateTime> nextBillingDate,
   Value<DateTime?> endDate,
   Value<String> category,
+  Value<SubscriptionImportance> importance,
   Value<bool> isActive,
   Value<String?> paymentMethod,
   Value<String?> website,
@@ -5317,6 +5364,12 @@ class $$SubscriptionsTableFilterComposer
 
   ColumnFilters<String> get category => $composableBuilder(
       column: $table.category, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<SubscriptionImportance, SubscriptionImportance,
+          int>
+      get importance => $composableBuilder(
+          column: $table.importance,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<bool> get isActive => $composableBuilder(
       column: $table.isActive, builder: (column) => ColumnFilters(column));
@@ -5375,6 +5428,9 @@ class $$SubscriptionsTableOrderingComposer
   ColumnOrderings<String> get category => $composableBuilder(
       column: $table.category, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get importance => $composableBuilder(
+      column: $table.importance, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
       column: $table.isActive, builder: (column) => ColumnOrderings(column));
 
@@ -5432,6 +5488,10 @@ class $$SubscriptionsTableAnnotationComposer
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<SubscriptionImportance, int>
+      get importance => $composableBuilder(
+          column: $table.importance, builder: (column) => column);
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
@@ -5484,6 +5544,7 @@ class $$SubscriptionsTableTableManager extends RootTableManager<
             Value<DateTime> nextBillingDate = const Value.absent(),
             Value<DateTime?> endDate = const Value.absent(),
             Value<String> category = const Value.absent(),
+            Value<SubscriptionImportance> importance = const Value.absent(),
             Value<bool> isActive = const Value.absent(),
             Value<String?> paymentMethod = const Value.absent(),
             Value<String?> website = const Value.absent(),
@@ -5502,6 +5563,7 @@ class $$SubscriptionsTableTableManager extends RootTableManager<
             nextBillingDate: nextBillingDate,
             endDate: endDate,
             category: category,
+            importance: importance,
             isActive: isActive,
             paymentMethod: paymentMethod,
             website: website,
@@ -5520,6 +5582,7 @@ class $$SubscriptionsTableTableManager extends RootTableManager<
             required DateTime nextBillingDate,
             Value<DateTime?> endDate = const Value.absent(),
             required String category,
+            Value<SubscriptionImportance> importance = const Value.absent(),
             Value<bool> isActive = const Value.absent(),
             Value<String?> paymentMethod = const Value.absent(),
             Value<String?> website = const Value.absent(),
@@ -5538,6 +5601,7 @@ class $$SubscriptionsTableTableManager extends RootTableManager<
             nextBillingDate: nextBillingDate,
             endDate: endDate,
             category: category,
+            importance: importance,
             isActive: isActive,
             paymentMethod: paymentMethod,
             website: website,

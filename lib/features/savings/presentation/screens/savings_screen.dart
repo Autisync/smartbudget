@@ -9,6 +9,7 @@ import 'package:smartbudget/data/models/tables.dart' show GoalPriority;
 import 'package:smartbudget/data/models/tables.dart' show TransactionType;
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:uuid/uuid.dart';
 
 class SavingsScreen extends ConsumerStatefulWidget {
@@ -72,7 +73,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     final savingsAsync = ref.watch(savingsGoalListProvider);
     final nudgesAsync = ref.watch(savingsNudgesProvider);
     final monthlyTransactionsAsync = ref.watch(recentTransactionsProvider);
-    final currencyFormat = NumberFormat.currency(symbol: r'$');
+    final appCurrency = ref.watch(appCurrencyControllerProvider);
+    final currencyFormat = CurrencyUtils.getFormat(appCurrency);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -193,6 +195,16 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               );
             }
 
+            final nudgesCount = nudgesAsync.maybeWhen(
+              data: (nudges) => nudges.length,
+              orElse: () => 0,
+            );
+            final decisionMessage = atRiskGoals > 0
+                ? '$atRiskGoals goal${atRiskGoals == 1 ? '' : 's'} are behind pace. Focus new contributions there first.'
+                : monthlySurplus > 0
+                    ? 'You have ${currencyFormat.format(monthlySurplus)} of monthly surplus available to accelerate your top priority goal.'
+                    : 'Progress is steady. Keep contributions consistent to protect your deadlines.';
+
             return ListView(
               children: [
                 Padding(
@@ -216,43 +228,60 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Savings portfolio',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                        const SizedBox(height: 8),
                         Row(
                           children: [
-                            Expanded(
-                              child: _SavingsSummaryMetric(
-                                label: 'Goals',
-                                value: '${goals.length}',
-                              ),
+                            Icon(
+                              Icons.tips_and_updates_outlined,
+                              color: colorScheme.primary,
                             ),
+                            const SizedBox(width: 10),
                             Expanded(
-                              child: _SavingsSummaryMetric(
-                                label: 'Saved',
-                                value: currencyFormat.format(totalSaved),
-                              ),
-                            ),
-                            Expanded(
-                              child: _SavingsSummaryMetric(
-                                label: 'At risk',
-                                value: '$atRiskGoals',
-                                valueColor: atRiskGoals > 0
-                                    ? Theme.of(context).colorScheme.error
-                                    : Theme.of(context).colorScheme.primary,
+                              child: Text(
+                                'Savings portfolio',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         Text(
-                          'Total target ${currencyFormat.format(totalTarget)}',
+                          decisionMessage,
                           style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _SavingsSummaryMetric(
+                              label: 'Goals',
+                              value: '${goals.length}',
+                            ),
+                            _SavingsSummaryMetric(
+                              label: 'Saved',
+                              value: currencyFormat.format(totalSaved),
+                            ),
+                            _SavingsSummaryMetric(
+                              label: 'At Risk',
+                              value: '$atRiskGoals',
+                              valueColor: atRiskGoals > 0
+                                  ? Theme.of(context).colorScheme.error
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                            _SavingsSummaryMetric(
+                              label: 'Target',
+                              value: currencyFormat.format(totalTarget),
+                            ),
+                            _SavingsSummaryMetric(
+                              label: 'Nudges',
+                              value: '$nudgesCount',
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -733,19 +762,27 @@ class _SavingsSummaryMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: valueColor,
-              ),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: valueColor,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }

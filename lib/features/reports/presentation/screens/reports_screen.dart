@@ -1,17 +1,22 @@
 import 'dart:ui';
 
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/data/models/tables.dart';
+import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:csv/csv.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
@@ -26,6 +31,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   DateTime _endDate = DateTime.now();
   bool _isGenerating = false;
   bool _isAppBarScrolled = false;
+  pw.Font? _pdfFontRegular;
+  pw.Font? _pdfFontBold;
+  int _totalReportsGenerated = 0;
+  DateTime? _lastGeneratedAt;
+  final Map<String, int> _reportCounts = <String, int>{};
+  final List<_GeneratedReportEntry> _generatedReports =
+      <_GeneratedReportEntry>[];
 
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
@@ -38,6 +50,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final appCurrency = ref.watch(appCurrencyControllerProvider);
+    final appCurrencyLabel = appCurrency.toUpperCase();
     return Scaffold(
       appBar: AppBar(
         title: AnimatedContainer(
@@ -84,7 +98,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 alpha: _isAppBarScrolled ? 0.9 : 0,
               ),
             ),
-            icon: const Icon(Icons.share),
+            icon: const Icon(Icons.ios_share_rounded),
             onPressed: _isGenerating ? null : _showExportOptions,
           ),
           const SizedBox(width: 8),
@@ -98,13 +112,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           return false;
         },
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: UiTokens.screenPaddingScrollable,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Date Range Selector
               Container(
-                decoration: AppSurfaces.elevated(context),
+                decoration: AppSurfaces.elevated(
+                  context,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.7),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -121,33 +141,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('From'),
-                                TextButton(
-                                  onPressed: () => _selectDate(context, true),
-                                  child: Text(
-                                    DateFormat('MMM dd, yyyy')
-                                        .format(_startDate),
-                                  ),
-                                ),
-                              ],
+                            child: _buildDateField(
+                              label: 'From',
+                              date: _startDate,
+                              onTap: () => _selectDate(context, true),
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('To'),
-                                TextButton(
-                                  onPressed: () => _selectDate(context, false),
-                                  child: Text(
-                                    DateFormat('MMM dd, yyyy').format(_endDate),
-                                  ),
-                                ),
-                              ],
+                            child: _buildDateField(
+                              label: 'To',
+                              date: _endDate,
+                              onTap: () => _selectDate(context, false),
                             ),
                           ),
                         ],
@@ -157,7 +162,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: UiTokens.sectionGapLg),
 
               // Quick Period Buttons
               const Text(
@@ -167,9 +172,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: UiTokens.chipSpacing),
               Wrap(
-                spacing: 8,
+                spacing: 10,
+                runSpacing: 10,
                 children: [
                   _buildPeriodButton('This Week', _setThisWeek),
                   _buildPeriodButton('This Month', _setThisMonth),
@@ -181,6 +187,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
               const SizedBox(height: 32),
 
+              _buildReportMetricsSection(),
+
+              const SizedBox(height: UiTokens.sectionGapLg),
+
               // Report Actions
               const Text(
                 'Generate Reports',
@@ -189,31 +199,39 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: UiTokens.sectionGapMd),
               _buildReportCard(
-                'Financial Summary',
-                'Complete overview of income, expenses, and savings',
-                Icons.summarize,
-                _generateFinancialSummary,
+                reportKey: 'Financial Summary',
+                title: 'Financial Summary ($appCurrencyLabel)',
+                description:
+                    'Complete overview of income, expenses, and savings',
+                icon: Icons.analytics_rounded,
+                onPressed: _generateFinancialSummary,
               ),
               _buildReportCard(
-                'Transaction History',
-                'Detailed list of all transactions in the period',
-                Icons.receipt_long,
-                _generateTransactionHistory,
+                reportKey: 'Transaction History',
+                title: 'Transaction History',
+                description: 'Detailed list of all transactions in the period',
+                icon: Icons.receipt_long_rounded,
+                onPressed: _generateTransactionHistory,
               ),
               _buildReportCard(
-                'Budget Analysis',
-                'Budget performance and spending patterns',
-                Icons.account_balance_wallet,
-                _generateBudgetAnalysis,
+                reportKey: 'Budget Analysis',
+                title: 'Budget Analysis',
+                description: 'Budget performance and spending patterns',
+                icon: Icons.pie_chart_rounded,
+                onPressed: _generateBudgetAnalysis,
               ),
               _buildReportCard(
-                'Subscription Costs',
-                'Monthly breakdown of subscription expenses',
-                Icons.subscriptions,
-                _generateSubscriptionReport,
+                reportKey: 'Subscription Costs',
+                title: 'Subscription Costs',
+                description: 'Monthly breakdown of subscription expenses',
+                icon: Icons.subscriptions_rounded,
+                onPressed: _generateSubscriptionReport,
               ),
+
+              const SizedBox(height: UiTokens.sectionGapLg),
+              _buildGeneratedReportsSection(),
             ],
           ),
         ),
@@ -221,34 +239,175 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
+  Widget _buildReportMetricsSection() {
+    final generatedToday = _generatedReports.where((entry) {
+      final now = DateTime.now();
+      return entry.generatedAt.year == now.year &&
+          entry.generatedAt.month == now.month &&
+          entry.generatedAt.day == now.day;
+    }).length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: AppSurfaces.elevated(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.insights_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Report Activity',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: UiTokens.chipSpacing,
+            runSpacing: UiTokens.chipRunSpacing,
+            children: [
+              _ReportMetricChip(
+                label: 'Generated',
+                value: '$_totalReportsGenerated',
+                icon: Icons.description_rounded,
+              ),
+              _ReportMetricChip(
+                label: 'Today',
+                value: '$generatedToday',
+                icon: Icons.today_rounded,
+              ),
+              _ReportMetricChip(
+                label: 'Types Used',
+                value: '${_reportCounts.length}',
+                icon: Icons.category_rounded,
+              ),
+              _ReportMetricChip(
+                label: 'Last Run',
+                value: _lastGeneratedAt == null
+                    ? 'None'
+                    : DateFormat('MMM dd, HH:mm').format(_lastGeneratedAt!),
+                icon: Icons.schedule_rounded,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPeriodButton(String label, VoidCallback onPressed) {
     return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
       onPressed: onPressed,
       child: Text(label),
     );
   }
 
+  Widget _buildDateField({
+    required String label,
+    required DateTime date,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.15),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.calendar_month_rounded,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      DateFormat('MMM dd, yyyy').format(date),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildReportCard(
-      String title, String description, IconData icon, VoidCallback onPressed) {
+      {required String reportKey,
+      required String title,
+      required String description,
+      required IconData icon,
+      required VoidCallback onPressed}) {
+    final runCount = _reportCounts[reportKey] ?? 0;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBadgeColor = isDark
+        ? colorScheme.primary.withValues(alpha: 0.85)
+        : colorScheme.primary;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: AppSurfaces.elevated(context),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         leading: Container(
-          width: 48,
-          height: 48,
+          width: 50,
+          height: 50,
           decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .primaryContainer
-                .withValues(alpha: 0.9),
+            color: iconBadgeColor,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.14)
+                  : colorScheme.primary.withValues(alpha: 0.18),
+            ),
           ),
           child: Icon(
             icon,
-            size: 24,
-            color: Theme.of(context).colorScheme.primary,
+            size: 25,
+            color: Colors.white,
           ),
         ),
         title: Text(
@@ -268,10 +427,130 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  const SizedBox(height: 6),
+                  Text(
+                    '$runCount runs',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
         onTap: _isGenerating ? null : onPressed,
       ),
     );
+  }
+
+  Widget _buildGeneratedReportsSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: AppSurfaces.elevated(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.history_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Generated Reports',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_generatedReports.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No reports generated yet. Run any report to see it listed here.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            )
+          else
+            ..._generatedReports.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .outline
+                          .withValues(alpha: 0.12),
+                    ),
+                  ),
+                  child: ListTile(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    leading: Icon(
+                      entry.icon,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      entry.title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    subtitle: Text(
+                      '${entry.format} • ${DateFormat('MMM dd, yyyy HH:mm').format(entry.generatedAt)} • ${entry.filename}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _trackGeneratedReport({
+    required String reportKey,
+    required String title,
+    required String format,
+    required String filename,
+    required IconData icon,
+  }) {
+    final now = DateTime.now();
+    setState(() {
+      _totalReportsGenerated += 1;
+      _lastGeneratedAt = now;
+      _reportCounts.update(reportKey, (value) => value + 1, ifAbsent: () => 1);
+      _generatedReports.insert(
+        0,
+        _GeneratedReportEntry(
+          title: title,
+          format: format,
+          filename: filename,
+          generatedAt: now,
+          icon: icon,
+        ),
+      );
+      if (_generatedReports.length > 10) {
+        _generatedReports.removeLast();
+      }
+    });
   }
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
@@ -364,11 +643,50 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
+  Future<pw.ThemeData> _buildPdfTheme() async {
+    _pdfFontRegular ??=
+        pw.Font.ttf(await rootBundle.load('assets/fonts/Roboto-Regular.ttf'));
+    _pdfFontBold ??=
+        pw.Font.ttf(await rootBundle.load('assets/fonts/Roboto-Bold.ttf'));
+
+    return pw.ThemeData.withFont(
+      base: _pdfFontRegular!,
+      bold: _pdfFontBold!,
+    );
+  }
+
+  String _getTransactionTypeLabel(TransactionType type) {
+    switch (type) {
+      case TransactionType.income:
+        return 'Income';
+      case TransactionType.expense:
+        return 'Expense';
+      case TransactionType.transfer:
+        return 'Transfer';
+    }
+  }
+
+  String _getBillingCycleLabel(BillingCycle cycle) {
+    switch (cycle) {
+      case BillingCycle.weekly:
+        return 'Weekly';
+      case BillingCycle.monthly:
+        return 'Monthly';
+      case BillingCycle.quarterly:
+        return 'Quarterly';
+      case BillingCycle.yearly:
+        return 'Yearly';
+    }
+  }
+
   Future<void> _generateFinancialSummary() async {
     setState(() => _isGenerating = true);
 
     try {
+      final pdfTheme = await _buildPdfTheme();
       final pdf = pw.Document();
+      final appCurrency = ref.read(appCurrencyControllerProvider);
+      final appCurrencySymbol = CurrencyUtils.symbol(appCurrency);
 
       // Get data
       final transactions = await ref.read(transactionListProvider().future);
@@ -409,6 +727,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       // Generate PDF
       pdf.addPage(
         pw.Page(
+          theme: pdfTheme,
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -422,12 +741,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 pw.SizedBox(height: 20),
                 pw.Text('Income & Expenses:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                pw.Text('Total Income: \$${income.toStringAsFixed(2)}'),
-                pw.Text('Total Expenses: \$${expenses.toStringAsFixed(2)}'),
-                pw.Text('Net Income: \$${netIncome.toStringAsFixed(2)}'),
+                pw.Text(
+                    'Total Income: $appCurrencySymbol${income.toStringAsFixed(2)}'),
+                pw.Text(
+                    'Total Expenses: $appCurrencySymbol${expenses.toStringAsFixed(2)}'),
+                pw.Text(
+                    'Net Income: $appCurrencySymbol${netIncome.toStringAsFixed(2)}'),
                 pw.SizedBox(height: 10),
                 pw.Text(
-                    'Monthly Subscriptions: \$${subscriptionCosts.toStringAsFixed(2)}'),
+                    'Monthly Subscriptions: $appCurrencySymbol${subscriptionCosts.toStringAsFixed(2)}'),
                 pw.SizedBox(height: 20),
                 pw.Text('Budget Utilization:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
@@ -437,7 +759,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 pw.Text('Recent Transactions:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 ...filteredTransactions.take(10).map((t) => pw.Text(
-                    '${DateFormat('MM/dd').format(t.date)} ${t.category}: \$${t.amount.toStringAsFixed(2)} ${t.type == TransactionType.income ? '(Income)' : '(Expense)'}')),
+                    '${DateFormat('MM/dd').format(t.date)} ${t.category}: $appCurrencySymbol${t.amount.toStringAsFixed(2)} ${t.type == TransactionType.income ? '(Income)' : '(Expense)'}')),
               ],
             );
           },
@@ -447,6 +769,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       // Save and share
       final output = await _getOutputFile('financial_summary.pdf');
       await output.writeAsBytes(await pdf.save());
+
+      _trackGeneratedReport(
+        reportKey: 'Financial Summary',
+        title: 'Financial Summary',
+        format: 'PDF',
+        filename: output.path.split('/').last,
+        icon: Icons.analytics_rounded,
+      );
 
       await SharePlus.instance.share(
         ShareParams(
@@ -488,7 +818,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               DateFormat('yyyy-MM-dd').format(t.date),
               t.category,
               t.amount.toString(),
-              t.type.name,
+              _getTransactionTypeLabel(t.type),
               t.note ?? '',
             ]),
       ];
@@ -496,6 +826,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       final csvString = const ListToCsvConverter().convert(csvData);
       final output = await _getOutputFile('transaction_history.csv');
       await output.writeAsString(csvString);
+
+      _trackGeneratedReport(
+        reportKey: 'Transaction History',
+        title: 'Transaction History',
+        format: 'CSV',
+        filename: output.path.split('/').last,
+        icon: Icons.receipt_long_rounded,
+      );
 
       await SharePlus.instance.share(
         ShareParams(
@@ -525,7 +863,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     try {
       final budgets = await ref.read(budgetListProvider.future);
+      final pdfTheme = await _buildPdfTheme();
       final pdf = pw.Document();
+      final appCurrency = ref.read(appCurrencyControllerProvider);
+      final appCurrencySymbol = CurrencyUtils.symbol(appCurrency);
 
       // Calculate spending for each budget
       final budgetData = <Map<String, dynamic>>[];
@@ -553,6 +894,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       pdf.addPage(
         pw.Page(
+          theme: pdfTheme,
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -570,9 +912,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         pw.Text('${data['category']}',
                             style:
                                 pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Limit: \$${data['limit'].toStringAsFixed(2)}'),
                         pw.Text(
-                            'Spent: \$${data['spent'].toStringAsFixed(2)} (${data['percentage'].toStringAsFixed(1)}%)'),
+                            'Limit: $appCurrencySymbol${data['limit'].toStringAsFixed(2)}'),
+                        pw.Text(
+                            'Spent: $appCurrencySymbol${data['spent'].toStringAsFixed(2)} (${data['percentage'].toStringAsFixed(1)}%)'),
                         pw.Text('Status: ${data['status']}',
                             style: pw.TextStyle(
                               color: data['status'] == 'Over Budget'
@@ -602,6 +945,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       final output = await _getOutputFile('budget_analysis.pdf');
       await output.writeAsBytes(await pdf.save());
+
+      _trackGeneratedReport(
+        reportKey: 'Budget Analysis',
+        title: 'Budget Analysis',
+        format: 'PDF',
+        filename: output.path.split('/').last,
+        icon: Icons.pie_chart_rounded,
+      );
 
       await SharePlus.instance.share(
         ShareParams(
@@ -635,11 +986,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           subscriptions.where((s) => s.isActive).toList();
       final monthlyTotal =
           activeSubscriptions.fold<double>(0, (sum, s) => sum + s.monthlyCost);
+      final appCurrency = ref.read(appCurrencyControllerProvider);
+      final appCurrencySymbol = CurrencyUtils.symbol(appCurrency);
 
       final pdf = pw.Document();
+      final pdfTheme = await _buildPdfTheme();
 
       pdf.addPage(
         pw.Page(
+          theme: pdfTheme,
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -653,9 +1008,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 pw.Text(
                     'Total Active Subscriptions: ${activeSubscriptions.length}'),
                 pw.Text(
-                    'Monthly Total Cost: \$${monthlyTotal.toStringAsFixed(2)}'),
+                    'Monthly Total Cost: $appCurrencySymbol${monthlyTotal.toStringAsFixed(2)}'),
                 pw.Text(
-                    'Yearly Total Cost: \$${(monthlyTotal * 12).toStringAsFixed(2)}'),
+                    'Yearly Total Cost: $appCurrencySymbol${(monthlyTotal * 12).toStringAsFixed(2)}'),
                 pw.SizedBox(height: 20),
                 pw.Text('Active Subscriptions:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
@@ -667,9 +1022,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             style:
                                 pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                         pw.Text(
-                            'Amount: \$${s.amount.toStringAsFixed(2)} (${s.billingCycle.name})'),
+                            'Amount: $appCurrencySymbol${s.amount.toStringAsFixed(2)} (${_getBillingCycleLabel(s.billingCycle)})'),
                         pw.Text(
-                            'Monthly Cost: \$${s.monthlyCost.toStringAsFixed(2)}'),
+                            'Monthly Cost: $appCurrencySymbol${s.monthlyCost.toStringAsFixed(2)}'),
                         pw.Text('Category: ${s.category}'),
                         pw.Text(
                             'Next Due: ${DateFormat('MMM dd, yyyy').format(s.nextDueDate)}'),
@@ -684,6 +1039,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       final output = await _getOutputFile('subscription_report.pdf');
       await output.writeAsBytes(await pdf.save());
+
+      _trackGeneratedReport(
+        reportKey: 'Subscription Costs',
+        title: 'Subscription Report',
+        format: 'PDF',
+        filename: output.path.split('/').last,
+        icon: Icons.subscriptions_rounded,
+      );
 
       await SharePlus.instance.share(
         ShareParams(
@@ -737,6 +1100,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       final output = await _getOutputFile('complete_export.csv');
       await output.writeAsString(csvString);
 
+      _trackGeneratedReport(
+        reportKey: 'Complete Export',
+        title: 'Complete Data Export',
+        format: 'CSV',
+        filename: output.path.split('/').last,
+        icon: Icons.table_chart_rounded,
+      );
+
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(output.path)],
@@ -761,7 +1132,82 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Future<File> _getOutputFile(String filename) async {
-    final directory = Directory('/tmp'); // Use temp directory for sharing
-    return File('${directory.path}/$filename');
+    final directory = await getTemporaryDirectory();
+    final file = File('${directory.path}/$filename');
+    if (!await file.parent.exists()) {
+      await file.parent.create(recursive: true);
+    }
+    return file;
   }
+}
+
+class _ReportMetricChip extends StatelessWidget {
+  const _ReportMetricChip({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GeneratedReportEntry {
+  const _GeneratedReportEntry({
+    required this.title,
+    required this.format,
+    required this.filename,
+    required this.generatedAt,
+    required this.icon,
+  });
+
+  final String title;
+  final String format;
+  final String filename;
+  final DateTime generatedAt;
+  final IconData icon;
 }

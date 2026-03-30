@@ -17,6 +17,7 @@ class Subscription with _$Subscription {
     required DateTime nextBillingDate,
     DateTime? endDate,
     required String category,
+    @Default(SubscriptionImportance.medium) SubscriptionImportance importance,
     @Default(true) bool isActive,
     String? paymentMethod,
     String? website,

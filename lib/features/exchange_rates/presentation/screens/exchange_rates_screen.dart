@@ -1,0 +1,358 @@
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/services/exchange_rate_service.dart';
+import 'package:smartbudget/core/theme/app_surfaces.dart';
+
+class ExchangeRatesScreen extends ConsumerStatefulWidget {
+  const ExchangeRatesScreen({super.key});
+
+  @override
+  ConsumerState<ExchangeRatesScreen> createState() =>
+      _ExchangeRatesScreenState();
+}
+
+class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
+  static const _currencies = <String>[
+    'USD',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CHF',
+    'CAD',
+    'AUD',
+    'BRL',
+    'CNY',
+    'INR',
+  ];
+
+  final _amountController = TextEditingController(text: '100');
+  String _baseCurrency = 'USD';
+  String _targetCurrency = 'EUR';
+  bool _isLoading = false;
+  ExchangeRateQuote? _quote;
+  List<ExchangeRatePoint> _trendPoints = const <ExchangeRatePoint>[];
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRate();
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchRate() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final service = ref.read(exchangeRateServiceProvider);
+      final quote = await service.fetchRate(
+        base: _baseCurrency,
+        target: _targetCurrency,
+      );
+      final trend = await service.fetchTrend(
+        base: _baseCurrency,
+        target: _targetCurrency,
+        days: 7,
+      );
+      if (!mounted) return;
+      setState(() {
+        _quote = quote;
+        _trendPoints = trend;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Unable to fetch exchange rates right now. Please try again.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _swapCurrencies() {
+    setState(() {
+      final temp = _baseCurrency;
+      _baseCurrency = _targetCurrency;
+      _targetCurrency = temp;
+    });
+    _fetchRate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final amount = double.tryParse(_amountController.text.trim()) ?? 0;
+    final rate = _quote?.rate ?? 0;
+    final converted = amount * rate;
+    final formatter = NumberFormat.currency(symbol: '');
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Exchange Rates'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: AppSurfaces.elevated(context, radius: 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.currency_exchange_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Live Rate Checker',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Rates use ExchangeRate-API when configured, with Frankfurter (ECB reference rates) as automatic fallback.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _amountController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Amount',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        key: ValueKey('base-$_baseCurrency'),
+                        initialValue: _baseCurrency,
+                        decoration: const InputDecoration(
+                          labelText: 'From',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _currencies
+                            .map(
+                              (currency) => DropdownMenuItem<String>(
+                                value: currency,
+                                child: Text(currency),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setState(() => _baseCurrency = value);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      onPressed: _isLoading ? null : _swapCurrencies,
+                      icon: const Icon(Icons.swap_horiz_rounded),
+                      tooltip: 'Swap currencies',
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        key: ValueKey('target-$_targetCurrency'),
+                        initialValue: _targetCurrency,
+                        decoration: const InputDecoration(
+                          labelText: 'To',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _currencies
+                            .map(
+                              (currency) => DropdownMenuItem<String>(
+                                value: currency,
+                                child: Text(currency),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setState(() => _targetCurrency = value);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _isLoading ? null : _fetchRate,
+                    icon: const Icon(Icons.sync_rounded),
+                    label: const Text('Check Rate'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: AppSurfaces.elevated(context, radius: 18),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Text(
+                        _error!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Conversion Result',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            '1 $_baseCurrency = ${rate.toStringAsFixed(4)} $_targetCurrency',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${formatter.format(amount)} $_baseCurrency = ${formatter.format(converted)} $_targetCurrency',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          if (_quote != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Rate date: ${DateFormat('MMM dd, yyyy').format(_quote!.date)}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                          if (_trendPoints.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                              'Last 7 days trend',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              height: 140,
+                              child: LineChart(
+                                LineChartData(
+                                  gridData: const FlGridData(show: false),
+                                  borderData: FlBorderData(show: false),
+                                  titlesData: FlTitlesData(
+                                    leftTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    rightTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    topTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    bottomTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 24,
+                                        interval:
+                                            _trendPoints.length > 4 ? 2 : 1,
+                                        getTitlesWidget: (value, meta) {
+                                          final index = value.toInt();
+                                          if (index < 0 ||
+                                              index >= _trendPoints.length) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 6),
+                                            child: Text(
+                                              DateFormat('MMMd').format(
+                                                  _trendPoints[index].date),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelSmall,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  lineBarsData: [
+                                    LineChartBarData(
+                                      spots: _trendPoints
+                                          .asMap()
+                                          .entries
+                                          .map(
+                                            (entry) => FlSpot(
+                                              entry.key.toDouble(),
+                                              entry.value.rate,
+                                            ),
+                                          )
+                                          .toList(),
+                                      isCurved: true,
+                                      barWidth: 3,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      dotData: const FlDotData(show: false),
+                                      belowBarData: BarAreaData(
+                                        show: true,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.12),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+}

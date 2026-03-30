@@ -76,6 +76,8 @@ class Subscriptions extends Table {
   DateTimeColumn get nextBillingDate => dateTime()();
   DateTimeColumn get endDate => dateTime().nullable()();
   TextColumn get category => text()();
+  IntColumn get importance => intEnum<SubscriptionImportance>()
+      .withDefault(const Constant(1))(); // 0=low, 1=medium, 2=high, 3=critical
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   TextColumn get paymentMethod => text().nullable()();
   TextColumn get website => text().nullable()();
@@ -98,6 +100,8 @@ enum TransactionRecurrence { none, daily, weekly, monthly, yearly }
 enum GoalPriority { low, medium, high, critical }
 
 enum BillingCycle { weekly, monthly, quarterly, yearly }
+
+enum SubscriptionImportance { low, medium, high, critical }
 
 enum AuthLogType { biometric, pin, password }
 

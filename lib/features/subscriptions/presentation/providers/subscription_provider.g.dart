@@ -6,24 +6,6 @@ part of 'subscription_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$subscriptionListHash() => r'f875a7750bd0ddaa2ea3aa42cdf9aa8dbc9c9ac6';
-
-/// See also [subscriptionList].
-@ProviderFor(subscriptionList)
-final subscriptionListProvider =
-    AutoDisposeFutureProvider<List<Subscription>>.internal(
-  subscriptionList,
-  name: r'subscriptionListProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$subscriptionListHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef SubscriptionListRef = AutoDisposeFutureProviderRef<List<Subscription>>;
 String _$dueSubscriptionsHash() => r'b3a7c8a43bea54531c450c94d0f803733a26e635';
 
 /// See also [dueSubscriptions].
@@ -193,5 +175,22 @@ class _SubscriptionProviderElement
   @override
   String get id => (origin as SubscriptionProvider).id;
 }
+
+String _$subscriptionListHash() => r'89402b13bdec14778e37c8af2ad69488005f2584';
+
+/// See also [SubscriptionList].
+@ProviderFor(SubscriptionList)
+final subscriptionListProvider = AutoDisposeAsyncNotifierProvider<
+    SubscriptionList, List<Subscription>>.internal(
+  SubscriptionList.new,
+  name: r'subscriptionListProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$subscriptionListHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SubscriptionList = AutoDisposeAsyncNotifier<List<Subscription>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

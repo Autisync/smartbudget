@@ -1,0 +1,249 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/services/currency_service.dart';
+import 'package:smartbudget/core/services/notification_service.dart';
+import 'package:smartbudget/data/models/tables.dart' show TransactionType;
+import 'package:smartbudget/domain/entities/transaction.dart';
+import 'package:smartbudget/features/balance_sheet/presentation/screens/recurring_balance_sheet_screen.dart';
+import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
+import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
+import 'package:smartbudget/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/intelligence/analyzers/spending_analyzer.dart';
+
+void main() {
+  testWidgets('recurring balance sheet renders scenario lab and simulation',
+      (tester) async {
+    final snapshot = RecurringBalanceSnapshot(
+      currencyCode: 'USD',
+      requestedCurrencyCode: 'USD',
+      isCurrencyFallback: false,
+      entries: [
+        RecurringBalanceEntry(
+          id: 'income-salary',
+          title: 'Salary',
+          subtitle: 'Main payroll',
+          kind: RecurringBalanceEntryKind.income,
+          chargeAmount: 2000,
+          monthlyAmount: 2000,
+          currencyCode: 'USD',
+          cadenceLabel: 'Monthly',
+          nextDate: DateTime(2026, 4, 1),
+        ),
+        RecurringBalanceEntry(
+          id: 'expense-rent',
+          title: 'Rent',
+          subtitle: 'Recurring expense',
+          kind: RecurringBalanceEntryKind.expense,
+          chargeAmount: 1200,
+          monthlyAmount: 1200,
+          currencyCode: 'USD',
+          cadenceLabel: 'Monthly',
+          nextDate: DateTime(2026, 4, 3),
+        ),
+        RecurringBalanceEntry(
+          id: 'subscription-streaming',
+          title: 'Streaming',
+          subtitle: 'Entertainment',
+          kind: RecurringBalanceEntryKind.subscription,
+          chargeAmount: 20,
+          monthlyAmount: 20,
+          currencyCode: 'USD',
+          cadenceLabel: 'Monthly',
+          nextDate: DateTime(2026, 4, 4),
+          isOptional: true,
+        ),
+      ],
+      recurringIncomeTotal: 2000,
+      recurringExpenseTotal: 1200,
+      subscriptionExpenseTotal: 20,
+      nearTermIncome: 2000,
+      nearTermCommitments: 1220,
+      recommendations: const [],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          recurringBalanceSheetProvider.overrideWith((ref) async => snapshot),
+        ],
+        child: const MaterialApp(home: RecurringBalanceSheetScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Recurring Balance Sheet'), findsOneWidget);
+    expect(find.text('Scenario Lab'), findsOneWidget);
+    expect(find.textContaining('Streaming'), findsWidgets);
+
+    await tester.ensureVisible(find.byType(FilterChip).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(FilterChip).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Simulated monthly balance'), findsOneWidget);
+    expect(find.text('Reset scenario'), findsOneWidget);
+  });
+
+  testWidgets('dashboard balance sheet CTA navigates to route', (tester) async {
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const DashboardScreen(),
+        ),
+        GoRoute(
+          path: '/balance-sheet',
+          builder: (context, state) => const Scaffold(
+            body: Center(child: Text('Balance Sheet Route Hit')),
+          ),
+        ),
+        GoRoute(
+          path: '/notifications',
+          builder: (context, state) => const Scaffold(body: SizedBox()),
+        ),
+        GoRoute(
+          path: '/settings',
+          builder: (context, state) => const Scaffold(body: SizedBox()),
+        ),
+        GoRoute(
+          path: '/transactions',
+          builder: (context, state) => const Scaffold(body: SizedBox()),
+        ),
+        GoRoute(
+          path: '/exchange-rates',
+          builder: (context, state) => const Scaffold(body: SizedBox()),
+        ),
+        GoRoute(
+          path: '/health',
+          builder: (context, state) => const Scaffold(body: SizedBox()),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appCurrencyControllerProvider
+              .overrideWith((ref) => _TestCurrencyController()),
+          transactionListProvider().overrideWith(() => _FakeTransactionList()),
+          budgetAlertsProvider.overrideWith((ref) async => const []),
+          financialHealthProvider
+              .overrideWith((ref) async => const FinancialHealthSnapshot(
+                    totalScore: 82,
+                    budgetDisciplineScore: 82,
+                    savingsMomentumScore: 80,
+                    budgetUtilizationScore: 84,
+                    recommendations: ['Stay steady.'],
+                    activeBudgets: 0,
+                    activeGoals: 0,
+                  )),
+          recurringTransactionsProvider.overrideWith((ref) async {}),
+          spendingProfileProvider
+              .overrideWith((ref) async => const SpendingProfile(
+                    monthlyBurnRate: 0,
+                    averageDailySpend: 0,
+                    categoryDistribution: {},
+                    anomalies: [],
+                    trend: TrendDirection.stable,
+                    topCategoryPercentage: 0,
+                  )),
+          recentTransactionsProvider.overrideWith((ref) async => const []),
+          notificationInboxProvider.overrideWith(
+              (ref) => Stream<List<AppNotificationEntry>>.value(const [])),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Recurring Balance Sheet'), findsOneWidget);
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Balance Sheet Route Hit'), findsOneWidget);
+  });
+}
+
+class _FakeTransactionList extends TransactionList {
+  @override
+  Future<List<Transaction>> build({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? category,
+  }) async {
+    return [
+      Transaction(
+        id: 'income-1',
+        accountId: 'default',
+        amount: 1200,
+        currency: 'USD',
+        type: TransactionType.income,
+        category: 'Salary',
+        date: DateTime(2026, 3, 1),
+      ),
+      Transaction(
+        id: 'expense-1',
+        accountId: 'default',
+        amount: 400,
+        currency: 'USD',
+        type: TransactionType.expense,
+        category: 'Bills',
+        date: DateTime(2026, 3, 2),
+      ),
+    ];
+  }
+}
+
+class _TestCurrencyController extends AppCurrencyController {
+  _TestCurrencyController() : super(_TestCurrencyService()) {
+    state = 'USD';
+  }
+}
+
+class _TestCurrencyService extends CurrencyService {
+  _TestCurrencyService() : super(const _NoopStorage());
+
+  @override
+  Future<String> loadCurrencyCode() async => 'USD';
+
+  @override
+  Future<void> saveCurrencyCode(String code) async {}
+}
+
+class _NoopStorage implements FlutterSecureStorage {
+  const _NoopStorage() : super();
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    WindowsOptions? wOptions,
+    MacOsOptions? mOptions,
+  }) async =>
+      null;
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    WindowsOptions? wOptions,
+    MacOsOptions? mOptions,
+  }) async {}
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}

@@ -1,11 +1,13 @@
 ## SmartBudget product brief
 
 ### Overview
+
 SmartBudget is a privacy-first budgeting app built in Flutter, designed to help users track finances, manage subscriptions, and get clear spending insights. It combines transaction management, reporting, security controls, and predictive forecasting in one local-first experience.
 
 ---
 
 ### Core value proposition
+
 - Enables users to monitor daily spending and recurring costs
 - Helps identify unusual expenses and cashflow risks
 - Protects financial data with biometric authentication
@@ -72,6 +74,41 @@ SmartBudget is a privacy-first budgeting app built in Flutter, designed to help 
 - Secure app access via biometric checks
 - Report generation and sharing working
 - Responsive navigation for mobile and larger screens
+
+---
+
+### Exchange-rate provider setup
+
+SmartBudget supports two exchange-rate sources:
+
+- Primary: ExchangeRate-API (when `EXCHANGE_RATE_API_KEY` is provided)
+- Fallback: Frankfurter/ECB (no API key required)
+
+To enable ExchangeRate-API, inject the key at runtime/build time using `dart-define`:
+
+```bash
+flutter run --dart-define=EXCHANGE_RATE_API_KEY=YOUR_KEY_HERE
+```
+
+```bash
+flutter build apk --dart-define=EXCHANGE_RATE_API_KEY=YOUR_KEY_HERE
+```
+
+You can also use a define file to avoid placing keys directly in shell history:
+
+```bash
+flutter run --dart-define-from-file=.env.json
+```
+
+Example `.env.json`:
+
+```json
+{
+  "EXCHANGE_RATE_API_KEY": "0ab2ee22a3325325f758f710"
+}
+```
+
+Do not hardcode production API keys in source files.
 
 ---
 

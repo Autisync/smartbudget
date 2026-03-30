@@ -10,7 +10,12 @@ import 'package:smartbudget/features/transactions/presentation/screens/transacti
 import 'package:smartbudget/features/budgets/presentation/screens/budget_screen.dart';
 import 'package:smartbudget/features/savings/presentation/screens/savings_screen.dart';
 import 'package:smartbudget/features/insights/presentation/screens/insights_screen.dart';
+import 'package:smartbudget/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:smartbudget/features/exchange_rates/presentation/screens/exchange_rates_screen.dart';
+import 'package:smartbudget/features/balance_sheet/presentation/screens/recurring_balance_sheet_screen.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/subscriptions_screen.dart';
+import 'package:smartbudget/features/subscriptions/presentation/screens/add_subscription_screen.dart';
+import 'package:smartbudget/features/subscriptions/presentation/screens/edit_subscription_screen.dart';
 import 'package:smartbudget/features/reports/presentation/screens/reports_screen.dart';
 import 'package:smartbudget/features/auth/presentation/screens/security_screen.dart';
 import 'package:smartbudget/features/settings/presentation/screens/settings_screen.dart';
@@ -127,6 +132,18 @@ GoRouter router(RouterRef ref) {
             builder: (context, state) => const InsightsScreen(),
           ),
           GoRoute(
+            path: '/notifications',
+            builder: (context, state) => const NotificationsScreen(),
+          ),
+          GoRoute(
+            path: '/exchange-rates',
+            builder: (context, state) => const ExchangeRatesScreen(),
+          ),
+          GoRoute(
+            path: '/balance-sheet',
+            builder: (context, state) => const RecurringBalanceSheetScreen(),
+          ),
+          GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),
           ),
@@ -147,6 +164,19 @@ GoRouter router(RouterRef ref) {
         path: '/transactions/add',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AddTransactionScreen(),
+      ),
+      GoRoute(
+        path: '/subscriptions/add',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AddSubscriptionScreen(),
+      ),
+      GoRoute(
+        path: '/subscriptions/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id'];
+          return EditSubscriptionScreen(subscriptionId: id!);
+        },
       ),
     ],
   );
@@ -295,7 +325,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
     if (location.startsWith('/subscriptions')) return 4;
     if (location.startsWith('/reports')) return 5;
     if (location.startsWith('/insights')) return 6;
+    if (location.startsWith('/balance-sheet')) return 6;
     if (location.startsWith('/settings')) return 7;
+    if (location.startsWith('/exchange-rates')) return 7;
     if (location.startsWith('/health')) return 0;
     if (location.startsWith('/security')) return 7;
     return 0;
@@ -512,6 +544,22 @@ class ScaffoldWithNavBar extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).pop();
                   router.go('/insights');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.account_balance_rounded),
+                title: const Text('Balance Sheet'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  router.go('/balance-sheet');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.currency_exchange_rounded),
+                title: const Text('Exchange Rates'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  router.go('/exchange-rates');
                 },
               ),
               ListTile(

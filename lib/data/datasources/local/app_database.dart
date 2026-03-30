@@ -19,13 +19,21 @@ String _randomHex(int length) {
   return s.substring(s.length - length);
 }
 
-@DriftDatabase(
-    tables: [Transactions, Accounts, Budgets, SavingsGoals, Subscriptions, Devices, AuthLogs, SecuritySettings])
+@DriftDatabase(tables: [
+  Transactions,
+  Accounts,
+  Budgets,
+  SavingsGoals,
+  Subscriptions,
+  Devices,
+  AuthLogs,
+  SecuritySettings
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +58,9 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(devices);
             await m.createTable(authLogs);
             await m.createTable(securitySettings);
+          }
+          if (from >= 4 && from < 6) {
+            await m.addColumn(subscriptions, subscriptions.importance);
           }
         },
       );
@@ -225,8 +236,7 @@ class AppDatabase extends _$AppDatabase {
     return query.getSingleOrNull();
   }
 
-  Future<void> upsertSecuritySettings(
-      SecuritySettingsCompanion setting) async {
+  Future<void> upsertSecuritySettings(SecuritySettingsCompanion setting) async {
     await into(securitySettings)
         .insert(setting, mode: InsertMode.insertOrReplace);
   }

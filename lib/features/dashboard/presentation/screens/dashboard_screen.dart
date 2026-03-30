@@ -5,11 +5,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/services/exchange_rate_service.dart';
+import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/domain/entities/budget_alert.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
 import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
+import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/data/models/tables.dart' show TransactionType;
+import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+
+final _dashboardLiveRateQuoteProvider =
+    FutureProvider.family<ExchangeRateQuote, String>((ref, pairKey) async {
+  final parts = pairKey.split(':');
+  if (parts.length != 2) {
+    throw ArgumentError('Invalid currency pair: $pairKey');
+  }
+
+  final exchangeRateService = ref.watch(exchangeRateServiceProvider);
+  return exchangeRateService.fetchRate(
+    base: parts.first,
+    target: parts.last,
+  );
+});
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -82,7 +101,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           if (!canSend) return;
 
           _healthInsightSent = true;
-          await ref.read(notificationServiceProvider).showSavingsNudge(
+          await ref.read(notificationServiceProvider).showHealthInsight(
                 title: 'Financial health needs attention',
                 body:
                     'Your score is ${health.totalScore.toStringAsFixed(0)}. Review the Health details for actions.',
@@ -102,7 +121,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(symbol: '\$');
+    final appCurrency = ref.watch(appCurrencyControllerProvider);
+    final currencyFormat = CurrencyUtils.getFormat(appCurrency);
+    final liveRateBaseCurrency = appCurrency == 'USD' ? 'EUR' : 'USD';
     final colorScheme = Theme.of(context).colorScheme;
     final allTxAsync = ref.watch(transactionListProvider());
     final alertsAsync = ref.watch(budgetAlertsProvider);
@@ -183,15 +204,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ],
               ),
               actions: [
-                IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor:
-                        colorScheme.surfaceContainerHighest.withValues(
-                      alpha: _isAppBarScrolled ? 0.9 : 0,
-                    ),
-                  ),
-                  icon: const Icon(Icons.notifications_outlined),
-                  onPressed: () {},
+                NotificationBellButton(
+                  backgroundColor: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: _isAppBarScrolled ? 0.9 : 0),
+                  onPressed: () => context.push('/notifications'),
                 ),
                 IconButton(
                   style: IconButton.styleFrom(
@@ -208,13 +224,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: UiTokens.screenPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Balance Card
                     _BalanceCard(
                       currencyFormat: currencyFormat,
+                      currencyCode: appCurrency,
                       income: allTxAsync.maybeWhen(
                         data: (transactions) => transactions
                             .where((tx) => tx.type == TransactionType.income)
@@ -228,7 +245,114 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         orElse: () => 0.0,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: UiTokens.sectionGapMd),
+
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: AppSurfaces.elevated(
+                        context,
+                        radius: 18,
+                        color: colorScheme.surfaceContainerHigh,
+                        opacity: 0.06,
+                      ),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _DashboardMetricChip(
+                            icon: Icons.receipt_long_rounded,
+                            label: 'Transactions',
+                            value: allTxAsync.maybeWhen(
+                              data: (transactions) => '${transactions.length}',
+                              orElse: () => '0',
+                            ),
+                          ),
+                          _DashboardMetricChip(
+                            icon: Icons.warning_amber_rounded,
+                            label: 'Budget alerts',
+                            value: alertsAsync.maybeWhen(
+                              data: (alerts) => '${alerts.length}',
+                              orElse: () => '0',
+                            ),
+                          ),
+                          _DashboardMetricChip(
+                            icon: Icons.monitor_heart_rounded,
+                            label: 'Health score',
+                            value: healthAsync.maybeWhen(
+                              data: (health) =>
+                                  health.totalScore.toStringAsFixed(0),
+                              orElse: () => '--',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: UiTokens.sectionGapMd),
+
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: AppSurfaces.elevated(
+                        context,
+                        radius: 18,
+                        color: colorScheme.surfaceContainerHigh,
+                        opacity: 0.06,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 46,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              color:
+                                  colorScheme.primary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Icon(
+                              Icons.account_balance_rounded,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Recurring Balance Sheet',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'See if recurring income covers recurring bills and subscriptions.',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          FilledButton.tonal(
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 40),
+                              maximumSize: const Size(120, 40),
+                              fixedSize: const Size(86, 40),
+                            ),
+                            onPressed: () => context.push('/balance-sheet'),
+                            child: const Text('Open'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: UiTokens.sectionGapLg),
 
                     healthAsync.when(
                       data: (health) => _FinancialHealthCard(
@@ -240,16 +364,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       loading: () => const _LoadingCard(),
                       error: (_, __) => const _ErrorCard(),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: UiTokens.sectionGapLg),
 
                     // Spending Insights
-                    Text(
-                      'This Month',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                    const _DashboardSectionHeader(
+                      icon: Icons.calendar_month_rounded,
+                      title: 'This Month',
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: UiTokens.sectionGapMd),
 
                     spendingAsync.when(
                       data: (profile) => _SpendingOverview(
@@ -260,9 +382,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       error: (err, st) => const _ErrorCard(),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: UiTokens.sectionGapLg),
 
                     // Budget Alerts
+                    const _DashboardSectionHeader(
+                      icon: Icons.warning_amber_rounded,
+                      title: 'Budget Alerts',
+                    ),
+                    const SizedBox(height: UiTokens.sectionGapSm),
                     alertsAsync.when(
                       data: (alerts) {
                         if (alerts.isEmpty) {
@@ -279,17 +406,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                 alert.overLimit ? Colors.red : Colors.orange;
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.warning, color: color, size: 18),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      '${alert.category} ${alert.overLimit ? 'exceeded' : 'nearing'} ${alert.threshold}% (${(alert.progress * 100).toStringAsFixed(1)}%)',
-                                      style: TextStyle(color: color),
+                              child: Container(
+                                decoration:
+                                    AppSurfaces.elevated(context, radius: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.warning_rounded,
+                                      color: color,
+                                      size: 18,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        '${alert.category} ${alert.overLimit ? 'exceeded' : 'nearing'} ${alert.threshold}% (${(alert.progress * 100).toStringAsFixed(1)}%)',
+                                        style: TextStyle(color: color),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           }).toList(),
@@ -302,18 +441,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       error: (err, st) => Text('Alert error: $err'),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: UiTokens.sectionGapLg),
 
                     // Recent Transactions
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Recent Transactions',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        const _DashboardSectionHeader(
+                          icon: Icons.history_rounded,
+                          title: 'Recent Transactions',
                         ),
                         TextButton(
                           onPressed: () => context.push('/transactions'),
@@ -321,7 +457,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: UiTokens.chipSpacing),
                   ],
                 ),
               ),
@@ -424,6 +560,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Text('Error loading transactions'),
               ),
             ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                child: _DashboardLiveRateCard(
+                  baseCurrency: liveRateBaseCurrency,
+                  targetCurrency: appCurrency,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -438,11 +583,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
 class _BalanceCard extends StatelessWidget {
   final NumberFormat currencyFormat;
+  final String currencyCode;
   final double income;
   final double expenses;
 
   const _BalanceCard({
     required this.currencyFormat,
+    required this.currencyCode,
     required this.income,
     required this.expenses,
   });
@@ -493,6 +640,7 @@ class _BalanceCard extends StatelessWidget {
                 label: 'Income',
                 amount: income,
                 color: Colors.greenAccent,
+                currencyCode: currencyCode,
               ),
               const SizedBox(width: 24),
               _buildQuickStat(
@@ -500,6 +648,7 @@ class _BalanceCard extends StatelessWidget {
                 label: 'Expenses',
                 amount: expenses,
                 color: Colors.redAccent,
+                currencyCode: currencyCode,
               ),
             ],
           ),
@@ -513,6 +662,7 @@ class _BalanceCard extends StatelessWidget {
     required String label,
     required double amount,
     required Color color,
+    required String currencyCode,
   }) {
     return Expanded(
       child: Row(
@@ -537,7 +687,7 @@ class _BalanceCard extends StatelessWidget {
                 ),
               ),
               Text(
-                NumberFormat.compactCurrency(symbol: '\$').format(amount),
+                CurrencyUtils.getCompactFormat(currencyCode).format(amount),
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -798,6 +948,227 @@ class _ErrorCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(child: Text('Failed to load insights')),
+    );
+  }
+}
+
+class _DashboardSectionHeader extends StatelessWidget {
+  const _DashboardSectionHeader({
+    required this.icon,
+    required this.title,
+  });
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DashboardMetricChip extends StatelessWidget {
+  const _DashboardMetricChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(UiTokens.radiusMd),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: colorScheme.primary),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DashboardLiveRateCard extends ConsumerWidget {
+  const _DashboardLiveRateCard({
+    required this.baseCurrency,
+    required this.targetCurrency,
+  });
+
+  final String baseCurrency;
+  final String targetCurrency;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final pairKey = '$baseCurrency:$targetCurrency';
+    final quoteAsync = ref.watch(_dashboardLiveRateQuoteProvider(pairKey));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: AppSurfaces.elevated(
+        context,
+        radius: 20,
+        color: colorScheme.surfaceContainerHigh,
+        opacity: 0.06,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.currency_exchange_rounded, color: colorScheme.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Live Rate Check',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Refresh rate',
+                onPressed: () =>
+                    ref.invalidate(_dashboardLiveRateQuoteProvider(pairKey)),
+                icon: const Icon(Icons.refresh_rounded),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Quick quote for your selected app currency.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 16),
+          quoteAsync.when(
+            data: (quote) => _DashboardLiveRateQuote(
+              quote: quote,
+              onOpenFullTool: () => context.push('/exchange-rates'),
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (_, __) => Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Rate unavailable right now. Try again or open the full tool.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton(
+                  onPressed: () => context.push('/exchange-rates'),
+                  child: const Text('Open'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DashboardLiveRateQuote extends StatelessWidget {
+  const _DashboardLiveRateQuote({
+    required this.quote,
+    required this.onOpenFullTool,
+  });
+
+  final ExchangeRateQuote quote;
+  final VoidCallback onOpenFullTool;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final inverseRate = quote.rate == 0 ? 0 : 1 / quote.rate;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '1 ${quote.base} = ${quote.rate.toStringAsFixed(4)} ${quote.target}',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '1 ${quote.target} = ${inverseRate.toStringAsFixed(4)} ${quote.base}',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                'Updated ${DateFormat('MMM dd').format(quote.date)}',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: onOpenFullTool,
+              child: const Text('Open full tool'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

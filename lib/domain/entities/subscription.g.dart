@@ -20,6 +20,9 @@ _$SubscriptionImpl _$$SubscriptionImplFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['endDate'] as String),
       category: json['category'] as String,
+      importance: $enumDecodeNullable(
+              _$SubscriptionImportanceEnumMap, json['importance']) ??
+          SubscriptionImportance.medium,
       isActive: json['isActive'] as bool? ?? true,
       paymentMethod: json['paymentMethod'] as String?,
       website: json['website'] as String?,
@@ -39,6 +42,7 @@ Map<String, dynamic> _$$SubscriptionImplToJson(_$SubscriptionImpl instance) =>
       'nextBillingDate': instance.nextBillingDate.toIso8601String(),
       'endDate': instance.endDate?.toIso8601String(),
       'category': instance.category,
+      'importance': _$SubscriptionImportanceEnumMap[instance.importance]!,
       'isActive': instance.isActive,
       'paymentMethod': instance.paymentMethod,
       'website': instance.website,
@@ -51,4 +55,11 @@ const _$BillingCycleEnumMap = {
   BillingCycle.monthly: 'monthly',
   BillingCycle.quarterly: 'quarterly',
   BillingCycle.yearly: 'yearly',
+};
+
+const _$SubscriptionImportanceEnumMap = {
+  SubscriptionImportance.low: 'low',
+  SubscriptionImportance.medium: 'medium',
+  SubscriptionImportance.high: 'high',
+  SubscriptionImportance.critical: 'critical',
 };

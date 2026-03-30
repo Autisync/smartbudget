@@ -8,10 +8,12 @@ import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/services/security_service.dart';
 import 'package:smartbudget/core/services/recurring_scheduler_service.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
+import 'package:smartbudget/core/services/exchange_rate_service.dart';
 import 'package:smartbudget/core/services/notification_preferences_service.dart';
 import 'package:smartbudget/core/services/rollover_policy_service.dart';
 import 'package:smartbudget/core/services/encryption_service.dart';
 import 'package:smartbudget/core/services/theme_service.dart';
+import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart';
 import 'package:smartbudget/data/repositories/subscription_repository_impl.dart';
 
@@ -76,6 +78,17 @@ final themeModeControllerProvider =
   return ThemeModeController(themeService);
 });
 
+final currencyServiceProvider = Provider<CurrencyService>((ref) {
+  final storage = ref.watch(secureStorageProvider);
+  return CurrencyService(storage);
+});
+
+final appCurrencyControllerProvider =
+    StateNotifierProvider<AppCurrencyController, String>((ref) {
+  final service = ref.watch(currencyServiceProvider);
+  return AppCurrencyController(service);
+});
+
 final rolloverPolicyServiceProvider = Provider<RolloverPolicyService>((ref) {
   final storage = ref.watch(secureStorageProvider);
   return RolloverPolicyService(storage);
@@ -131,6 +144,16 @@ RecurringSchedulerService recurringSchedulerService(
 NotificationService notificationService(NotificationServiceRef ref) {
   return NotificationService();
 }
+
+final exchangeRateServiceProvider = Provider<ExchangeRateService>((ref) {
+  return ExchangeRateService();
+});
+
+final notificationInboxProvider =
+    StreamProvider<List<AppNotificationEntry>>((ref) {
+  final service = ref.watch(notificationServiceProvider);
+  return service.watchInbox();
+});
 
 @Riverpod(keepAlive: true)
 SubscriptionRepositoryImpl subscriptionRepository(
