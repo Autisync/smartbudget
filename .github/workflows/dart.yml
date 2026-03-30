@@ -21,6 +21,12 @@ jobs:
       
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
       
       # 🔐 SECURE: API key injected via GitHub Secret, never in code
       - name: Build with dart-define
