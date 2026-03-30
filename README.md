@@ -100,11 +100,17 @@ You can also use a define file to avoid placing keys directly in shell history:
 flutter run --dart-define-from-file=.env.json
 ```
 
+Create your local `.env.json` from the committed template:
+
+```bash
+cp .env.example .env.json
+```
+
 Example `.env.json`:
 
 ```json
 {
-  "EXCHANGE_RATE_API_KEY": "0ab2ee22a3325325f758f710"
+  "EXCHANGE_RATE_API_KEY": ""
 }
 ```
 

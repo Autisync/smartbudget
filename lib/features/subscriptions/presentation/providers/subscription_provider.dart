@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
