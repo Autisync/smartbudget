@@ -9,16 +9,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
-          channel: 'stable'
-      
+          flutter-version: "3.x"
+          channel: "stable"
+
       - name: Get dependencies
         run: flutter pub get
 
@@ -27,7 +27,7 @@ jobs:
 
       - name: Test
         run: flutter test
-      
+
       # 🔐 SECURE: API key injected via GitHub Secret, never in code
       - name: Build with dart-define
         env:
@@ -36,12 +36,12 @@ jobs:
           flutter build apk \
             --dart-define=EXCHANGE_RATE_API_KEY="$EXCHANGE_RATE_API_KEY" \
             --release
-          
+
           # For iOS
           # flutter build ios \
           #   --dart-define=EXCHANGE_RATE_API_KEY="$EXCHANGE_RATE_API_KEY" \
           #   --release --no-codesign
-      
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
