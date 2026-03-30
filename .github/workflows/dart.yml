@@ -1,0 +1,43 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      # 🔐 SECURE: API key injected via GitHub Secret, never in code
+      - name: Build with dart-define
+        env:
+          EXCHANGE_RATE_API_KEY: ${{ secrets.EXCHANGE_RATE_API_KEY }}
+        run: |
+          flutter build apk \
+            --dart-define=EXCHANGE_RATE_API_KEY="$EXCHANGE_RATE_API_KEY" \
+            --release
+          
+          # For iOS
+          # flutter build ios \
+          #   --dart-define=EXCHANGE_RATE_API_KEY="$EXCHANGE_RATE_API_KEY" \
+          #   --release --no-codesign
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
