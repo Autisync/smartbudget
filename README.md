@@ -2,58 +2,87 @@
 
 ### Overview
 
-SmartSpend is a privacy-first budgeting app built in Flutter, designed to help users track finances, manage subscriptions, and get clear spending insights. It combines transaction management, reporting, security controls, and predictive forecasting in one local-first experience.
+SmartSpend is a privacy-first, local-first personal finance app built in Flutter. It helps users manage day-to-day money operations across transactions, budgets, savings goals, subscriptions, and recurring cashflow while surfacing forecasting, anomaly detection, and financial health signals in a single experience.
 
 ---
 
 ### Core value proposition
 
-- Enables users to monitor daily spending and recurring costs
-- Helps identify unusual expenses and cashflow risks
-- Protects financial data with biometric authentication
-- Produces exportable reports for review or sharing
+- Gives users one control center for spending, budgeting, savings, subscriptions, and recurring obligations
+- Converts complex financial data into practical insights (risk levels, anomalies, forecasts, recommendations)
+- Protects sensitive data through biometric-gated access and secure local storage
+- Provides portable outputs through built-in PDF/CSV report generation and sharing
 
 ---
 
 ### Key capabilities
 
+- **Onboarding + legal readiness**
+  - Guided first-run onboarding flow
+  - In-app Terms and Privacy document access
+
 - **Dashboard**
-  - Recent activity summary
-  - Quick access to transactions, insights, and security
+  - Recent activity summary and spending highlights
+  - Quick actions to key money workflows
+  - Dedicated Financial Health view with trend scoring
 
 - **Transactions**
   - Add, edit, delete expense/income records
-  - Supports recurring payments
+  - Supports recurring payments (daily/weekly/monthly/yearly)
   - Local persistence with SQLite
 
 - **Budgets**
   - Track spending targets
-  - Monitor progress against goals
+  - Monitor progress against limits
+  - Budget alert thresholds and in-app alert surfacing
 
 - **Savings**
   - Define savings goals
   - Track progress over time
+  - Goal nudges and quick-adjust workflow support
 
 - **Subscriptions**
   - Manage recurring services
+  - Importance levels (low to critical) for prioritization
   - Show upcoming payment due dates
   - Normalize costs by billing cycles
+  - Convert subscription totals into selected app currency when rates are available
+
+- **Recurring balance sheet**
+  - Combine recurring income, recurring expenses, and subscriptions
+  - Estimate near-term commitments and monthly coverage ratio
+  - Generate actionable recommendations from recurring cashflow signals
+
+- **Exchange rates**
+  - Live currency conversion and 7-day trend visualization
+  - Dual-provider strategy: ExchangeRate-API with Frankfurter/ECB fallback
 
 - **Reports**
-  - Generate PDF financial reports
-  - Export CSV data
+  - Generate multiple report types (summary, transactions, budgets, subscriptions)
+  - Export PDF and CSV outputs
   - Share reports via OS share sheet
 
+- **Notifications**
+  - In-app inbox for budget, savings, and financial health events
+  - Mark-all-read and inbox clear actions
+
 - **Security**
-  - Biometric unlock
+  - Biometric-gated unlock
   - Session timeout setting
-  - Authentication event logging
+  - Secure local storage for sensitive keys/settings
+
+- **Settings + personalization**
+  - Theme mode (system, light, dark)
+  - Language selection (English, Portuguese, Spanish)
+  - App currency selection with data migration support
+  - Notification preferences and rollover policy controls
 
 - **Insights**
   - Spending profile: burn rate, daily spend, category mix
   - Trend analysis vs prior month
   - Anomaly detection for unusual expenses
   - Forecasting: projected spend, predicted end balance, confidence, risk, recommendation
+  - Subscription intelligence + security posture signals in one analysis view
 
 ---
 
@@ -69,11 +98,13 @@ SmartSpend is a privacy-first budgeting app built in Flutter, designed to help u
 
 ### Current status
 
-- Fully implemented local budgeting flow
-- AI-style insights and forecasting available in the `Insights` section
-- Secure app access via biometric checks
-- Report generation and sharing working
-- Responsive navigation for mobile and larger screens
+- Implemented end-to-end local-first finance workflow (transactions, budgets, savings, subscriptions)
+- Insights stack includes anomalies, forecast modeling, and recommendation cards
+- Recurring balance sheet and financial health scoring are available for recurring-cashflow analysis
+- Reports support PDF/CSV generation with sharing
+- Security uses biometric-gated access with secure local storage integration
+- App-level localization (EN/PT/ES), theming, and currency controls are available in settings
+- Responsive navigation is implemented for compact and large-screen layouts
 
 ---
 
