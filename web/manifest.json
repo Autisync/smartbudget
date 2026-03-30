@@ -1,6 +1,6 @@
 {
-    "name": "smartbudget",
-    "short_name": "smartbudget",
+    "name": "SmartSpend",
+    "short_name": "SmartSpend",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

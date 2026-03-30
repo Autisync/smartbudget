@@ -9,9 +9,12 @@ import 'package:smartbudget/features/budgets/presentation/providers/budget_provi
 import 'package:smartbudget/domain/entities/budget.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
+import 'package:go_router/go_router.dart';
 
 class BudgetScreen extends ConsumerStatefulWidget {
   const BudgetScreen({super.key});
@@ -46,6 +49,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final budgetsAsync = ref.watch(budgetListProvider);
     final alertsAsync = ref.watch(budgetAlertsProvider);
     final appCurrency = ref.watch(appCurrencyControllerProvider);
@@ -64,7 +68,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text('Budgets'),
+          child: Text(l10n.navBudgets),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -91,6 +95,15 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
             ),
           ],
         ),
+        actions: [
+          NotificationBellButton(
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
+            ),
+            onPressed: () => context.push('/notifications'),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
@@ -114,14 +127,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Set your first monthly budget',
-                        style: TextStyle(
+                      Text(
+                        l10n.budgetEmptyTitle,
+                        style: const TextStyle(
                             fontWeight: FontWeight.w700, fontSize: 18),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Create category budgets to track spending in real-time and avoid overspending.',
+                        l10n.budgetEmptySubtitle,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
@@ -129,7 +142,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       FilledButton.icon(
                         onPressed: () => _openBudgetForm(context, ref),
                         icon: const Icon(Icons.add),
-                        label: const Text('Create Budget'),
+                        label: Text(l10n.budgetCreateButton),
                       ),
                     ],
                   ),
@@ -154,10 +167,11 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               orElse: () => 0,
             );
             final decisionMessage = riskCount > 0
-                ? '$riskCount budget${riskCount == 1 ? '' : 's'} need attention. Review the red and amber categories before adding new spend.'
-                : 'Your current budget setup is stable. Use rollover only after confirming categories still fit this month.';
+                ? l10n.budgetDecisionNeedsAttention(riskCount)
+                : l10n.budgetDecisionStable;
 
             return ListView(
+              padding: const EdgeInsets.only(bottom: 24),
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
@@ -189,7 +203,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Budget portfolio',
+                                l10n.budgetPortfolioTitle,
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleMedium
@@ -211,22 +225,22 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                           runSpacing: 8,
                           children: [
                             _CompactBudgetChip(
-                              label: 'Categories',
+                              label: l10n.budgetCategories,
                               value: '${budgets.length}',
                             ),
                             _CompactBudgetChip(
-                              label: 'Total Limit',
+                              label: l10n.budgetTotalLimit,
                               value: currencyFormat.format(totalLimit),
                             ),
                             _CompactBudgetChip(
-                              label: 'At Risk',
+                              label: l10n.budgetAtRisk,
                               value: '$riskCount',
                               valueColor: riskCount > 0
                                   ? Theme.of(context).colorScheme.error
                                   : Theme.of(context).colorScheme.primary,
                             ),
                             _CompactBudgetChip(
-                              label: 'Avg Alert',
+                              label: l10n.budgetAverageAlert,
                               value: '$averageAlertThreshold%',
                             ),
                           ],
@@ -237,7 +251,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                           child: OutlinedButton.icon(
                             onPressed: _runManualRollover,
                             icon: const Icon(Icons.refresh),
-                            label: const Text('Rollover now'),
+                            label: Text(l10n.budgetRolloverNow),
                           ),
                         ),
                       ],
@@ -270,11 +284,17 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       ),
                       alignment: Alignment.centerLeft,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.swipe_right_alt, color: Colors.green),
-                          SizedBox(width: 8),
-                          Text('Swipe right: +10% budget'),
+                          const Icon(Icons.swipe_right_alt,
+                              color: Colors.green),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              l10n.budgetSwipeRightHint,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -287,12 +307,19 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       ),
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text('Swipe left: -10% budget'),
-                          SizedBox(width: 8),
-                          Icon(Icons.swipe_left_alt, color: Colors.orange),
+                          Flexible(
+                            child: Text(
+                              l10n.budgetSwipeLeftHint,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.right,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.swipe_left_alt,
+                              color: Colors.orange),
                         ],
                       ),
                     ),
@@ -305,8 +332,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                           SnackBar(
                             content: Text(
                               increase
-                                  ? '${budget.category} budget increased by 10%'
-                                  : '${budget.category} budget reduced by 10%',
+                                  ? l10n.budgetIncreasedSnack(budget.category)
+                                  : l10n.budgetReducedSnack(budget.category),
                             ),
                           ),
                         );
@@ -338,7 +365,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        '${_periodLabel(budget.period)} cycle • Alert ${budget.alertThreshold}%',
+                                        l10n.budgetCycleAlert(
+                                          _periodLabel(l10n, budget.period),
+                                          '${budget.alertThreshold}',
+                                        ),
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall,
@@ -360,14 +390,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                           .deleteBudget(budget.id);
                                     }
                                   },
-                                  itemBuilder: (_) => const [
+                                  itemBuilder: (_) => [
                                     PopupMenuItem(
                                       value: 'edit',
-                                      child: Text('Edit budget'),
+                                      child: Text(l10n.budgetEdit),
                                     ),
                                     PopupMenuItem(
                                       value: 'delete',
-                                      child: Text('Delete budget'),
+                                      child: Text(l10n.budgetDelete),
                                     ),
                                   ],
                                 ),
@@ -375,7 +405,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Limit ${currencyFormat.format(budget.limitAmount)}',
+                              l10n.budgetLimitLabel(
+                                currencyFormat.format(budget.limitAmount),
+                              ),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
@@ -414,12 +446,12 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                         : Colors.red;
 
                                 final status = usagePercentage < 70
-                                    ? 'On track'
+                                    ? l10n.budgetStatusOnTrack
                                     : usagePercentage < 90
-                                        ? 'Soft warning'
+                                        ? l10n.budgetStatusSoftWarning
                                         : usagePercentage < 100
-                                            ? 'High alert'
-                                            : 'Exceeded';
+                                            ? l10n.budgetStatusHighAlert
+                                            : l10n.budgetStatusExceeded;
 
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -431,8 +463,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                         const SizedBox(width: 8),
                                         Text(
                                           daysLeft < 0
-                                              ? 'Period ended'
-                                              : '$daysLeft days left',
+                                              ? l10n.budgetPeriodEnded
+                                              : l10n.budgetDaysLeft(daysLeft),
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall,
@@ -464,12 +496,17 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                           ),
                                           const SizedBox(height: 6),
                                           Text(
-                                            '${currencyFormat.format(spent)} spent • ${currencyFormat.format(remaining)} remaining • ${usagePercentage.toStringAsFixed(1)}% used',
+                                            l10n.budgetSpendingProgress(
+                                              currencyFormat.format(spent),
+                                              currencyFormat.format(remaining),
+                                              usagePercentage
+                                                  .toStringAsFixed(1),
+                                            ),
                                             style:
                                                 const TextStyle(fontSize: 12),
                                           ),
                                           Text(
-                                            'Tap bar to view transactions in this category',
+                                            l10n.budgetTapBarHint,
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall
@@ -484,7 +521,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                       Padding(
                                         padding: const EdgeInsets.only(top: 8),
                                         child: Text(
-                                          'At this pace, you may exceed this budget by ${currencyFormat.format(projectedOverrun)}',
+                                          l10n.budgetProjectedOverrun(
+                                            currencyFormat
+                                                .format(projectedOverrun),
+                                          ),
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: Theme.of(context)
@@ -514,7 +554,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                           ),
                                         ),
                                         ActionChip(
-                                          label: const Text('Adjust amount'),
+                                          label: Text(l10n.budgetAdjustAmount),
                                           onPressed: () => _openBudgetForm(
                                             context,
                                             ref,
@@ -528,7 +568,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                               },
                               loading: () => const LinearProgressIndicator(),
                               error: (err, st) =>
-                                  const Text('Error loading progress'),
+                                  Text(l10n.budgetErrorLoadingProgress),
                             ),
                           ],
                         ),
@@ -540,7 +580,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, st) => Center(child: Text('Error: $err')),
+          error: (err, st) => Center(
+            child: Text(l10n.transactionsError(err.toString())),
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -562,6 +604,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   }
 
   Future<void> _runManualRollover() async {
+    final l10n = AppLocalizations.of(context)!;
     final policy = await ref.read(rolloverPolicyServiceProvider).loadPolicy();
     await ref.read(budgetListProvider.notifier).rolloverExpiredBudgets(
           rolloverDay: policy.rolloverDay,
@@ -569,7 +612,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Budget rollover check complete.')),
+      SnackBar(content: Text(l10n.budgetRolloverComplete)),
     );
   }
 
@@ -578,11 +621,15 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     WidgetRef ref, {
     Budget? existingBudget,
   }) async {
+    final appCurrency = ref.read(appCurrencyControllerProvider);
     final result = await showModalBottomSheet<_BudgetFormResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-      builder: (_) => _BudgetFormSheet(existingBudget: existingBudget),
+      builder: (_) => _BudgetFormSheet(
+        existingBudget: existingBudget,
+        currencySymbol: CurrencyUtils.symbol(appCurrency),
+      ),
     );
 
     if (result != null) {
@@ -591,7 +638,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         id: existingBudget?.id ?? const Uuid().v4(),
         category: result.category,
         limitAmount: result.limitAmount,
-        currency: 'USD',
+        currency: appCurrency,
         period: result.period,
         startDate: result.startDate,
         endDate: endDate,
@@ -618,14 +665,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     }
   }
 
-  String _periodLabel(BudgetPeriod period) {
+  String _periodLabel(AppLocalizations l10n, BudgetPeriod period) {
     switch (period) {
       case BudgetPeriod.weekly:
-        return 'Weekly';
+        return l10n.reportsBillingWeekly;
       case BudgetPeriod.monthly:
-        return 'Monthly';
+        return l10n.reportsBillingMonthly;
       case BudgetPeriod.yearly:
-        return 'Yearly';
+        return l10n.reportsBillingYearly;
     }
   }
 
@@ -635,13 +682,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     List<Transaction> transactions,
     NumberFormat currencyFormat,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
       builder: (context) {
         if (transactions.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(20),
-            child: Text('No transactions found for this budget category yet.'),
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(l10n.budgetNoTransactionsForCategory),
           );
         }
 
@@ -650,7 +698,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
             padding: const EdgeInsets.all(12),
             children: [
               Text(
-                '${budget.category} transactions',
+                l10n.budgetCategoryTransactions(budget.category),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -696,10 +744,17 @@ class _CompactBudgetChip extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
           const SizedBox(height: 2),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: valueColor,
@@ -727,6 +782,8 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: color,
           fontSize: 11,
@@ -754,9 +811,13 @@ class _BudgetFormResult {
 }
 
 class _BudgetFormSheet extends StatefulWidget {
-  const _BudgetFormSheet({this.existingBudget});
+  const _BudgetFormSheet({
+    this.existingBudget,
+    required this.currencySymbol,
+  });
 
   final Budget? existingBudget;
+  final String currencySymbol;
 
   @override
   State<_BudgetFormSheet> createState() => _BudgetFormSheetState();
@@ -818,6 +879,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final baseTheme = Theme.of(context);
     final modalBackgroundColor = baseTheme.brightness == Brightness.dark
         ? baseTheme.colorScheme.surfaceContainerHigh
@@ -854,20 +916,20 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
               children: [
                 Text(
                   widget.existingBudget == null
-                      ? 'Create budget'
-                      : 'Edit budget',
+                      ? l10n.budgetCreate
+                      : l10n.budgetEdit,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _categoryController,
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    hintText: 'Food, Transport, Bills...',
+                  decoration: InputDecoration(
+                    labelText: l10n.category,
+                    hintText: l10n.budgetCategoryHint,
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Enter a category';
+                      return l10n.budgetEnterCategory;
                     }
                     return null;
                   },
@@ -878,14 +940,14 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Budget amount',
-                    prefixText: r'$',
+                  decoration: InputDecoration(
+                    labelText: l10n.budgetAmount,
+                    prefixText: '${widget.currencySymbol} ',
                   ),
                   validator: (value) {
                     final parsed = double.tryParse(value ?? '');
                     if (parsed == null || parsed <= 0) {
-                      return 'Enter a valid amount';
+                      return l10n.budgetEnterValidAmount;
                     }
                     return null;
                   },
@@ -893,13 +955,18 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<BudgetPeriod>(
                   initialValue: _period,
-                  decoration: const InputDecoration(labelText: 'Period'),
+                  decoration: InputDecoration(labelText: l10n.budgetPeriod),
                   items: BudgetPeriod.values
                       .map(
                         (p) => DropdownMenuItem(
                           value: p,
                           child: Text(
-                            '${p.name[0].toUpperCase()}${p.name.substring(1)}',
+                            switch (p) {
+                              BudgetPeriod.weekly => l10n.reportsBillingWeekly,
+                              BudgetPeriod.monthly =>
+                                l10n.reportsBillingMonthly,
+                              BudgetPeriod.yearly => l10n.reportsBillingYearly,
+                            },
                           ),
                         ),
                       )
@@ -911,7 +978,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Alert at $_alertThreshold%',
+                  l10n.budgetAlertAt(_alertThreshold),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Slider(
@@ -919,7 +986,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
                   min: 60,
                   max: 95,
                   divisions: 7,
-                  label: '$_alertThreshold%',
+                  label: l10n.budgetAlertPercent(_alertThreshold),
                   onChanged: (value) {
                     setState(() => _alertThreshold = value.round());
                   },
@@ -927,7 +994,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.calendar_today),
-                  title: const Text('Start date'),
+                  title: Text(l10n.budgetStartDate),
                   subtitle: Text(
                     MaterialLocalizations.of(context)
                         .formatMediumDate(_startDate),
@@ -939,8 +1006,8 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
                   onPressed: _submit,
                   child: Text(
                     widget.existingBudget == null
-                        ? 'Save budget'
-                        : 'Update budget',
+                        ? l10n.budgetSave
+                        : l10n.budgetUpdate,
                   ),
                 ),
               ],

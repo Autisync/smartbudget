@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/exchange_rate_service.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class ExchangeRatesScreen extends ConsumerStatefulWidget {
   const ExchangeRatesScreen({super.key});
@@ -15,22 +17,11 @@ class ExchangeRatesScreen extends ConsumerStatefulWidget {
 }
 
 class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
-  static const _currencies = <String>[
-    'USD',
-    'EUR',
-    'GBP',
-    'JPY',
-    'CHF',
-    'CAD',
-    'AUD',
-    'BRL',
-    'CNY',
-    'INR',
-  ];
+  static const _currencies = CurrencyService.supportedCurrencyCodes;
 
   final _amountController = TextEditingController(text: '100');
-  String _baseCurrency = 'USD';
-  String _targetCurrency = 'EUR';
+  late String _baseCurrency;
+  late String _targetCurrency;
   bool _isLoading = false;
   ExchangeRateQuote? _quote;
   List<ExchangeRatePoint> _trendPoints = const <ExchangeRatePoint>[];
@@ -39,6 +30,9 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
   @override
   void initState() {
     super.initState();
+    final appCurrency = ref.read(appCurrencyControllerProvider);
+    _baseCurrency = appCurrency;
+    _targetCurrency = appCurrency == 'USD' ? 'EUR' : 'USD';
     _fetchRate();
   }
 
@@ -73,7 +67,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = 'Unable to fetch exchange rates right now. Please try again.';
+        _error = AppLocalizations.of(context)!.exchangeUnableToFetch;
       });
     } finally {
       if (mounted) {
@@ -95,6 +89,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
     final rate = _quote?.rate ?? 0;
     final converted = amount * rate;
@@ -102,7 +97,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Exchange Rates'),
+        title: Text(l10n.navExchangeRates),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
@@ -121,7 +116,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Live Rate Checker',
+                      l10n.exchangeLiveRateChecker,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
@@ -130,7 +125,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Rates use ExchangeRate-API when configured, with Frankfurter (ECB reference rates) as automatic fallback.',
+                  l10n.exchangeRateProviderInfo,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -140,9 +135,9 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                   controller: _amountController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'Amount',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.amount,
+                    border: const OutlineInputBorder(),
                   ),
                   onChanged: (_) => setState(() {}),
                 ),
@@ -153,9 +148,9 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                       child: DropdownButtonFormField<String>(
                         key: ValueKey('base-$_baseCurrency'),
                         initialValue: _baseCurrency,
-                        decoration: const InputDecoration(
-                          labelText: 'From',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.exchangeRatesFrom,
+                          border: const OutlineInputBorder(),
                         ),
                         items: _currencies
                             .map(
@@ -175,16 +170,16 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                     IconButton.filledTonal(
                       onPressed: _isLoading ? null : _swapCurrencies,
                       icon: const Icon(Icons.swap_horiz_rounded),
-                      tooltip: 'Swap currencies',
+                      tooltip: l10n.exchangeRatesSwap,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         key: ValueKey('target-$_targetCurrency'),
                         initialValue: _targetCurrency,
-                        decoration: const InputDecoration(
-                          labelText: 'To',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.exchangeRatesTo,
+                          border: const OutlineInputBorder(),
                         ),
                         items: _currencies
                             .map(
@@ -208,7 +203,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                   child: FilledButton.icon(
                     onPressed: _isLoading ? null : _fetchRate,
                     icon: const Icon(Icons.sync_rounded),
-                    label: const Text('Check Rate'),
+                    label: Text(l10n.exchangeRatesCheckRate),
                   ),
                 ),
               ],
@@ -232,7 +227,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Conversion Result',
+                            l10n.exchangeRatesConversionResult,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
@@ -254,7 +249,9 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                           if (_quote != null) ...[
                             const SizedBox(height: 8),
                             Text(
-                              'Rate date: ${DateFormat('MMM dd, yyyy').format(_quote!.date)}',
+                              l10n.exchangeRatesRateDate(
+                                  DateFormat('MMM dd, yyyy')
+                                      .format(_quote!.date)),
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
@@ -268,7 +265,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                           if (_trendPoints.isNotEmpty) ...[
                             const SizedBox(height: 16),
                             Text(
-                              'Last 7 days trend',
+                              l10n.exchangeRatesTrend7Days,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleSmall

@@ -5,9 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/services/currency_service.dart';
+import 'package:smartbudget/core/services/locale_service.dart';
 import 'package:smartbudget/core/services/notification_preferences_service.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
+import 'package:smartbudget/features/balance_sheet/presentation/screens/recurring_balance_sheet_screen.dart';
+import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
+import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
+import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
+import 'package:smartbudget/features/insights/presentation/providers/insight_provider.dart';
+import 'package:smartbudget/features/savings/presentation/providers/savings_provider.dart';
+import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
+import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -28,6 +38,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     setState(() => _isAppBarScrolled = shouldShowFill);
   }
 
+  Future<void> _handleCurrencyChange(String nextCurrency) async {
+    final currentCurrency = ref.read(appCurrencyControllerProvider);
+    final normalizedNextCurrency = nextCurrency.toUpperCase();
+    if (currentCurrency == normalizedNextCurrency) return;
+
+    try {
+      await ref.read(currencyMigrationServiceProvider).migrateAllData(
+            fromCurrency: currentCurrency,
+            toCurrency: normalizedNextCurrency,
+          );
+      await ref
+          .read(appCurrencyControllerProvider.notifier)
+          .setCurrencyCode(normalizedNextCurrency);
+
+      ref.invalidate(transactionRepositoryProvider);
+      ref.invalidate(budgetRepositoryProvider);
+      ref.invalidate(savingsGoalRepositoryProvider);
+      ref.invalidate(subscriptionRepositoryProvider);
+
+      ref.invalidate(transactionListProvider());
+      ref.invalidate(recentTransactionsProvider);
+      ref.invalidate(spendingProfileProvider);
+      ref.invalidate(cashflowPredictionProvider);
+      ref.invalidate(budgetListProvider);
+      ref.invalidate(budgetAlertsProvider);
+      ref.invalidate(savingsGoalListProvider);
+      ref.invalidate(savingsNudgesProvider);
+      ref.invalidate(subscriptionListProvider);
+      ref.invalidate(dueSubscriptionsProvider);
+      ref.invalidate(financialHealthProvider);
+      ref.invalidate(insightResultsProvider);
+      ref.invalidate(recurringBalanceSheetProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Currency updated to $normalizedNextCurrency.')),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to convert currency: $error')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -42,13 +99,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final healthNextEligible =
         ref.watch(notificationDispatchStatusProvider('healthInsights'));
     final appCurrency = ref.watch(appCurrencyControllerProvider);
+    final appLocale = ref.watch(appLocaleControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    const languageOptions = [
+      ('en', 'English'),
+      ('pt', 'Português'),
+      ('es', 'Español'),
+    ];
     final activeThemeLabel = switch (themeMode) {
-      ThemeMode.system => 'System',
-      ThemeMode.light => 'Light',
-      ThemeMode.dark => 'Dark',
+      ThemeMode.system => l10n.themeSystem,
+      ThemeMode.light => l10n.themeLight,
+      ThemeMode.dark => l10n.themeDark,
     };
-    final notificationsLabel = notificationPrefs.enabled ? 'Enabled' : 'Paused';
+    final activeLanguageLabel = languageOptions
+        .firstWhere(
+          (option) => option.$1 == appLocale.languageCode,
+          orElse: () => (LocaleService.defaultLanguageCode, 'English'),
+        )
+        .$2;
+    final notificationsLabel = notificationPrefs.enabled
+        ? l10n.settingsNotificationsEnabled
+        : l10n.settingsNotificationsPaused;
 
     return Scaffold(
       appBar: AppBar(
@@ -119,7 +190,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        'Control Center',
+                        l10n.settingsControlCenterTitle,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
@@ -129,7 +200,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Personalize appearance, automation, and alerts from one place.',
+                    l10n.settingsControlCenterSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -141,18 +212,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     children: [
                       _SettingsPill(
                         icon: Icons.palette_outlined,
-                        label: 'Theme',
+                        label: l10n.settingsTheme,
                         value: activeThemeLabel,
                       ),
                       _SettingsPill(
                         icon: Icons.notifications_active_outlined,
-                        label: 'Alerts',
+                        label: l10n.settingsAlerts,
                         value: notificationsLabel,
                       ),
                       _SettingsPill(
-                        icon: Icons.event_repeat_outlined,
-                        label: 'Rollover Day',
-                        value: '${rolloverPolicy.rolloverDay}',
+                        icon: Icons.language_rounded,
+                        label: l10n.language,
+                        value: activeLanguageLabel,
                       ),
                     ],
                   ),
@@ -161,26 +232,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const SizedBox(height: UiTokens.sectionGapXl),
             _SettingsSection(
-              title: 'Appearance',
+              title: l10n.settingsAppearance,
               children: [
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   title: Text(l10n.darkMode),
-                  subtitle: const Text('Choose how SmartBudget should look.'),
+                  subtitle: Text(l10n.settingsAppearanceSubtitle),
                   trailing: DropdownButton<ThemeMode>(
                     value: themeMode,
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: ThemeMode.system,
-                        child: Text('System'),
+                        child: Text(l10n.themeSystem),
                       ),
                       DropdownMenuItem(
                         value: ThemeMode.light,
-                        child: Text('Light'),
+                        child: Text(l10n.themeLight),
                       ),
                       DropdownMenuItem(
                         value: ThemeMode.dark,
-                        child: Text('Dark'),
+                        child: Text(l10n.themeDark),
                       ),
                     ],
                     onChanged: (value) async {
@@ -199,30 +270,49 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text('Currency'),
-                  subtitle:
-                      const Text('Used for monetary display across the app.'),
+                  title: Text(l10n.language),
+                  subtitle: Text(l10n.settingsLanguageSubtitle),
                   trailing: DropdownButton<String>(
-                    value: appCurrency,
-                    items: const [
-                      DropdownMenuItem(value: 'USD', child: Text('USD')),
-                      DropdownMenuItem(value: 'EUR', child: Text('EUR')),
-                      DropdownMenuItem(value: 'GBP', child: Text('GBP')),
-                      DropdownMenuItem(value: 'JPY', child: Text('JPY')),
-                      DropdownMenuItem(value: 'CHF', child: Text('CHF')),
-                      DropdownMenuItem(value: 'CAD', child: Text('CAD')),
-                      DropdownMenuItem(value: 'AUD', child: Text('AUD')),
-                      DropdownMenuItem(value: 'BRL', child: Text('BRL')),
-                      DropdownMenuItem(value: 'CNY', child: Text('CNY')),
-                      DropdownMenuItem(value: 'INR', child: Text('INR')),
-                      DropdownMenuItem(value: 'NAD', child: Text('NAD')),
-                      DropdownMenuItem(value: 'AOA', child: Text('AOA')),
-                    ],
+                    value: appLocale.languageCode,
+                    items: languageOptions
+                        .map(
+                          (option) => DropdownMenuItem<String>(
+                            value: option.$1,
+                            child: Text(option.$2),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (value) async {
                       if (value == null) return;
                       await ref
-                          .read(appCurrencyControllerProvider.notifier)
-                          .setCurrencyCode(value);
+                          .read(appLocaleControllerProvider.notifier)
+                          .setLanguageCode(value);
+                    },
+                  ),
+                ),
+                Divider(
+                  height: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: Theme.of(context).dividerColor,
+                ),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  title: Text(l10n.currency),
+                  subtitle: Text(l10n.settingsCurrencySubtitle),
+                  trailing: DropdownButton<String>(
+                    value: appCurrency,
+                    items: CurrencyService.supportedCurrencyCodes
+                        .map(
+                          (code) => DropdownMenuItem<String>(
+                            value: code,
+                            child: Text(code),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) async {
+                      if (value == null) return;
+                      await _handleCurrencyChange(value);
                     },
                   ),
                 ),
@@ -230,13 +320,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const SizedBox(height: UiTokens.sectionGapXl),
             _SettingsSection(
-              title: 'Budget Rollover',
+              title: l10n.settingsBudgetRollover,
               children: [
                 SwitchListTile.adaptive(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text('Auto-rollover budgets'),
-                  subtitle: const Text(
-                      'Automatically start a new cycle when a budget period ends.'),
+                  title: Text(l10n.settingsAutoRolloverBudgets),
+                  subtitle: Text(l10n.settingsAutoRolloverBudgetsSubtitle),
                   value: rolloverPolicy.autoRolloverEnabled,
                   onChanged: (value) async {
                     await ref
@@ -252,9 +341,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text('Rollover day'),
-                  subtitle: const Text(
-                      'Used for monthly/yearly budget cycle boundaries.'),
+                  title: Text(l10n.settingsRolloverDay),
+                  subtitle: Text(l10n.settingsRolloverDaySubtitle),
                   trailing: DropdownButton<int>(
                     value: rolloverPolicy.rolloverDay,
                     items: List.generate(
@@ -278,13 +366,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const SizedBox(height: UiTokens.sectionGapXl),
             _SettingsSection(
-              title: 'Notifications',
+              title: l10n.settingsNotifications,
               children: [
                 SwitchListTile.adaptive(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text('Enable notifications'),
-                  subtitle: const Text(
-                      'Master switch for all budget/savings alerts.'),
+                  title: Text(l10n.settingsEnableNotifications),
+                  subtitle: Text(l10n.settingsEnableNotificationsSubtitle),
                   value: notificationPrefs.enabled,
                   onChanged: (value) async {
                     await ref
@@ -301,21 +388,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text('Nudge frequency'),
+                  title: Text(l10n.settingsNudgeFrequency),
                   trailing: DropdownButton<NotificationFrequency>(
                     value: notificationPrefs.frequency,
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: NotificationFrequency.immediate,
-                        child: Text('Immediate'),
+                        child: Text(l10n.frequencyImmediate),
                       ),
                       DropdownMenuItem(
                         value: NotificationFrequency.daily,
-                        child: Text('Daily'),
+                        child: Text(l10n.frequencyDaily),
                       ),
                       DropdownMenuItem(
                         value: NotificationFrequency.weekly,
-                        child: Text('Weekly'),
+                        child: Text(l10n.frequencyWeekly),
                       ),
                     ],
                     onChanged: notificationPrefs.enabled
@@ -337,59 +424,65 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text('Quiet hours'),
+                  title: Text(l10n.settingsQuietHours),
                   subtitle: Text(
                     '${notificationPrefs.quietHoursStart.toString().padLeft(2, '0')}:00 - ${notificationPrefs.quietHoursEnd.toString().padLeft(2, '0')}:00',
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      DropdownButton<int>(
-                        value: notificationPrefs.quietHoursStart,
-                        items: List.generate(
-                          24,
-                          (i) => DropdownMenuItem(
-                              value: i,
-                              child: Text('${i.toString().padLeft(2, '0')}h')),
+                  trailing: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 140),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        DropdownButton<int>(
+                          value: notificationPrefs.quietHoursStart,
+                          items: List.generate(
+                            24,
+                            (i) => DropdownMenuItem(
+                                value: i,
+                                child:
+                                    Text('${i.toString().padLeft(2, '0')}h')),
+                          ),
+                          onChanged: notificationPrefs.enabled
+                              ? (value) async {
+                                  if (value == null) return;
+                                  await ref
+                                      .read(
+                                          notificationPreferencesControllerProvider
+                                              .notifier)
+                                      .setQuietHours(
+                                        start: value,
+                                        end: notificationPrefs.quietHoursEnd,
+                                      );
+                                }
+                              : null,
                         ),
-                        onChanged: notificationPrefs.enabled
-                            ? (value) async {
-                                if (value == null) return;
-                                await ref
-                                    .read(
-                                        notificationPreferencesControllerProvider
-                                            .notifier)
-                                    .setQuietHours(
-                                      start: value,
-                                      end: notificationPrefs.quietHoursEnd,
-                                    );
-                              }
-                            : null,
-                      ),
-                      const SizedBox(width: 6),
-                      DropdownButton<int>(
-                        value: notificationPrefs.quietHoursEnd,
-                        items: List.generate(
-                          24,
-                          (i) => DropdownMenuItem(
-                              value: i,
-                              child: Text('${i.toString().padLeft(2, '0')}h')),
+                        const SizedBox(width: 6),
+                        DropdownButton<int>(
+                          value: notificationPrefs.quietHoursEnd,
+                          items: List.generate(
+                            24,
+                            (i) => DropdownMenuItem(
+                                value: i,
+                                child:
+                                    Text('${i.toString().padLeft(2, '0')}h')),
+                          ),
+                          onChanged: notificationPrefs.enabled
+                              ? (value) async {
+                                  if (value == null) return;
+                                  await ref
+                                      .read(
+                                          notificationPreferencesControllerProvider
+                                              .notifier)
+                                      .setQuietHours(
+                                        start:
+                                            notificationPrefs.quietHoursStart,
+                                        end: value,
+                                      );
+                                }
+                              : null,
                         ),
-                        onChanged: notificationPrefs.enabled
-                            ? (value) async {
-                                if (value == null) return;
-                                await ref
-                                    .read(
-                                        notificationPreferencesControllerProvider
-                                            .notifier)
-                                    .setQuietHours(
-                                      start: notificationPrefs.quietHoursStart,
-                                      end: value,
-                                    );
-                              }
-                            : null,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 Divider(
@@ -400,7 +493,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 SwitchListTile.adaptive(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text('Budget alerts'),
+                  title: Text(l10n.settingsBudgetAlerts),
                   value: notificationPrefs.categories['budgetAlerts'] ?? true,
                   onChanged: notificationPrefs.enabled
                       ? (value) async {
@@ -413,7 +506,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 SwitchListTile.adaptive(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text('Savings nudges'),
+                  title: Text(l10n.settingsSavingsNudges),
                   value: notificationPrefs.categories['savingsNudges'] ?? true,
                   onChanged: notificationPrefs.enabled
                       ? (value) async {
@@ -426,7 +519,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 SwitchListTile.adaptive(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text('Health insights'),
+                  title: Text(l10n.settingsHealthInsights),
                   value: notificationPrefs.categories['healthInsights'] ?? true,
                   onChanged: notificationPrefs.enabled
                       ? (value) async {
@@ -441,29 +534,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 2),
                   child: Text(
-                    'Next eligible send time',
+                    l10n.settingsNextEligibleSendTime,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                   ),
                 ),
                 _NextEligibleTile(
-                  title: 'Budget alerts',
+                  title: l10n.settingsBudgetAlerts,
                   dateAsync: budgetNextEligible,
                 ),
                 _NextEligibleTile(
-                  title: 'Savings nudges',
+                  title: l10n.settingsSavingsNudges,
                   dateAsync: savingsNextEligible,
                 ),
                 _NextEligibleTile(
-                  title: 'Health insights',
+                  title: l10n.settingsHealthInsights,
                   dateAsync: healthNextEligible,
                 ),
               ],
             ),
             const SizedBox(height: UiTokens.sectionGapLg),
             Text(
-              'Security',
+              l10n.settingsSecurity,
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -471,9 +564,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             ListTile(
-              title: const Text('Authentication settings'),
-              subtitle:
-                  const Text('Biometrics, session timeout, lockout controls'),
+              title: Text(l10n.settingsAuthenticationSettings),
+              subtitle: Text(l10n.settingsAuthenticationSettingsSubtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => GoRouter.of(context).push('/security'),
             ),
@@ -561,6 +653,7 @@ class _NextEligibleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final subtitle = dateAsync.when(
       data: (status) {
@@ -571,14 +664,14 @@ class _NextEligibleTile extends StatelessWidget {
         if (status.nextEligibleAt == null) {
           final reason = status.blockReason ==
                   NotificationDispatchBlockReason.notificationsDisabled
-              ? 'Blocked because notifications are disabled.'
-              : 'Blocked because this category is disabled.';
+              ? l10n.settingsBlockedNotificationsDisabled
+              : l10n.settingsBlockedCategoryDisabled;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Not eligible right now', style: lineStyle),
+              Text(l10n.settingsNotEligibleRightNow, style: lineStyle),
               Row(
                 children: [
                   Icon(reasonIcon, size: 14, color: reasonColor),
@@ -595,27 +688,31 @@ class _NextEligibleTile extends StatelessWidget {
           );
         }
 
-        final formatter = DateFormat('EEE, MMM d • HH:mm');
+        final formatter = DateFormat('EEE, MMM d • HH:mm',
+            Localizations.localeOf(context).toLanguageTag());
         final when = formatter.format(status.nextEligibleAt!);
         final remaining = status.nextEligibleAt!.difference(now);
-        final countdown = _formatCountdown(remaining);
+        final countdown = _formatCountdown(remaining, l10n);
 
         String detail;
         switch (status.blockReason) {
           case NotificationDispatchBlockReason.quietHours:
-            detail = 'Blocked by quiet hours until $when ($countdown).';
+            detail = l10n.settingsBlockedByQuietHoursUntil(when, countdown);
             break;
           case NotificationDispatchBlockReason.frequencyCooldown:
-            detail = 'Blocked by frequency cooldown until $when ($countdown).';
+            detail = l10n.settingsBlockedByFrequencyCooldownUntil(
+              when,
+              countdown,
+            );
             break;
           case NotificationDispatchBlockReason.notificationsDisabled:
-            detail = 'Notifications are disabled.';
+            detail = l10n.settingsNotificationsAreDisabled;
             break;
           case NotificationDispatchBlockReason.categoryDisabled:
-            detail = 'This category is disabled.';
+            detail = l10n.settingsThisCategoryIsDisabled;
             break;
           case null:
-            detail = 'Ready to send now.';
+            detail = l10n.settingsReadyToSendNow;
             break;
         }
 
@@ -623,7 +720,7 @@ class _NextEligibleTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Next eligible: $when', style: lineStyle),
+            Text(l10n.settingsNextEligible(when), style: lineStyle),
             Row(
               children: [
                 Icon(reasonIcon, size: 14, color: reasonColor),
@@ -640,11 +737,11 @@ class _NextEligibleTile extends StatelessWidget {
         );
       },
       loading: () => Text(
-        'Calculating... ',
+        l10n.settingsCalculating,
         style: Theme.of(context).textTheme.bodySmall,
       ),
       error: (_, __) => Text(
-        'Unavailable',
+        l10n.settingsUnavailable,
         style: Theme.of(context).textTheme.bodySmall,
       ),
     );
@@ -657,12 +754,13 @@ class _NextEligibleTile extends StatelessWidget {
     );
   }
 
-  String _formatCountdown(Duration duration) {
-    if (duration.inSeconds <= 0) {
-      return 'now';
+  String _formatCountdown(Duration duration, AppLocalizations l10n) {
+    final d = duration;
+    if (d.inSeconds <= 0) {
+      return l10n.commonNow;
     }
 
-    final totalMinutes = duration.inMinutes;
+    final totalMinutes = d.inMinutes;
     final days = totalMinutes ~/ (24 * 60);
     final hours = (totalMinutes % (24 * 60)) ~/ 60;
     final minutes = totalMinutes % 60;
@@ -733,11 +831,15 @@ class _SettingsPill extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: colorScheme.primary),
           const SizedBox(width: 8),
-          Text(
-            '$label: $value',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+          Flexible(
+            child: Text(
+              '$label: $value',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
           ),
         ],
       ),

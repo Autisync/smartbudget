@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -18,6 +19,14 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   bool _isAppBarScrolled = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(notificationServiceProvider).markAllRead();
+    });
+  }
+
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
     final shouldShowFill = offset > threshold;
@@ -28,6 +37,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final inboxAsync = ref.watch(notificationInboxProvider);
 
@@ -43,7 +53,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text('Notifications'),
+          child: Text(l10n.notificationsTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -104,16 +114,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                         color: colorScheme.primary,
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'No notifications yet',
-                        style: TextStyle(
+                      Text(
+                        l10n.notificationsEmpty,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 18,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Budget alerts, savings nudges, and health insights will appear here.',
+                        l10n.notificationsEmptySubtitle,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
@@ -181,8 +191,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, st) =>
-              Center(child: Text('Error loading notifications: $err')),
+          error: (err, st) => Center(
+            child: Text(l10n.notificationsLoadError(err.toString())),
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/add_subscription_screen.dart';
 
@@ -10,6 +11,7 @@ class EditSubscriptionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final subscriptionAsync = ref.watch(subscriptionProvider(subscriptionId));
 
     return subscriptionAsync.when(
@@ -17,14 +19,15 @@ class EditSubscriptionScreen extends ConsumerWidget {
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Edit Subscription')),
-        body: Center(child: Text('Error loading subscription: $error')),
+        appBar: AppBar(title: Text(l10n.subscriptionsEditSubscription)),
+        body:
+            Center(child: Text(l10n.subscriptionsLoadError(error.toString()))),
       ),
       data: (subscription) {
         if (subscription == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Edit Subscription')),
-            body: const Center(child: Text('Subscription not found')),
+            appBar: AppBar(title: Text(l10n.subscriptionsEditSubscription)),
+            body: Center(child: Text(l10n.subscriptionsNotFound)),
           );
         }
 

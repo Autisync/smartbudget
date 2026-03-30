@@ -5,6 +5,8 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
 import 'package:smartbudget/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('notifications appear in inbox list', (tester) async {
@@ -35,7 +37,17 @@ void main() {
             (ref) => Stream<List<AppNotificationEntry>>.value(items),
           ),
         ],
-        child: const MaterialApp(home: NotificationsScreen()),
+        child: const MaterialApp(
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('en'),
+          home: NotificationsScreen(),
+        ),
       ),
     );
 
@@ -68,6 +80,14 @@ void main() {
           ),
         ],
         child: MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
           home: Scaffold(
             appBar: AppBar(
               actions: [

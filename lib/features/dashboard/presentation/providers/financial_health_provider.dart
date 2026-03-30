@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/domain/entities/budget.dart';
 import 'package:smartbudget/domain/entities/savings_goal.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
@@ -6,6 +7,7 @@ import 'package:smartbudget/features/transactions/presentation/providers/transac
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/savings/presentation/providers/savings_provider.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 part 'financial_health_provider.g.dart';
 
@@ -59,6 +61,7 @@ class FinancialHealthTrendSnapshot {
 
 @riverpod
 Future<FinancialHealthSnapshot> financialHealth(FinancialHealthRef ref) async {
+  final l10n = lookupAppLocalizations(ref.watch(appLocaleControllerProvider));
   final budgets = await ref.watch(budgetListProvider.future);
   final goals = await ref.watch(savingsGoalListProvider.future);
   final alerts = await ref.watch(budgetAlertsProvider.future);
@@ -77,27 +80,25 @@ Future<FinancialHealthSnapshot> financialHealth(FinancialHealthRef ref) async {
   final recommendations = <String>[];
 
   if (alerts.any((a) => a.overLimit)) {
-    recommendations.add(
-        'Reduce discretionary spending in categories that already exceeded budget.');
+    recommendations.add(l10n.financialHealthRecommendationExceeded);
   }
   if (alerts.where((a) => a.nearLimit && !a.overLimit).isNotEmpty) {
-    recommendations.add('Rebalance near-limit budgets before the period ends.');
+    recommendations.add(l10n.financialHealthRecommendationNearLimit);
   }
 
   final behindGoals = _countBehindGoals(goals);
   if (behindGoals > 0) {
     recommendations.add(
-        'Increase monthly contributions for $behindGoals goal(s) behind schedule.');
+      l10n.financialHealthRecommendationBehindGoals(behindGoals),
+    );
   }
 
   if (goals.where((g) => g.autoAllocate).isEmpty && goals.isNotEmpty) {
-    recommendations.add(
-        'Enable auto-allocation for at least one savings goal to improve consistency.');
+    recommendations.add(l10n.financialHealthRecommendationEnableAutoAllocation);
   }
 
   if (recommendations.isEmpty) {
-    recommendations
-        .add('Keep your current pace and review your health score weekly.');
+    recommendations.add(l10n.financialHealthRecommendationStable);
   }
 
   return FinancialHealthSnapshot(
@@ -116,6 +117,7 @@ Future<FinancialHealthTrendSnapshot> financialHealthHistory(
   FinancialHealthHistoryRef ref, {
   int weeks = 8,
 }) async {
+  final l10n = lookupAppLocalizations(ref.watch(appLocaleControllerProvider));
   final repo = ref.watch(transactionRepositoryProvider);
   final goals = await ref.watch(savingsGoalListProvider.future);
   final alerts = await ref.watch(budgetAlertsProvider.future);
@@ -181,6 +183,7 @@ Future<FinancialHealthTrendSnapshot> financialHealthHistory(
         score: score,
         deltaFromPrevious: delta,
         note: _weeklyNote(
+          l10n: l10n,
           income: weeklyIncome,
           expense: weeklyExpense,
           delta: delta,
@@ -214,20 +217,21 @@ Future<FinancialHealthTrendSnapshot> financialHealthHistory(
 }
 
 String _weeklyNote({
+  required AppLocalizations l10n,
   required double income,
   required double expense,
   required double delta,
 }) {
   if (income <= 0 && expense > 0) {
-    return 'No income recorded this week; spending pressure increased.';
+    return l10n.financialHealthWeeklyNoteNoIncome;
   }
   if (delta >= 4) {
-    return 'Health improved with stronger weekly cashflow balance.';
+    return l10n.financialHealthWeeklyNoteImproved;
   }
   if (delta <= -4) {
-    return 'Health dropped this week due to higher spending pressure.';
+    return l10n.financialHealthWeeklyNoteDropped;
   }
-  return 'Stable week with limited change in financial behavior.';
+  return l10n.financialHealthWeeklyNoteStable;
 }
 
 double _computeBudgetDisciplineScore(List<dynamic> alerts) {

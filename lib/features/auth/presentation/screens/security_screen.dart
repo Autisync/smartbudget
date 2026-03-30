@@ -6,6 +6,7 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/security_provider.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class SecurityScreen extends ConsumerStatefulWidget {
   const SecurityScreen({super.key});
@@ -27,6 +28,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final settingsAsync = ref.watch(securitySettingProvider);
     final logsAsync = ref.watch(authLogsProvider);
     final colorScheme = Theme.of(context).colorScheme;
@@ -43,7 +45,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text('Security Settings'),
+          child: Text(l10n.securitySettingsTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -89,7 +91,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                     Padding(
                       padding: const EdgeInsets.only(left: 2, bottom: 12),
                       child: Text(
-                        'Authentication & access',
+                        l10n.securityAuthenticationAccess,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
@@ -105,10 +107,8 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                           SwitchListTile(
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 16),
-                            title: const Text('Biometric authentication'),
-                            subtitle: const Text(
-                              'Use Face ID / Touch ID to unlock SmartBudget.',
-                            ),
+                            title: Text(l10n.securityBiometricAuth),
+                            subtitle: Text(l10n.securityBiometricAuthSubtitle),
                             value: settings.biometricEnabled,
                             onChanged: (value) async {
                               await ref
@@ -129,9 +129,11 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                           ListTile(
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 16),
-                            title: const Text('Session timeout'),
+                            title: Text(l10n.securitySessionTimeout),
                             subtitle: Text(
-                              '${(settings.sessionTimeout / 60).round()} minutes before re-authentication',
+                              l10n.securitySessionTimeoutSubtitle(
+                                (settings.sessionTimeout / 60).round(),
+                              ),
                             ),
                             trailing: DropdownButton<int>(
                               value: settings.sessionTimeout,
@@ -139,7 +141,10 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                   .map(
                                     (seconds) => DropdownMenuItem(
                                       value: seconds,
-                                      child: Text('${seconds ~/ 60} min'),
+                                      child: Text(
+                                        l10n.securityMinutesShort(
+                                            seconds ~/ 60),
+                                      ),
                                     ),
                                   )
                                   .toList(),
@@ -161,9 +166,11 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                           ListTile(
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 16),
-                            title: const Text('Lockout threshold'),
+                            title: Text(l10n.securityLockoutThreshold),
                             subtitle: Text(
-                              'Lock account after ${settings.maxFailedAttempts} failed attempts',
+                              l10n.securityLockoutThresholdSubtitle(
+                                settings.maxFailedAttempts,
+                              ),
                             ),
                             trailing: DropdownButton<int>(
                               value: settings.maxFailedAttempts,
@@ -196,7 +203,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                     Padding(
                       padding: const EdgeInsets.only(left: 2, bottom: 12),
                       child: Text(
-                        'Recent authentication attempts',
+                        l10n.securityRecentAttempts,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
@@ -213,7 +220,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                             padding: const EdgeInsets.all(20),
                             child: Center(
                               child: Text(
-                                'No attempts recorded yet.',
+                                l10n.securityNoAttempts,
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ),
@@ -259,7 +266,8 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                       },
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
-                      error: (err, st) => Text('Error loading logs: $err'),
+                      error: (err, st) =>
+                          Text(l10n.securityErrorLoadingLogs(err.toString())),
                     ),
                   ],
                 ),
@@ -267,8 +275,11 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, st) =>
-              Center(child: Text('Error loading security settings: $err')),
+          error: (err, st) => Center(
+            child: Text(
+              l10n.securityErrorLoadingSettings(err.toString()),
+            ),
+          ),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class FinancialHealthScreen extends ConsumerStatefulWidget {
   const FinancialHealthScreen({super.key});
@@ -28,6 +29,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final healthAsync = ref.watch(financialHealthProvider);
     final trendAsync =
         ref.watch(financialHealthHistoryProvider(weeks: _selectedWeeks));
@@ -45,7 +47,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text('Financial Health'),
+          child: Text(l10n.financialHealthTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -89,10 +91,10 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                     ? Colors.orange
                     : Colors.red;
             final statusText = rounded >= 80
-                ? 'Strong'
+                ? l10n.financialHealthStatusStrong
                 : rounded >= 60
-                    ? 'Needs attention'
-                    : 'At risk';
+                    ? l10n.financialHealthStatusNeedsAttention
+                    : l10n.financialHealthStatusAtRisk;
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
@@ -104,7 +106,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Health portfolio',
+                        l10n.financialHealthPortfolio,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
@@ -115,20 +117,20 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                         children: [
                           Expanded(
                             child: _HealthSummaryMetric(
-                              label: 'Score',
+                              label: l10n.financialHealthScore,
                               value: '$rounded/100',
                               valueColor: toneColor,
                             ),
                           ),
                           Expanded(
                             child: _HealthSummaryMetric(
-                              label: 'Budgets',
+                              label: l10n.navBudgets,
                               value: '${health.activeBudgets}',
                             ),
                           ),
                           Expanded(
                             child: _HealthSummaryMetric(
-                              label: 'Goals',
+                              label: l10n.financialHealthGoals,
                               value: '${health.activeGoals}',
                             ),
                           ),
@@ -140,8 +142,10 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                         runSpacing: 6,
                         children: [
                           _HealthPill(label: statusText, color: toneColor),
-                          const _HealthPill(
-                              label: 'Update weekly', color: Colors.blue),
+                          _HealthPill(
+                            label: l10n.financialHealthUpdateWeekly,
+                            color: Colors.blue,
+                          ),
                         ],
                       ),
                     ],
@@ -180,36 +184,37 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Active budgets: ${health.activeBudgets} • Active goals: ${health.activeGoals}',
+                        l10n.financialHealthActiveCounts(
+                          health.activeBudgets,
+                          health.activeGoals,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
                 _FactorTile(
-                  label: 'Budget discipline',
+                  label: l10n.financialHealthBudgetDiscipline,
                   score: health.budgetDisciplineScore,
-                  description:
-                      'Measures pressure from near-limit and exceeded budgets.',
+                  description: l10n.financialHealthBudgetDisciplineDescription,
                 ),
                 const SizedBox(height: 12),
                 _FactorTile(
-                  label: 'Savings momentum',
+                  label: l10n.financialHealthSavingsMomentum,
                   score: health.savingsMomentumScore,
-                  description: 'Measures goal progress and schedule adherence.',
+                  description: l10n.financialHealthSavingsMomentumDescription,
                 ),
                 const SizedBox(height: 12),
                 _FactorTile(
-                  label: 'Budget utilization',
+                  label: l10n.financialHealthBudgetUtilization,
                   score: health.budgetUtilizationScore,
-                  description:
-                      'Measures category-level spending efficiency across budget periods.',
+                  description: l10n.financialHealthBudgetUtilizationDescription,
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Text(
-                      'Trend window',
+                      l10n.financialHealthTrendWindow,
                       style: Theme.of(context)
                           .textTheme
                           .titleSmall
@@ -218,10 +223,16 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                     const SizedBox(width: 10),
                     DropdownButton<int>(
                       value: _selectedWeeks,
-                      items: const [
-                        DropdownMenuItem(value: 4, child: Text('4 weeks')),
-                        DropdownMenuItem(value: 8, child: Text('8 weeks')),
-                        DropdownMenuItem(value: 12, child: Text('12 weeks')),
+                      items: [
+                        DropdownMenuItem(
+                            value: 4,
+                            child: Text(l10n.financialHealthWeeks(4))),
+                        DropdownMenuItem(
+                            value: 8,
+                            child: Text(l10n.financialHealthWeeks(8))),
+                        DropdownMenuItem(
+                            value: 12,
+                            child: Text(l10n.financialHealthWeeks(12))),
                       ],
                       onChanged: (value) {
                         if (value == null) return;
@@ -245,7 +256,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Recommendations',
+                  l10n.financialHealthRecommendations,
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -270,7 +281,9 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, st) => Center(child: Text('Error: $err')),
+          error: (err, st) => Center(
+            child: Text(l10n.transactionsError(err.toString())),
+          ),
         ),
       ),
     );
@@ -401,6 +414,7 @@ class _HealthTrendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final points = trend.points;
     if (points.isEmpty) {
       return const SizedBox.shrink();
@@ -426,7 +440,7 @@ class _HealthTrendCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Weekly health trajectory',
+              l10n.financialHealthWeeklyTrajectory,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -496,17 +510,26 @@ class _HealthTrendCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'Overall change: ${trend.overallDelta >= 0 ? '+' : ''}${trend.overallDelta.toStringAsFixed(1)} points over ${points.length} weeks.',
+              l10n.financialHealthOverallChange(
+                '${trend.overallDelta >= 0 ? '+' : ''}${trend.overallDelta.toStringAsFixed(1)}',
+                points.length,
+              ),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             if (trend.biggestGain != null)
               Text(
-                'Biggest gain: ${trend.biggestGain!.deltaFromPrevious >= 0 ? '+' : ''}${trend.biggestGain!.deltaFromPrevious.toStringAsFixed(1)} on ${trend.biggestGain!.weekStart.month}/${trend.biggestGain!.weekStart.day}.',
+                l10n.financialHealthBiggestGain(
+                  '${trend.biggestGain!.deltaFromPrevious >= 0 ? '+' : ''}${trend.biggestGain!.deltaFromPrevious.toStringAsFixed(1)}',
+                  '${trend.biggestGain!.weekStart.month}/${trend.biggestGain!.weekStart.day}',
+                ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             if (trend.biggestDrop != null)
               Text(
-                'Biggest drop: ${trend.biggestDrop!.deltaFromPrevious.toStringAsFixed(1)} on ${trend.biggestDrop!.weekStart.month}/${trend.biggestDrop!.weekStart.day}.',
+                l10n.financialHealthBiggestDrop(
+                  trend.biggestDrop!.deltaFromPrevious.toStringAsFixed(1),
+                  '${trend.biggestDrop!.weekStart.month}/${trend.biggestDrop!.weekStart.day}',
+                ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             const SizedBox(height: 6),

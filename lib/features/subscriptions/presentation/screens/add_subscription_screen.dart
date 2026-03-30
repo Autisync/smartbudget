@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
 import 'package:smartbudget/data/models/tables.dart'
     show BillingCycle, SubscriptionImportance;
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
+import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
 class AddSubscriptionScreen extends ConsumerStatefulWidget {
@@ -54,6 +57,41 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     'Health',
     'Other',
   ];
+
+  String _getCategoryLabel(AppLocalizations l10n, String category) {
+    switch (category) {
+      case 'Streaming':
+        return l10n.subscriptionsCategoryStreaming;
+      case 'Software':
+        return l10n.subscriptionsCategorySoftware;
+      case 'Cloud Storage':
+        return l10n.subscriptionsCategoryCloudStorage;
+      case 'Fitness':
+        return l10n.subscriptionsCategoryFitness;
+      case 'Music':
+        return l10n.subscriptionsCategoryMusic;
+      case 'News':
+        return l10n.subscriptionsCategoryNews;
+      case 'Communication':
+        return l10n.subscriptionsCategoryCommunication;
+      case 'Productivity':
+        return l10n.subscriptionsCategoryProductivity;
+      case 'Entertainment':
+        return l10n.subscriptionsCategoryEntertainment;
+      case 'Insurance':
+        return l10n.subscriptionsCategoryInsurance;
+      case 'Utilities':
+        return l10n.subscriptionsCategoryUtilities;
+      case 'Transport':
+        return l10n.subscriptionsCategoryTransport;
+      case 'Health':
+        return l10n.subscriptionsCategoryHealth;
+      case 'Other':
+        return l10n.subscriptionsCategoryOther;
+      default:
+        return category;
+    }
+  }
 
   @override
   void initState() {
@@ -125,16 +163,17 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     }
   }
 
-  String _getImportanceLabel(SubscriptionImportance importance) {
+  String _getImportanceLabel(
+      AppLocalizations l10n, SubscriptionImportance importance) {
     switch (importance) {
       case SubscriptionImportance.low:
-        return 'Low - Optional/Nice-to-have';
+        return l10n.subscriptionsImportanceLow;
       case SubscriptionImportance.medium:
-        return 'Medium - Regular use';
+        return l10n.subscriptionsImportanceMedium;
       case SubscriptionImportance.high:
-        return 'High - Important service';
+        return l10n.subscriptionsImportanceHigh;
       case SubscriptionImportance.critical:
-        return 'Critical - Essential service';
+        return l10n.subscriptionsImportanceCritical;
     }
   }
 
@@ -151,16 +190,16 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     }
   }
 
-  String _getBillingCycleLabel(BillingCycle cycle) {
+  String _getBillingCycleLabel(AppLocalizations l10n, BillingCycle cycle) {
     switch (cycle) {
       case BillingCycle.weekly:
-        return 'Weekly';
+        return l10n.subscriptionsBillingWeekly;
       case BillingCycle.monthly:
-        return 'Monthly';
+        return l10n.subscriptionsBillingMonthly;
       case BillingCycle.quarterly:
-        return 'Quarterly';
+        return l10n.subscriptionsBillingQuarterly;
       case BillingCycle.yearly:
-        return 'Yearly';
+        return l10n.subscriptionsBillingYearly;
     }
   }
 
@@ -178,6 +217,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
   Future<void> _handleSave() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);
+      final appCurrency = ref.read(appCurrencyControllerProvider);
 
       final subscription = Subscription(
         id: widget.existingSubscription?.id ?? const Uuid().v4(),
@@ -186,7 +226,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
             ? null
             : _descriptionController.text.trim(),
         amount: double.parse(_amountController.text),
-        currency: 'USD',
+        currency: appCurrency,
         billingCycle: _billingCycle,
         startDate: _startDate,
         nextBillingDate: _nextBillingDate,
@@ -221,7 +261,13 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
         if (mounted) {
           setState(() => _isSaving = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error saving subscription: $e')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.subscriptionsSaveError(
+                  e.toString(),
+                ),
+              ),
+            ),
           );
         }
       }
@@ -230,8 +276,10 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final isEditing = widget.existingSubscription != null;
+    final appCurrency = ref.watch(appCurrencyControllerProvider);
     final currencyFormat = NumberFormat.currency(symbol: '');
 
     return Scaffold(
@@ -246,7 +294,11 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(isEditing ? 'Edit Subscription' : 'Add Subscription'),
+          child: Text(
+            isEditing
+                ? l10n.subscriptionsEditSubscription
+                : l10n.subscriptionsAddSubscription,
+          ),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -292,7 +344,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
           else
             TextButton(
               onPressed: _handleSave,
-              child: const Text('Save'),
+              child: Text(l10n.transactionsSaveTransaction),
             ),
           const SizedBox(width: 8),
         ],
@@ -316,8 +368,8 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   TextFormField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: 'Subscription Name',
-                      hintText: 'e.g., Netflix, Spotify',
+                      labelText: l10n.subscriptionsName,
+                      hintText: l10n.subscriptionsNameHint,
                       filled: true,
                       fillColor: colorScheme.surface.withValues(alpha: 0.95),
                       border: OutlineInputBorder(
@@ -326,7 +378,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter a subscription name';
+                        return l10n.subscriptionsEnterName;
                       }
                       return null;
                     },
@@ -334,133 +386,177 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   const SizedBox(height: 16),
 
                   // Category and Amount row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _category,
-                          decoration: InputDecoration(
-                            labelText: 'Category',
-                            filled: true,
-                            fillColor:
-                                colorScheme.surface.withValues(alpha: 0.95),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 420;
+
+                      final categoryField = DropdownButtonFormField<String>(
+                        isExpanded: true,
+                        initialValue: _category,
+                        decoration: InputDecoration(
+                          labelText: l10n.category,
+                          filled: true,
+                          fillColor:
+                              colorScheme.surface.withValues(alpha: 0.95),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          items: _defaultCategories
-                              .map((c) => DropdownMenuItem(
-                                    value: c,
-                                    child: Text(c),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _category = value);
-                            }
-                          },
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _amountController,
-                          decoration: InputDecoration(
-                            labelText: 'Amount',
-                            prefixText: '\$ ',
-                            filled: true,
-                            fillColor:
-                                colorScheme.surface.withValues(alpha: 0.95),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        items: _defaultCategories
+                            .map((c) => DropdownMenuItem(
+                                  value: c,
+                                  child: Text(_getCategoryLabel(l10n, c)),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _category = value);
+                          }
+                        },
+                      );
+
+                      final amountField = TextFormField(
+                        controller: _amountController,
+                        decoration: InputDecoration(
+                          labelText: l10n.amount,
+                          prefixText: '${CurrencyUtils.symbol(appCurrency)} ',
+                          filled: true,
+                          fillColor:
+                              colorScheme.surface.withValues(alpha: 0.95),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Required';
-                            }
-                            if (double.tryParse(value) == null) {
-                              return 'Invalid amount';
-                            }
-                            return null;
-                          },
-                          onChanged: (value) => setState(() {}),
                         ),
-                      ),
-                    ],
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return l10n.subscriptionsRequired;
+                          }
+                          if (double.tryParse(value) == null) {
+                            return l10n.subscriptionsInvalidAmount;
+                          }
+                          return null;
+                        },
+                        onChanged: (value) => setState(() {}),
+                      );
+
+                      if (isNarrow) {
+                        return Column(
+                          children: [
+                            categoryField,
+                            const SizedBox(height: 12),
+                            amountField,
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          Expanded(child: categoryField),
+                          const SizedBox(width: 12),
+                          Expanded(child: amountField),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
 
                   // Billing cycle and importance
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<BillingCycle>(
-                          initialValue: _billingCycle,
-                          decoration: InputDecoration(
-                            labelText: 'Billing Cycle',
-                            filled: true,
-                            fillColor:
-                                colorScheme.surface.withValues(alpha: 0.95),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 420;
+
+                      final cycleField = DropdownButtonFormField<BillingCycle>(
+                        isExpanded: true,
+                        initialValue: _billingCycle,
+                        decoration: InputDecoration(
+                          labelText: l10n.subscriptionsBillingCycle,
+                          filled: true,
+                          fillColor:
+                              colorScheme.surface.withValues(alpha: 0.95),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          items: BillingCycle.values
-                              .map((c) => DropdownMenuItem(
-                                    value: c,
-                                    child: Text(_getBillingCycleLabel(c)),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _billingCycle = value);
-                            }
-                          },
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DropdownButtonFormField<SubscriptionImportance>(
-                          initialValue: _importance,
-                          decoration: InputDecoration(
-                            labelText: 'Importance',
-                            filled: true,
-                            fillColor:
-                                colorScheme.surface.withValues(alpha: 0.95),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        items: BillingCycle.values
+                            .map((c) => DropdownMenuItem(
+                                  value: c,
+                                  child: Text(_getBillingCycleLabel(l10n, c)),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _billingCycle = value);
+                          }
+                        },
+                      );
+
+                      final importanceField =
+                          DropdownButtonFormField<SubscriptionImportance>(
+                        isExpanded: true,
+                        initialValue: _importance,
+                        decoration: InputDecoration(
+                          labelText: l10n.subscriptionsImportance,
+                          filled: true,
+                          fillColor:
+                              colorScheme.surface.withValues(alpha: 0.95),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          items: SubscriptionImportance.values
-                              .map((imp) => DropdownMenuItem(
-                                    value: imp,
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: BoxDecoration(
-                                            color: _getImportanceColor(imp),
-                                            shape: BoxShape.circle,
-                                          ),
+                        ),
+                        items: SubscriptionImportance.values
+                            .map((imp) => DropdownMenuItem(
+                                  value: imp,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: _getImportanceColor(imp),
+                                          shape: BoxShape.circle,
                                         ),
-                                        const SizedBox(width: 8),
-                                        Text(imp.name.toUpperCase()),
-                                      ],
-                                    ),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _importance = value);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(_getImportanceLabel(l10n, imp)),
+                                    ],
+                                  ),
+                                ))
+                            .toList(),
+                        selectedItemBuilder: (_) =>
+                            SubscriptionImportance.values
+                                .map((imp) => Text(
+                                      _getImportanceLabel(l10n, imp),
+                                      overflow: TextOverflow.ellipsis,
+                                    ))
+                                .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _importance = value);
+                          }
+                        },
+                      );
+
+                      if (isNarrow) {
+                        return Column(
+                          children: [
+                            cycleField,
+                            const SizedBox(height: 12),
+                            importanceField,
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          Expanded(child: cycleField),
+                          const SizedBox(width: 12),
+                          Expanded(child: importanceField),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 20),
 
@@ -475,7 +571,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Cost Summary',
+                          l10n.subscriptionsCostSummary,
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -483,57 +579,65 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                         ),
                         const SizedBox(height: 12),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Monthly Cost',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: colorScheme.outline,
-                                      ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  currencyFormat.format(_monthlyCost),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
-                                      ),
-                                ),
-                              ],
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.subscriptionsMonthlyCost,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: colorScheme.outline,
+                                        ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    currencyFormat.format(_monthlyCost),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.primary,
+                                        ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Annual Cost',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: colorScheme.outline,
-                                      ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  currencyFormat.format(_annualCost),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.secondary,
-                                      ),
-                                ),
-                              ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.subscriptionsAnnualCost,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: colorScheme.outline,
+                                        ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    currencyFormat.format(_annualCost),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.secondary,
+                                        ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -567,7 +671,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            _getImportanceLabel(_importance),
+                            _getImportanceLabel(l10n, _importance),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -583,73 +687,93 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   const SizedBox(height: 20),
 
                   // Start date and next billing date
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            final pick = await showDatePicker(
-                              context: context,
-                              initialDate: _startDate,
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime.now(),
-                            );
-                            if (pick != null) {
-                              setState(() => _startDate = pick);
-                            }
-                          },
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isCompact = constraints.maxWidth < 560;
+
+                      Widget buildDateButton({
+                        required VoidCallback onPressed,
+                        required String label,
+                        required String value,
+                      }) {
+                        return OutlinedButton.icon(
+                          onPressed: onPressed,
                           icon: const Icon(Icons.calendar_today),
                           label: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Start Date',
+                                label,
                                 style: Theme.of(context).textTheme.labelSmall,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                DateFormat('MMM dd, yyyy').format(_startDate),
+                                value,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            final pick = await showDatePicker(
-                              context: context,
-                              initialDate: _nextBillingDate,
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime(2050),
-                            );
-                            if (pick != null) {
-                              setState(() => _nextBillingDate = pick);
-                            }
-                          },
-                          icon: const Icon(Icons.calendar_today),
-                          label: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Next Billing',
-                                style: Theme.of(context).textTheme.labelSmall,
-                              ),
-                              Text(
-                                DateFormat('MMM dd, yyyy')
-                                    .format(_nextBillingDate),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                        );
+                      }
+
+                      final startButton = buildDateButton(
+                        onPressed: () async {
+                          final pick = await showDatePicker(
+                            context: context,
+                            initialDate: _startDate,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          if (pick != null) {
+                            setState(() => _startDate = pick);
+                          }
+                        },
+                        label: l10n.subscriptionsStartDate,
+                        value: DateFormat('MMM dd, yyyy').format(_startDate),
+                      );
+
+                      final nextButton = buildDateButton(
+                        onPressed: () async {
+                          final pick = await showDatePicker(
+                            context: context,
+                            initialDate: _nextBillingDate,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2050),
+                          );
+                          if (pick != null) {
+                            setState(() => _nextBillingDate = pick);
+                          }
+                        },
+                        label: l10n.subscriptionsNextBillingLabel,
+                        value:
+                            DateFormat('MMM dd, yyyy').format(_nextBillingDate),
+                      );
+
+                      if (isCompact) {
+                        return Column(
+                          children: [
+                            SizedBox(
+                                width: double.infinity, child: startButton),
+                            const SizedBox(height: 12),
+                            SizedBox(width: double.infinity, child: nextButton),
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          Expanded(child: startButton),
+                          const SizedBox(width: 12),
+                          Expanded(child: nextButton),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 20),
 
                   // Optional fields section
                   Text(
-                    'Optional Details',
+                    l10n.subscriptionsOptionalDetails,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -660,8 +784,8 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   TextFormField(
                     controller: _paymentMethodController,
                     decoration: InputDecoration(
-                      labelText: 'Payment Method',
-                      hintText: 'e.g., Credit Card, PayPal',
+                      labelText: l10n.subscriptionsPaymentMethod,
+                      hintText: l10n.subscriptionsPaymentMethodHint,
                       filled: true,
                       fillColor: colorScheme.surface.withValues(alpha: 0.95),
                       border: OutlineInputBorder(
@@ -675,8 +799,8 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   TextFormField(
                     controller: _websiteController,
                     decoration: InputDecoration(
-                      labelText: 'Website',
-                      hintText: 'e.g., netflix.com',
+                      labelText: l10n.subscriptionsWebsite,
+                      hintText: l10n.subscriptionsWebsiteHint,
                       filled: true,
                       fillColor: colorScheme.surface.withValues(alpha: 0.95),
                       border: OutlineInputBorder(
@@ -690,8 +814,8 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   TextFormField(
                     controller: _descriptionController,
                     decoration: InputDecoration(
-                      labelText: 'Notes',
-                      hintText: 'Add any notes about this subscription',
+                      labelText: l10n.subscriptionsNotes,
+                      hintText: l10n.subscriptionsNotesHint,
                       filled: true,
                       fillColor: colorScheme.surface.withValues(alpha: 0.95),
                       border: OutlineInputBorder(
@@ -723,15 +847,18 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                               color: colorScheme.primary,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              'Decision Help',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            Expanded(
+                              child: Text(
+                                l10n.subscriptionsDecisionHelp,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
@@ -750,25 +877,28 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
   }
 
   Widget _buildDecisionHelper(BuildContext context, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context)!;
     final annualCost = _annualCost;
     String suggestion = '';
     IconData icon = Icons.info;
     Color color = colorScheme.outline;
 
     if (annualCost == 0) {
-      suggestion = 'Enter an amount to see suggestions';
+      suggestion = l10n.subscriptionsDecisionEnterAmount;
     } else if (annualCost > 500) {
-      suggestion = 'High annual cost (\$$annualCost.toStringAsFixed(0)) - '
-          'Consider if this is essential or could be replaced';
+      suggestion = l10n.subscriptionsDecisionHighAnnualCost(
+        annualCost.toStringAsFixed(0),
+      );
       color = Colors.red;
       icon = Icons.warning;
     } else if (annualCost > 200) {
-      suggestion = 'Moderate annual cost (\$$annualCost.toStringAsFixed(0)) - '
-          'Make sure you actively use this';
+      suggestion = l10n.subscriptionsDecisionModerateAnnualCost(
+        annualCost.toStringAsFixed(0),
+      );
       color = Colors.orange;
       icon = Icons.info_outline;
     } else {
-      suggestion = 'Track regularly to avoid inactive subscriptions';
+      suggestion = l10n.subscriptionsDecisionTrackRegularly;
       icon = Icons.check_circle_outline;
       color = Colors.green;
     }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/intelligence/models/insight.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class InsightCard extends StatelessWidget {
   final Insight insight;
@@ -20,6 +21,7 @@ class InsightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: AppSurfaces.elevated(context),
@@ -63,13 +65,13 @@ class InsightCard extends StatelessWidget {
             Text(insight.explanation,
                 style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 8),
-            Text('Impact: ${insight.impact}',
+            Text('${l10n.insightsImpact}: ${insight.impact}',
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall
                     ?.copyWith(fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
-            Text('Action: ${insight.action}',
+            Text('${l10n.insightsAction}: ${insight.action}',
                 style: Theme.of(context).textTheme.bodySmall),
           ],
         ),

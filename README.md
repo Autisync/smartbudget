@@ -1,8 +1,8 @@
-## SmartBudget product brief
+## SmartSpend product brief
 
 ### Overview
 
-SmartBudget is a privacy-first budgeting app built in Flutter, designed to help users track finances, manage subscriptions, and get clear spending insights. It combines transaction management, reporting, security controls, and predictive forecasting in one local-first experience.
+SmartSpend is a privacy-first budgeting app built in Flutter, designed to help users track finances, manage subscriptions, and get clear spending insights. It combines transaction management, reporting, security controls, and predictive forecasting in one local-first experience.
 
 ---
 
@@ -79,7 +79,7 @@ SmartBudget is a privacy-first budgeting app built in Flutter, designed to help 
 
 ### Exchange-rate provider setup
 
-SmartBudget supports two exchange-rate sources:
+SmartSpend supports two exchange-rate sources:
 
 - Primary: ExchangeRate-API (when `EXCHANGE_RATE_API_KEY` is provided)
 - Fallback: Frankfurter/ECB (no API key required)

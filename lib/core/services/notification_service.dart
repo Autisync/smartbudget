@@ -17,6 +17,7 @@ class AppNotificationEntry {
     required this.payload,
     required this.category,
     required this.createdAt,
+    this.isRead = false,
   });
 
   final int id;
@@ -25,6 +26,17 @@ class AppNotificationEntry {
   final String payload;
   final AppNotificationCategory category;
   final DateTime createdAt;
+  final bool isRead;
+
+  AppNotificationEntry copyWith({bool? isRead}) => AppNotificationEntry(
+        id: id,
+        title: title,
+        body: body,
+        payload: payload,
+        category: category,
+        createdAt: createdAt,
+        isRead: isRead ?? this.isRead,
+      );
 }
 
 class NotificationService {
@@ -49,6 +61,15 @@ class NotificationService {
 
   void clearInbox() {
     _inbox.clear();
+    _inboxController.add(List<AppNotificationEntry>.unmodifiable(_inbox));
+  }
+
+  void markAllRead() {
+    for (int i = 0; i < _inbox.length; i++) {
+      if (!_inbox[i].isRead) {
+        _inbox[i] = _inbox[i].copyWith(isRead: true);
+      }
+    }
     _inboxController.add(List<AppNotificationEntry>.unmodifiable(_inbox));
   }
 

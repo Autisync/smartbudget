@@ -16,6 +16,7 @@ import 'package:smartbudget/features/subscriptions/presentation/providers/subscr
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/intelligence/models/insight.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 enum RecurringBalanceEntryKind { income, expense, subscription }
 
@@ -105,6 +106,8 @@ class RecurringBalanceSnapshot {
 
 final recurringBalanceSheetProvider =
     FutureProvider<RecurringBalanceSnapshot>((ref) async {
+  final locale = ref.watch(appLocaleControllerProvider);
+  final l10n = lookupAppLocalizations(locale);
   final appCurrency = ref.watch(appCurrencyControllerProvider);
   final exchangeRateService = ref.watch(exchangeRateServiceProvider);
   var workingCurrency = appCurrency;
@@ -174,7 +177,11 @@ final recurringBalanceSheetProvider =
           title: transaction.category,
           subtitle: transaction.note?.trim().isNotEmpty == true
               ? transaction.note!.trim()
-              : 'Recurring ${transaction.isIncome ? 'income' : 'expense'}',
+              : l10n.balanceSheetRecurringType(
+                  transaction.isIncome
+                      ? l10n.income.toLowerCase()
+                      : l10n.expense.toLowerCase(),
+                ),
           kind: transaction.isIncome
               ? RecurringBalanceEntryKind.income
               : RecurringBalanceEntryKind.expense,
@@ -184,7 +191,7 @@ final recurringBalanceSheetProvider =
             transaction.recurrence,
           ),
           currencyCode: workingCurrency,
-          cadenceLabel: _recurrenceLabel(transaction.recurrence),
+          cadenceLabel: _recurrenceLabel(l10n, transaction.recurrence),
           nextDate: _nextOccurrence(transaction.date, transaction.recurrence),
         );
       },
@@ -203,7 +210,7 @@ final recurringBalanceSheetProvider =
           chargeAmount: chargeAmount,
           monthlyAmount: monthlyAmount,
           currencyCode: workingCurrency,
-          cadenceLabel: _billingCycleLabel(subscription.billingCycle),
+          cadenceLabel: _billingCycleLabel(l10n, subscription.billingCycle),
           nextDate: subscription.nextDueDate,
           isOptional: subscription.importance == SubscriptionImportance.low,
         );
@@ -244,6 +251,7 @@ final recurringBalanceSheetProvider =
     nearTermIncome: nearTermIncome,
     nearTermCommitments: nearTermCommitments,
     recommendations: _buildRecommendations(
+      l10n: l10n,
       entries: entries,
       currencyCode: workingCurrency,
       recurringIncomeTotal: recurringIncomeTotal,
@@ -292,31 +300,34 @@ double _monthlyAmountForRecurrence(
   }
 }
 
-String _recurrenceLabel(TransactionRecurrence recurrence) {
+String _recurrenceLabel(
+  AppLocalizations l10n,
+  TransactionRecurrence recurrence,
+) {
   switch (recurrence) {
     case TransactionRecurrence.daily:
-      return 'Daily';
+      return l10n.transactionsRecurrenceDaily;
     case TransactionRecurrence.weekly:
-      return 'Weekly';
+      return l10n.transactionsRecurrenceWeekly;
     case TransactionRecurrence.monthly:
-      return 'Monthly';
+      return l10n.transactionsRecurrenceMonthly;
     case TransactionRecurrence.yearly:
-      return 'Yearly';
+      return l10n.transactionsRecurrenceYearly;
     case TransactionRecurrence.none:
-      return 'One-off';
+      return l10n.transactionsRecurrenceNone;
   }
 }
 
-String _billingCycleLabel(BillingCycle cycle) {
+String _billingCycleLabel(AppLocalizations l10n, BillingCycle cycle) {
   switch (cycle) {
     case BillingCycle.weekly:
-      return 'Weekly';
+      return l10n.subscriptionsBillingWeekly;
     case BillingCycle.monthly:
-      return 'Monthly';
+      return l10n.subscriptionsBillingMonthly;
     case BillingCycle.quarterly:
-      return 'Quarterly';
+      return l10n.subscriptionsBillingQuarterly;
     case BillingCycle.yearly:
-      return 'Yearly';
+      return l10n.subscriptionsBillingYearly;
   }
 }
 
@@ -353,6 +364,7 @@ DateTime _nextOccurrence(DateTime startDate, TransactionRecurrence recurrence) {
 }
 
 List<Insight> _buildRecommendations({
+  required AppLocalizations l10n,
   required List<RecurringBalanceEntry> entries,
   required String currencyCode,
   required double recurringIncomeTotal,
@@ -383,16 +395,13 @@ List<Insight> _buildRecommendations({
       totalOutflow <= 0 ? 0.0 : subscriptionExpenseTotal / totalOutflow;
 
   if (entries.isEmpty) {
-    return const [
+    return [
       Insight(
         id: 'recurring-empty',
-        title: 'No recurring plan available yet',
-        explanation:
-            'Add recurring transactions or subscriptions to generate a balance sheet.',
-        impact:
-            'Without recurring entries, the app cannot estimate fixed monthly commitments.',
-        action:
-            'Mark salary, rent, loan payments, and subscriptions as recurring to unlock planning.',
+        title: l10n.balanceSheetInsightEmptyTitle,
+        explanation: l10n.balanceSheetInsightEmptyExplanation,
+        impact: l10n.balanceSheetInsightEmptyImpact,
+        action: l10n.balanceSheetInsightEmptyAction,
         confidence: 0.95,
         severity: InsightSeverity.low,
         type: InsightType.recommendation,
@@ -406,14 +415,19 @@ List<Insight> _buildRecommendations({
     insights.add(
       Insight(
         id: 'recurring-shortfall',
-        title: 'Recurring plan is running a deficit',
-        explanation:
-            'Your recurring income misses monthly obligations by ${currencyFormat.format(-netBalance)}.',
-        impact:
-            'If nothing changes, fixed commitments alone can force you to borrow or cut essentials.',
+        title: l10n.balanceSheetInsightShortfallTitle,
+        explanation: l10n.balanceSheetInsightShortfallExplanation(
+          currencyFormat.format(-netBalance),
+        ),
+        impact: l10n.balanceSheetInsightShortfallImpact,
         action: optionalSubscriptionSavings > 0
-            ? 'Reduce at least ${currencyFormat.format((-netBalance).clamp(0, optionalSubscriptionSavings))} from optional subscriptions, then review large recurring bills.'
-            : 'Increase recurring income or reduce fixed expenses by at least ${currencyFormat.format(-netBalance)}.',
+            ? l10n.balanceSheetInsightShortfallActionOptional(
+                currencyFormat.format(
+                    (-netBalance).clamp(0, optionalSubscriptionSavings)),
+              )
+            : l10n.balanceSheetInsightShortfallAction(
+                currencyFormat.format(-netBalance),
+              ),
         confidence: 0.92,
         severity: InsightSeverity.high,
         type: InsightType.forecast,
@@ -423,13 +437,12 @@ List<Insight> _buildRecommendations({
     insights.add(
       Insight(
         id: 'recurring-thin-buffer',
-        title: 'Recurring coverage is positive but thin',
-        explanation:
-            'Your fixed-income plan covers obligations with only ${currencyFormat.format(netBalance)} left each month.',
-        impact:
-            'A small change in income or a missed payment could remove your margin quickly.',
-        action:
-            'Build an extra buffer by trimming one recurring expense or redirecting new income into essentials first.',
+        title: l10n.balanceSheetInsightThinBufferTitle,
+        explanation: l10n.balanceSheetInsightThinBufferExplanation(
+          currencyFormat.format(netBalance),
+        ),
+        impact: l10n.balanceSheetInsightThinBufferImpact,
+        action: l10n.balanceSheetInsightThinBufferAction,
         confidence: 0.84,
         severity: InsightSeverity.medium,
         type: InsightType.recommendation,
@@ -439,13 +452,12 @@ List<Insight> _buildRecommendations({
     insights.add(
       Insight(
         id: 'recurring-covered',
-        title: 'Recurring obligations are currently covered',
-        explanation:
-            'Your monthly recurring plan leaves an estimated ${currencyFormat.format(netBalance)} after fixed commitments.',
-        impact:
-            'You have room to absorb smaller fluctuations without falling behind on recurring bills.',
-        action:
-            'Protect that margin by keeping discretionary recurring charges under review.',
+        title: l10n.balanceSheetInsightCoveredTitle,
+        explanation: l10n.balanceSheetInsightCoveredExplanation(
+          currencyFormat.format(netBalance),
+        ),
+        impact: l10n.balanceSheetInsightCoveredImpact,
+        action: l10n.balanceSheetInsightCoveredAction,
         confidence: 0.82,
         severity: InsightSeverity.low,
         type: InsightType.recommendation,
@@ -457,13 +469,13 @@ List<Insight> _buildRecommendations({
     insights.add(
       Insight(
         id: 'recurring-near-term-pressure',
-        title: 'Next 14 days look cashflow-heavy',
-        explanation:
-            'Near-term recurring commitments total ${currencyFormat.format(nearTermCommitments)} against ${currencyFormat.format(nearTermIncome)} in recurring income.',
-        impact:
-            'You may feel payment pressure before month-end even if the monthly picture is acceptable.',
-        action:
-            'Prioritize due-soon essentials first and reschedule optional payments where possible.',
+        title: l10n.balanceSheetInsightNearTermTitle,
+        explanation: l10n.balanceSheetInsightNearTermExplanation(
+          currencyFormat.format(nearTermCommitments),
+          currencyFormat.format(nearTermIncome),
+        ),
+        impact: l10n.balanceSheetInsightNearTermImpact,
+        action: l10n.balanceSheetInsightNearTermAction,
         confidence: 0.86,
         severity:
             netBalance < 0 ? InsightSeverity.high : InsightSeverity.medium,
@@ -476,14 +488,16 @@ List<Insight> _buildRecommendations({
     insights.add(
       Insight(
         id: 'recurring-subscription-share',
-        title: 'Subscriptions take a large share of fixed outflow',
-        explanation:
-            'Subscriptions account for ${(subscriptionShare * 100).toStringAsFixed(0)}% of your recurring obligations.',
-        impact:
-            'Smaller digital charges can quietly crowd out money needed for core bills.',
+        title: l10n.balanceSheetInsightSubscriptionShareTitle,
+        explanation: l10n.balanceSheetInsightSubscriptionShareExplanation(
+          (subscriptionShare * 100).toStringAsFixed(0),
+        ),
+        impact: l10n.balanceSheetInsightSubscriptionShareImpact,
         action: optionalSubscriptionSavings > 0
-            ? 'Review optional subscriptions first. You could free up about ${currencyFormat.format(optionalSubscriptionSavings)} per month.'
-            : 'Review annual and quarterly subscriptions for services you can pause or consolidate.',
+            ? l10n.balanceSheetInsightSubscriptionShareActionOptional(
+                currencyFormat.format(optionalSubscriptionSavings),
+              )
+            : l10n.balanceSheetInsightSubscriptionShareAction,
         confidence: 0.79,
         severity: subscriptionShare >= 0.4
             ? InsightSeverity.medium
@@ -497,13 +511,15 @@ List<Insight> _buildRecommendations({
     insights.add(
       Insight(
         id: 'recurring-largest-bill',
-        title: 'Start with the largest recurring bill',
-        explanation:
-            '${largestExpense.title} is your largest recurring commitment at about ${currencyFormat.format(largestExpense.monthlyAmount)} per month.',
-        impact:
-            'Any reduction here has more impact than cutting multiple smaller charges.',
-        action:
-            'Review whether ${largestExpense.title} can be renegotiated, downgraded, or offset with a matching recurring income increase.',
+        title: l10n.balanceSheetInsightLargestBillTitle,
+        explanation: l10n.balanceSheetInsightLargestBillExplanation(
+          largestExpense.title,
+          currencyFormat.format(largestExpense.monthlyAmount),
+        ),
+        impact: l10n.balanceSheetInsightLargestBillImpact,
+        action: l10n.balanceSheetInsightLargestBillAction(
+          largestExpense.title,
+        ),
         confidence: 0.74,
         severity: netBalance < 0 ? InsightSeverity.medium : InsightSeverity.low,
         type: InsightType.recommendation,
@@ -530,6 +546,7 @@ class _RecurringBalanceSheetScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final snapshotAsync = ref.watch(recurringBalanceSheetProvider);
 
     return Scaffold(
@@ -541,7 +558,13 @@ class _RecurringBalanceSheetScreenState
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 8),
-            const Text('Recurring Balance Sheet'),
+            Flexible(
+              child: Text(
+                l10n.dashboardBalanceSheetTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),
@@ -549,8 +572,8 @@ class _RecurringBalanceSheetScreenState
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Padding(
-            padding: UiTokens.screenPadding,
-            child: Text('Unable to build recurring balance sheet: $error'),
+            padding: UiTokens.adaptiveScreenPadding(context),
+            child: Text(l10n.balanceSheetBuildError(error.toString())),
           ),
         ),
         data: (snapshot) {
@@ -591,6 +614,7 @@ class _RecurringBalanceSheetScreenState
               .clamp(0, double.infinity)
               .toDouble();
           final simulatedRecommendations = _buildRecommendations(
+            l10n: l10n,
             entries: simulatedEntries,
             currencyCode: snapshot.currencyCode,
             recurringIncomeTotal: simulatedIncomeTotal,
@@ -607,365 +631,397 @@ class _RecurringBalanceSheetScreenState
               _pausedSubscriptionIds.isNotEmpty;
 
           return SingleChildScrollView(
-            padding: UiTokens.screenPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (snapshot.isCurrencyFallback)
-                  Container(
-                    width: double.infinity,
-                    margin:
-                        const EdgeInsets.only(bottom: UiTokens.sectionGapMd),
-                    padding: const EdgeInsets.all(12),
-                    decoration: AppSurfaces.elevated(
-                      context,
-                      radius: 16,
-                      color:
-                          colorScheme.tertiaryContainer.withValues(alpha: 0.75),
-                      opacity: 0.05,
-                    ),
-                    child: Text(
-                      'Live exchange rates are unavailable for ${snapshot.requestedCurrencyCode}. This view is shown in ${snapshot.currencyCode} for now.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: AppSurfaces.elevated(
-                    context,
-                    radius: UiTokens.radiusXl,
-                    color: snapshot.canCoverRecurring
-                        ? const Color(0xFF059669).withValues(alpha: 0.08)
-                        : colorScheme.errorContainer.withValues(alpha: 0.8),
-                    opacity: 0.06,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+            padding: UiTokens.adaptiveScreenPadding(context),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (snapshot.isCurrencyFallback)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(
+                            bottom: UiTokens.sectionGapMd),
+                        padding: const EdgeInsets.all(12),
+                        decoration: AppSurfaces.elevated(
+                          context,
+                          radius: 16,
+                          color: colorScheme.tertiaryContainer
+                              .withValues(alpha: 0.75),
+                          opacity: 0.05,
+                        ),
+                        child: Text(
+                          l10n.balanceSheetCurrencyFallback(
+                            snapshot.requestedCurrencyCode,
+                            snapshot.currencyCode,
+                          ),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: AppSurfaces.elevated(
+                        context,
+                        radius: UiTokens.radiusXl,
+                        color: snapshot.canCoverRecurring
+                            ? const Color(0xFF059669).withValues(alpha: 0.08)
+                            : colorScheme.errorContainer.withValues(alpha: 0.8),
+                        opacity: 0.06,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            snapshot.canCoverRecurring
-                                ? Icons.verified_rounded
-                                : Icons.warning_amber_rounded,
-                            color: snapshot.canCoverRecurring
-                                ? const Color(0xFF059669)
-                                : colorScheme.error,
+                          Row(
+                            children: [
+                              Icon(
+                                snapshot.canCoverRecurring
+                                    ? Icons.verified_rounded
+                                    : Icons.warning_amber_rounded,
+                                color: snapshot.canCoverRecurring
+                                    ? const Color(0xFF059669)
+                                    : colorScheme.error,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  snapshot.canCoverRecurring
+                                      ? l10n.balanceSheetCoveredTitle
+                                      : l10n.balanceSheetDeficitTitle,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              snapshot.canCoverRecurring
-                                  ? 'Recurring income currently covers your obligations'
-                                  : 'Recurring obligations currently outpace recurring income',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        currencyFormat.format(snapshot.netMonthlyBalance),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: snapshot.canCoverRecurring
-                                  ? const Color(0xFF047857)
-                                  : colorScheme.error,
-                            ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        snapshot.canCoverRecurring
-                            ? 'Estimated monthly room left after recurring commitments.'
-                            : 'Estimated monthly shortfall before variable spending begins.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: UiTokens.chipSpacing,
-                        runSpacing: UiTokens.chipRunSpacing,
-                        children: [
-                          _RecurringMetricChip(
-                            icon: Icons.arrow_downward_rounded,
-                            label: 'Income / mo',
-                            value: currencyFormat
-                                .format(snapshot.recurringIncomeTotal),
-                            tone: const Color(0xFF059669),
-                          ),
-                          _RecurringMetricChip(
-                            icon: Icons.arrow_upward_rounded,
-                            label: 'Expenses / mo',
-                            value: currencyFormat
-                                .format(snapshot.recurringExpenseTotal),
-                            tone: colorScheme.error,
-                          ),
-                          _RecurringMetricChip(
-                            icon: Icons.subscriptions_rounded,
-                            label: 'Subscriptions / mo',
-                            value: currencyFormat
-                                .format(snapshot.subscriptionExpenseTotal),
-                            tone: colorScheme.secondary,
-                          ),
-                          _RecurringMetricChip(
-                            icon: Icons.schedule_rounded,
-                            label: 'Due in 14 days',
-                            value: currencyFormat
-                                .format(snapshot.nearTermCommitments),
-                            tone: colorScheme.tertiary,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: UiTokens.sectionGapMd),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: AppSurfaces.elevated(context, radius: 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Coverage outlook',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 10),
-                      LinearProgressIndicator(
-                        value: snapshot.coverageRatio.clamp(0, 1.4) / 1.4,
-                        minHeight: 10,
-                        borderRadius: BorderRadius.circular(999),
-                        color: snapshot.coverageRatio >= 1.1
-                            ? const Color(0xFF059669)
-                            : snapshot.coverageRatio >= 1
-                                ? Colors.orange
-                                : colorScheme.error,
-                        backgroundColor:
-                            colorScheme.outlineVariant.withValues(alpha: 0.45),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Recurring income covers ${(snapshot.coverageRatio * 100).toStringAsFixed(0)}% of recurring obligations.',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'The sheet uses monthly equivalents for active recurring transactions and subscriptions in ${snapshot.currencyCode}.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: UiTokens.sectionGapLg),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: AppSurfaces.elevated(context, radius: 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.tune_rounded,
-                            color: colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
+                          const SizedBox(height: 12),
                           Text(
-                            'Scenario Lab',
+                            currencyFormat.format(snapshot.netMonthlyBalance),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: snapshot.canCoverRecurring
+                                      ? const Color(0xFF047857)
+                                      : colorScheme.error,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            snapshot.canCoverRecurring
+                                ? l10n.balanceSheetCoveredSubtitle
+                                : l10n.balanceSheetDeficitSubtitle,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: UiTokens.chipSpacing,
+                            runSpacing: UiTokens.chipRunSpacing,
+                            children: [
+                              _RecurringMetricChip(
+                                icon: Icons.arrow_downward_rounded,
+                                label: l10n.balanceSheetIncomePerMonth,
+                                value: currencyFormat
+                                    .format(snapshot.recurringIncomeTotal),
+                                tone: const Color(0xFF059669),
+                              ),
+                              _RecurringMetricChip(
+                                icon: Icons.arrow_upward_rounded,
+                                label: l10n.balanceSheetExpensesPerMonth,
+                                value: currencyFormat
+                                    .format(snapshot.recurringExpenseTotal),
+                                tone: colorScheme.error,
+                              ),
+                              _RecurringMetricChip(
+                                icon: Icons.subscriptions_rounded,
+                                label: l10n.balanceSheetSubscriptionsPerMonth,
+                                value: currencyFormat
+                                    .format(snapshot.subscriptionExpenseTotal),
+                                tone: colorScheme.secondary,
+                              ),
+                              _RecurringMetricChip(
+                                icon: Icons.schedule_rounded,
+                                label: l10n.balanceSheetDueIn14Days,
+                                value: currencyFormat
+                                    .format(snapshot.nearTermCommitments),
+                                tone: colorScheme.tertiary,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: UiTokens.sectionGapMd),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: AppSurfaces.elevated(context, radius: 18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.balanceSheetCoverageOutlook,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
+                          const SizedBox(height: 10),
+                          LinearProgressIndicator(
+                            value: snapshot.coverageRatio.clamp(0, 1.4) / 1.4,
+                            minHeight: 10,
+                            borderRadius: BorderRadius.circular(999),
+                            color: snapshot.coverageRatio >= 1.1
+                                ? const Color(0xFF059669)
+                                : snapshot.coverageRatio >= 1
+                                    ? Colors.orange
+                                    : colorScheme.error,
+                            backgroundColor: colorScheme.outlineVariant
+                                .withValues(alpha: 0.45),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            l10n.balanceSheetCoveragePercent(
+                              (snapshot.coverageRatio * 100).toStringAsFixed(0),
+                            ),
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.balanceSheetCoverageFootnote(
+                                snapshot.currencyCode),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Test small changes before you make them. Increase recurring income, cut recurring expenses, or pause optional subscriptions.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                      _ScenarioSlider(
-                        label: 'Add recurring income',
-                        value: _extraRecurringIncome,
-                        max: (snapshot.totalRecurringOutflow * 0.6)
-                            .clamp(100, 5000)
-                            .toDouble(),
-                        formattedValue:
-                            currencyFormat.format(_extraRecurringIncome),
-                        onChanged: (value) {
-                          setState(() => _extraRecurringIncome = value);
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _ScenarioSlider(
-                        label: 'Reduce recurring expenses',
-                        value: _expenseReduction,
-                        max: snapshot.recurringExpenseTotal <= 0
-                            ? 100
-                            : snapshot.recurringExpenseTotal,
-                        formattedValue:
-                            currencyFormat.format(_expenseReduction),
-                        onChanged: (value) {
-                          setState(() => _expenseReduction = value);
-                        },
-                      ),
-                      if (optionalSubscriptions.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          'Pause optional subscriptions',
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: optionalSubscriptions.map((entry) {
-                            final selected =
-                                _pausedSubscriptionIds.contains(entry.id);
-                            return FilterChip(
-                              label: Text(
-                                '${entry.title} · ${currencyFormat.format(entry.monthlyAmount)}/mo',
-                              ),
-                              selected: selected,
-                              onSelected: (_) {
-                                setState(() {
-                                  if (selected) {
-                                    _pausedSubscriptionIds.remove(entry.id);
-                                  } else {
-                                    _pausedSubscriptionIds.add(entry.id);
-                                  }
-                                });
-                              },
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                      if (scenarioActive) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: simulatedNetBalance >= 0
-                                ? const Color(0xFF059669)
-                                    .withValues(alpha: 0.08)
-                                : colorScheme.errorContainer
-                                    .withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    const SizedBox(height: UiTokens.sectionGapLg),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: AppSurfaces.elevated(context, radius: 18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
+                              Icon(
+                                Icons.tune_rounded,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
                               Text(
-                                'Simulated monthly balance',
+                                l10n.balanceSheetScenarioLab,
                                 style: Theme.of(context)
                                     .textTheme
-                                    .labelLarge
-                                    ?.copyWith(fontWeight: FontWeight.w700),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                currencyFormat.format(simulatedNetBalance),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.w900),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Income ${currencyFormat.format(simulatedIncomeTotal)} · Expenses ${currencyFormat.format(simulatedExpenseTotal + simulatedSubscriptionTotal)}',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              const SizedBox(height: 8),
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _extraRecurringIncome = 0;
-                                    _expenseReduction = 0;
-                                    _pausedSubscriptionIds.clear();
-                                  });
-                                },
-                                child: const Text('Reset scenario'),
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w800),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ],
-                  ),
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.balanceSheetScenarioSubtitle,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          const SizedBox(height: 16),
+                          _ScenarioSlider(
+                            label: l10n.balanceSheetAddRecurringIncome,
+                            value: _extraRecurringIncome,
+                            max: (snapshot.totalRecurringOutflow * 0.6)
+                                .clamp(100, 5000)
+                                .toDouble(),
+                            formattedValue:
+                                currencyFormat.format(_extraRecurringIncome),
+                            onChanged: (value) {
+                              setState(() => _extraRecurringIncome = value);
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          _ScenarioSlider(
+                            label: l10n.balanceSheetReduceRecurringExpenses,
+                            value: _expenseReduction,
+                            max: snapshot.recurringExpenseTotal <= 0
+                                ? 100
+                                : snapshot.recurringExpenseTotal,
+                            formattedValue:
+                                currencyFormat.format(_expenseReduction),
+                            onChanged: (value) {
+                              setState(() => _expenseReduction = value);
+                            },
+                          ),
+                          if (optionalSubscriptions.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              l10n.balanceSheetPauseOptionalSubscriptions,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: optionalSubscriptions.map((entry) {
+                                final selected =
+                                    _pausedSubscriptionIds.contains(entry.id);
+                                return FilterChip(
+                                  label: Text(
+                                    l10n.balanceSheetSubscriptionChip(
+                                      entry.title,
+                                      currencyFormat
+                                          .format(entry.monthlyAmount),
+                                    ),
+                                  ),
+                                  selected: selected,
+                                  onSelected: (_) {
+                                    setState(() {
+                                      if (selected) {
+                                        _pausedSubscriptionIds.remove(entry.id);
+                                      } else {
+                                        _pausedSubscriptionIds.add(entry.id);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                          if (scenarioActive) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: simulatedNetBalance >= 0
+                                    ? const Color(0xFF059669)
+                                        .withValues(alpha: 0.08)
+                                    : colorScheme.errorContainer
+                                        .withValues(alpha: 0.8),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.balanceSheetSimulatedMonthlyBalance,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge
+                                        ?.copyWith(fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    currencyFormat.format(simulatedNetBalance),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(fontWeight: FontWeight.w900),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    l10n.balanceSheetSimulatedIncomeExpenses(
+                                      currencyFormat
+                                          .format(simulatedIncomeTotal),
+                                      currencyFormat.format(
+                                        simulatedExpenseTotal +
+                                            simulatedSubscriptionTotal,
+                                      ),
+                                    ),
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _extraRecurringIncome = 0;
+                                        _expenseReduction = 0;
+                                        _pausedSubscriptionIds.clear();
+                                      });
+                                    },
+                                    child: Text(l10n.balanceSheetResetScenario),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: UiTokens.sectionGapLg),
+                    _RecurringSectionHeader(
+                      icon: Icons.lightbulb_outline_rounded,
+                      title: l10n.balanceSheetWaysToMakeEndsMeet,
+                    ),
+                    const SizedBox(height: 12),
+                    ...(scenarioActive
+                            ? simulatedRecommendations
+                            : snapshot.recommendations)
+                        .map((recommendation) =>
+                            InsightCard(insight: recommendation)),
+                    const SizedBox(height: UiTokens.sectionGapLg),
+                    _RecurringSectionHeader(
+                      icon: Icons.arrow_downward_rounded,
+                      title: l10n.balanceSheetRecurringIncome,
+                    ),
+                    const SizedBox(height: 12),
+                    if (snapshot.incomeEntries.isEmpty)
+                      _EmptyRecurringState(
+                        message: l10n.balanceSheetNoRecurringIncome,
+                      )
+                    else
+                      ...snapshot.incomeEntries
+                          .map((entry) => _RecurringEntryCard(entry: entry)),
+                    const SizedBox(height: UiTokens.sectionGapLg),
+                    _RecurringSectionHeader(
+                      icon: Icons.receipt_long_rounded,
+                      title: l10n.balanceSheetRecurringExpenses,
+                    ),
+                    const SizedBox(height: 12),
+                    if (snapshot.expenseEntries.isEmpty)
+                      _EmptyRecurringState(
+                        message: l10n.balanceSheetNoRecurringExpenses,
+                      )
+                    else
+                      ...snapshot.expenseEntries
+                          .map((entry) => _RecurringEntryCard(entry: entry)),
+                    const SizedBox(height: UiTokens.sectionGapLg),
+                    _RecurringSectionHeader(
+                      icon: Icons.subscriptions_rounded,
+                      title: l10n.balanceSheetSubscriptionsIncluded,
+                    ),
+                    const SizedBox(height: 12),
+                    if (snapshot.subscriptionEntries.isEmpty)
+                      _EmptyRecurringState(
+                        message: l10n.insightsNoActiveSubscriptions,
+                      )
+                    else
+                      ...snapshot.subscriptionEntries
+                          .map((entry) => _RecurringEntryCard(entry: entry)),
+                  ],
                 ),
-                const SizedBox(height: UiTokens.sectionGapLg),
-                const _RecurringSectionHeader(
-                  icon: Icons.lightbulb_outline_rounded,
-                  title: 'Ways to make ends meet',
-                ),
-                const SizedBox(height: 12),
-                ...(scenarioActive
-                        ? simulatedRecommendations
-                        : snapshot.recommendations)
-                    .map((recommendation) =>
-                        InsightCard(insight: recommendation)),
-                const SizedBox(height: UiTokens.sectionGapLg),
-                const _RecurringSectionHeader(
-                  icon: Icons.arrow_downward_rounded,
-                  title: 'Recurring income',
-                ),
-                const SizedBox(height: 12),
-                if (snapshot.incomeEntries.isEmpty)
-                  const _EmptyRecurringState(
-                    message: 'No recurring income has been configured yet.',
-                  )
-                else
-                  ...snapshot.incomeEntries
-                      .map((entry) => _RecurringEntryCard(entry: entry)),
-                const SizedBox(height: UiTokens.sectionGapLg),
-                const _RecurringSectionHeader(
-                  icon: Icons.receipt_long_rounded,
-                  title: 'Recurring expenses',
-                ),
-                const SizedBox(height: 12),
-                if (snapshot.expenseEntries.isEmpty)
-                  const _EmptyRecurringState(
-                    message: 'No recurring expenses have been configured yet.',
-                  )
-                else
-                  ...snapshot.expenseEntries
-                      .map((entry) => _RecurringEntryCard(entry: entry)),
-                const SizedBox(height: UiTokens.sectionGapLg),
-                const _RecurringSectionHeader(
-                  icon: Icons.subscriptions_rounded,
-                  title: 'Subscriptions included',
-                ),
-                const SizedBox(height: 12),
-                if (snapshot.subscriptionEntries.isEmpty)
-                  const _EmptyRecurringState(
-                    message: 'No active subscriptions are being tracked yet.',
-                  )
-                else
-                  ...snapshot.subscriptionEntries
-                      .map((entry) => _RecurringEntryCard(entry: entry)),
-              ],
+              ),
             ),
           );
         },
@@ -1001,23 +1057,29 @@ class _RecurringMetricChip extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: tone),
           const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1040,11 +1102,15 @@ class _RecurringSectionHeader extends StatelessWidget {
       children: [
         Icon(icon, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
         ),
       ],
     );
@@ -1058,6 +1124,7 @@ class _RecurringEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currencyFormat = CurrencyUtils.getFormat(entry.currencyCode);
     final tone = switch (entry.kind) {
       RecurringBalanceEntryKind.income => const Color(0xFF059669),
@@ -1118,13 +1185,14 @@ class _RecurringEntryCard extends StatelessWidget {
                     children: [
                       _RecurringPill(label: entry.cadenceLabel, tone: tone),
                       _RecurringPill(
-                        label:
-                            'Next ${DateFormat('MMM dd').format(entry.nextDate)}',
+                        label: l10n.balanceSheetNextDate(
+                          DateFormat('MMM dd').format(entry.nextDate),
+                        ),
                         tone: Theme.of(context).colorScheme.primary,
                       ),
                       if (entry.isOptional)
                         _RecurringPill(
-                          label: 'Optional',
+                          label: l10n.balanceSheetOptional,
                           tone: Theme.of(context).colorScheme.outline,
                         ),
                     ],
@@ -1133,21 +1201,29 @@ class _RecurringEntryCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  currencyFormat.format(entry.monthlyAmount),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${currencyFormat.format(entry.chargeAmount)} / ${entry.cadenceLabel.toLowerCase()}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    currencyFormat.format(entry.monthlyAmount),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${currencyFormat.format(entry.chargeAmount)} / ${entry.cadenceLabel.toLowerCase()}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

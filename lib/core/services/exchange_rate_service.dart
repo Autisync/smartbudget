@@ -28,6 +28,7 @@ class ExchangeRateService {
   ExchangeRateService({
     Dio? frankfurterDio,
     Dio? exchangeRateApiDio,
+    Dio? openExchangeRateApiDio,
     String? exchangeRateApiKey,
   })  : _frankfurterDio = frankfurterDio ??
             Dio(
@@ -45,6 +46,14 @@ class ExchangeRateService {
                 receiveTimeout: const Duration(seconds: 8),
               ),
             ),
+        _openExchangeRateApiDio = openExchangeRateApiDio ??
+            Dio(
+              BaseOptions(
+                baseUrl: 'https://open.er-api.com/v6',
+                connectTimeout: const Duration(seconds: 8),
+                receiveTimeout: const Duration(seconds: 8),
+              ),
+            ),
         _exchangeRateApiKey =
             (exchangeRateApiKey ?? _configuredExchangeRateApiKey).trim();
 
@@ -55,6 +64,7 @@ class ExchangeRateService {
 
   final Dio _frankfurterDio;
   final Dio _exchangeRateApiDio;
+  final Dio _openExchangeRateApiDio;
   final String _exchangeRateApiKey;
 
   Future<ExchangeRateQuote> fetchRate({
@@ -81,7 +91,17 @@ class ExchangeRateService {
       }
     }
 
-    return _fetchRateFromFrankfurter(base: from, target: to);
+    try {
+      return await _fetchRateFromOpenExchangeRateApi(base: from, target: to);
+    } catch (_) {
+      // Fallback to Frankfurter/ECB if the open provider is unavailable.
+    }
+
+    try {
+      return await _fetchRateFromFrankfurter(base: from, target: to);
+    } catch (error) {
+      throw Exception('Unable to load exchange rate for $from/$to.');
+    }
   }
 
   Future<ExchangeRateQuote> _fetchRateFromExchangeRateApi({
@@ -157,6 +177,49 @@ class ExchangeRateService {
       target: target,
       rate: rateRaw.toDouble(),
       date: dateRaw != null ? DateTime.parse(dateRaw) : DateTime.now(),
+    );
+  }
+
+  Future<ExchangeRateQuote> _fetchRateFromOpenExchangeRateApi({
+    required String base,
+    required String target,
+  }) async {
+    final response = await _openExchangeRateApiDio.get<Map<String, dynamic>>(
+      '/latest/$base',
+    );
+
+    final data = response.data;
+    if (data == null) {
+      throw Exception('No exchange-rate data was returned from open ER API.');
+    }
+
+    if (data['result']?.toString().toLowerCase() != 'success') {
+      throw Exception('Open ER API returned a non-success result.');
+    }
+
+    final rates = data['rates'];
+    if (rates is! Map<String, dynamic>) {
+      throw Exception('Malformed open ER API response payload.');
+    }
+
+    final rateRaw = rates[target];
+    if (rateRaw is! num) {
+      throw Exception('Rate for $target was not found in open ER API.');
+    }
+
+    final updateEpoch = data['time_last_update_unix'];
+    final updateDate = updateEpoch is num
+        ? DateTime.fromMillisecondsSinceEpoch(
+            updateEpoch.toInt() * 1000,
+            isUtc: true,
+          ).toLocal()
+        : DateTime.now();
+
+    return ExchangeRateQuote(
+      base: base,
+      target: target,
+      rate: rateRaw.toDouble(),
+      date: updateDate,
     );
   }
 

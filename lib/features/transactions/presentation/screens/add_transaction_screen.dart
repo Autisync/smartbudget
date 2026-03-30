@@ -6,9 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/data/models/tables.dart'
     show TransactionType, TransactionRecurrence;
+import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:uuid/uuid.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final Transaction? existingTransaction;
@@ -78,7 +81,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final appCurrency = ref.watch(appCurrencyControllerProvider);
     final budgetCategories = ref.watch(budgetListProvider).maybeWhen(
           data: (budgets) => budgets
               .map((budget) => budget.category.trim())
@@ -118,7 +123,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text('Add Transaction'),
+          child: Text(
+            widget.existingTransaction != null
+                ? l10n.transactionsUpdateTransaction
+                : l10n.addTransaction,
+          ),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -173,16 +182,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               children: [
                 // Type Selector
                 SegmentedButton<TransactionType>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: TransactionType.expense,
-                      label: Text('Expense'),
-                      icon: Icon(Icons.arrow_upward),
+                      label: Text(l10n.expense),
+                      icon: const Icon(Icons.arrow_upward),
                     ),
                     ButtonSegment(
                       value: TransactionType.income,
-                      label: Text('Income'),
-                      icon: Icon(Icons.arrow_downward),
+                      label: Text(l10n.income),
+                      icon: const Icon(Icons.arrow_downward),
                     ),
                   ],
                   selected: {_type},
@@ -204,15 +213,19 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                             ? Colors.redAccent
                             : Colors.greenAccent,
                       ),
-                  decoration: const InputDecoration(
-                    prefixText: '\$ ',
+                  decoration: InputDecoration(
+                    prefixText: '${CurrencyUtils.symbol(appCurrency)} ',
                     hintText: '0.00',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Enter amount';
-                    if (double.tryParse(value) == null) return 'Invalid number';
+                    if (value == null || value.isEmpty) {
+                      return l10n.transactionsEnterAmount;
+                    }
+                    if (double.tryParse(value) == null) {
+                      return l10n.transactionsInvalidNumber;
+                    }
                     return null;
                   },
                 ),
@@ -221,9 +234,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 // Category
                 DropdownButtonFormField<String>(
                   initialValue: _category,
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    prefixIcon: Icon(Icons.category),
+                  decoration: InputDecoration(
+                    labelText: l10n.category,
+                    prefixIcon: const Icon(Icons.category),
                   ),
                   items: categories.map((cat) {
                     return DropdownMenuItem(value: cat, child: Text(cat));
@@ -237,7 +250,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 // Date
                 ListTile(
                   leading: const Icon(Icons.calendar_today),
-                  title: const Text('Date'),
+                  title: Text(l10n.date),
                   subtitle: Text(
                     MaterialLocalizations.of(context).formatFullDate(_date),
                   ),
@@ -257,9 +270,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 // Note
                 TextFormField(
                   controller: _noteController,
-                  decoration: const InputDecoration(
-                    labelText: 'Note (Optional)',
-                    prefixIcon: Icon(Icons.edit),
+                  decoration: InputDecoration(
+                    labelText: l10n.transactionsNoteOptional,
+                    prefixIcon: const Icon(Icons.edit),
                   ),
                   maxLines: 2,
                 ),
@@ -268,17 +281,26 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 // Recurrence
                 DropdownButtonFormField<TransactionRecurrence>(
                   initialValue: _recurrence,
-                  decoration: const InputDecoration(
-                    labelText: 'Recurrence',
-                    prefixIcon: Icon(Icons.repeat),
+                  decoration: InputDecoration(
+                    labelText: l10n.transactionsRecurrence,
+                    prefixIcon: const Icon(Icons.repeat),
                   ),
                   items: TransactionRecurrence.values
                       .map((r) => DropdownMenuItem(
                             value: r,
                             child: Text(
-                              r.name == 'none'
-                                  ? 'None'
-                                  : '${r.name[0].toUpperCase()}${r.name.substring(1)}',
+                              switch (r) {
+                                TransactionRecurrence.none =>
+                                  l10n.transactionsRecurrenceNone,
+                                TransactionRecurrence.daily =>
+                                  l10n.transactionsRecurrenceDaily,
+                                TransactionRecurrence.weekly =>
+                                  l10n.transactionsRecurrenceWeekly,
+                                TransactionRecurrence.monthly =>
+                                  l10n.transactionsRecurrenceMonthly,
+                                TransactionRecurrence.yearly =>
+                                  l10n.transactionsRecurrenceYearly,
+                              },
                             ),
                           ))
                       .toList(),
@@ -301,8 +323,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   ),
                   child: Text(
                     widget.existingTransaction != null
-                        ? 'Update Transaction'
-                        : 'Save Transaction',
+                        ? l10n.transactionsUpdateTransaction
+                        : l10n.transactionsSaveTransaction,
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.bold),
                   ),
@@ -319,11 +341,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final amount = double.parse(_amountController.text);
+    final appCurrency = ref.read(appCurrencyControllerProvider);
     final transaction = Transaction(
       id: widget.existingTransaction?.id ?? const Uuid().v4(),
       accountId: widget.existingTransaction?.accountId ?? 'default',
       amount: amount,
-      currency: 'USD',
+      currency: appCurrency,
       type: _type,
       category: _category,
       date: _date,
@@ -341,8 +364,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
     if (mounted) {
       _closeScreen();
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaction saved')),
+        SnackBar(content: Text(l10n.transactionsSaved)),
       );
     }
   }

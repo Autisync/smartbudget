@@ -25,6 +25,7 @@ import 'package:smartbudget/features/onboarding/presentation/screens/onboarding_
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 part 'app_router.g.dart';
 
@@ -188,9 +189,10 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final width = MediaQuery.of(context).size.width;
     final useRail = width >= 900;
-    final useCompactNav = !useRail && width < 700;
+    final useCompactNav = !useRail && width < 780;
 
     return Scaffold(
       body: useRail
@@ -201,46 +203,46 @@ class ScaffoldWithNavBar extends StatelessWidget {
                   onDestinationSelected: (index) =>
                       _onItemTapped(index, context),
                   labelType: NavigationRailLabelType.all,
-                  destinations: const [
+                  destinations: [
                     NavigationRailDestination(
-                      icon: Icon(Icons.home_outlined),
-                      selectedIcon: Icon(Icons.home),
-                      label: Text('Home'),
+                      icon: const Icon(Icons.home_outlined),
+                      selectedIcon: const Icon(Icons.home),
+                      label: Text(l10n.navHome),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.receipt_long_outlined),
-                      selectedIcon: Icon(Icons.receipt_long),
-                      label: Text('Transactions'),
+                      icon: const Icon(Icons.receipt_long_outlined),
+                      selectedIcon: const Icon(Icons.receipt_long),
+                      label: Text(l10n.transactionsTitle),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.account_balance_wallet_outlined),
-                      selectedIcon: Icon(Icons.account_balance_wallet),
-                      label: Text('Budgets'),
+                      icon: const Icon(Icons.account_balance_wallet_outlined),
+                      selectedIcon: const Icon(Icons.account_balance_wallet),
+                      label: Text(l10n.navBudgets),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.savings_outlined),
-                      selectedIcon: Icon(Icons.savings),
-                      label: Text('Savings'),
+                      icon: const Icon(Icons.savings_outlined),
+                      selectedIcon: const Icon(Icons.savings),
+                      label: Text(l10n.navSavings),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.subscriptions_outlined),
-                      selectedIcon: Icon(Icons.subscriptions),
-                      label: Text('Subscriptions'),
+                      icon: const Icon(Icons.subscriptions_outlined),
+                      selectedIcon: const Icon(Icons.subscriptions),
+                      label: Text(l10n.navSubscriptions),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.description_outlined),
-                      selectedIcon: Icon(Icons.description),
-                      label: Text('Reports'),
+                      icon: const Icon(Icons.description_outlined),
+                      selectedIcon: const Icon(Icons.description),
+                      label: Text(l10n.reportsTitle),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.insights_outlined),
-                      selectedIcon: Icon(Icons.insights),
-                      label: Text('Insights'),
+                      icon: const Icon(Icons.insights_outlined),
+                      selectedIcon: const Icon(Icons.insights),
+                      label: Text(l10n.navInsights),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.settings_outlined),
-                      selectedIcon: Icon(Icons.settings),
-                      label: Text('Settings'),
+                      icon: const Icon(Icons.settings_outlined),
+                      selectedIcon: const Icon(Icons.settings),
+                      label: Text(l10n.settings),
                     ),
                   ],
                 ),
@@ -260,46 +262,46 @@ class ScaffoldWithNavBar extends StatelessWidget {
                   selectedIndex: _calculateSelectedIndex(context),
                   onDestinationSelected: (index) =>
                       _onItemTapped(index, context),
-                  destinations: const [
+                  destinations: [
                     NavigationDestination(
-                      icon: Icon(Icons.home_outlined),
-                      selectedIcon: Icon(Icons.home),
-                      label: 'Home',
+                      icon: const Icon(Icons.home_outlined),
+                      selectedIcon: const Icon(Icons.home),
+                      label: l10n.navHome,
                     ),
                     NavigationDestination(
-                      icon: Icon(Icons.receipt_long_outlined),
-                      selectedIcon: Icon(Icons.receipt_long),
-                      label: 'Transactions',
+                      icon: const Icon(Icons.receipt_long_outlined),
+                      selectedIcon: const Icon(Icons.receipt_long),
+                      label: l10n.transactionsTitle,
                     ),
                     NavigationDestination(
-                      icon: Icon(Icons.account_balance_wallet_outlined),
-                      selectedIcon: Icon(Icons.account_balance_wallet),
-                      label: 'Budgets',
+                      icon: const Icon(Icons.account_balance_wallet_outlined),
+                      selectedIcon: const Icon(Icons.account_balance_wallet),
+                      label: l10n.navBudgets,
                     ),
                     NavigationDestination(
-                      icon: Icon(Icons.savings_outlined),
-                      selectedIcon: Icon(Icons.savings),
-                      label: 'Savings',
+                      icon: const Icon(Icons.savings_outlined),
+                      selectedIcon: const Icon(Icons.savings),
+                      label: l10n.navSavings,
                     ),
                     NavigationDestination(
-                      icon: Icon(Icons.subscriptions_outlined),
-                      selectedIcon: Icon(Icons.subscriptions),
-                      label: 'Subscriptions',
+                      icon: const Icon(Icons.subscriptions_outlined),
+                      selectedIcon: const Icon(Icons.subscriptions),
+                      label: l10n.navSubscriptions,
                     ),
                     NavigationDestination(
-                      icon: Icon(Icons.description_outlined),
-                      selectedIcon: Icon(Icons.description),
-                      label: 'Reports',
+                      icon: const Icon(Icons.description_outlined),
+                      selectedIcon: const Icon(Icons.description),
+                      label: l10n.reportsTitle,
                     ),
                     NavigationDestination(
-                      icon: Icon(Icons.insights_outlined),
-                      selectedIcon: Icon(Icons.insights),
-                      label: 'Insights',
+                      icon: const Icon(Icons.insights_outlined),
+                      selectedIcon: const Icon(Icons.insights),
+                      label: l10n.navInsights,
                     ),
                     NavigationDestination(
-                      icon: Icon(Icons.settings_outlined),
-                      selectedIcon: Icon(Icons.settings),
-                      label: 'Settings',
+                      icon: const Icon(Icons.settings_outlined),
+                      selectedIcon: const Icon(Icons.settings),
+                      label: l10n.settings,
                     ),
                   ],
                 ),
@@ -383,6 +385,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
   }
 
   Widget _buildCompactNavBar(BuildContext context, int selectedIndex) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -447,13 +450,13 @@ class ScaffoldWithNavBar extends StatelessWidget {
               navItem(
                 icon: Icons.receipt_long_outlined,
                 selectedIcon: Icons.receipt_long,
-                label: 'Txns',
+                label: l10n.navTxns,
                 index: 0,
               ),
               navItem(
                 icon: Icons.account_balance_wallet_outlined,
                 selectedIcon: Icons.account_balance_wallet,
-                label: 'Budgets',
+                label: l10n.navBudgets,
                 index: 1,
               ),
               // Center Home button
@@ -496,13 +499,13 @@ class ScaffoldWithNavBar extends StatelessWidget {
               navItem(
                 icon: Icons.savings_outlined,
                 selectedIcon: Icons.savings,
-                label: 'Savings',
+                label: l10n.navSavings,
                 index: 3,
               ),
               navItem(
                 icon: Icons.grid_view_outlined,
                 selectedIcon: Icons.grid_view,
-                label: 'More',
+                label: l10n.navMore,
                 index: 4,
               ),
             ],
@@ -513,67 +516,176 @@ class ScaffoldWithNavBar extends StatelessWidget {
   }
 
   Future<void> _showMoreSheet(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final router = GoRouter.of(context);
     await showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final entries = [
+          _MoreSheetEntry(
+            icon: Icons.subscriptions_outlined,
+            label: l10n.navSubscriptions,
+            route: '/subscriptions',
+            color: colorScheme.primary,
+          ),
+          _MoreSheetEntry(
+            icon: Icons.description_outlined,
+            label: l10n.reportsTitle,
+            route: '/reports',
+            color: const Color(0xFF14B8A6),
+          ),
+          _MoreSheetEntry(
+            icon: Icons.insights_outlined,
+            label: l10n.navInsights,
+            route: '/insights',
+            color: const Color(0xFFF59E0B),
+          ),
+          _MoreSheetEntry(
+            icon: Icons.account_balance_rounded,
+            label: l10n.navBalanceSheet,
+            route: '/balance-sheet',
+            color: const Color(0xFF22C55E),
+          ),
+          _MoreSheetEntry(
+            icon: Icons.currency_exchange_rounded,
+            label: l10n.navExchangeRates,
+            route: '/exchange-rates',
+            color: const Color(0xFF8B5CF6),
+          ),
+          _MoreSheetEntry(
+            icon: Icons.settings_outlined,
+            label: l10n.settings,
+            route: '/settings',
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ];
+
         return SafeArea(
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.subscriptions_outlined),
-                title: const Text('Subscriptions'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  router.go('/subscriptions');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.description_outlined),
-                title: const Text('Reports'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  router.go('/reports');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.insights_outlined),
-                title: const Text('Insights'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  router.go('/insights');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.account_balance_rounded),
-                title: const Text('Balance Sheet'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  router.go('/balance-sheet');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.currency_exchange_rounded),
-                title: const Text('Exchange Rates'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  router.go('/exchange-rates');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings_outlined),
-                title: const Text('Settings'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  router.go('/settings');
-                },
-              ),
-            ],
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurface.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.9,
+                  ),
+                  itemCount: entries.length,
+                  itemBuilder: (context, index) {
+                    final entry = entries[index];
+                    return _MoreGridTile(
+                      icon: entry.icon,
+                      label: entry.label,
+                      color: entry.color,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        router.go(entry.route);
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },
+    );
+  }
+}
+
+class _MoreSheetEntry {
+  const _MoreSheetEntry({
+    required this.icon,
+    required this.label,
+    required this.route,
+    required this.color,
+  });
+  final IconData icon;
+  final String label;
+  final String route;
+  final Color color;
+}
+
+class _MoreGridTile extends StatelessWidget {
+  const _MoreGridTile({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                        height: 1.2,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -583,6 +695,7 @@ class LoginScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Center(
         child: Column(
@@ -591,12 +704,12 @@ class LoginScreen extends ConsumerWidget {
             const Icon(Icons.lock_outline, size: 64, color: Color(0xFF6366F1)),
             const SizedBox(height: 32),
             const Text(
-              'SmartBudget',
+              'SmartSpend',
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Secure Financial Management',
+              l10n.authSecureFinancialManagement,
               style: TextStyle(
                 color: Theme.of(context)
                     .colorScheme
@@ -613,18 +726,15 @@ class LoginScreen extends ConsumerWidget {
                 if (result != bio.AuthStatus.authenticated && context.mounted) {
                   final message = switch (result) {
                     bio.AuthStatus.notAvailable =>
-                      'Biometric authentication is not available on this Mac. Verify Touch ID is enabled in System Settings.',
+                      l10n.authBiometricNotAvailable,
                     bio.AuthStatus.noBiometricsEnrolled =>
-                      'No biometrics enrolled. Add Touch ID in System Settings and try again.',
-                    bio.AuthStatus.lockedOut =>
-                      'Biometric authentication is temporarily locked. Try again later.',
+                      l10n.authNoBiometricsEnrolled,
+                    bio.AuthStatus.lockedOut => l10n.authBiometricLockedOut,
                     bio.AuthStatus.permanentlyLockedOut =>
-                      'Biometric authentication is locked. Unlock with your device passcode first.',
-                    bio.AuthStatus.denied =>
-                      'Authentication was canceled or denied. Please try again.',
-                    bio.AuthStatus.error =>
-                      'Authentication failed due to a system error. Please try again.',
-                    bio.AuthStatus.authenticated => 'Authenticated',
+                      l10n.authBiometricPermanentlyLocked,
+                    bio.AuthStatus.denied => l10n.authDenied,
+                    bio.AuthStatus.error => l10n.authSystemError,
+                    bio.AuthStatus.authenticated => l10n.authAuthenticated,
                   };
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(message)),
@@ -632,7 +742,7 @@ class LoginScreen extends ConsumerWidget {
                 }
               },
               icon: const Icon(Icons.fingerprint),
-              label: const Text('Authenticate'),
+              label: Text(l10n.authAuthenticate),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
@@ -647,11 +757,11 @@ class LoginScreen extends ConsumerWidget {
               children: [
                 TextButton(
                   onPressed: () => GoRouter.of(context).push('/legal/terms'),
-                  child: const Text('Terms & Conditions'),
+                  child: Text(l10n.legalTermsTitle),
                 ),
                 TextButton(
                   onPressed: () => GoRouter.of(context).push('/legal/privacy'),
-                  child: const Text('Privacy Policy'),
+                  child: Text(l10n.legalPrivacyTitle),
                 ),
               ],
             ),

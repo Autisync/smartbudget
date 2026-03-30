@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +19,7 @@ import 'package:smartbudget/features/dashboard/presentation/screens/financial_he
 import 'package:smartbudget/features/savings/presentation/providers/savings_provider.dart';
 import 'package:smartbudget/features/savings/presentation/screens/savings_screen.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('Money-control screens navigate without lifecycle assertion',
@@ -172,7 +174,17 @@ void main() {
 Widget _testHost({required Widget home, required List<Override> overrides}) {
   return ProviderScope(
     overrides: overrides,
-    child: MaterialApp(home: home),
+    child: MaterialApp(
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: home,
+    ),
   );
 }
 
@@ -262,7 +274,7 @@ class _NoopSecureStorage extends FlutterSecureStorage {
   @override
   Future<String?> read({
     required String key,
-    AppleOptions? iOptions,
+    IOSOptions? iOptions,
     AndroidOptions? aOptions,
     LinuxOptions? lOptions,
     WebOptions? webOptions,

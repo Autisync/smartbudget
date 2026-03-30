@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:smartbudget/intelligence/models/forecast_data_point.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class ForecastChartWidget extends StatelessWidget {
   final List<ForecastDataPoint> dataPoints;
@@ -9,10 +10,11 @@ class ForecastChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (dataPoints.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 220,
-        child: Center(child: Text('No forecast data available')),
+        child: Center(child: Text(l10n.insightsNoForecastData)),
       );
     }
 
@@ -46,7 +48,7 @@ class ForecastChartWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Forecast chart',
+              l10n.insightsForecastChart,
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -128,11 +130,11 @@ class ForecastChartWidget extends StatelessWidget {
               children: [
                 _LegendDot(
                     color: Theme.of(context).colorScheme.primary,
-                    label: 'Actual'),
+                    label: l10n.insightsActual),
                 const SizedBox(width: 16),
                 _LegendDot(
                     color: Theme.of(context).colorScheme.secondary,
-                    label: 'Predicted'),
+                    label: l10n.insightsPredicted),
               ],
             ),
           ],

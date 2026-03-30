@@ -15,7 +15,7 @@ class NotificationBellButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final count = ref.watch(notificationInboxProvider).maybeWhen(
-          data: (items) => items.length,
+          data: (items) => items.where((e) => !e.isRead).length,
           orElse: () => 0,
         );
 

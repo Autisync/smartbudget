@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/router/app_router.dart';
+import 'package:smartbudget/core/services/locale_service.dart';
 import 'package:smartbudget/core/theme/app_theme.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
@@ -23,21 +24,22 @@ void main() async {
   runApp(
     UncontrolledProviderScope(
       container: container,
-      child: const SmartBudgetApp(),
+      child: const SmartSpendApp(),
     ),
   );
 }
 
-class SmartBudgetApp extends ConsumerWidget {
-  const SmartBudgetApp({super.key});
+class SmartSpendApp extends ConsumerWidget {
+  const SmartSpendApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeControllerProvider);
+    final appLocale = ref.watch(appLocaleControllerProvider);
 
     return MaterialApp.router(
-      title: 'SmartBudget',
+      title: 'SmartSpend',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -49,8 +51,10 @@ class SmartBudgetApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('en'), Locale('pt')],
-      locale: const Locale('en'),
+      supportedLocales: LocaleService.supportedLanguageCodes
+          .map((code) => Locale(code))
+          .toList(),
+      locale: appLocale,
     );
   }
 }

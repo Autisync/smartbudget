@@ -3,6 +3,7 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/domain/entities/savings_goal.dart';
 import 'package:smartbudget/domain/repositories/savings_goal_repository.dart';
 import 'package:smartbudget/data/repositories/savings_goal_repository_impl.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 part 'savings_provider.g.dart';
 
@@ -68,6 +69,7 @@ enum SavingsNudgeSeverity { info, warning, critical }
 class SavingsNudges extends _$SavingsNudges {
   @override
   Future<List<SavingsNudge>> build() async {
+    final l10n = lookupAppLocalizations(ref.watch(appLocaleControllerProvider));
     final goals = await ref.watch(savingsGoalListProvider.future);
     final now = DateTime.now();
     final nudges = <SavingsNudge>[];
@@ -91,9 +93,10 @@ class SavingsNudges extends _$SavingsNudges {
           nudges.add(
             SavingsNudge(
               goalId: goal.id,
-              title: 'You are behind on ${goal.title}',
-              message:
-                  'You are about ${behindAmount.toStringAsFixed(0)} behind schedule. Consider increasing monthly savings.',
+              title: l10n.savingsNudgeBehindTitle(goal.title),
+              message: l10n.savingsNudgeBehindMessage(
+                behindAmount.toStringAsFixed(0),
+              ),
               severity: expectedProgress - progress > 0.2
                   ? SavingsNudgeSeverity.critical
                   : SavingsNudgeSeverity.warning,
@@ -106,9 +109,8 @@ class SavingsNudges extends _$SavingsNudges {
         nudges.add(
           SavingsNudge(
             goalId: goal.id,
-            title: 'Enable auto-allocation for ${goal.title}',
-            message:
-                'Auto-allocation can help keep contributions consistent each month.',
+            title: l10n.savingsNudgeAutoAllocateTitle(goal.title),
+            message: l10n.savingsNudgeAutoAllocateMessage,
             severity: SavingsNudgeSeverity.info,
           ),
         );

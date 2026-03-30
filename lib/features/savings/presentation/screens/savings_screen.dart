@@ -2,7 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/features/savings/presentation/providers/savings_provider.dart';
 import 'package:smartbudget/domain/entities/savings_goal.dart';
 import 'package:smartbudget/data/models/tables.dart' show GoalPriority;
@@ -10,6 +12,7 @@ import 'package:smartbudget/data/models/tables.dart' show TransactionType;
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
 class SavingsScreen extends ConsumerStatefulWidget {
@@ -70,6 +73,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final savingsAsync = ref.watch(savingsGoalListProvider);
     final nudgesAsync = ref.watch(savingsNudgesProvider);
     final monthlyTransactionsAsync = ref.watch(recentTransactionsProvider);
@@ -89,7 +93,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text('Savings Goals'),
+          child: Text(l10n.savingsGoalsTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -116,6 +120,15 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             ),
           ],
         ),
+        actions: [
+          NotificationBellButton(
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
+            ),
+            onPressed: () => context.push('/notifications'),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
@@ -173,21 +186,21 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Create your first savings goal',
-                        style: TextStyle(
+                      Text(
+                        l10n.savingsEmptyTitle,
+                        style: const TextStyle(
                             fontWeight: FontWeight.w700, fontSize: 18),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Define a target amount and optional deadline to build savings intentionally.',
+                      Text(
+                        l10n.savingsEmptySubtitle,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
                       FilledButton.icon(
                         onPressed: () => _openGoalForm(context, ref),
                         icon: const Icon(Icons.add),
-                        label: const Text('Create Goal'),
+                        label: Text(l10n.savingsCreateGoal),
                       ),
                     ],
                   ),
@@ -200,12 +213,15 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               orElse: () => 0,
             );
             final decisionMessage = atRiskGoals > 0
-                ? '$atRiskGoals goal${atRiskGoals == 1 ? '' : 's'} are behind pace. Focus new contributions there first.'
+                ? l10n.savingsGoalsBehindPace(atRiskGoals)
                 : monthlySurplus > 0
-                    ? 'You have ${currencyFormat.format(monthlySurplus)} of monthly surplus available to accelerate your top priority goal.'
-                    : 'Progress is steady. Keep contributions consistent to protect your deadlines.';
+                    ? l10n.savingsMonthlySurplusMessage(
+                        currencyFormat.format(monthlySurplus),
+                      )
+                    : l10n.savingsSteadyProgress;
 
             return ListView(
+              padding: const EdgeInsets.only(bottom: 24),
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
@@ -237,7 +253,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Savings portfolio',
+                                l10n.savingsPortfolioTitle,
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleMedium
@@ -259,26 +275,26 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                           runSpacing: 8,
                           children: [
                             _SavingsSummaryMetric(
-                              label: 'Goals',
+                              label: l10n.financialHealthGoals,
                               value: '${goals.length}',
                             ),
                             _SavingsSummaryMetric(
-                              label: 'Saved',
+                              label: l10n.savingsSaved,
                               value: currencyFormat.format(totalSaved),
                             ),
                             _SavingsSummaryMetric(
-                              label: 'At Risk',
+                              label: l10n.budgetAtRisk,
                               value: '$atRiskGoals',
                               valueColor: atRiskGoals > 0
                                   ? Theme.of(context).colorScheme.error
                                   : Theme.of(context).colorScheme.primary,
                             ),
                             _SavingsSummaryMetric(
-                              label: 'Target',
+                              label: l10n.savingsTarget,
                               value: currencyFormat.format(totalTarget),
                             ),
                             _SavingsSummaryMetric(
-                              label: 'Nudges',
+                              label: l10n.savingsNudgesLabel,
                               value: '$nudgesCount',
                             ),
                           ],
@@ -299,7 +315,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Savings nudges',
+                              l10n.savingsNudgesLabel,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 6),
@@ -363,19 +379,23 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Surplus detected: ${currencyFormat.format(monthlySurplus)}',
+                            l10n.savingsSurplusDetected(
+                              currencyFormat.format(monthlySurplus),
+                            ),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Allocate part of this surplus to accelerate your goals.',
-                          ),
+                          Text(l10n.savingsAllocateSurplusHint),
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 8,
                             children: [
                               ActionChip(
-                                label: const Text('Allocate \$50'),
+                                label: Text(
+                                  l10n.savingsAllocateAmount(
+                                    currencyFormat.format(50),
+                                  ),
+                                ),
                                 onPressed: () => _allocateSurplusToTopGoal(
                                   ref,
                                   goals,
@@ -383,7 +403,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                                 ),
                               ),
                               ActionChip(
-                                label: const Text('Allocate \$100'),
+                                label: Text(
+                                  l10n.savingsAllocateAmount(
+                                    currencyFormat.format(100),
+                                  ),
+                                ),
                                 onPressed: () => _allocateSurplusToTopGoal(
                                   ref,
                                   goals,
@@ -448,14 +472,14 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                                         .deleteSavingsGoal(goal.id);
                                   }
                                 },
-                                itemBuilder: (_) => const [
+                                itemBuilder: (_) => [
                                   PopupMenuItem(
                                     value: 'edit',
-                                    child: Text('Edit goal'),
+                                    child: Text(l10n.savingsEditGoal),
                                   ),
                                   PopupMenuItem(
                                     value: 'delete',
-                                    child: Text('Delete goal'),
+                                    child: Text(l10n.savingsDeleteGoal),
                                   ),
                                 ],
                               ),
@@ -465,15 +489,18 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                           Row(
                             children: [
                               _SavingsStatusChip(
-                                label:
-                                    _goalStatusLabel(progress, projectedLate),
+                                label: _goalStatusLabel(
+                                  l10n,
+                                  progress,
+                                  projectedLate,
+                                ),
                                 color:
                                     _goalStatusColor(progress, projectedLate),
                               ),
                               const SizedBox(width: 8),
                               if (hasDeadline)
                                 Text(
-                                  'Timeline tracked',
+                                  l10n.savingsTimelineTracked,
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                             ],
@@ -486,14 +513,21 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                           LinearProgressIndicator(value: progress),
                           const SizedBox(height: 6),
                           Text(
-                            '${(progress * 100).toStringAsFixed(1)}% complete • ${currencyFormat.format(remaining)} remaining',
+                            l10n.savingsProgressLine(
+                              (progress * 100).toStringAsFixed(1),
+                              currencyFormat.format(remaining),
+                            ),
                           ),
                           if (hasDeadline) ...[
                             const SizedBox(height: 6),
                             Text(
-                              'Deadline: ${MaterialLocalizations.of(context).formatMediumDate(goal.deadline!)}',
+                              l10n.savingsDeadlineLabel(
+                                MaterialLocalizations.of(context)
+                                    .formatMediumDate(goal.deadline!),
+                              ),
                             ),
                             _GoalTimeline(
+                              l10n: l10n,
                               createdAt: goal.createdAt ?? now,
                               deadline: goal.deadline!,
                               progress: progress,
@@ -511,12 +545,14 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Suggestion: Save ${currencyFormat.format(suggestedMonthly)}/month to stay on track.',
+                            l10n.savingsSuggestionMonthly(
+                              currencyFormat.format(suggestedMonthly),
+                            ),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                           if (projectedLate > 0)
                             Text(
-                              'At current pace, this goal may finish about $projectedLate month(s) late.',
+                              l10n.savingsProjectedLate(projectedLate),
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.error,
                                 fontSize: 12,
@@ -527,12 +563,14 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                             spacing: 8,
                             children: [
                               ActionChip(
-                                label: const Text('Add funds'),
+                                label: Text(l10n.savingsAddFunds),
                                 onPressed: () =>
                                     _openContributionDialog(context, ref, goal),
                               ),
                               ActionChip(
-                                label: const Text('Simulate +\$50/mo'),
+                                label: Text(
+                                  'Simulate +${currencyFormat.format(50)}/mo',
+                                ),
                                 onPressed: () => _showSimulation(
                                   context,
                                   goal,
@@ -550,9 +588,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                                 color: Colors.green.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Text(
-                                'Goal achieved! Archive it or create a new one to keep momentum.',
-                              ),
+                              child: Text(l10n.savingsGoalAchieved),
                             ),
                         ],
                       ),
@@ -563,7 +599,9 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, st) => Center(child: Text('Error: $err')),
+          error: (err, st) => Center(
+            child: Text(l10n.transactionsError(err.toString())),
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -614,11 +652,15 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     WidgetRef ref, {
     SavingsGoal? existingGoal,
   }) async {
+    final appCurrency = ref.read(appCurrencyControllerProvider);
     final result = await showModalBottomSheet<_SavingsGoalFormResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-      builder: (_) => _SavingsGoalFormSheet(existingGoal: existingGoal),
+      builder: (_) => _SavingsGoalFormSheet(
+        existingGoal: existingGoal,
+        currencySymbol: CurrencyUtils.symbol(appCurrency),
+      ),
     );
 
     if (result != null) {
@@ -649,9 +691,13 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     WidgetRef ref,
     SavingsGoal goal,
   ) async {
+    final appCurrency = ref.read(appCurrencyControllerProvider);
     final amount = await showDialog<double>(
       context: context,
-      builder: (_) => _ContributionDialog(goalTitle: goal.title),
+      builder: (_) => _ContributionDialog(
+        goalTitle: goal.title,
+        currencySymbol: CurrencyUtils.symbol(appCurrency),
+      ),
     );
 
     if (amount != null && amount > 0 && mounted) {
@@ -670,6 +716,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     double monthlyIncrease,
     NumberFormat currencyFormat,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final elapsedMonths =
         (((now.difference(goal.createdAt ?? now).inDays) / 30).clamp(1, 120))
@@ -686,27 +733,34 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Scenario simulation'),
+        title: Text(l10n.savingsScenarioSimulationTitle),
         content: Text(
           monthsToComplete == null
-              ? 'Unable to estimate completion date with current data.'
-              : 'If you increase savings by ${currencyFormat.format(monthlyIncrease)}/month, you could complete this goal in about $monthsToComplete month(s).',
+              ? l10n.savingsUnableEstimateCompletion
+              : l10n.savingsScenarioEstimate(
+                  currencyFormat.format(monthlyIncrease),
+                  monthsToComplete,
+                ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: Text(l10n.commonClose),
           ),
         ],
       ),
     );
   }
 
-  String _goalStatusLabel(double progress, int projectedLate) {
-    if (progress >= 1.0) return 'Completed';
-    if (projectedLate > 0) return 'Behind schedule';
-    if (progress >= 0.6) return 'On pace';
-    return 'Building momentum';
+  String _goalStatusLabel(
+    AppLocalizations l10n,
+    double progress,
+    int projectedLate,
+  ) {
+    if (progress >= 1.0) return l10n.savingsStatusCompleted;
+    if (projectedLate > 0) return l10n.savingsStatusBehindSchedule;
+    if (progress >= 0.6) return l10n.savingsStatusOnPace;
+    return l10n.savingsStatusBuildingMomentum;
   }
 
   Color _goalStatusColor(double progress, int projectedLate) {
@@ -719,11 +773,13 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
 class _GoalTimeline extends StatelessWidget {
   const _GoalTimeline({
+    required this.l10n,
     required this.createdAt,
     required this.deadline,
     required this.progress,
   });
 
+  final AppLocalizations l10n;
   final DateTime createdAt;
   final DateTime deadline;
   final double progress;
@@ -741,7 +797,10 @@ class _GoalTimeline extends StatelessWidget {
         LinearProgressIndicator(value: timeProgress),
         const SizedBox(height: 4),
         Text(
-          'Time progress ${(timeProgress * 100).toStringAsFixed(0)}% • Savings progress ${(progress * 100).toStringAsFixed(0)}%',
+          l10n.savingsTimeProgressLine(
+            (timeProgress * 100).toStringAsFixed(0),
+            (progress * 100).toStringAsFixed(0),
+          ),
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
@@ -803,6 +862,8 @@ class _SavingsStatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: color,
           fontSize: 11,
@@ -832,9 +893,13 @@ class _SavingsGoalFormResult {
 }
 
 class _SavingsGoalFormSheet extends StatefulWidget {
-  const _SavingsGoalFormSheet({this.existingGoal});
+  const _SavingsGoalFormSheet({
+    this.existingGoal,
+    required this.currencySymbol,
+  });
 
   final SavingsGoal? existingGoal;
+  final String currencySymbol;
 
   @override
   State<_SavingsGoalFormSheet> createState() => _SavingsGoalFormSheetState();
@@ -904,6 +969,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final baseTheme = Theme.of(context);
     final modalBackgroundColor = baseTheme.brightness == Brightness.dark
         ? baseTheme.colorScheme.surfaceContainerHigh
@@ -939,16 +1005,18 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.existingGoal == null ? 'Create goal' : 'Edit goal',
+                  widget.existingGoal == null
+                      ? l10n.savingsCreateGoal
+                      : l10n.savingsEditGoal,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(labelText: 'Goal name'),
+                  decoration: InputDecoration(labelText: l10n.savingsGoalName),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Enter a goal name';
+                      return l10n.savingsEnterGoalName;
                     }
                     return null;
                   },
@@ -959,14 +1027,14 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Target amount',
-                    prefixText: r'$',
+                  decoration: InputDecoration(
+                    labelText: l10n.savingsTargetAmount,
+                    prefixText: '${widget.currencySymbol} ',
                   ),
                   validator: (value) {
                     final parsed = double.tryParse(value ?? '');
                     if (parsed == null || parsed <= 0) {
-                      return 'Enter a valid target amount';
+                      return l10n.savingsEnterValidTargetAmount;
                     }
                     return null;
                   },
@@ -977,14 +1045,14 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Current saved amount',
-                    prefixText: r'$',
+                  decoration: InputDecoration(
+                    labelText: l10n.savingsCurrentSavedAmount,
+                    prefixText: '${widget.currencySymbol} ',
                   ),
                   validator: (value) {
                     final parsed = double.tryParse(value ?? '');
                     if (parsed == null || parsed < 0) {
-                      return 'Enter a valid saved amount';
+                      return l10n.savingsEnterValidSavedAmount;
                     }
                     return null;
                   },
@@ -992,13 +1060,22 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<GoalPriority>(
                   initialValue: _priority,
-                  decoration: const InputDecoration(labelText: 'Priority'),
+                  decoration: InputDecoration(labelText: l10n.savingsPriority),
                   items: GoalPriority.values
                       .map(
                         (p) => DropdownMenuItem(
                           value: p,
                           child: Text(
-                            '${p.name[0].toUpperCase()}${p.name.substring(1)}',
+                            switch (p) {
+                              GoalPriority.low =>
+                                l10n.subscriptionsFilterLowPriority,
+                              GoalPriority.medium =>
+                                l10n.subscriptionsImportanceMedium,
+                              GoalPriority.high =>
+                                l10n.subscriptionsFilterHighPriority,
+                              GoalPriority.critical =>
+                                l10n.subscriptionsFilterCritical,
+                            },
                           ),
                         ),
                       )
@@ -1010,17 +1087,17 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
                 ),
                 SwitchListTile.adaptive(
                   value: _autoAllocate,
-                  title: const Text('Enable auto-allocation'),
+                  title: Text(l10n.savingsEnableAutoAllocation),
                   contentPadding: EdgeInsets.zero,
                   onChanged: (value) => setState(() => _autoAllocate = value),
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.event),
-                  title: const Text('Deadline (optional)'),
+                  title: Text(l10n.savingsDeadlineOptional),
                   subtitle: Text(
                     _deadline == null
-                        ? 'No deadline'
+                        ? l10n.savingsNoDeadline
                         : MaterialLocalizations.of(context)
                             .formatMediumDate(_deadline!),
                   ),
@@ -1036,7 +1113,9 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
                 FilledButton(
                   onPressed: _submit,
                   child: Text(
-                    widget.existingGoal == null ? 'Save goal' : 'Update goal',
+                    widget.existingGoal == null
+                        ? l10n.savingsSaveGoal
+                        : l10n.savingsUpdateGoal,
                   ),
                 ),
               ],
@@ -1049,9 +1128,13 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
 }
 
 class _ContributionDialog extends StatefulWidget {
-  const _ContributionDialog({required this.goalTitle});
+  const _ContributionDialog({
+    required this.goalTitle,
+    required this.currencySymbol,
+  });
 
   final String goalTitle;
+  final String currencySymbol;
 
   @override
   State<_ContributionDialog> createState() => _ContributionDialogState();
@@ -1079,25 +1162,26 @@ class _ContributionDialogState extends State<_ContributionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text('Add to ${widget.goalTitle}'),
+      title: Text(l10n.savingsAddToGoal(widget.goalTitle)),
       content: TextField(
         controller: _controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: const InputDecoration(
-          labelText: 'Amount',
-          prefixText: r'$',
+        decoration: InputDecoration(
+          labelText: l10n.amount,
+          prefixText: '${widget.currencySymbol} ',
         ),
         onSubmitted: (_) => _submit(),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: _submit,
-          child: const Text('Add'),
+          child: Text(l10n.commonAdd),
         ),
       ],
     );

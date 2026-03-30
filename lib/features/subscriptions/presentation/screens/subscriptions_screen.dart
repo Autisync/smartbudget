@@ -8,8 +8,10 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
+import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 enum _SubscriptionFilter {
   critical,
@@ -43,19 +45,21 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
     required int renewingSoonCount,
     required double lowPriorityMonthlyCost,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     if (renewingSoonCount > 0 && criticalCount > 0) {
-      return 'You have $renewingSoonCount renewal${renewingSoonCount == 1 ? '' : 's'} due within 7 days, including essential services. Review them first.';
+      return l10n.subscriptionsDecisionRenewingCritical(renewingSoonCount);
     }
     if (renewingSoonCount > 0) {
-      return '$renewingSoonCount subscription${renewingSoonCount == 1 ? '' : 's'} renew within 7 days. This is the best place to trim near-term spending.';
+      return l10n.subscriptionsDecisionRenewing(renewingSoonCount);
     }
     if (lowPriorityMonthlyCost > 0) {
-      return 'Low-priority subscriptions are costing you ${lowPriorityMonthlyCost.toStringAsFixed(0)} per month. Consider pausing the least-used ones.';
+      return l10n.subscriptionsDecisionLowPriorityCost(
+          lowPriorityMonthlyCost.toStringAsFixed(0));
     }
     if (criticalCount > 0) {
-      return '$criticalCount critical subscription${criticalCount == 1 ? '' : 's'} are tracked. Keep payment methods and renewal dates current.';
+      return l10n.subscriptionsDecisionCritical(criticalCount);
     }
-    return 'Your subscription stack looks stable. Review monthly load and low-priority services to keep it that way.';
+    return l10n.subscriptionsDecisionStable;
   }
 
   List<Subscription> _filterSubscriptions(
@@ -101,15 +105,16 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
   }
 
   String _filterLabel(_SubscriptionFilter filter) {
+    final l10n = AppLocalizations.of(context)!;
     switch (filter) {
       case _SubscriptionFilter.critical:
-        return 'Critical';
+        return l10n.subscriptionsFilterCritical;
       case _SubscriptionFilter.renewingSoon:
-        return 'Renewing Soon';
+        return l10n.subscriptionsFilterRenewingSoon;
       case _SubscriptionFilter.highPriority:
-        return 'High Priority';
+        return l10n.subscriptionsFilterHighPriority;
       case _SubscriptionFilter.lowPriority:
-        return 'Low Priority';
+        return l10n.subscriptionsFilterLowPriority;
     }
   }
 
@@ -130,6 +135,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
         ?.value;
     final colorScheme = Theme.of(context).colorScheme;
 
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: AnimatedContainer(
@@ -142,7 +148,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text('Subscriptions'),
+          child: Text(l10n.navSubscriptions),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -172,14 +178,11 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            style: IconButton.styleFrom(
-              backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-                alpha: _isAppBarScrolled ? 0.9 : 0,
-              ),
+          NotificationBellButton(
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
-            icon: const Icon(Icons.add),
-            onPressed: () => context.push('/subscriptions/add'),
+            onPressed: () => context.push('/notifications'),
           ),
           const SizedBox(width: 8),
         ],
@@ -194,7 +197,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
         child: subscriptionsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => Center(
-            child: Text('Error: $error'),
+            child: Text(l10n.transactionsError(error.toString())),
           ),
           data: (subscriptions) {
             final now = DateTime.now();
@@ -319,7 +322,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Due This Month',
+                                l10n.subscriptionsDueThisMonth,
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleMedium
@@ -334,7 +337,8 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                           if (_activeFilter != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              'Filtered to ${_filterLabel(_activeFilter!).toLowerCase()} subscriptions',
+                              l10n.subscriptionsFilteredTo(
+                                  _filterLabel(_activeFilter!).toLowerCase()),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
@@ -343,11 +347,20 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                               .map((subscription) => ListTile(
                                     title: Text(subscription.name),
                                     subtitle: Text(
-                                      '${CurrencyUtils.formatAmount(displayAmountFor(subscription), displayCurrencyFor(subscription))} - Due ${DateFormat('MMM dd').format(subscription.nextBillingDate)}',
+                                      l10n.subscriptionsDueLine(
+                                        CurrencyUtils.formatAmount(
+                                          displayAmountFor(subscription),
+                                          displayCurrencyFor(subscription),
+                                        ),
+                                        DateFormat('MMM dd').format(
+                                          subscription.nextBillingDate,
+                                        ),
+                                      ),
                                     ),
                                     trailing: Text(
                                       _getBillingCycleText(
-                                          subscription.billingCycle),
+                                        subscription.billingCycle,
+                                      ),
                                       style:
                                           Theme.of(context).textTheme.bodySmall,
                                     ),
@@ -372,13 +385,13 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'No subscriptions yet',
+                                l10n.subscriptionsEmpty,
                                 style:
                                     Theme.of(context).textTheme.headlineSmall,
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Add your first subscription to start tracking',
+                                l10n.subscriptionsEmptySubtitle,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -394,7 +407,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                                 onPressed: () =>
                                     context.push('/subscriptions/add'),
                                 icon: const Icon(Icons.add),
-                                label: const Text('Add Subscription'),
+                                label: Text(l10n.subscriptionsAdd),
                               ),
                             ],
                           ),
@@ -409,7 +422,10 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        'Showing ${filteredSubscriptions.length} ${_filterLabel(_activeFilter!).toLowerCase()} subscription${filteredSubscriptions.length == 1 ? '' : 's'}',
+                                        l10n.subscriptionsShowing(
+                                            filteredSubscriptions.length,
+                                            _filterLabel(_activeFilter!)
+                                                .toLowerCase()),
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyMedium
@@ -425,7 +441,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                                       onPressed: () => setState(() {
                                         _activeFilter = null;
                                       }),
-                                      child: const Text('Clear'),
+                                      child: Text(l10n.transactionsClear),
                                     ),
                                   ],
                                 ),
@@ -448,14 +464,14 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                                             ),
                                             const SizedBox(height: 12),
                                             Text(
-                                              'No matching subscriptions',
+                                              l10n.transactionsNoMatching,
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .titleMedium,
                                             ),
                                             const SizedBox(height: 6),
                                             Text(
-                                              'Try a different filter or clear the current one.',
+                                              l10n.transactionsTryDifferentFilter,
                                               textAlign: TextAlign.center,
                                               style: Theme.of(context)
                                                   .textTheme
@@ -471,6 +487,11 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                                       ),
                                     )
                                   : ListView.builder(
+                                      padding: EdgeInsets.only(
+                                        bottom: 88 +
+                                            MediaQuery.paddingOf(context)
+                                                .bottom,
+                                      ),
                                       itemCount: filteredSubscriptions.length,
                                       itemBuilder: (context, index) {
                                         final subscription =
@@ -497,19 +518,24 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
           },
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/subscriptions/add'),
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
   String _getBillingCycleText(BillingCycle cycle) {
+    final l10n = AppLocalizations.of(context)!;
     switch (cycle) {
       case BillingCycle.weekly:
-        return 'Weekly';
+        return l10n.subscriptionsBillingWeekly;
       case BillingCycle.monthly:
-        return 'Monthly';
+        return l10n.subscriptionsBillingMonthly;
       case BillingCycle.quarterly:
-        return 'Quarterly';
+        return l10n.subscriptionsBillingQuarterly;
       case BillingCycle.yearly:
-        return 'Yearly';
+        return l10n.subscriptionsBillingYearly;
     }
   }
 }
@@ -539,6 +565,7 @@ class _SubscriptionDecisionSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -562,7 +589,7 @@ class _SubscriptionDecisionSummary extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Decision Snapshot',
+                  l10n.insightsDecisionSnapshot,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -584,7 +611,7 @@ class _SubscriptionDecisionSummary extends StatelessWidget {
             children: [
               _SubscriptionSummaryChip(
                 icon: Icons.priority_high_rounded,
-                label: 'Critical',
+                label: l10n.subscriptionsFilterCritical,
                 value: '$criticalCount',
                 tone: colorScheme.error,
                 isSelected: activeFilter == _SubscriptionFilter.critical,
@@ -592,7 +619,7 @@ class _SubscriptionDecisionSummary extends StatelessWidget {
               ),
               _SubscriptionSummaryChip(
                 icon: Icons.event_repeat_rounded,
-                label: 'Next 7 Days',
+                label: l10n.subscriptionsNext7Days,
                 value: '$renewingSoonCount',
                 tone: colorScheme.tertiary,
                 isSelected: activeFilter == _SubscriptionFilter.renewingSoon,
@@ -600,7 +627,7 @@ class _SubscriptionDecisionSummary extends StatelessWidget {
               ),
               _SubscriptionSummaryChip(
                 icon: Icons.bolt_rounded,
-                label: 'High Priority',
+                label: l10n.subscriptionsFilterHighPriority,
                 value: '$highPriorityCount',
                 tone: colorScheme.primary,
                 isSelected: activeFilter == _SubscriptionFilter.highPriority,
@@ -608,13 +635,13 @@ class _SubscriptionDecisionSummary extends StatelessWidget {
               ),
               _SubscriptionSummaryChip(
                 icon: Icons.payments_outlined,
-                label: 'Monthly Load',
+                label: l10n.subscriptionsMonthlyLoad,
                 value: '$currencySymbol${monthlyLoad.toStringAsFixed(0)}',
                 tone: colorScheme.secondary,
               ),
               _SubscriptionSummaryChip(
                 icon: Icons.pause_circle_outline_rounded,
-                label: 'Optional Savings',
+                label: l10n.subscriptionsOptionalSavings,
                 value:
                     '$currencySymbol${lowPriorityMonthlyCost.toStringAsFixed(0)}',
                 tone: colorScheme.outline,
@@ -670,24 +697,31 @@ class _SubscriptionSummaryChip extends StatelessWidget {
               children: [
                 Icon(icon, size: 18, color: tone),
                 const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      value,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                    Text(
-                      label,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -725,8 +759,44 @@ class SubscriptionCard extends StatelessWidget {
     }
   }
 
+  String _getCategoryLabel(AppLocalizations l10n, String category) {
+    switch (category) {
+      case 'Streaming':
+        return l10n.subscriptionsCategoryStreaming;
+      case 'Software':
+        return l10n.subscriptionsCategorySoftware;
+      case 'Cloud Storage':
+        return l10n.subscriptionsCategoryCloudStorage;
+      case 'Fitness':
+        return l10n.subscriptionsCategoryFitness;
+      case 'Music':
+        return l10n.subscriptionsCategoryMusic;
+      case 'News':
+        return l10n.subscriptionsCategoryNews;
+      case 'Communication':
+        return l10n.subscriptionsCategoryCommunication;
+      case 'Productivity':
+        return l10n.subscriptionsCategoryProductivity;
+      case 'Entertainment':
+        return l10n.subscriptionsCategoryEntertainment;
+      case 'Insurance':
+        return l10n.subscriptionsCategoryInsurance;
+      case 'Utilities':
+        return l10n.subscriptionsCategoryUtilities;
+      case 'Transport':
+        return l10n.subscriptionsCategoryTransport;
+      case 'Health':
+        return l10n.subscriptionsCategoryHealth;
+      case 'Other':
+        return l10n.subscriptionsCategoryOther;
+      default:
+        return category;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currencyCode = displayCurrencyCode ?? subscription.currency;
     final currencyFormat = CurrencyUtils.getFormat(currencyCode);
     final amount = displayAmount ?? subscription.amount;
@@ -786,18 +856,26 @@ class SubscriptionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${currencyFormat.format(amount)} per ${_getBillingCycleText(subscription.billingCycle)}',
+                      l10n.subscriptionsPerCycle(
+                        currencyFormat.format(amount),
+                        _getBillingCycleText(
+                            context, subscription.billingCycle),
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Next billing: ${DateFormat('MMM dd, yyyy').format(subscription.nextBillingDate)}',
+                      l10n.subscriptionsNextBilling(
+                        DateFormat('MMM dd, yyyy').format(
+                          subscription.nextBillingDate,
+                        ),
+                      ),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     if (subscription.category.isNotEmpty) ...[
                       const SizedBox(height: 10),
                       Chip(
                         label: Text(
-                          subscription.category,
+                          _getCategoryLabel(l10n, subscription.category),
                           style: const TextStyle(fontSize: 12),
                         ),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -819,7 +897,7 @@ class SubscriptionCard extends StatelessWidget {
                         ),
                   ),
                   Text(
-                    'per month',
+                    l10n.subscriptionsPerMonth,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -831,16 +909,17 @@ class SubscriptionCard extends StatelessWidget {
     );
   }
 
-  String _getBillingCycleText(BillingCycle cycle) {
+  String _getBillingCycleText(BuildContext context, BillingCycle cycle) {
+    final l10n = AppLocalizations.of(context)!;
     switch (cycle) {
       case BillingCycle.weekly:
-        return 'week';
+        return l10n.subscriptionsCycleWeek;
       case BillingCycle.monthly:
-        return 'month';
+        return l10n.subscriptionsCycleMonth;
       case BillingCycle.quarterly:
-        return 'quarter';
+        return l10n.subscriptionsCycleQuarter;
       case BillingCycle.yearly:
-        return 'year';
+        return l10n.subscriptionsCycleYear;
     }
   }
 

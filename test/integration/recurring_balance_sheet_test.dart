@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,7 @@ import 'package:smartbudget/features/dashboard/presentation/providers/financial_
 import 'package:smartbudget/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/intelligence/analyzers/spending_analyzer.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('recurring balance sheet renders scenario lab and simulation',
@@ -71,7 +73,17 @@ void main() {
         overrides: [
           recurringBalanceSheetProvider.overrideWith((ref) async => snapshot),
         ],
-        child: const MaterialApp(home: RecurringBalanceSheetScreen()),
+        child: const MaterialApp(
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('en'),
+          home: RecurringBalanceSheetScreen(),
+        ),
       ),
     );
 
@@ -157,7 +169,17 @@ void main() {
           notificationInboxProvider.overrideWith(
               (ref) => Stream<List<AppNotificationEntry>>.value(const [])),
         ],
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+        ),
       ),
     );
 

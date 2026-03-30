@@ -9,11 +9,13 @@ import 'package:smartbudget/core/services/security_service.dart';
 import 'package:smartbudget/core/services/recurring_scheduler_service.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
 import 'package:smartbudget/core/services/exchange_rate_service.dart';
+import 'package:smartbudget/core/services/currency_migration_service.dart';
 import 'package:smartbudget/core/services/notification_preferences_service.dart';
 import 'package:smartbudget/core/services/rollover_policy_service.dart';
 import 'package:smartbudget/core/services/encryption_service.dart';
 import 'package:smartbudget/core/services/theme_service.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
+import 'package:smartbudget/core/services/locale_service.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart';
 import 'package:smartbudget/data/repositories/subscription_repository_impl.dart';
 
@@ -83,10 +85,21 @@ final currencyServiceProvider = Provider<CurrencyService>((ref) {
   return CurrencyService(storage);
 });
 
+final localeServiceProvider = Provider<LocaleService>((ref) {
+  final storage = ref.watch(secureStorageProvider);
+  return LocaleService(storage);
+});
+
 final appCurrencyControllerProvider =
     StateNotifierProvider<AppCurrencyController, String>((ref) {
   final service = ref.watch(currencyServiceProvider);
   return AppCurrencyController(service);
+});
+
+final appLocaleControllerProvider =
+    StateNotifierProvider<AppLocaleController, Locale>((ref) {
+  final service = ref.watch(localeServiceProvider);
+  return AppLocaleController(service);
 });
 
 final rolloverPolicyServiceProvider = Provider<RolloverPolicyService>((ref) {
@@ -147,6 +160,15 @@ NotificationService notificationService(NotificationServiceRef ref) {
 
 final exchangeRateServiceProvider = Provider<ExchangeRateService>((ref) {
   return ExchangeRateService();
+});
+
+final currencyMigrationServiceProvider =
+    Provider<CurrencyMigrationService>((ref) {
+  final database = ref.watch(databaseProvider);
+  final exchangeRateService = ref.watch(exchangeRateServiceProvider);
+  final currencyService = ref.watch(currencyServiceProvider);
+  return CurrencyMigrationService(
+      database, exchangeRateService, currencyService);
 });
 
 final notificationInboxProvider =

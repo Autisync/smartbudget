@@ -1,0 +1,1371 @@
+{
+  "@@locale": "de",
+  "appTitle": "SmartSpend",
+  "dashboardTitle": "Übersicht",
+  "transactionsTitle": "Transaktionen",
+  "addTransaction": "Transaktion hinzufügen",
+  "income": "Einnahmen",
+  "expense": "Ausgabe",
+  "balance": "Kontostand",
+  "save": "Speichern",
+  "cancel": "Abbrechen",
+  "delete": "Löschen",
+  "edit": "Bearbeiten",
+  "category": "Kategorie",
+  "amount": "Betrag",
+  "date": "Datum",
+  "note": "Notiz",
+  "settings": "Einstellungen",
+  "profile": "Profil",
+  "biometricAuth": "Biometrische Authentifizierung",
+  "darkMode": "Dunkelmodus",
+  "currency": "Währung",
+  "language": "Sprache",
+  "logout": "Abmelden",
+  "noTransactions": "Noch keine Transaktionen",
+  "totalBalance": "Gesamtsaldo",
+  "monthlySpending": "Monatliche Ausgaben",
+  "remainingBudget": "Verbleibendes Budget",
+  "anomalyDetected": "Ungewöhnliche Ausgabe erkannt",
+  "forecastWarning": "Budgetprognose-Warnung",
+  "onboardingSkip": "Überspringen",
+  "onboardingContinue": "Weiter",
+  "onboardingGetStarted": "Loslegen",
+  "onboardingAcceptLegal": "Ich akzeptiere die Allgemeinen Geschäftsbedingungen und die Datenschutzrichtlinie.",
+  "onboardingAcceptLegalError": "Bitte akzeptieren Sie die Bedingungen und die Datenschutzrichtlinie, um fortzufahren.",
+  "onboardingPage1Title": "Übernehmen Sie die Kontrolle über Ihr Geld",
+  "onboardingPage1Description": "Verfolgen Sie Ausgaben, verstehen Sie, wohin Ihr Geld fließt, und bleiben Sie anstehenden Rechnungen in einem zentralen Arbeitsbereich voraus.",
+  "onboardingPage2Title": "Nutzen Sie Ihren Finanz-Copiloten",
+  "onboardingPage2Description": "Prognostizieren Sie Risiken, erkennen Sie Anomalien, prüfen Sie Abonnements und simulieren Sie Ausgabenänderungen, bevor sie Ihren Kontostand beeinflussen.",
+  "onboardingPage3Title": "Schützen Sie sensible Daten",
+  "onboardingPage3Description": "Schützen Sie Ihre Finanzdaten mit biometrischer Authentifizierung, Sitzungssteuerung und klarer Sicherheitsübersicht.",
+  "legalTermsTitle": "Allgemeine Geschäftsbedingungen",
+  "legalTermsSubtitle": "Diese Bedingungen regeln Ihre Nutzung von SmartSpend und seinen Finanzplanungsfunktionen.",
+  "legalTermsUseHeading": "Nutzung der App",
+  "legalTermsUseBody": "SmartSpend dient der persönlichen Finanzorganisation und der Erstellung von Einblicken. Sie sind für die Richtigkeit Ihrer Eingaben und für Entscheidungen verantwortlich, die Sie auf Grundlage der App treffen.",
+  "legalTermsGuidanceHeading": "Finanzielle Hinweise",
+  "legalTermsGuidanceBody": "Einblicke, Prognosen und Empfehlungen dienen nur zu Informationszwecken. Sie stellen keine regulierte Finanz-, Steuer-, Rechts- oder Anlageberatung dar.",
+  "legalTermsSecurityHeading": "Sicherheitsverantwortung",
+  "legalTermsSecurityBody": "Sie sind dafür verantwortlich, die Zugriffskontrollen auf Ihrem Gerät aufrechtzuerhalten, einschließlich Passcodes, Biometrie und Kontoschutz-Einstellungen. Teilen Sie keinen Zugriff auf sensible Finanzinformationen mit unbefugten Personen.",
+  "legalTermsChangesHeading": "Änderungen am Dienst",
+  "legalTermsChangesBody": "Funktionen können sich im Laufe der Zeit weiterentwickeln. SmartSpend kann Funktionen aktualisieren, verbessern, einschränken oder entfernen, wenn sich das Produkt verändert.",
+  "legalPrivacyTitle": "Datenschutzrichtlinie",
+  "legalPrivacySubtitle": "Diese Richtlinie erklärt, welche Daten SmartSpend speichert und wie Ihre Finanzdaten lokal verarbeitet werden.",
+  "legalPrivacyDataHeading": "Welche Daten wir verarbeiten",
+  "legalPrivacyDataBody": "SmartSpend verarbeitet die von Ihnen eingegebenen Transaktionen, Budgets, Abonnements und Sicherheitseinstellungen, um Berichte, Prognosen und Einblicke anzuzeigen.",
+  "legalPrivacyStorageHeading": "Lokale Speicherung",
+  "legalPrivacyStorageBody": "Sensible Einstellungen und Authentifizierungsmetadaten können sicher auf Ihrem Gerät mit plattformsicherem Speicher und lokalen Datenbanken gespeichert werden.",
+  "legalPrivacyBiometricHeading": "Biometrische Authentifizierung",
+  "legalPrivacyBiometricBody": "Wenn Sie Biometrie aktivieren, verwendet SmartSpend das Authentifizierungsframework des Betriebssystems, um Ihre Identität zu prüfen. Biometrische Vorlagen werden vom Betriebssystem verwaltet und sind für die App nicht direkt zugänglich.",
+  "legalPrivacyControlHeading": "Ihre Kontrolle",
+  "legalPrivacyControlBody": "Sie können App-Daten dort prüfen, bearbeiten oder löschen, wo dies unterstützt wird. Außerdem können Sie die biometrische Authentifizierung und damit verbundene Sicherheitsfunktionen jederzeit deaktivieren.",
+  "legalAndOnboarding": "Rechtliches und Onboarding",
+  "reviewTerms": "AGB prüfen",
+  "reviewPrivacy": "Datenschutzrichtlinie prüfen",
+  "restartOnboarding": "Onboarding neu starten",
+  "restartOnboardingSubtitle": "Produkt-Einführung und rechtlichen Zustimmungsablauf erneut anzeigen.",
+  "simulationSpendReductionTitle": "Ausgabenreduktions-Simulator",
+  "simulationSpendReductionSubtitle": "Teste Reduktionsziele und vergleiche die Ergebnisse.",
+  "simulationProjectedMonthlySpend": "Prognostizierte monatliche Ausgaben: {amount}",
+  "@simulationProjectedMonthlySpend": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "simulationProjectedEndBalance": "Prognostizierter Endsaldo: {amount}",
+  "@simulationProjectedEndBalance": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "simulationPotentialSavings": "Potenzielle Ersparnis: {amount}",
+  "@simulationPotentialSavings": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "simulationRecommendationPositive": "Dieses Ziel hilft, deinen Puffer zu erhalten und Risiken zu reduzieren.",
+  "simulationRecommendationNegative": "Selbst mit dieser Reduktion sind möglicherweise tiefere Einschnitte nötig, um im Plus zu bleiben.",
+  "commonNow": "jetzt",
+  "themeSystem": "System",
+  "themeLight": "Hell",
+  "themeDark": "Dunkel",
+  "settingsNotificationsEnabled": "Aktiviert",
+  "settingsNotificationsPaused": "Pausiert",
+  "settingsControlCenterTitle": "Steuerzentrale",
+  "settingsControlCenterSubtitle": "Passe Erscheinungsbild, Automatisierung und Benachrichtigungen an einem Ort an.",
+  "settingsTheme": "Design",
+  "settingsAlerts": "Hinweise",
+  "settingsAppearance": "Darstellung",
+  "settingsAppearanceSubtitle": "Wähle, wie SmartSpend aussehen soll.",
+  "settingsLanguageSubtitle": "Wähle die im gesamten App verwendete Sprache.",
+  "settingsCurrencySubtitle": "Wird für die Anzeige von Geldbeträgen in der gesamten App verwendet.",
+  "settingsBudgetRollover": "Budget-Übertrag",
+  "settingsAutoRolloverBudgets": "Budgets automatisch übertragen",
+  "settingsAutoRolloverBudgetsSubtitle": "Startet automatisch einen neuen Zyklus, wenn ein Budgetzeitraum endet.",
+  "settingsRolloverDay": "Übertragstag",
+  "settingsRolloverDaySubtitle": "Wird für monatliche/jährliche Budgetgrenzen verwendet.",
+  "settingsNotifications": "Benachrichtigungen",
+  "settingsEnableNotifications": "Benachrichtigungen aktivieren",
+  "settingsEnableNotificationsSubtitle": "Hauptschalter für alle Budget-/Sparhinweise.",
+  "settingsNudgeFrequency": "Erinnerungsfrequenz",
+  "frequencyImmediate": "Sofort",
+  "frequencyDaily": "Täglich",
+  "frequencyWeekly": "Wöchentlich",
+  "settingsQuietHours": "Ruhezeiten",
+  "settingsBudgetAlerts": "Budget-Hinweise",
+  "settingsSavingsNudges": "Spar-Erinnerungen",
+  "settingsHealthInsights": "Health-Insights",
+  "settingsNextEligibleSendTime": "Nächster zulässiger Sendezeitpunkt",
+  "settingsSecurity": "Sicherheit",
+  "settingsAuthenticationSettings": "Authentifizierungseinstellungen",
+  "settingsAuthenticationSettingsSubtitle": "Biometrie, Sitzungstimeout und Sperrsteuerung",
+  "settingsBlockedNotificationsDisabled": "Blockiert, weil Benachrichtigungen deaktiviert sind.",
+  "settingsBlockedCategoryDisabled": "Blockiert, weil diese Kategorie deaktiviert ist.",
+  "settingsNotEligibleRightNow": "Derzeit nicht zulässig",
+  "settingsBlockedByQuietHoursUntil": "Durch Ruhezeiten blockiert bis {when} ({countdown}).",
+  "@settingsBlockedByQuietHoursUntil": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "countdown": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsBlockedByFrequencyCooldownUntil": "Durch Frequenzlimit blockiert bis {when} ({countdown}).",
+  "@settingsBlockedByFrequencyCooldownUntil": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "countdown": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNotificationsAreDisabled": "Benachrichtigungen sind deaktiviert.",
+  "settingsThisCategoryIsDisabled": "Diese Kategorie ist deaktiviert.",
+  "settingsReadyToSendNow": "Jetzt zum Senden bereit.",
+  "settingsNextEligible": "Nächste Zulassung: {when}",
+  "@settingsNextEligible": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCalculating": "Wird berechnet...",
+  "settingsUnavailable": "Nicht verfügbar",
+  "insightsFinancialCopilot": "Finanz-Copilot",
+  "insightsCriticalCashflowRisk": "Kritisches Cashflow-Risiko erkannt. Überprüfe deine Ausgaben sofort.",
+  "insightsElevatedCashflowRisk": "Erhöhtes Cashflow-Risiko erkannt. Beobachte deine Ausgaben genau.",
+  "insightsUpcomingRenewalsDueSoon": "{count} bevorstehende Abo-Verlängerung(en) stehen bald an.",
+  "@insightsUpcomingRenewalsDueSoon": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsWeakSecuritySettings": "Die Sicherheitseinstellungen sind schwach. Aktiviere noch heute PIN oder Biometrie.",
+  "insightsDecisionSnapshot": "Entscheidungsübersicht",
+  "insightsRiskLevel": "Risikostufe: {level}",
+  "@insightsRiskLevel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsRiskLow": "NIEDRIG",
+  "insightsRiskMedium": "MITTEL",
+  "insightsRiskHigh": "HOCH",
+  "insightsRiskCritical": "KRITISCH",
+  "insightsMetricSubscriptionPerMonth": "Abos / Monat",
+  "insightsMetricAnomalies": "Anomalien",
+  "insightsMetricRenewals14d": "Verlängerungen (14T)",
+  "insightsMetricSecurityScore": "Sicherheitswert",
+  "insightsNotAvailable": "k. A.",
+  "insightsActionableInsights": "Umsetzbare Insights",
+  "insightsCategoryDistribution": "Kategorienverteilung",
+  "insightsNoCategoryData": "Noch keine Kategoriedaten verfügbar.",
+  "insightsAnomaliesAndImpact": "Anomalien & Auswirkung",
+  "insightsNoUnusualSpending": "Keine ungewöhnlichen Ausgaben erkannt.",
+  "insightsSubscriptionIntelligence": "Abo-Intelligenz",
+  "insightsNoActiveSubscriptions": "Es werden noch keine aktiven Abonnements verfolgt.",
+  "insightsTotalMonthlySubscriptionSpend": "Gesamte monatliche Abo-Ausgaben: {amount}",
+  "@insightsTotalMonthlySubscriptionSpend": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsRenewalsIn14d": "{count} Abonnement(s) verlängern sich in den nächsten 14 Tagen.",
+  "@insightsRenewalsIn14d": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsNoRenewalsIn14d": "Keine Abo-Verlängerungen in den nächsten 14 Tagen fällig.",
+  "insightsSecurityPosture": "Sicherheitslage",
+  "insightsSecurityConfiguration": "Biometrie: {biometric} • PIN: {pin}",
+  "@insightsSecurityConfiguration": {
+    "placeholders": {
+      "biometric": {
+        "type": "String"
+      },
+      "pin": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsEnabled": "aktiviert",
+  "insightsDisabled": "deaktiviert",
+  "insightsSecurityConfigurationUnavailable": "Sicherheitskonfiguration nicht verfügbar.",
+  "insightsLastUpdate": "Letztes Update: {date}",
+  "@insightsLastUpdate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsConnectSecuritySettings": "Verbinde deine Sicherheitseinstellungen für personalisierte Empfehlungen.",
+  "insightsErrorLoading": "Fehler beim Laden der Insights: {error}",
+  "@insightsErrorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsNoForecastData": "Keine Prognosedaten verfügbar",
+  "insightsForecastChart": "Prognosediagramm",
+  "insightsActual": "Ist",
+  "insightsPredicted": "Prognose",
+  "insightsImpact": "Auswirkung",
+  "insightsAction": "Aktion",
+  "securitySettingsTitle": "Sicherheitseinstellungen",
+  "securityAuthenticationAccess": "Authentifizierung und Zugriff",
+  "securityBiometricAuth": "Biometrische Authentifizierung",
+  "securityBiometricAuthSubtitle": "Verwende Face ID / Touch ID zum Entsperren von SmartSpend.",
+  "securitySessionTimeout": "Sitzungs-Timeout",
+  "securitySessionTimeoutSubtitle": "{minutes} Minuten bis zur erneuten Authentifizierung",
+  "@securitySessionTimeoutSubtitle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "securityMinutesShort": "{minutes} min",
+  "@securityMinutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "securityLockoutThreshold": "Sperrschwelle",
+  "securityLockoutThresholdSubtitle": "Konto nach {attempts} fehlgeschlagenen Versuchen sperren",
+  "@securityLockoutThresholdSubtitle": {
+    "placeholders": {
+      "attempts": {
+        "type": "int"
+      }
+    }
+  },
+  "securityRecentAttempts": "Letzte Authentifizierungsversuche",
+  "securityNoAttempts": "Noch keine Versuche aufgezeichnet.",
+  "securityErrorLoadingLogs": "Fehler beim Laden der Protokolle: {error}",
+  "@securityErrorLoadingLogs": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "securityErrorLoadingSettings": "Fehler beim Laden der Sicherheitseinstellungen: {error}",
+  "@securityErrorLoadingSettings": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsTitle": "Berichte und Export",
+  "reportsPeriod": "Berichtszeitraum",
+  "reportsFrom": "Von",
+  "reportsTo": "Bis",
+  "reportsQuickSelect": "Schnellauswahl",
+  "reportsThisWeek": "Diese Woche",
+  "reportsThisMonth": "Dieser Monat",
+  "reportsLastMonth": "Letzter Monat",
+  "reportsLast3Months": "Letzte 3 Monate",
+  "reportsThisYear": "Dieses Jahr",
+  "reportsGenerateReports": "Berichte erstellen",
+  "reportsFinancialSummary": "Finanzübersicht ({currencyCode})",
+  "@reportsFinancialSummary": {
+    "placeholders": {
+      "currencyCode": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsFinancialSummaryDescription": "Vollständiger Überblick über Einnahmen, Ausgaben und Ersparnisse",
+  "reportsTransactionHistory": "Transaktionsverlauf",
+  "reportsTransactionHistoryDescription": "Detaillierte Liste aller Transaktionen im Zeitraum",
+  "reportsBudgetAnalysis": "Budgetanalyse",
+  "reportsBudgetAnalysisDescription": "Budgetleistung und Ausgabenmuster",
+  "reportsSubscriptionCosts": "Abonnementkosten",
+  "reportsSubscriptionCostsDescription": "Monatliche Aufschlüsselung der Abo-Ausgaben",
+  "reportsActivity": "Berichtsaktivität",
+  "reportsGenerated": "Erstellt",
+  "reportsToday": "Heute",
+  "reportsTypesUsed": "Verwendete Typen",
+  "reportsLastRun": "Letzter Lauf",
+  "reportsNone": "Keine",
+  "reportsRuns": "{count} Läufe",
+  "@reportsRuns": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportsGeneratedReports": "Erstellte Berichte",
+  "reportsNoGeneratedReports": "Noch keine Berichte erstellt. Führe einen Bericht aus, um ihn hier zu sehen.",
+  "reportsExportAsPdf": "Als PDF exportieren",
+  "reportsExportAsCsv": "Als CSV exportieren",
+  "reportsShareFinancialSummary": "Finanzübersichtsbericht",
+  "reportsPdfGeneratedShared": "PDF-Bericht erstellt und geteilt",
+  "reportsErrorGenerating": "Fehler beim Erstellen des Berichts: {error}",
+  "@reportsErrorGenerating": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsShareTransactionHistory": "Transaktionsverlauf-Export",
+  "reportsTransactionHistoryExported": "Transaktionsverlauf exportiert",
+  "reportsErrorExportingData": "Fehler beim Exportieren der Daten: {error}",
+  "@reportsErrorExportingData": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsShareBudgetAnalysis": "Budgetanalysebericht",
+  "reportsBudgetAnalysisGenerated": "Budgetanalysebericht erstellt",
+  "reportsShareSubscriptionReport": "Abonnementbericht",
+  "reportsSubscriptionReportGenerated": "Abonnementbericht erstellt",
+  "reportsShareCompleteDataExport": "Vollständiger Datenexport",
+  "reportsCompleteDataExportCreated": "Vollständiger Datenexport erstellt",
+  "reportsTypeIncome": "Einnahme",
+  "reportsTypeExpense": "Ausgabe",
+  "reportsTypeTransfer": "Transfer",
+  "reportsBillingWeekly": "Wöchentlich",
+  "reportsBillingMonthly": "Monatlich",
+  "reportsBillingQuarterly": "Vierteljährlich",
+  "reportsBillingYearly": "Jährlich",
+  "reportsPdfFinancialSummaryTitle": "Finanzübersichtsbericht",
+  "reportsPdfBudgetAnalysisTitle": "Budgetanalysebericht",
+  "reportsPdfSubscriptionReportTitle": "Abonnementbericht",
+  "reportsPdfPeriod": "Zeitraum",
+  "reportsPdfIncomeExpenses": "Einnahmen und Ausgaben",
+  "reportsPdfTotalIncome": "Gesamteinnahmen",
+  "reportsPdfTotalExpenses": "Gesamtausgaben",
+  "reportsPdfNetIncome": "Nettoergebnis",
+  "reportsPdfMonthlySubscriptions": "Monatliche Abonnements",
+  "reportsPdfBudgetUtilization": "Budgetauslastung",
+  "reportsPdfRecentTransactions": "Letzte Transaktionen",
+  "reportsPdfBudgetPerformance": "Budgetleistung",
+  "reportsPdfLimit": "Limit",
+  "reportsPdfSpent": "Ausgegeben",
+  "reportsPdfStatus": "Status",
+  "reportsStatusOverBudget": "Über Budget",
+  "reportsStatusNearLimit": "Nahe am Limit",
+  "reportsStatusOnTrack": "Im Plan",
+  "reportsPdfSummary": "Zusammenfassung",
+  "reportsPdfTotalBudgets": "Gesamtbudgets",
+  "reportsPdfOverBudget": "Über Budget",
+  "reportsPdfNearLimit": "Nahe am Limit",
+  "reportsPdfOnTrack": "Im Plan",
+  "reportsPdfTotalActiveSubscriptions": "Gesamtzahl aktiver Abonnements",
+  "reportsPdfMonthlyTotalCost": "Monatliche Gesamtkosten",
+  "reportsPdfYearlyTotalCost": "Jährliche Gesamtkosten",
+  "reportsPdfActiveSubscriptions": "Aktive Abonnements",
+  "reportsPdfAmount": "Betrag",
+  "reportsPdfMonthlyCost": "Monatliche Kosten",
+  "reportsPdfNextDue": "Nächste Fälligkeit",
+  "reportsCsvHeaderDate": "Datum",
+  "reportsCsvHeaderCategory": "Kategorie",
+  "reportsCsvHeaderAmount": "Betrag",
+  "reportsCsvHeaderType": "Typ",
+  "reportsCsvHeaderNote": "Notiz",
+  "reportsCsvHeaderDescription": "Beschreibung",
+  "reportsCsvRowTransaction": "Transaktion",
+  "reportsCsvRowSubscription": "Abonnement",
+  "reportsCompleteDataExportTitle": "Vollständiger Datenexport",
+  "navHome": "Start",
+  "navBudgets": "Budgets",
+  "navSavings": "Sparen",
+  "navSubscriptions": "Abos",
+  "navInsights": "Insights",
+  "navTxns": "Trans.",
+  "navMore": "Mehr",
+  "navBalanceSheet": "Bilanz",
+  "navExchangeRates": "Wechselkurse",
+  "authSecureFinancialManagement": "Sichere Finanzverwaltung",
+  "authBiometricNotAvailable": "Biometrische Authentifizierung ist auf diesem Mac nicht verfügbar. Prüfen Sie, ob Touch ID in den Systemeinstellungen aktiviert ist.",
+  "authNoBiometricsEnrolled": "Keine Biometrie hinterlegt. Fügen Sie Touch ID in den Systemeinstellungen hinzu und versuchen Sie es erneut.",
+  "authBiometricLockedOut": "Biometrische Authentifizierung ist vorübergehend gesperrt. Versuchen Sie es später erneut.",
+  "authBiometricPermanentlyLocked": "Biometrische Authentifizierung ist gesperrt. Entsperren Sie zuerst mit dem Gerätecode.",
+  "authDenied": "Authentifizierung wurde abgebrochen oder verweigert. Bitte erneut versuchen.",
+  "authSystemError": "Authentifizierung ist aufgrund eines Systemfehlers fehlgeschlagen. Bitte erneut versuchen.",
+  "authAuthenticated": "Authentifiziert",
+  "authAuthenticate": "Authentifizieren",
+  "transactionsDecisionOutpacingIncome": "Die Ausgaben übersteigen diesen Monat die Einnahmen. Prüfen Sie zuerst Ihre größte Kategorie.",
+  "transactionsDecisionTopCategory": "Die meisten Ausgaben sind in {category}. Dort können Sie diesen Monat am schnellsten optimieren.",
+  "@transactionsDecisionTopCategory": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "transactionsDecisionBalanced": "Ihr Transaktionsfluss ist ausgeglichen. Behalten Sie wiederkehrende Aktivitäten im Blick.",
+  "transactionsNoMatching": "Keine passenden Transaktionen",
+  "transactionsTryDifferentFilter": "Versuchen Sie einen anderen Filter oder löschen Sie den aktuellen.",
+  "transactionsClear": "Löschen",
+  "transactionsDeleted": "Transaktion gelöscht",
+  "transactionsNoNote": "Keine Notiz",
+  "transactionsError": "Fehler: {error}",
+  "@transactionsError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "transactionsRecurrenceDaily": "Täglich",
+  "transactionsRecurrenceWeekly": "Wöchentlich",
+  "transactionsRecurrenceMonthly": "Monatlich",
+  "transactionsRecurrenceYearly": "Jährlich",
+  "transactionsRecurrenceNone": "Keine",
+  "transactionsSpent": "Ausgegeben",
+  "transactionsRecurring": "Wiederkehrend",
+  "transactionsNetFlow": "Nettofluss",
+  "transactionsTopCategory": "Top-Kategorie",
+  "transactionsUpdateTransaction": "Transaktion aktualisieren",
+  "transactionsEnterAmount": "Betrag eingeben",
+  "transactionsInvalidNumber": "Ungültige Zahl",
+  "transactionsNoteOptional": "Notiz (optional)",
+  "transactionsRecurrence": "Wiederholung",
+  "transactionsSaveTransaction": "Transaktion speichern",
+  "transactionsSaved": "Transaktion gespeichert",
+  "transactionsEditTransaction": "Transaktion bearbeiten",
+  "transactionsNotFound": "Transaktion nicht gefunden",
+  "exchangeUnableToFetch": "Wechselkurs konnte nicht abgerufen werden.",
+  "exchangeLiveRateChecker": "Live-Kursprüfer",
+  "exchangeRateProviderInfo": "Kurse bereitgestellt von ExchangeRate-API / Frankfurter. Nur zu Informationszwecken.",
+  "exchangeRatesFrom": "Von",
+  "exchangeRatesTo": "Nach",
+  "exchangeRatesSwap": "Währungen tauschen",
+  "exchangeRatesCheckRate": "Kurs prüfen",
+  "exchangeRatesConversionResult": "Umrechnungsergebnis",
+  "exchangeRatesTrend7Days": "Trend der letzten 7 Tage",
+  "exchangeRatesRateDate": "Kursdatum: {date}",
+  "@exchangeRatesRateDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsDecisionRenewingCritical": "Sie haben {count} Verlängerung(en) innerhalb der nächsten 7 Tage, einschließlich essenzieller Dienste. Prüfen Sie diese zuerst.",
+  "@subscriptionsDecisionRenewingCritical": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subscriptionsDecisionRenewing": "{count} Abonnement(s) verlängern sich innerhalb der nächsten 7 Tage. Das ist der beste Ansatzpunkt, um kurzfristige Ausgaben zu senken.",
+  "@subscriptionsDecisionRenewing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subscriptionsDecisionLowPriorityCost": "Abonnements mit niedriger Priorität kosten Sie {amount} pro Monat. Erwägen Sie, die am wenigsten genutzten zu pausieren.",
+  "@subscriptionsDecisionLowPriorityCost": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsDecisionCritical": "{count} kritische(s) Abonnement(s) werden verfolgt. Halten Sie Zahlungsmethoden und Verlängerungsdaten aktuell.",
+  "@subscriptionsDecisionCritical": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subscriptionsDecisionStable": "Ihr Abonnementbestand wirkt stabil. Prüfen Sie die monatliche Belastung und Dienste mit niedriger Priorität, damit das so bleibt.",
+  "subscriptionsFilterCritical": "Kritisch",
+  "subscriptionsFilterRenewingSoon": "Bald fällig",
+  "subscriptionsFilterHighPriority": "Hohe Priorität",
+  "subscriptionsFilterLowPriority": "Niedrige Priorität",
+  "subscriptionsDueThisMonth": "Diesen Monat fällig",
+  "subscriptionsFilteredTo": "Gefiltert auf {filter}-Abonnements",
+  "@subscriptionsFilteredTo": {
+    "placeholders": {
+      "filter": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsEmpty": "Noch keine Abonnements",
+  "subscriptionsEmptySubtitle": "Fügen Sie Ihr erstes Abonnement hinzu, um die Verfolgung zu starten",
+  "subscriptionsAdd": "Abonnement hinzufügen",
+  "subscriptionsShowing": "Zeige {count} {filter}-Abonnement(s)",
+  "@subscriptionsShowing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "filter": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsDueLine": "{amount} - Fällig am {date}",
+  "@subscriptionsDueLine": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsBillingWeekly": "Wöchentlich",
+  "subscriptionsBillingMonthly": "Monatlich",
+  "subscriptionsBillingQuarterly": "Vierteljährlich",
+  "subscriptionsBillingYearly": "Jährlich",
+  "subscriptionsNext7Days": "Nächste 7 Tage",
+  "subscriptionsMonthlyLoad": "Monatliche Belastung",
+  "subscriptionsOptionalSavings": "Optionale Einsparung",
+  "subscriptionsPerCycle": "{amount} pro {cycle}",
+  "@subscriptionsPerCycle": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "cycle": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsNextBilling": "Nächste Abrechnung: {date}",
+  "@subscriptionsNextBilling": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsPerMonth": "pro Monat",
+  "subscriptionsCycleWeek": "Woche",
+  "subscriptionsCycleMonth": "Monat",
+  "subscriptionsCycleQuarter": "Quartal",
+  "subscriptionsCycleYear": "Jahr",
+  "subscriptionsCategoryStreaming": "Streaming",
+  "subscriptionsCategorySoftware": "Software",
+  "subscriptionsCategoryCloudStorage": "Cloud-Speicher",
+  "subscriptionsCategoryFitness": "Fitness",
+  "subscriptionsCategoryMusic": "Musik",
+  "subscriptionsCategoryNews": "Nachrichten",
+  "subscriptionsCategoryCommunication": "Kommunikation",
+  "subscriptionsCategoryProductivity": "Produktivität",
+  "subscriptionsCategoryEntertainment": "Unterhaltung",
+  "subscriptionsCategoryInsurance": "Versicherung",
+  "subscriptionsCategoryUtilities": "Versorger",
+  "subscriptionsCategoryTransport": "Transport",
+  "subscriptionsCategoryHealth": "Gesundheit",
+  "subscriptionsCategoryOther": "Sonstiges",
+  "subscriptionsImportanceLow": "Niedrig - Optional/Nice-to-have",
+  "subscriptionsImportanceMedium": "Mittel - Regelmäßige Nutzung",
+  "subscriptionsImportanceHigh": "Hoch - Wichtiger Dienst",
+  "subscriptionsImportanceCritical": "Kritisch - Essenzieller Dienst",
+  "subscriptionsSaveError": "Fehler beim Speichern des Abonnements: {error}",
+  "@subscriptionsSaveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsEditSubscription": "Abonnement bearbeiten",
+  "subscriptionsAddSubscription": "Abonnement hinzufügen",
+  "subscriptionsName": "Name des Abonnements",
+  "subscriptionsNameHint": "z. B. Netflix, Spotify",
+  "subscriptionsEnterName": "Bitte einen Namen für das Abonnement eingeben",
+  "subscriptionsRequired": "Erforderlich",
+  "subscriptionsInvalidAmount": "Ungültiger Betrag",
+  "subscriptionsBillingCycle": "Abrechnungszyklus",
+  "subscriptionsImportance": "Priorität",
+  "subscriptionsCostSummary": "Kostenübersicht",
+  "subscriptionsMonthlyCost": "Monatliche Kosten",
+  "subscriptionsAnnualCost": "Jährliche Kosten",
+  "subscriptionsStartDate": "Startdatum",
+  "subscriptionsNextBillingLabel": "Nächste Abrechnung",
+  "subscriptionsOptionalDetails": "Optionale Details",
+  "subscriptionsPaymentMethod": "Zahlungsmethode",
+  "subscriptionsPaymentMethodHint": "z. B. Kreditkarte, PayPal",
+  "subscriptionsWebsite": "Website",
+  "subscriptionsWebsiteHint": "z. B. netflix.com",
+  "subscriptionsNotes": "Notizen",
+  "subscriptionsNotesHint": "Fügen Sie Notizen zu diesem Abonnement hinzu",
+  "subscriptionsDecisionHelp": "Entscheidungshilfe",
+  "subscriptionsDecisionEnterAmount": "Geben Sie einen Betrag ein, um Vorschläge zu sehen",
+  "subscriptionsDecisionHighAnnualCost": "Hohe Jahreskosten ({amount}) - Prüfen Sie, ob dies essenziell ist oder ersetzt werden kann",
+  "@subscriptionsDecisionHighAnnualCost": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsDecisionModerateAnnualCost": "Mittlere Jahreskosten ({amount}) - Stellen Sie sicher, dass Sie dies aktiv nutzen",
+  "@subscriptionsDecisionModerateAnnualCost": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsDecisionTrackRegularly": "Regelmäßig verfolgen, um inaktive Abonnements zu vermeiden",
+  "subscriptionsLoadError": "Fehler beim Laden des Abonnements: {error}",
+  "@subscriptionsLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionsNotFound": "Abonnement nicht gefunden",
+  "notificationsTitle": "Benachrichtigungen",
+  "notificationsEmpty": "Noch keine Benachrichtigungen",
+  "notificationsEmptySubtitle": "Budgetwarnungen, Sparhinweise und Gesundheits-Insights werden hier angezeigt.",
+  "notificationsLoadError": "Fehler beim Laden der Benachrichtigungen: {error}",
+  "@notificationsLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "financialHealthTitle": "Finanzielle Gesundheit",
+  "financialHealthStatusStrong": "Stark",
+  "financialHealthStatusNeedsAttention": "Benötigt Aufmerksamkeit",
+  "financialHealthStatusAtRisk": "Gefährdet",
+  "financialHealthPortfolio": "Gesundheitsportfolio",
+  "financialHealthScore": "Punktzahl",
+  "financialHealthGoals": "Ziele",
+  "financialHealthUpdateWeekly": "Wöchentlich aktualisieren",
+  "financialHealthActiveCounts": "Aktive Budgets: {budgets} • Aktive Ziele: {goals}",
+  "@financialHealthActiveCounts": {
+    "placeholders": {
+      "budgets": {
+        "type": "int"
+      },
+      "goals": {
+        "type": "int"
+      }
+    }
+  },
+  "financialHealthBudgetDiscipline": "Budgetdisziplin",
+  "financialHealthBudgetDisciplineDescription": "Misst den Druck durch fast ausgeschöpfte und überschrittene Budgets.",
+  "financialHealthSavingsMomentum": "Sparmomentum",
+  "financialHealthSavingsMomentumDescription": "Misst den Fortschritt der Ziele und die Einhaltung des Zeitplans.",
+  "financialHealthBudgetUtilization": "Budgetnutzung",
+  "financialHealthBudgetUtilizationDescription": "Misst die Ausgabeneffizienz auf Kategorieebene über Budgetzeiträume hinweg.",
+  "financialHealthTrendWindow": "Trendfenster",
+  "financialHealthWeeks": "{count} Wochen",
+  "@financialHealthWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "financialHealthRecommendations": "Empfehlungen",
+  "financialHealthRecommendationExceeded": "Reduziere diskretionäre Ausgaben in Kategorien, die das Budget bereits überschritten haben.",
+  "financialHealthRecommendationNearLimit": "Gewichte Budgets nahe am Limit neu, bevor der Zeitraum endet.",
+  "financialHealthRecommendationBehindGoals": "Erhöhe die monatlichen Beiträge für {count} Ziel(e) im Rückstand.",
+  "@financialHealthRecommendationBehindGoals": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "financialHealthRecommendationEnableAutoAllocation": "Aktiviere die automatische Zuweisung für mindestens ein Sparziel, um die Regelmäßigkeit zu verbessern.",
+  "financialHealthRecommendationStable": "Behalte dein aktuelles Tempo bei und überprüfe deinen Gesundheitswert wöchentlich.",
+  "financialHealthWeeklyNoteNoIncome": "In dieser Woche wurden keine Einnahmen erfasst; der Ausgabendruck ist gestiegen.",
+  "financialHealthWeeklyNoteImproved": "Die finanzielle Gesundheit hat sich durch eine stärkere wöchentliche Cashflow-Balance verbessert.",
+  "financialHealthWeeklyNoteDropped": "Die finanzielle Gesundheit ist diese Woche wegen höherem Ausgabendruck gesunken.",
+  "financialHealthWeeklyNoteStable": "Stabile Woche mit nur wenig Veränderung im Finanzverhalten.",
+  "financialHealthWeeklyTrajectory": "Wöchentlicher Gesundheitsverlauf",
+  "financialHealthOverallChange": "Gesamtveränderung: {delta} Punkte über {weeks} Wochen.",
+  "@financialHealthOverallChange": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      },
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "financialHealthBiggestGain": "Größter Anstieg: {delta} am {date}.",
+  "@financialHealthBiggestGain": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "financialHealthBiggestDrop": "Größter Rückgang: {delta} am {date}.",
+  "@financialHealthBiggestDrop": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsNudgeBehindTitle": "Du liegst bei {goal} zurück",
+  "@savingsNudgeBehindTitle": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsNudgeBehindMessage": "Du liegst etwa {amount} hinter dem Plan. Erwäge, deine monatliche Sparrate zu erhöhen.",
+  "@savingsNudgeBehindMessage": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsNudgeAutoAllocateTitle": "Aktiviere die automatische Zuweisung für {goal}",
+  "@savingsNudgeAutoAllocateTitle": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsNudgeAutoAllocateMessage": "Die automatische Zuweisung kann helfen, die Beiträge jeden Monat konstant zu halten.",
+  "commonOpen": "Open",
+  "commonSeeAll": "See All",
+  "commonViewDetails": "View details",
+  "commonClose": "Close",
+  "commonAdd": "Add",
+  "dashboardBudgetExceededTitle": "Budget Exceeded!",
+  "dashboardBudgetAlertTitle": "Budget Alert",
+  "dashboardBudgetAlertBody": "{category} spending is at {percent}% of limit",
+  "@dashboardBudgetAlertBody": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardHealthNeedsAttentionTitle": "Financial health needs attention",
+  "dashboardHealthNeedsAttentionBody": "Your score is {score}. Review the Health details for actions.",
+  "@dashboardHealthNeedsAttentionBody": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardMetricsTransactions": "Transactions",
+  "dashboardMetricsBudgetAlerts": "Budget alerts",
+  "dashboardMetricsHealthScore": "Money Health Index",
+  "dashboardBalanceSheetTitle": "Recurring Balance Sheet",
+  "dashboardBalanceSheetSubtitle": "See if recurring income covers recurring bills and subscriptions.",
+  "dashboardSectionThisMonth": "This Month",
+  "dashboardSectionBudgetAlerts": "Budget Alerts",
+  "dashboardNoActiveBudgetAlerts": "No active budget alerts",
+  "dashboardAlertExceeded": "{category} exceeded {threshold}% ({progress}%)",
+  "@dashboardAlertExceeded": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardAlertNearing": "{category} nearing {threshold}% ({progress}%)",
+  "@dashboardAlertNearing": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardCheckingAlerts": "Checking alerts...",
+  "dashboardAlertError": "Alert error: {error}",
+  "@dashboardAlertError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardRecentTransactions": "Recent Transactions",
+  "dashboardErrorLoadingTransactions": "Error loading transactions",
+  "dashboardBurnRate": "Burn Rate",
+  "dashboardUnusualTransactionsDetected": "{count} unusual transactions detected",
+  "@dashboardUnusualTransactionsDetected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardTrendRising": "↑ Rising",
+  "dashboardTrendFalling": "↓ Falling",
+  "dashboardTrendStable": "→ Stable",
+  "dashboardHealthBreakdown": "Budget discipline: {budget} • Savings momentum: {savings}",
+  "@dashboardHealthBreakdown": {
+    "placeholders": {
+      "budget": {
+        "type": "String"
+      },
+      "savings": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardFailedToLoadInsights": "Failed to load insights",
+  "dashboardLiveRateCheck": "Live Rate Check",
+  "dashboardRefreshRate": "Refresh rate",
+  "dashboardQuickQuoteSubtitle": "Quick quote for your selected app currency.",
+  "dashboardRateUnavailable": "Rate unavailable right now. Try again or open the full tool.",
+  "dashboardRateUpdated": "Updated {date}",
+  "@dashboardRateUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardOpenFullTool": "Open full tool",
+  "budgetEmptyTitle": "Set your first monthly budget",
+  "budgetEmptySubtitle": "Create category budgets to track spending in real-time and avoid overspending.",
+  "budgetCreateButton": "Create Budget",
+  "budgetDecisionNeedsAttention": "{count} budget(s) need attention. Review the red and amber categories before adding new spend.",
+  "@budgetDecisionNeedsAttention": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetDecisionStable": "Your current budget setup is stable. Use rollover only after confirming categories still fit this month.",
+  "budgetPortfolioTitle": "Budget portfolio",
+  "budgetCategories": "Categories",
+  "budgetTotalLimit": "Total Limit",
+  "budgetAtRisk": "At Risk",
+  "budgetAverageAlert": "Avg Alert",
+  "budgetRolloverNow": "Rollover now",
+  "budgetSwipeRightHint": "Swipe right: +10% budget",
+  "budgetSwipeLeftHint": "Swipe left: -10% budget",
+  "budgetIncreasedSnack": "{category} budget increased by 10%",
+  "@budgetIncreasedSnack": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetReducedSnack": "{category} budget reduced by 10%",
+  "@budgetReducedSnack": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetCycleAlert": "{period} cycle • Alert {threshold}%",
+  "@budgetCycleAlert": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "threshold": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetEdit": "Edit budget",
+  "budgetDelete": "Delete budget",
+  "budgetLimitLabel": "Limit {amount}",
+  "@budgetLimitLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetStatusOnTrack": "On track",
+  "budgetStatusSoftWarning": "Soft warning",
+  "budgetStatusHighAlert": "High alert",
+  "budgetStatusExceeded": "Exceeded",
+  "budgetPeriodEnded": "Period ended",
+  "budgetDaysLeft": "{days} days left",
+  "@budgetDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetSpendingProgress": "{spent} spent • {remaining} remaining • {percent}% used",
+  "@budgetSpendingProgress": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetTapBarHint": "Tap bar to view transactions in this category",
+  "budgetProjectedOverrun": "At this pace, you may exceed this budget by {amount}",
+  "@budgetProjectedOverrun": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetAdjustAmount": "Adjust amount",
+  "budgetErrorLoadingProgress": "Error loading progress",
+  "budgetRolloverComplete": "Budget rollover check complete.",
+  "budgetNoTransactionsForCategory": "No transactions found for this budget category yet.",
+  "budgetCategoryTransactions": "{category} transactions",
+  "@budgetCategoryTransactions": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetCreate": "Create budget",
+  "budgetAmount": "Budget amount",
+  "budgetCategoryHint": "Food, Transport, Bills...",
+  "budgetEnterCategory": "Enter a category",
+  "budgetEnterValidAmount": "Enter a valid amount",
+  "budgetPeriod": "Period",
+  "budgetAlertAt": "Alert at {percent}%",
+  "@budgetAlertAt": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetAlertPercent": "{percent}%",
+  "@budgetAlertPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetStartDate": "Start date",
+  "budgetSave": "Save budget",
+  "budgetUpdate": "Update budget",
+  "savingsGoalsTitle": "Savings Goals",
+  "savingsEmptyTitle": "Create your first savings goal",
+  "savingsEmptySubtitle": "Define a target amount and optional deadline to build savings intentionally.",
+  "savingsCreateGoal": "Create Goal",
+  "savingsGoalsBehindPace": "{count} goal(s) are behind pace. Focus new contributions there first.",
+  "@savingsGoalsBehindPace": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savingsMonthlySurplusMessage": "You have {amount} of monthly surplus available to accelerate your top priority goal.",
+  "@savingsMonthlySurplusMessage": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsSteadyProgress": "Progress is steady. Keep contributions consistent to protect your deadlines.",
+  "savingsPortfolioTitle": "Savings portfolio",
+  "savingsSaved": "Saved",
+  "savingsTarget": "Target",
+  "savingsNudgesLabel": "Nudges",
+  "savingsSurplusDetected": "Surplus detected: {amount}",
+  "@savingsSurplusDetected": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsAllocateSurplusHint": "Allocate part of this surplus to accelerate your goals.",
+  "savingsAllocateAmount": "Allocate ${amount}",
+  "@savingsAllocateAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsEditGoal": "Edit goal",
+  "savingsDeleteGoal": "Delete goal",
+  "savingsTimelineTracked": "Timeline tracked",
+  "savingsProgressLine": "{percent}% complete • {remaining} remaining",
+  "@savingsProgressLine": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsDeadlineLabel": "Deadline: {date}",
+  "@savingsDeadlineLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsSuggestionMonthly": "Suggestion: Save {amount}/month to stay on track.",
+  "@savingsSuggestionMonthly": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsProjectedLate": "At current pace, this goal may finish about {months} month(s) late.",
+  "@savingsProjectedLate": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "savingsAddFunds": "Add funds",
+  "savingsSimulatePlus50": "Simulate +$50/mo",
+  "savingsGoalAchieved": "Goal achieved! Archive it or create a new one to keep momentum.",
+  "savingsScenarioSimulationTitle": "Scenario simulation",
+  "savingsUnableEstimateCompletion": "Unable to estimate completion date with current data.",
+  "savingsScenarioEstimate": "If you increase savings by {amount}/month, you could complete this goal in about {months} month(s).",
+  "@savingsScenarioEstimate": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "savingsStatusCompleted": "Completed",
+  "savingsStatusBehindSchedule": "Behind schedule",
+  "savingsStatusOnPace": "On pace",
+  "savingsStatusBuildingMomentum": "Building momentum",
+  "savingsTimeProgressLine": "Time progress {time}% • Savings progress {savings}%",
+  "@savingsTimeProgressLine": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "savings": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalName": "Goal name",
+  "savingsEnterGoalName": "Enter a goal name",
+  "savingsTargetAmount": "Target amount",
+  "savingsEnterValidTargetAmount": "Enter a valid target amount",
+  "savingsCurrentSavedAmount": "Current saved amount",
+  "savingsEnterValidSavedAmount": "Enter a valid saved amount",
+  "savingsPriority": "Priority",
+  "savingsEnableAutoAllocation": "Enable auto-allocation",
+  "savingsDeadlineOptional": "Deadline (optional)",
+  "savingsNoDeadline": "No deadline",
+  "savingsSaveGoal": "Save goal",
+  "savingsUpdateGoal": "Update goal",
+  "savingsAddToGoal": "Add to {goal}",
+  "@savingsAddToGoal": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetRecurringType": "Recurring {type}",
+  "@balanceSheetRecurringType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightEmptyTitle": "No recurring plan available yet",
+  "balanceSheetInsightEmptyExplanation": "Add recurring transactions or subscriptions to generate a balance sheet.",
+  "balanceSheetInsightEmptyImpact": "Without recurring entries, the app cannot estimate fixed monthly commitments.",
+  "balanceSheetInsightEmptyAction": "Mark salary, rent, loan payments, and subscriptions as recurring to unlock planning.",
+  "balanceSheetInsightShortfallTitle": "Recurring plan is running a deficit",
+  "balanceSheetInsightShortfallExplanation": "Your recurring income misses monthly obligations by {amount}.",
+  "@balanceSheetInsightShortfallExplanation": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightShortfallImpact": "If nothing changes, fixed commitments alone can force you to borrow or cut essentials.",
+  "balanceSheetInsightShortfallActionOptional": "Reduce at least {amount} from optional subscriptions, then review large recurring bills.",
+  "@balanceSheetInsightShortfallActionOptional": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightShortfallAction": "Increase recurring income or reduce fixed expenses by at least {amount}.",
+  "@balanceSheetInsightShortfallAction": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightThinBufferTitle": "Recurring coverage is positive but thin",
+  "balanceSheetInsightThinBufferExplanation": "Your fixed-income plan covers obligations with only {amount} left each month.",
+  "@balanceSheetInsightThinBufferExplanation": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightThinBufferImpact": "A small change in income or a missed payment could remove your margin quickly.",
+  "balanceSheetInsightThinBufferAction": "Build an extra buffer by trimming one recurring expense or redirecting new income into essentials first.",
+  "balanceSheetInsightCoveredTitle": "Recurring obligations are currently covered",
+  "balanceSheetInsightCoveredExplanation": "Your monthly recurring plan leaves an estimated {amount} after fixed commitments.",
+  "@balanceSheetInsightCoveredExplanation": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightCoveredImpact": "You have room to absorb smaller fluctuations without falling behind on recurring bills.",
+  "balanceSheetInsightCoveredAction": "Protect that margin by keeping discretionary recurring charges under review.",
+  "balanceSheetInsightNearTermTitle": "Next 14 days look cashflow-heavy",
+  "balanceSheetInsightNearTermExplanation": "Near-term recurring commitments total {commitments} against {income} in recurring income.",
+  "@balanceSheetInsightNearTermExplanation": {
+    "placeholders": {
+      "commitments": {
+        "type": "String"
+      },
+      "income": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightNearTermImpact": "You may feel payment pressure before month-end even if the monthly picture is acceptable.",
+  "balanceSheetInsightNearTermAction": "Prioritize due-soon essentials first and reschedule optional payments where possible.",
+  "balanceSheetInsightSubscriptionShareTitle": "Subscriptions take a large share of fixed outflow",
+  "balanceSheetInsightSubscriptionShareExplanation": "Subscriptions account for {percent}% of your recurring obligations.",
+  "@balanceSheetInsightSubscriptionShareExplanation": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightSubscriptionShareImpact": "Smaller digital charges can quietly crowd out money needed for core bills.",
+  "balanceSheetInsightSubscriptionShareActionOptional": "Review optional subscriptions first. You could free up about {amount} per month.",
+  "@balanceSheetInsightSubscriptionShareActionOptional": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightSubscriptionShareAction": "Review annual and quarterly subscriptions for services you can pause or consolidate.",
+  "balanceSheetInsightLargestBillTitle": "Start with the largest recurring bill",
+  "balanceSheetInsightLargestBillExplanation": "{title} is your largest recurring commitment at about {amount} per month.",
+  "@balanceSheetInsightLargestBillExplanation": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetInsightLargestBillImpact": "Any reduction here has more impact than cutting multiple smaller charges.",
+  "balanceSheetInsightLargestBillAction": "Review whether {title} can be renegotiated, downgraded, or offset with a matching recurring income increase.",
+  "@balanceSheetInsightLargestBillAction": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetBuildError": "Unable to build recurring balance sheet: {error}",
+  "@balanceSheetBuildError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetCurrencyFallback": "Live exchange rates are unavailable for {requested}. This view is shown in {fallback} for now.",
+  "@balanceSheetCurrencyFallback": {
+    "placeholders": {
+      "requested": {
+        "type": "String"
+      },
+      "fallback": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetCoveredTitle": "Recurring income currently covers your obligations",
+  "balanceSheetDeficitTitle": "Recurring obligations currently outpace recurring income",
+  "balanceSheetCoveredSubtitle": "Estimated monthly room left after recurring commitments.",
+  "balanceSheetDeficitSubtitle": "Estimated monthly shortfall before variable spending begins.",
+  "balanceSheetIncomePerMonth": "Income / mo",
+  "balanceSheetExpensesPerMonth": "Expenses / mo",
+  "balanceSheetSubscriptionsPerMonth": "Subscriptions / mo",
+  "balanceSheetDueIn14Days": "Due in 14 days",
+  "balanceSheetCoverageOutlook": "Coverage outlook",
+  "balanceSheetCoveragePercent": "Recurring income covers {percent}% of recurring obligations.",
+  "@balanceSheetCoveragePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetCoverageFootnote": "The sheet uses monthly equivalents for active recurring transactions and subscriptions in {currency}.",
+  "@balanceSheetCoverageFootnote": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetScenarioLab": "Scenario Lab",
+  "balanceSheetScenarioSubtitle": "Test small changes before you make them. Increase recurring income, cut recurring expenses, or pause optional subscriptions.",
+  "balanceSheetAddRecurringIncome": "Add recurring income",
+  "balanceSheetReduceRecurringExpenses": "Reduce recurring expenses",
+  "balanceSheetPauseOptionalSubscriptions": "Pause optional subscriptions",
+  "balanceSheetSubscriptionChip": "{title} · {amount}/mo",
+  "@balanceSheetSubscriptionChip": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetSimulatedMonthlyBalance": "Simulated monthly balance",
+  "balanceSheetSimulatedIncomeExpenses": "Income {income} · Expenses {expenses}",
+  "@balanceSheetSimulatedIncomeExpenses": {
+    "placeholders": {
+      "income": {
+        "type": "String"
+      },
+      "expenses": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetResetScenario": "Reset scenario",
+  "balanceSheetWaysToMakeEndsMeet": "Ways to make ends meet",
+  "balanceSheetRecurringIncome": "Recurring income",
+  "balanceSheetNoRecurringIncome": "No recurring income has been configured yet.",
+  "balanceSheetRecurringExpenses": "Recurring expenses",
+  "balanceSheetNoRecurringExpenses": "No recurring expenses have been configured yet.",
+  "balanceSheetSubscriptionsIncluded": "Subscriptions included",
+  "balanceSheetNextDate": "Next {date}",
+  "@balanceSheetNextDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceSheetOptional": "Optional"
+}

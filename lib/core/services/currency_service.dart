@@ -5,19 +5,67 @@ class CurrencyService {
   const CurrencyService(this._secureStorage);
 
   static const String defaultCurrency = 'USD';
+  static const List<String> supportedCurrencyCodes = [
+    'USD',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CHF',
+    'CAD',
+    'AUD',
+    'BRL',
+    'CNY',
+    'INR',
+    'MXN',
+    'NZD',
+    'SGD',
+    'HKD',
+    'ZAR',
+    'SEK',
+    'NOK',
+    'DKK',
+    'AED',
+    'SAR',
+    'KES',
+    'NGN',
+    'NAD',
+    'AOA',
+  ];
   static const _keyCurrencyCode = 'app_currency_code';
+  static const _keySavingsCurrencyCode = 'savings_currency_code';
 
   final FlutterSecureStorage _secureStorage;
 
   Future<String> loadCurrencyCode() async {
     final raw = await _secureStorage.read(key: _keyCurrencyCode);
     if (raw == null || raw.trim().isEmpty) return defaultCurrency;
-    return raw.toUpperCase();
+    final normalized = raw.toUpperCase();
+    if (!supportedCurrencyCodes.contains(normalized)) return defaultCurrency;
+    return normalized;
   }
 
   Future<void> saveCurrencyCode(String code) async {
     await _secureStorage.write(
         key: _keyCurrencyCode, value: code.toUpperCase());
+  }
+
+  Future<String> loadSavingsCurrencyCode({
+    String fallback = defaultCurrency,
+  }) async {
+    final raw = await _secureStorage.read(key: _keySavingsCurrencyCode);
+    if (raw == null || raw.trim().isEmpty) return fallback.toUpperCase();
+    final normalized = raw.toUpperCase();
+    if (!supportedCurrencyCodes.contains(normalized)) {
+      return fallback.toUpperCase();
+    }
+    return normalized;
+  }
+
+  Future<void> saveSavingsCurrencyCode(String code) async {
+    await _secureStorage.write(
+      key: _keySavingsCurrencyCode,
+      value: code.toUpperCase(),
+    );
   }
 }
 

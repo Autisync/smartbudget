@@ -15,12 +15,12 @@ void main() {
     // the full router/providers in the test environment.
     await tester.pumpWidget(const ProviderScope(
       child: MaterialApp(
-        home: Scaffold(body: Center(child: Text('SmartBudget'))),
+        home: Scaffold(body: Center(child: Text('SmartSpend'))),
       ),
     ));
 
     await tester.pumpAndSettle();
 
-    expect(find.text('SmartBudget'), findsOneWidget);
+    expect(find.text('SmartSpend'), findsOneWidget);
   });
 }

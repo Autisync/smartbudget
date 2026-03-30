@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -12,11 +13,13 @@ import 'package:share_plus/share_plus.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
+import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:csv/csv.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
@@ -49,6 +52,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final appCurrency = ref.watch(appCurrencyControllerProvider);
     final appCurrencyLabel = appCurrency.toUpperCase();
@@ -64,7 +68,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Text('Reports & Export'),
+          child: Text(l10n.reportsTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -92,6 +96,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ],
         ),
         actions: [
+          NotificationBellButton(
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
+            ),
+            onPressed: () => context.push('/notifications'),
+          ),
           IconButton(
             style: IconButton.styleFrom(
               backgroundColor: colorScheme.surfaceContainerHighest.withValues(
@@ -112,7 +122,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           return false;
         },
         child: SingleChildScrollView(
-          padding: UiTokens.screenPaddingScrollable,
+          padding: UiTokens.adaptiveScrollablePadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -130,19 +140,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Report Period',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Text(
+                        l10n.reportsPeriod,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       const SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
                             child: _buildDateField(
-                              label: 'From',
+                              label: l10n.reportsFrom,
                               date: _startDate,
                               onTap: () => _selectDate(context, true),
                             ),
@@ -150,7 +159,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: _buildDateField(
-                              label: 'To',
+                              label: l10n.reportsTo,
                               date: _endDate,
                               onTap: () => _selectDate(context, false),
                             ),
@@ -165,67 +174,63 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               const SizedBox(height: UiTokens.sectionGapLg),
 
               // Quick Period Buttons
-              const Text(
-                'Quick Select',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              Text(
+                l10n.reportsQuickSelect,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: UiTokens.chipSpacing),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-                  _buildPeriodButton('This Week', _setThisWeek),
-                  _buildPeriodButton('This Month', _setThisMonth),
-                  _buildPeriodButton('Last Month', _setLastMonth),
-                  _buildPeriodButton('Last 3 Months', _setLast3Months),
-                  _buildPeriodButton('This Year', _setThisYear),
+                  _buildPeriodButton(l10n.reportsThisWeek, _setThisWeek),
+                  _buildPeriodButton(l10n.reportsThisMonth, _setThisMonth),
+                  _buildPeriodButton(l10n.reportsLastMonth, _setLastMonth),
+                  _buildPeriodButton(l10n.reportsLast3Months, _setLast3Months),
+                  _buildPeriodButton(l10n.reportsThisYear, _setThisYear),
                 ],
               ),
 
               const SizedBox(height: 32),
-
               _buildReportMetricsSection(),
 
               const SizedBox(height: UiTokens.sectionGapLg),
 
               // Report Actions
-              const Text(
-                'Generate Reports',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              Text(
+                l10n.reportsGenerateReports,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: UiTokens.sectionGapMd),
               _buildReportCard(
                 reportKey: 'Financial Summary',
-                title: 'Financial Summary ($appCurrencyLabel)',
-                description:
-                    'Complete overview of income, expenses, and savings',
+                title: l10n.reportsFinancialSummary(appCurrencyLabel),
+                description: l10n.reportsFinancialSummaryDescription,
                 icon: Icons.analytics_rounded,
                 onPressed: _generateFinancialSummary,
               ),
               _buildReportCard(
                 reportKey: 'Transaction History',
-                title: 'Transaction History',
-                description: 'Detailed list of all transactions in the period',
+                title: l10n.reportsTransactionHistory,
+                description: l10n.reportsTransactionHistoryDescription,
                 icon: Icons.receipt_long_rounded,
                 onPressed: _generateTransactionHistory,
               ),
               _buildReportCard(
                 reportKey: 'Budget Analysis',
-                title: 'Budget Analysis',
-                description: 'Budget performance and spending patterns',
+                title: l10n.reportsBudgetAnalysis,
+                description: l10n.reportsBudgetAnalysisDescription,
                 icon: Icons.pie_chart_rounded,
                 onPressed: _generateBudgetAnalysis,
               ),
               _buildReportCard(
                 reportKey: 'Subscription Costs',
-                title: 'Subscription Costs',
-                description: 'Monthly breakdown of subscription expenses',
+                title: l10n.reportsSubscriptionCosts,
+                description: l10n.reportsSubscriptionCostsDescription,
                 icon: Icons.subscriptions_rounded,
                 onPressed: _generateSubscriptionReport,
               ),
@@ -240,6 +245,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildReportMetricsSection() {
+    final l10n = AppLocalizations.of(context)!;
     final generatedToday = _generatedReports.where((entry) {
       final now = DateTime.now();
       return entry.generatedAt.year == now.year &&
@@ -262,7 +268,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               ),
               const SizedBox(width: 10),
               Text(
-                'Report Activity',
+                l10n.reportsActivity,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -275,24 +281,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             runSpacing: UiTokens.chipRunSpacing,
             children: [
               _ReportMetricChip(
-                label: 'Generated',
+                label: l10n.reportsGenerated,
                 value: '$_totalReportsGenerated',
                 icon: Icons.description_rounded,
               ),
               _ReportMetricChip(
-                label: 'Today',
+                label: l10n.reportsToday,
                 value: '$generatedToday',
                 icon: Icons.today_rounded,
               ),
               _ReportMetricChip(
-                label: 'Types Used',
+                label: l10n.reportsTypesUsed,
                 value: '${_reportCounts.length}',
                 icon: Icons.category_rounded,
               ),
               _ReportMetricChip(
-                label: 'Last Run',
+                label: l10n.reportsLastRun,
                 value: _lastGeneratedAt == null
-                    ? 'None'
+                    ? l10n.reportsNone
                     : DateFormat('MMM dd, HH:mm').format(_lastGeneratedAt!),
                 icon: Icons.schedule_rounded,
               ),
@@ -307,7 +313,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: const Size(0, 44),
       ),
       onPressed: onPressed,
       child: Text(label),
@@ -330,7 +336,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         ),
         const SizedBox(height: 8),
         Material(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
@@ -359,9 +365,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     child: Text(
                       DateFormat('MMM dd, yyyy').format(date),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                           ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -380,6 +388,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       required IconData icon,
       required VoidCallback onPressed}) {
     final runCount = _reportCounts[reportKey] ?? 0;
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final iconBadgeColor = isDark
@@ -434,7 +443,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   const Icon(Icons.arrow_forward_ios_rounded, size: 16),
                   const SizedBox(height: 6),
                   Text(
-                    '$runCount runs',
+                    l10n.reportsRuns(runCount),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -447,6 +456,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildGeneratedReportsSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -462,7 +472,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               ),
               const SizedBox(width: 10),
               Text(
-                'Generated Reports',
+                l10n.reportsGeneratedReports,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -474,7 +484,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'No reports generated yet. Run any report to see it listed here.',
+                l10n.reportsNoGeneratedReports,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -617,6 +627,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   void _showExportOptions() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (context) => Column(
@@ -624,7 +635,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         children: [
           ListTile(
             leading: const Icon(Icons.picture_as_pdf),
-            title: const Text('Export as PDF'),
+            title: Text(l10n.reportsExportAsPdf),
             onTap: () {
               Navigator.pop(context);
               _generateFinancialSummary();
@@ -632,7 +643,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.table_chart),
-            title: const Text('Export as CSV'),
+            title: Text(l10n.reportsExportAsCsv),
             onTap: () {
               Navigator.pop(context);
               _exportAsCSV();
@@ -655,32 +666,33 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  String _getTransactionTypeLabel(TransactionType type) {
+  String _getTransactionTypeLabel(TransactionType type, AppLocalizations l10n) {
     switch (type) {
       case TransactionType.income:
-        return 'Income';
+        return l10n.reportsTypeIncome;
       case TransactionType.expense:
-        return 'Expense';
+        return l10n.reportsTypeExpense;
       case TransactionType.transfer:
-        return 'Transfer';
+        return l10n.reportsTypeTransfer;
     }
   }
 
-  String _getBillingCycleLabel(BillingCycle cycle) {
+  String _getBillingCycleLabel(BillingCycle cycle, AppLocalizations l10n) {
     switch (cycle) {
       case BillingCycle.weekly:
-        return 'Weekly';
+        return l10n.reportsBillingWeekly;
       case BillingCycle.monthly:
-        return 'Monthly';
+        return l10n.reportsBillingMonthly;
       case BillingCycle.quarterly:
-        return 'Quarterly';
+        return l10n.reportsBillingQuarterly;
       case BillingCycle.yearly:
-        return 'Yearly';
+        return l10n.reportsBillingYearly;
     }
   }
 
   Future<void> _generateFinancialSummary() async {
     setState(() => _isGenerating = true);
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       final pdfTheme = await _buildPdfTheme();
@@ -734,32 +746,32 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               children: [
                 pw.Header(
                   level: 0,
-                  child: pw.Text('Financial Summary Report'),
+                  child: pw.Text(l10n.reportsPdfFinancialSummaryTitle),
                 ),
                 pw.Text(
-                    'Period: ${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}'),
+                    '${l10n.reportsPdfPeriod}: ${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}'),
                 pw.SizedBox(height: 20),
-                pw.Text('Income & Expenses:',
+                pw.Text('${l10n.reportsPdfIncomeExpenses}:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.Text(
-                    'Total Income: $appCurrencySymbol${income.toStringAsFixed(2)}'),
+                    '${l10n.reportsPdfTotalIncome}: $appCurrencySymbol${income.toStringAsFixed(2)}'),
                 pw.Text(
-                    'Total Expenses: $appCurrencySymbol${expenses.toStringAsFixed(2)}'),
+                    '${l10n.reportsPdfTotalExpenses}: $appCurrencySymbol${expenses.toStringAsFixed(2)}'),
                 pw.Text(
-                    'Net Income: $appCurrencySymbol${netIncome.toStringAsFixed(2)}'),
+                    '${l10n.reportsPdfNetIncome}: $appCurrencySymbol${netIncome.toStringAsFixed(2)}'),
                 pw.SizedBox(height: 10),
                 pw.Text(
-                    'Monthly Subscriptions: $appCurrencySymbol${subscriptionCosts.toStringAsFixed(2)}'),
+                    '${l10n.reportsPdfMonthlySubscriptions}: $appCurrencySymbol${subscriptionCosts.toStringAsFixed(2)}'),
                 pw.SizedBox(height: 20),
-                pw.Text('Budget Utilization:',
+                pw.Text('${l10n.reportsPdfBudgetUtilization}:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 ...budgetUtilization.entries.map((entry) => pw.Text(
                     '${entry.key}: ${(entry.value * 100).toStringAsFixed(1)}%')),
                 pw.SizedBox(height: 20),
-                pw.Text('Recent Transactions:',
+                pw.Text('${l10n.reportsPdfRecentTransactions}:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 ...filteredTransactions.take(10).map((t) => pw.Text(
-                    '${DateFormat('MM/dd').format(t.date)} ${t.category}: $appCurrencySymbol${t.amount.toStringAsFixed(2)} ${t.type == TransactionType.income ? '(Income)' : '(Expense)'}')),
+                    '${DateFormat('MM/dd').format(t.date)} ${t.category}: $appCurrencySymbol${t.amount.toStringAsFixed(2)} (${_getTransactionTypeLabel(t.type, l10n)})')),
               ],
             );
           },
@@ -772,7 +784,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       _trackGeneratedReport(
         reportKey: 'Financial Summary',
-        title: 'Financial Summary',
+        title: l10n.reportsFinancialSummary(appCurrency.toUpperCase()),
         format: 'PDF',
         filename: output.path.split('/').last,
         icon: Icons.analytics_rounded,
@@ -781,19 +793,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(output.path)],
-          text: 'Financial Summary Report',
+          text: l10n.reportsShareFinancialSummary,
         ),
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PDF report generated and shared')),
+          SnackBar(content: Text(l10n.reportsPdfGeneratedShared)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error generating report: $e')),
+          SnackBar(content: Text(l10n.reportsErrorGenerating(e.toString()))),
         );
       }
     } finally {
@@ -803,6 +815,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Future<void> _generateTransactionHistory() async {
     setState(() => _isGenerating = true);
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       final transactions = await ref.read(transactionListProvider().future);
@@ -813,12 +826,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           .toList();
 
       final csvData = [
-        ['Date', 'Category', 'Amount', 'Type', 'Note'],
+        [
+          l10n.reportsCsvHeaderDate,
+          l10n.reportsCsvHeaderCategory,
+          l10n.reportsCsvHeaderAmount,
+          l10n.reportsCsvHeaderType,
+          l10n.reportsCsvHeaderNote,
+        ],
         ...filteredTransactions.map((t) => [
               DateFormat('yyyy-MM-dd').format(t.date),
               t.category,
               t.amount.toString(),
-              _getTransactionTypeLabel(t.type),
+              _getTransactionTypeLabel(t.type, l10n),
               t.note ?? '',
             ]),
       ];
@@ -829,7 +848,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       _trackGeneratedReport(
         reportKey: 'Transaction History',
-        title: 'Transaction History',
+        title: l10n.reportsTransactionHistory,
         format: 'CSV',
         filename: output.path.split('/').last,
         icon: Icons.receipt_long_rounded,
@@ -838,19 +857,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(output.path)],
-          text: 'Transaction History Export',
+          text: l10n.reportsShareTransactionHistory,
         ),
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction history exported')),
+          SnackBar(content: Text(l10n.reportsTransactionHistoryExported)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error exporting data: $e')),
+          SnackBar(content: Text(l10n.reportsErrorExportingData(e.toString()))),
         );
       }
     } finally {
@@ -860,6 +879,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Future<void> _generateBudgetAnalysis() async {
     setState(() => _isGenerating = true);
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       final budgets = await ref.read(budgetListProvider.future);
@@ -878,10 +898,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         ).future);
         final percentage = (spent / budget.limitAmount) * 100;
         final status = percentage > 100
-            ? 'Over Budget'
+            ? l10n.reportsStatusOverBudget
             : percentage > 80
-                ? 'Near Limit'
-                : 'On Track';
+                ? l10n.reportsStatusNearLimit
+                : l10n.reportsStatusOnTrack;
 
         budgetData.add({
           'category': budget.category,
@@ -899,11 +919,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Header(level: 0, child: pw.Text('Budget Analysis Report')),
+                pw.Header(
+                    level: 0,
+                    child: pw.Text(l10n.reportsPdfBudgetAnalysisTitle)),
                 pw.Text(
-                    'Period: ${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}'),
+                    '${l10n.reportsPdfPeriod}: ${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}'),
                 pw.SizedBox(height: 20),
-                pw.Text('Budget Performance:',
+                pw.Text('${l10n.reportsPdfBudgetPerformance}:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 10),
                 ...budgetData.map((data) => pw.Column(
@@ -913,30 +935,32 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             style:
                                 pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                         pw.Text(
-                            'Limit: $appCurrencySymbol${data['limit'].toStringAsFixed(2)}'),
+                            '${l10n.reportsPdfLimit}: $appCurrencySymbol${data['limit'].toStringAsFixed(2)}'),
                         pw.Text(
-                            'Spent: $appCurrencySymbol${data['spent'].toStringAsFixed(2)} (${data['percentage'].toStringAsFixed(1)}%)'),
-                        pw.Text('Status: ${data['status']}',
+                            '${l10n.reportsPdfSpent}: $appCurrencySymbol${data['spent'].toStringAsFixed(2)} (${data['percentage'].toStringAsFixed(1)}%)'),
+                        pw.Text('${l10n.reportsPdfStatus}: ${data['status']}',
                             style: pw.TextStyle(
-                              color: data['status'] == 'Over Budget'
-                                  ? PdfColors.red
-                                  : data['status'] == 'Near Limit'
-                                      ? PdfColors.orange
-                                      : PdfColors.green,
+                              color:
+                                  data['status'] == l10n.reportsStatusOverBudget
+                                      ? PdfColors.red
+                                      : data['status'] ==
+                                              l10n.reportsStatusNearLimit
+                                          ? PdfColors.orange
+                                          : PdfColors.green,
                             )),
                         pw.SizedBox(height: 10),
                       ],
                     )),
                 pw.SizedBox(height: 20),
-                pw.Text('Summary:',
+                pw.Text('${l10n.reportsPdfSummary}:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                pw.Text('Total Budgets: ${budgets.length}'),
+                pw.Text('${l10n.reportsPdfTotalBudgets}: ${budgets.length}'),
                 pw.Text(
-                    'Over Budget: ${budgetData.where((b) => b['percentage'] > 100).length}'),
+                    '${l10n.reportsPdfOverBudget}: ${budgetData.where((b) => b['percentage'] > 100).length}'),
                 pw.Text(
-                    'Near Limit: ${budgetData.where((b) => b['percentage'] > 80 && b['percentage'] <= 100).length}'),
+                    '${l10n.reportsPdfNearLimit}: ${budgetData.where((b) => b['percentage'] > 80 && b['percentage'] <= 100).length}'),
                 pw.Text(
-                    'On Track: ${budgetData.where((b) => b['percentage'] <= 80).length}'),
+                    '${l10n.reportsPdfOnTrack}: ${budgetData.where((b) => b['percentage'] <= 80).length}'),
               ],
             );
           },
@@ -948,7 +972,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       _trackGeneratedReport(
         reportKey: 'Budget Analysis',
-        title: 'Budget Analysis',
+        title: l10n.reportsBudgetAnalysis,
         format: 'PDF',
         filename: output.path.split('/').last,
         icon: Icons.pie_chart_rounded,
@@ -957,19 +981,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(output.path)],
-          text: 'Budget Analysis Report',
+          text: l10n.reportsShareBudgetAnalysis,
         ),
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Budget analysis report generated')),
+          SnackBar(content: Text(l10n.reportsBudgetAnalysisGenerated)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error generating report: $e')),
+          SnackBar(content: Text(l10n.reportsErrorGenerating(e.toString()))),
         );
       }
     } finally {
@@ -979,6 +1003,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Future<void> _generateSubscriptionReport() async {
     setState(() => _isGenerating = true);
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       final subscriptions = await ref.read(subscriptionListProvider.future);
@@ -999,20 +1024,22 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Header(level: 0, child: pw.Text('Subscription Report')),
+                pw.Header(
+                    level: 0,
+                    child: pw.Text(l10n.reportsPdfSubscriptionReportTitle)),
                 pw.Text(
-                    'Period: ${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}'),
+                    '${l10n.reportsPdfPeriod}: ${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}'),
                 pw.SizedBox(height: 20),
-                pw.Text('Summary:',
+                pw.Text('${l10n.reportsPdfSummary}:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.Text(
-                    'Total Active Subscriptions: ${activeSubscriptions.length}'),
+                    '${l10n.reportsPdfTotalActiveSubscriptions}: ${activeSubscriptions.length}'),
                 pw.Text(
-                    'Monthly Total Cost: $appCurrencySymbol${monthlyTotal.toStringAsFixed(2)}'),
+                    '${l10n.reportsPdfMonthlyTotalCost}: $appCurrencySymbol${monthlyTotal.toStringAsFixed(2)}'),
                 pw.Text(
-                    'Yearly Total Cost: $appCurrencySymbol${(monthlyTotal * 12).toStringAsFixed(2)}'),
+                    '${l10n.reportsPdfYearlyTotalCost}: $appCurrencySymbol${(monthlyTotal * 12).toStringAsFixed(2)}'),
                 pw.SizedBox(height: 20),
-                pw.Text('Active Subscriptions:',
+                pw.Text('${l10n.reportsPdfActiveSubscriptions}:',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 10),
                 ...activeSubscriptions.map((s) => pw.Column(
@@ -1022,12 +1049,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             style:
                                 pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                         pw.Text(
-                            'Amount: $appCurrencySymbol${s.amount.toStringAsFixed(2)} (${_getBillingCycleLabel(s.billingCycle)})'),
+                            '${l10n.reportsPdfAmount}: $appCurrencySymbol${s.amount.toStringAsFixed(2)} (${_getBillingCycleLabel(s.billingCycle, l10n)})'),
                         pw.Text(
-                            'Monthly Cost: $appCurrencySymbol${s.monthlyCost.toStringAsFixed(2)}'),
-                        pw.Text('Category: ${s.category}'),
+                            '${l10n.reportsPdfMonthlyCost}: $appCurrencySymbol${s.monthlyCost.toStringAsFixed(2)}'),
+                        pw.Text('${l10n.category}: ${s.category}'),
                         pw.Text(
-                            'Next Due: ${DateFormat('MMM dd, yyyy').format(s.nextDueDate)}'),
+                            '${l10n.reportsPdfNextDue}: ${DateFormat('MMM dd, yyyy').format(s.nextDueDate)}'),
                         pw.SizedBox(height: 10),
                       ],
                     )),
@@ -1042,7 +1069,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       _trackGeneratedReport(
         reportKey: 'Subscription Costs',
-        title: 'Subscription Report',
+        title: l10n.reportsSubscriptionCosts,
         format: 'PDF',
         filename: output.path.split('/').last,
         icon: Icons.subscriptions_rounded,
@@ -1051,19 +1078,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(output.path)],
-          text: 'Subscription Report',
+          text: l10n.reportsShareSubscriptionReport,
         ),
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Subscription report generated')),
+          SnackBar(content: Text(l10n.reportsSubscriptionReportGenerated)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error generating report: $e')),
+          SnackBar(content: Text(l10n.reportsErrorGenerating(e.toString()))),
         );
       }
     } finally {
@@ -1073,22 +1100,29 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Future<void> _exportAsCSV() async {
     setState(() => _isGenerating = true);
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       final transactions = await ref.read(transactionListProvider().future);
       final subscriptions = await ref.read(subscriptionListProvider.future);
 
       final csvData = [
-        ['Type', 'Date', 'Category', 'Amount', 'Description'],
+        [
+          l10n.reportsCsvHeaderType,
+          l10n.reportsCsvHeaderDate,
+          l10n.reportsCsvHeaderCategory,
+          l10n.reportsCsvHeaderAmount,
+          l10n.reportsCsvHeaderDescription,
+        ],
         ...transactions.map((t) => [
-              'Transaction',
+              l10n.reportsCsvRowTransaction,
               DateFormat('yyyy-MM-dd').format(t.date),
               t.category,
               t.amount.toString(),
               t.note ?? '',
             ]),
         ...subscriptions.map((s) => [
-              'Subscription',
+              l10n.reportsCsvRowSubscription,
               DateFormat('yyyy-MM-dd').format(s.startDate),
               s.category,
               s.amount.toString(),
@@ -1102,7 +1136,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       _trackGeneratedReport(
         reportKey: 'Complete Export',
-        title: 'Complete Data Export',
+        title: l10n.reportsCompleteDataExportTitle,
         format: 'CSV',
         filename: output.path.split('/').last,
         icon: Icons.table_chart_rounded,
@@ -1111,19 +1145,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(output.path)],
-          text: 'Complete Data Export',
+          text: l10n.reportsShareCompleteDataExport,
         ),
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Complete data export created')),
+          SnackBar(content: Text(l10n.reportsCompleteDataExportCreated)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error exporting data: $e')),
+          SnackBar(content: Text(l10n.reportsErrorExportingData(e.toString()))),
         );
       }
     } finally {
@@ -1172,23 +1206,29 @@ class _ReportMetricChip extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(width: 8),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
+          Flexible(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

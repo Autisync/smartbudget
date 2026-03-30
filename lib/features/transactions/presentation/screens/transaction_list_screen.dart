@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/data/models/tables.dart'
     show TransactionType, TransactionRecurrence;
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 enum _TransactionFilter {
   income,
@@ -48,24 +50,24 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final appCurrency = ref.watch(appCurrencyControllerProvider);
     final currencyFormat = CurrencyUtils.getFormat(appCurrency);
     final transactionsAsync = ref.watch(transactionListProvider());
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transactions'),
+        title: Text(l10n.transactionsTitle),
         actions: [
-          IconButton(
-            onPressed: () => context.push('/transactions/add'),
-            icon: const Icon(Icons.add),
+          NotificationBellButton(
+            onPressed: () => context.push('/notifications'),
           ),
         ],
       ),
       body: transactionsAsync.when(
         data: (transactions) {
           if (transactions.isEmpty) {
-            return const Center(child: Text('No transactions yet'));
+            return Center(child: Text(l10n.noTransactions));
           }
           final now = DateTime.now();
           final monthStart = DateTime(now.year, now.month, 1);
@@ -97,10 +99,10 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     ..sort((a, b) => b.value.compareTo(a.value)))
                   .first;
           final decisionMessage = monthExpense > monthIncome
-              ? 'Spending is outpacing income this month. Review your largest category first.'
+              ? l10n.transactionsDecisionOutpacingIncome
               : topCategory != null
-                  ? 'Most spending is in ${topCategory.key}. That is the quickest place to tune this month.'
-                  : 'Your transaction flow is balanced. Keep an eye on recurring activity.';
+                  ? l10n.transactionsDecisionTopCategory(topCategory.key)
+                  : l10n.transactionsDecisionBalanced;
 
           final filteredTransactions = _filterTransactions(transactions);
           final displayedTransactions =
@@ -142,12 +144,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'No matching transactions',
+                                l10n.transactionsNoMatching,
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'Try a different filter or clear the current one.',
+                                l10n.transactionsTryDifferentFilter,
                                 textAlign: TextAlign.center,
                                 style: Theme.of(context)
                                     .textTheme
@@ -163,7 +165,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                 onPressed: () => setState(() {
                                   _activeFilter = null;
                                 }),
-                                child: const Text('Clear'),
+                                child: Text(l10n.transactionsClear),
                               ),
                             ],
                           ),
@@ -218,7 +220,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                             .read(transactionListProvider().notifier)
                             .deleteTransaction(tx.id);
                         messenger.showSnackBar(
-                          const SnackBar(content: Text('Transaction deleted')),
+                          SnackBar(content: Text(l10n.transactionsDeleted)),
                         );
                       },
                       child: Material(
@@ -288,7 +290,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                               ),
                                               child: Text(
                                                 _getRecurrenceLabel(
-                                                    tx.recurrence),
+                                                  tx.recurrence,
+                                                  l10n,
+                                                ),
                                                 style: Theme.of(context)
                                                     .textTheme
                                                     .labelSmall
@@ -308,7 +312,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                       Text(
                                         tx.note?.isNotEmpty == true
                                             ? tx.note!
-                                            : 'No note',
+                                            : l10n.transactionsNoNote,
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyMedium
@@ -324,26 +328,31 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w800,
-                                            color: amountColor,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      DateFormat('MMM dd').format(tx.date),
-                                      style:
-                                          Theme.of(context).textTheme.bodySmall,
-                                    ),
-                                  ],
+                                Flexible(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w800,
+                                              color: amountColor,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        DateFormat('MMM dd').format(tx.date),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -355,7 +364,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                 );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) => Center(child: Text('Error: $err')),
+        error: (err, st) =>
+            Center(child: Text(l10n.transactionsError(err.toString()))),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/transactions/add'),
@@ -364,18 +374,21 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     );
   }
 
-  String _getRecurrenceLabel(TransactionRecurrence recurrence) {
+  String _getRecurrenceLabel(
+    TransactionRecurrence recurrence,
+    AppLocalizations l10n,
+  ) {
     switch (recurrence) {
       case TransactionRecurrence.daily:
-        return 'Daily';
+        return l10n.transactionsRecurrenceDaily;
       case TransactionRecurrence.weekly:
-        return 'Weekly';
+        return l10n.transactionsRecurrenceWeekly;
       case TransactionRecurrence.monthly:
-        return 'Monthly';
+        return l10n.transactionsRecurrenceMonthly;
       case TransactionRecurrence.yearly:
-        return 'Yearly';
+        return l10n.transactionsRecurrenceYearly;
       case TransactionRecurrence.none:
-        return 'None';
+        return l10n.transactionsRecurrenceNone;
     }
   }
 }
@@ -428,7 +441,7 @@ class _TransactionDecisionSummary extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Decision Snapshot',
+                  AppLocalizations.of(context)!.insightsDecisionSnapshot,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -449,35 +462,36 @@ class _TransactionDecisionSummary extends StatelessWidget {
             runSpacing: 8,
             children: [
               _TransactionFilterChip(
-                label: 'Income',
+                label: AppLocalizations.of(context)!.income,
                 value: currencyFormat.format(monthIncome),
                 tone: const Color(0xFF059669),
                 isSelected: activeFilter == _TransactionFilter.income,
                 onTap: () => onFilterSelected(_TransactionFilter.income),
               ),
               _TransactionFilterChip(
-                label: 'Spent',
+                label: AppLocalizations.of(context)!.transactionsSpent,
                 value: currencyFormat.format(monthExpense),
                 tone: colorScheme.error,
                 isSelected: activeFilter == _TransactionFilter.spent,
                 onTap: () => onFilterSelected(_TransactionFilter.spent),
               ),
               _TransactionFilterChip(
-                label: 'Recurring',
+                label: AppLocalizations.of(context)!.transactionsRecurring,
                 value: '$recurringCount',
                 tone: colorScheme.secondary,
                 isSelected: activeFilter == _TransactionFilter.recurring,
                 onTap: () => onFilterSelected(_TransactionFilter.recurring),
               ),
               _CompactDecisionChip(
-                label: 'Net Flow',
+                label: AppLocalizations.of(context)!.transactionsNetFlow,
                 value: currencyFormat.format(netFlow),
                 valueColor:
                     netFlow >= 0 ? const Color(0xFF059669) : colorScheme.error,
               ),
               _CompactDecisionChip(
-                label: 'Top Category',
-                value: topCategory ?? 'None',
+                label: AppLocalizations.of(context)!.transactionsTopCategory,
+                value: topCategory ??
+                    AppLocalizations.of(context)!.transactionsRecurrenceNone,
               ),
             ],
           ),
@@ -527,6 +541,8 @@ class _TransactionFilterChip extends StatelessWidget {
               children: [
                 Text(
                   value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -534,6 +550,8 @@ class _TransactionFilterChip extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -578,6 +596,8 @@ class _CompactDecisionChip extends StatelessWidget {
         children: [
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w800,
                   color: valueColor,
@@ -585,6 +605,8 @@ class _CompactDecisionChip extends StatelessWidget {
           ),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),

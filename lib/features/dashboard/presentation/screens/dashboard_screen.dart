@@ -15,6 +15,7 @@ import 'package:smartbudget/features/dashboard/presentation/providers/financial_
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/data/models/tables.dart' show TransactionType;
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 final _dashboardLiveRateQuoteProvider =
     FutureProvider.family<ExchangeRateQuote, String>((ref, pairKey) async {
@@ -63,6 +64,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           final notificationService = ref.read(notificationServiceProvider);
           final preferencesService =
               ref.read(notificationPreferencesServiceProvider);
+          final locale = ref.read(appLocaleControllerProvider);
+          final l10n = lookupAppLocalizations(locale);
 
           for (final alert in alerts) {
             final key =
@@ -74,9 +77,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             if (!canSend) break;
 
             _notifiedBudgetAlertIds.add(key);
-            final title = alert.overLimit ? 'Budget Exceeded!' : 'Budget Alert';
-            final body =
-                '${alert.category} spending is at ${(alert.progress * 100).toStringAsFixed(1)}% of limit';
+            final title = alert.overLimit
+                ? l10n.dashboardBudgetExceededTitle
+                : l10n.dashboardBudgetAlertTitle;
+            final body = l10n.dashboardBudgetAlertBody(
+              alert.category,
+              (alert.progress * 100).toStringAsFixed(1),
+            );
             await notificationService.showBudgetAlert(
               title: title,
               body: body,
@@ -96,15 +103,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
           final preferencesService =
               ref.read(notificationPreferencesServiceProvider);
+          final locale = ref.read(appLocaleControllerProvider);
+          final l10n = lookupAppLocalizations(locale);
           final canSend =
               await preferencesService.shouldDispatch('healthInsights');
           if (!canSend) return;
 
           _healthInsightSent = true;
           await ref.read(notificationServiceProvider).showHealthInsight(
-                title: 'Financial health needs attention',
-                body:
-                    'Your score is ${health.totalScore.toStringAsFixed(0)}. Review the Health details for actions.',
+                title: l10n.dashboardHealthNeedsAttentionTitle,
+                body: l10n.dashboardHealthNeedsAttentionBody(
+                  health.totalScore.toStringAsFixed(0),
+                ),
                 payload: 'health_insight',
               );
         });
@@ -121,6 +131,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final appCurrency = ref.watch(appCurrencyControllerProvider);
     final currencyFormat = CurrencyUtils.getFormat(appCurrency);
     final liveRateBaseCurrency = appCurrency == 'USD' ? 'EUR' : 'USD';
@@ -187,7 +198,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'SmartBudget',
+                        l10n.appTitle,
                         style:
                             Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
@@ -224,12 +235,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: UiTokens.screenPadding,
+                padding: UiTokens.adaptiveScreenPadding(context),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Balance Card
                     _BalanceCard(
+                      l10n: l10n,
                       currencyFormat: currencyFormat,
                       currencyCode: appCurrency,
                       income: allTxAsync.maybeWhen(
@@ -262,7 +274,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         children: [
                           _DashboardMetricChip(
                             icon: Icons.receipt_long_rounded,
-                            label: 'Transactions',
+                            label: l10n.dashboardMetricsTransactions,
                             value: allTxAsync.maybeWhen(
                               data: (transactions) => '${transactions.length}',
                               orElse: () => '0',
@@ -270,7 +282,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ),
                           _DashboardMetricChip(
                             icon: Icons.warning_amber_rounded,
-                            label: 'Budget alerts',
+                            label: l10n.dashboardMetricsBudgetAlerts,
                             value: alertsAsync.maybeWhen(
                               data: (alerts) => '${alerts.length}',
                               orElse: () => '0',
@@ -278,7 +290,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ),
                           _DashboardMetricChip(
                             icon: Icons.monitor_heart_rounded,
-                            label: 'Health score',
+                            label: l10n.dashboardMetricsHealthScore,
                             value: healthAsync.maybeWhen(
                               data: (health) =>
                                   health.totalScore.toStringAsFixed(0),
@@ -299,9 +311,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         color: colorScheme.surfaceContainerHigh,
                         opacity: 0.06,
                       ),
-                      child: Row(
-                        children: [
-                          Container(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isCompact = constraints.maxWidth < 520;
+
+                          final leading = Container(
                             width: 46,
                             height: 46,
                             decoration: BoxDecoration(
@@ -313,89 +327,118 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               Icons.account_balance_rounded,
                               color: colorScheme.primary,
                             ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
+                          );
+
+                          final content = Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.dashboardBalanceSheetTitle,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                l10n.dashboardBalanceSheetSubtitle,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          );
+
+                          final cta = FilledButton.tonalIcon(
+                            onPressed: () => context.push('/balance-sheet'),
+                            icon:
+                                const Icon(Icons.open_in_new_rounded, size: 18),
+                            label: Text(l10n.commonOpen),
+                          );
+
+                          if (isCompact) {
+                            return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Recurring Balance Sheet',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    leading,
+                                    const SizedBox(width: 14),
+                                    Expanded(child: content),
+                                  ],
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'See if recurring income covers recurring bills and subscriptions.',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
+                                const SizedBox(height: 12),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: cta,
                                 ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          FilledButton.tonal(
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size(0, 40),
-                              maximumSize: const Size(120, 40),
-                              fixedSize: const Size(86, 40),
-                            ),
-                            onPressed: () => context.push('/balance-sheet'),
-                            child: const Text('Open'),
-                          ),
-                        ],
+                            );
+                          }
+
+                          return Row(
+                            children: [
+                              leading,
+                              const SizedBox(width: 14),
+                              Expanded(child: content),
+                              const SizedBox(width: 12),
+                              cta,
+                            ],
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: UiTokens.sectionGapLg),
 
                     healthAsync.when(
                       data: (health) => _FinancialHealthCard(
+                        l10n: l10n,
                         score: health.totalScore,
                         budgetComponent: health.budgetDisciplineScore,
                         savingsComponent: health.savingsMomentumScore,
                         onViewDetails: () => context.push('/health'),
                       ),
                       loading: () => const _LoadingCard(),
-                      error: (_, __) => const _ErrorCard(),
+                      error: (_, __) => _ErrorCard(l10n: l10n),
                     ),
                     const SizedBox(height: UiTokens.sectionGapLg),
 
                     // Spending Insights
-                    const _DashboardSectionHeader(
+                    _DashboardSectionHeader(
                       icon: Icons.calendar_month_rounded,
-                      title: 'This Month',
+                      title: l10n.dashboardSectionThisMonth,
                     ),
                     const SizedBox(height: UiTokens.sectionGapMd),
 
                     spendingAsync.when(
                       data: (profile) => _SpendingOverview(
+                        l10n: l10n,
                         profile: profile,
                         currencyFormat: currencyFormat,
+                        currencyCode: appCurrency,
                       ),
                       loading: () => const _LoadingCard(),
-                      error: (err, st) => const _ErrorCard(),
+                      error: (err, st) => _ErrorCard(l10n: l10n),
                     ),
 
                     const SizedBox(height: UiTokens.sectionGapLg),
 
                     // Budget Alerts
-                    const _DashboardSectionHeader(
+                    _DashboardSectionHeader(
                       icon: Icons.warning_amber_rounded,
-                      title: 'Budget Alerts',
+                      title: l10n.dashboardSectionBudgetAlerts,
                     ),
                     const SizedBox(height: UiTokens.sectionGapSm),
                     alertsAsync.when(
                       data: (alerts) {
                         if (alerts.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            child: Text('No active budget alerts'),
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text(l10n.dashboardNoActiveBudgetAlerts),
                           );
                         }
 
@@ -423,7 +466,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        '${alert.category} ${alert.overLimit ? 'exceeded' : 'nearing'} ${alert.threshold}% (${(alert.progress * 100).toStringAsFixed(1)}%)',
+                                        alert.overLimit
+                                            ? l10n.dashboardAlertExceeded(
+                                                alert.category,
+                                                '${alert.threshold}',
+                                                (alert.progress * 100)
+                                                    .toStringAsFixed(1),
+                                              )
+                                            : l10n.dashboardAlertNearing(
+                                                alert.category,
+                                                '${alert.threshold}',
+                                                (alert.progress * 100)
+                                                    .toStringAsFixed(1),
+                                              ),
                                         style: TextStyle(color: color),
                                       ),
                                     ),
@@ -434,11 +489,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           }).toList(),
                         );
                       },
-                      loading: () => const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Text('Checking alerts...'),
+                      loading: () => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(l10n.dashboardCheckingAlerts),
                       ),
-                      error: (err, st) => Text('Alert error: $err'),
+                      error: (err, st) =>
+                          Text(l10n.dashboardAlertError(err.toString())),
                     ),
 
                     const SizedBox(height: UiTokens.sectionGapLg),
@@ -447,17 +503,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const _DashboardSectionHeader(
-                          icon: Icons.history_rounded,
-                          title: 'Recent Transactions',
+                        Expanded(
+                          child: _DashboardSectionHeader(
+                            icon: Icons.history_rounded,
+                            title: l10n.dashboardRecentTransactions,
+                          ),
                         ),
                         TextButton(
                           onPressed: () => context.push('/transactions'),
-                          child: const Text('See All'),
+                          child: Text(l10n.commonSeeAll),
                         ),
                       ],
                     ),
-                    const SizedBox(height: UiTokens.chipSpacing),
                   ],
                 ),
               ),
@@ -527,7 +584,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      tx.note ?? 'No note',
+                                      tx.note ?? l10n.transactionsNoNote,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style:
@@ -537,12 +594,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
-                                style: TextStyle(
-                                  color: amountColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                              Flexible(
+                                child: Text(
+                                  '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.end,
+                                  style: TextStyle(
+                                    color: amountColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             ],
@@ -556,14 +618,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               loading: () => const SliverToBoxAdapter(
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (err, st) => const SliverToBoxAdapter(
-                child: Text('Error loading transactions'),
+              error: (err, st) => SliverToBoxAdapter(
+                child: Text(l10n.dashboardErrorLoadingTransactions),
               ),
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  12,
+                  16,
+                  88 + MediaQuery.paddingOf(context).bottom,
+                ),
                 child: _DashboardLiveRateCard(
+                  l10n: l10n,
                   baseCurrency: liveRateBaseCurrency,
                   targetCurrency: appCurrency,
                 ),
@@ -572,22 +640,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/transactions/add'),
-        icon: const Icon(Icons.add),
-        label: const Text(''),
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
 
 class _BalanceCard extends StatelessWidget {
+  final AppLocalizations l10n;
   final NumberFormat currencyFormat;
   final String currencyCode;
   final double income;
   final double expenses;
 
   const _BalanceCard({
+    required this.l10n,
     required this.currencyFormat,
     required this.currencyCode,
     required this.income,
@@ -617,11 +687,34 @@ class _BalanceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Total Balance',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: const Color.fromRGBO(255, 255, 255, 0.8),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.totalBalance,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: const Color.fromRGBO(255, 255, 255, 0.8),
+                      ),
                 ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color.fromRGBO(255, 255, 255, 0.2),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  currencyCode,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
@@ -631,21 +724,25 @@ class _BalanceCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   letterSpacing: -1,
                 ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 24),
           Row(
             children: [
               _buildQuickStat(
+                context: context,
                 icon: Icons.arrow_downward,
-                label: 'Income',
+                label: l10n.income,
                 amount: income,
                 color: Colors.greenAccent,
                 currencyCode: currencyCode,
               ),
               const SizedBox(width: 24),
               _buildQuickStat(
+                context: context,
                 icon: Icons.arrow_upward,
-                label: 'Expenses',
+                label: l10n.expense,
                 amount: expenses,
                 color: Colors.redAccent,
                 currencyCode: currencyCode,
@@ -658,6 +755,7 @@ class _BalanceCard extends StatelessWidget {
   }
 
   Widget _buildQuickStat({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required double amount,
@@ -681,18 +779,20 @@ class _BalanceCard extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: Color.fromRGBO(255, 255, 255, 0.8),
-                  fontSize: 12,
-                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: const Color.fromRGBO(255, 255, 255, 0.8),
+                    ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               Text(
                 CurrencyUtils.getCompactFormat(currencyCode).format(amount),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -703,12 +803,16 @@ class _BalanceCard extends StatelessWidget {
 }
 
 class _SpendingOverview extends StatelessWidget {
+  final AppLocalizations l10n;
   final dynamic profile;
   final NumberFormat currencyFormat;
+  final String currencyCode;
 
   const _SpendingOverview({
+    required this.l10n,
     required this.profile,
     required this.currencyFormat,
+    required this.currencyCode,
   });
 
   @override
@@ -734,7 +838,7 @@ class _SpendingOverview extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Burn Rate',
+                l10n.dashboardBurnRate,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(
@@ -763,11 +867,35 @@ class _SpendingOverview extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            currencyFormat.format(profile.monthlyBurnRate),
-            style: Theme.of(
-              context,
-            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  currencyFormat.format(profile.monthlyBurnRate),
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  currencyCode,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           if (profile.anomalies.isNotEmpty) ...[
@@ -794,7 +922,9 @@ class _SpendingOverview extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${profile.anomalies.length} unusual transactions detected',
+                      l10n.dashboardUnusualTransactionsDetected(
+                        profile.anomalies.length,
+                      ),
                       style: const TextStyle(
                         color: Colors.orange,
                         fontSize: 13,
@@ -824,23 +954,25 @@ class _SpendingOverview extends StatelessWidget {
   String _getTrendText(dynamic trend) {
     switch (trend.toString()) {
       case 'TrendDirection.increasing':
-        return '↑ Rising';
+        return l10n.dashboardTrendRising;
       case 'TrendDirection.decreasing':
-        return '↓ Falling';
+        return l10n.dashboardTrendFalling;
       default:
-        return '→ Stable';
+        return l10n.dashboardTrendStable;
     }
   }
 }
 
 class _FinancialHealthCard extends StatelessWidget {
   const _FinancialHealthCard({
+    required this.l10n,
     required this.score,
     required this.budgetComponent,
     required this.savingsComponent,
     required this.onViewDetails,
   });
 
+  final AppLocalizations l10n;
   final double score;
   final double budgetComponent;
   final double savingsComponent;
@@ -856,10 +988,10 @@ class _FinancialHealthCard extends StatelessWidget {
             ? Colors.orange
             : Colors.red;
     final label = roundedScore >= 80
-        ? 'Strong'
+        ? l10n.financialHealthStatusStrong
         : roundedScore >= 60
-            ? 'Needs attention'
-            : 'At risk';
+            ? l10n.financialHealthStatusNeedsAttention
+            : l10n.financialHealthStatusAtRisk;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -881,7 +1013,7 @@ class _FinancialHealthCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Financial Health',
+                l10n.financialHealthTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -903,7 +1035,10 @@ class _FinancialHealthCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Budget discipline: ${budgetComponent.toStringAsFixed(0)} • Savings momentum: ${savingsComponent.toStringAsFixed(0)}',
+            l10n.dashboardHealthBreakdown(
+              budgetComponent.toStringAsFixed(0),
+              savingsComponent.toStringAsFixed(0),
+            ),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 8),
@@ -911,7 +1046,7 @@ class _FinancialHealthCard extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: onViewDetails,
-              child: const Text('View details'),
+              child: Text(l10n.commonViewDetails),
             ),
           ),
         ],
@@ -937,7 +1072,9 @@ class _LoadingCard extends StatelessWidget {
 }
 
 class _ErrorCard extends StatelessWidget {
-  const _ErrorCard();
+  const _ErrorCard({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -947,7 +1084,7 @@ class _ErrorCard extends StatelessWidget {
         color: Theme.of(context).colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Center(child: Text('Failed to load insights')),
+      child: Center(child: Text(l10n.dashboardFailedToLoadInsights)),
     );
   }
 }
@@ -1004,23 +1141,29 @@ class _DashboardMetricChip extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: colorScheme.primary),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1030,10 +1173,12 @@ class _DashboardMetricChip extends StatelessWidget {
 
 class _DashboardLiveRateCard extends ConsumerWidget {
   const _DashboardLiveRateCard({
+    required this.l10n,
     required this.baseCurrency,
     required this.targetCurrency,
   });
 
+  final AppLocalizations l10n;
   final String baseCurrency;
   final String targetCurrency;
 
@@ -1061,14 +1206,14 @@ class _DashboardLiveRateCard extends ConsumerWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Live Rate Check',
+                  l10n.dashboardLiveRateCheck,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                 ),
               ),
               IconButton(
-                tooltip: 'Refresh rate',
+                tooltip: l10n.dashboardRefreshRate,
                 onPressed: () =>
                     ref.invalidate(_dashboardLiveRateQuoteProvider(pairKey)),
                 icon: const Icon(Icons.refresh_rounded),
@@ -1077,7 +1222,7 @@ class _DashboardLiveRateCard extends ConsumerWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Quick quote for your selected app currency.',
+            l10n.dashboardQuickQuoteSubtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -1085,6 +1230,7 @@ class _DashboardLiveRateCard extends ConsumerWidget {
           const SizedBox(height: 16),
           quoteAsync.when(
             data: (quote) => _DashboardLiveRateQuote(
+              l10n: l10n,
               quote: quote,
               onOpenFullTool: () => context.push('/exchange-rates'),
             ),
@@ -1096,14 +1242,14 @@ class _DashboardLiveRateCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Rate unavailable right now. Try again or open the full tool.',
+                    l10n.dashboardRateUnavailable,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
                 const SizedBox(width: 12),
                 OutlinedButton(
                   onPressed: () => context.push('/exchange-rates'),
-                  child: const Text('Open'),
+                  child: Text(l10n.commonOpen),
                 ),
               ],
             ),
@@ -1116,10 +1262,12 @@ class _DashboardLiveRateCard extends ConsumerWidget {
 
 class _DashboardLiveRateQuote extends StatelessWidget {
   const _DashboardLiveRateQuote({
+    required this.l10n,
     required this.quote,
     required this.onOpenFullTool,
   });
 
+  final AppLocalizations l10n;
   final ExchangeRateQuote quote;
   final VoidCallback onOpenFullTool;
 
@@ -1154,7 +1302,9 @@ class _DashboardLiveRateQuote extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
-                'Updated ${DateFormat('MMM dd').format(quote.date)}',
+                l10n.dashboardRateUpdated(
+                  DateFormat('MMM dd').format(quote.date),
+                ),
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w700,
@@ -1164,7 +1314,7 @@ class _DashboardLiveRateQuote extends StatelessWidget {
             const Spacer(),
             TextButton(
               onPressed: onOpenFullTool,
-              child: const Text('Open full tool'),
+              child: Text(l10n.dashboardOpenFullTool),
             ),
           ],
         ),

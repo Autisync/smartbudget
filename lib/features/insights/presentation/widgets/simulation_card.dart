@@ -3,6 +3,7 @@ import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/intelligence/analyzers/spending_analyzer.dart';
 import 'package:smartbudget/intelligence/predictors/cashflow_predictor.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class SimulationCard extends StatefulWidget {
   final CashflowPrediction forecast;
@@ -25,6 +26,7 @@ class _SimulationCardState extends State<SimulationCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final scenarioSpend =
         widget.forecast.projectedMonthlySpend * (1.0 - _reduction);
     final balanceImprovement =
@@ -47,7 +49,7 @@ class _SimulationCardState extends State<SimulationCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Spend reduction simulator',
+              l10n.simulationSpendReductionTitle,
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -55,7 +57,7 @@ class _SimulationCardState extends State<SimulationCard> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Try preset reduction goals and compare the results.',
+              l10n.simulationSpendReductionSubtitle,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 18),
@@ -80,17 +82,23 @@ class _SimulationCardState extends State<SimulationCard> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Projected monthly spend: ${currencyFormat.format(scenarioSpend)}',
+              l10n.simulationProjectedMonthlySpend(
+                currencyFormat.format(scenarioSpend),
+              ),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'Projected end balance: ${currencyFormat.format(scenarioEndBalance)}',
+              l10n.simulationProjectedEndBalance(
+                currencyFormat.format(scenarioEndBalance),
+              ),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'Potential savings: ${currencyFormat.format(improvement)}',
+              l10n.simulationPotentialSavings(
+                currencyFormat.format(improvement),
+              ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -102,9 +110,10 @@ class _SimulationCardState extends State<SimulationCard> {
   }
 
   Widget _buildRecommendation(BuildContext context, double scenarioEndBalance) {
+    final l10n = AppLocalizations.of(context)!;
     final message = scenarioEndBalance >= 0
-        ? 'This goal helps preserve your buffer and reduces risk.'
-        : 'Even with this reduction, you may need deeper cuts to stay cash-positive.';
+        ? l10n.simulationRecommendationPositive
+        : l10n.simulationRecommendationNegative;
     return Text(
       message,
       style: Theme.of(context).textTheme.bodyMedium,
