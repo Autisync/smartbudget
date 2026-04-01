@@ -1,0 +1,35 @@
+name: Docker Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t my-app:test .
+
+      - name: Run container
+        run: docker run -d --name my-app-container -p 8000:8000 my-app:test
+
+      - name: Wait a few seconds
+        run: sleep 10
+
+      - name: Show running containers
+        run: docker ps
+
+      - name: Show container logs
+        run: docker logs my-app-container
+
+      - name: Stop container
+        run: docker stop my-app-container
+
+      - name: Remove container
+        run: docker rm my-app-container
