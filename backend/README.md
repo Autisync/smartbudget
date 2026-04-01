@@ -121,6 +121,39 @@ docker compose up --build
 docker compose down
 ```
 
+## GitHub Docker CI/CD (GHCR)
+
+This repository includes a GitHub Actions workflow at [.github/workflows/docker-image.yml](../.github/workflows/docker-image.yml).
+
+- For pull requests and pushes touching `backend/**`:
+	- Builds and starts the full backend stack with Docker Compose
+	- Waits for `http://localhost:8000/api/v1/health`
+- For pushes to `main` after smoke tests pass:
+	- Builds and publishes backend image to GHCR:
+		- `ghcr.io/<owner>/smartbudget-backend:latest`
+		- `ghcr.io/<owner>/smartbudget-backend:<commit-sha>`
+
+### Important: Flutter cannot connect directly to GitHub Actions runner containers
+
+GitHub-hosted runners are ephemeral and not publicly routable for your phone/emulator.
+Use one of these approaches:
+
+1. Local development (recommended for day-to-day)
+	 - Run `docker compose up --build` locally
+	 - Start Flutter with your local API base URL (LAN IP for physical device)
+
+2. Remote deployment for shared/stable backend URL
+	 - Pull GHCR image on a VPS or cloud platform and run it there
+	 - Point Flutter `AUTH_API_BASE_URL` to that deployed HTTPS URL
+
+### Example: run GHCR image on a server
+
+```bash
+docker login ghcr.io -u <github-username>
+docker pull ghcr.io/<owner>/smartbudget-backend:latest
+docker run -d --name smartbudget-backend -p 8000:8000 --env-file .env ghcr.io/<owner>/smartbudget-backend:latest
+```
+
 ## Security Notes
 
 - Passwords are hashed with Argon2.

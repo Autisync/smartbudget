@@ -162,7 +162,7 @@ class SessionController extends StateNotifier<SessionState> {
       );
       return false;
     } catch (_) {
-      state = SessionState(
+      state = const SessionState(
         initializing: false,
         authenticated: false,
         localUnlockRequired: false,
@@ -204,7 +204,7 @@ class SessionController extends StateNotifier<SessionState> {
       );
       return false;
     } catch (_) {
-      state = SessionState(
+      state = const SessionState(
         initializing: false,
         authenticated: false,
         localUnlockRequired: false,

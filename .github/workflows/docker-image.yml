@@ -1,19 +1,26 @@
-name: Backend Docker Test
+name: Backend Docker CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
     paths:
       - 'backend/**'
-      - '.github/workflows/docker-test.yml'
+      - '.github/workflows/docker-image.yml'
   pull_request:
     paths:
       - 'backend/**'
-      - '.github/workflows/docker-test.yml'
+      - '.github/workflows/docker-image.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/smartbudget-backend
+
 jobs:
-  test-backend:
+  docker-compose-smoke:
     runs-on: ubuntu-latest
 
     defaults:
@@ -24,31 +31,70 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build backend image
-        run: docker build -t smartbudget-backend:test .
+      - name: Prepare env
+        run: cp .env.example .env
 
-      - name: Run backend container
+      - name: Build and start backend stack
+        run: docker compose up -d --build
+
+      - name: Wait for API health
         run: |
-          docker run -d \
-            --name smartbudget-backend-container \
-            -p 8000:8000 \
-            smartbudget-backend:test
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8000/api/v1/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Health check failed"
+          exit 1
 
-      - name: Wait for app startup
-        run: sleep 15
-
-      - name: Check running containers
-        run: docker ps
-
-      - name: Health check
-        run: curl --fail http://localhost:8000/health
-
-      - name: Show container logs on failure
+      - name: Show service status and logs on failure
         if: failure()
-        run: docker logs smartbudget-backend-container
+        run: |
+          docker compose ps
+          docker compose logs --no-color
 
       - name: Cleanup
         if: always()
-        run: |
-          docker stop smartbudget-backend-container || true
-          docker rm smartbudget-backend-container || true
+        run: docker compose down -v
+
+  publish-ghcr:
+    runs-on: ubuntu-latest
+    needs: docker-compose-smoke
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
