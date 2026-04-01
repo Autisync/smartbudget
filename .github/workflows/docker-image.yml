@@ -1,35 +1,54 @@
-name: Docker Test
+name: Backend Docker Test
 
 on:
   push:
     branches: [ main, master ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/docker-test.yml'
   pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/docker-test.yml'
+  workflow_dispatch:
 
 jobs:
-  docker-test:
+  test-backend:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t my-app:test .
+      - name: Build backend image
+        run: docker build -t smartbudget-backend:test .
 
-      - name: Run container
-        run: docker run -d --name my-app-container -p 8000:8000 my-app:test
+      - name: Run backend container
+        run: |
+          docker run -d \
+            --name smartbudget-backend-container \
+            -p 8000:8000 \
+            smartbudget-backend:test
 
-      - name: Wait a few seconds
-        run: sleep 10
+      - name: Wait for app startup
+        run: sleep 15
 
-      - name: Show running containers
+      - name: Check running containers
         run: docker ps
 
-      - name: Show container logs
-        run: docker logs my-app-container
+      - name: Health check
+        run: curl --fail http://localhost:8000/health
 
-      - name: Stop container
-        run: docker stop my-app-container
+      - name: Show container logs on failure
+        if: failure()
+        run: docker logs smartbudget-backend-container
 
-      - name: Remove container
-        run: docker rm my-app-container
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop smartbudget-backend-container || true
+          docker rm smartbudget-backend-container || true
