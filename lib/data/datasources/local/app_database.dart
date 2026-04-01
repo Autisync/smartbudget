@@ -4,19 +4,17 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../models/tables.dart';
 
 part 'app_database.g.dart';
 
 // Helper used by generated code to provide clientDefault UUIDs.
-String _generateUuid() {
-  return '${_randomHex(8)}-${_randomHex(4)}-4${_randomHex(3)}-${_randomHex(4)}-${_randomHex(12)}';
-}
+const _uuid = Uuid();
 
-String _randomHex(int length) {
-  final s = DateTime.now().millisecondsSinceEpoch.toString();
-  return s.substring(s.length - length);
+String _generateUuid() {
+  return _uuid.v4();
 }
 
 @DriftDatabase(tables: [

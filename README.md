@@ -155,3 +155,161 @@ Do not hardcode production API keys in source files.
 - Expand anomaly explanations and alert notifications
 - Improve report filters and customizable export ranges
 - Consider cloud sync or multi-device account support
+
+---
+
+## Local development setup (full app)
+
+This section explains how to run SmartSpend locally with the Flutter app and the auth backend.
+
+### Prerequisites
+
+- Flutter SDK installed and on PATH
+- Dart (bundled with Flutter)
+- Python 3.11+ (for backend local non-Docker mode)
+- Docker Desktop (optional, for backend Docker mode)
+- Android device/emulator (or iOS simulator/device)
+
+### 1) Clone and open project
+
+```bash
+git clone <your-repo-url>
+cd smartbudget
+```
+
+### 2) Backend setup
+
+Go to backend folder:
+
+```bash
+cd backend
+```
+
+Create env file from template:
+
+```bash
+cp .env.example .env
+```
+
+Windows PowerShell alternative:
+
+```powershell
+Copy-Item .env.example .env -Force
+```
+
+#### Option A: Run backend with Docker (recommended)
+
+```bash
+docker compose up --build
+```
+
+To stop:
+
+```bash
+docker compose down
+```
+
+#### Option B: Run backend without Docker
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run migrations:
+
+```bash
+alembic upgrade head
+```
+
+Start API:
+
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Backend health check URL:
+
+```text
+http://localhost:8000/api/v1/health
+```
+
+### 3) Flutter app setup
+
+Return to project root:
+
+```bash
+cd ..
+```
+
+Fetch Flutter packages:
+
+```bash
+flutter pub get
+```
+
+List connected devices:
+
+```bash
+flutter devices
+```
+
+### 4) Run app with backend URL
+
+#### Android emulator
+
+Use host loopback bridge:
+
+```bash
+flutter run --dart-define=AUTH_API_BASE_URL=http://10.0.2.2:8000
+```
+
+#### Physical Android device
+
+Use your machine LAN IP (example shown):
+
+```bash
+flutter run -d <device_id> --dart-define=AUTH_API_BASE_URL=http://192.168.0.175:8000
+```
+
+### 5) Verify auth flow manually
+
+- Sign up with a new email/password
+- Log out and log back in
+- Trigger forgot password flow
+- Open deep link for reset/verify using device commands below
+
+### 6) Deep-link tests
+
+Android:
+
+```bash
+adb shell am start -a android.intent.action.VIEW -d "smartbudget://reset-password?token=test-token"
+adb shell am start -a android.intent.action.VIEW -d "smartbudget://verify-email?token=test-token"
+```
+
+iOS simulator:
+
+```bash
+xcrun simctl openurl booted "smartbudget://reset-password?token=test-token"
+xcrun simctl openurl booted "smartbudget://verify-email?token=test-token"
+```
+
+### 7) Email templates and SMTP
+
+- HTML templates live in `backend/app/templates/emails/`
+- SMTP is configured via `backend/.env`
+- For local testing without sending emails, keep `SMTP_ENABLED=false`
+
+### 8) Common issues
+
+- Docker engine not running:
+  - Start Docker Desktop, then rerun `docker compose up --build`
+- Android app cannot reach backend:
+  - Verify device and PC are on same network
+  - Check firewall allows port 8000
+  - Confirm `AUTH_API_BASE_URL` uses reachable IP
+- Migration issues:
+  - Ensure database URL in `.env` is correct
+  - Rerun `alembic upgrade head`

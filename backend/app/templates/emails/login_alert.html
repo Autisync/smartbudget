@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+    <title>New login detected</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#F9FAFB;">
+    <!-- Preheader -->
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
+      We detected a new login to your {{app_name}} account.
+    </div>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#F9FAFB;">
+      <tr>
+        <td align="center" style="padding:24px 12px;">
+          <!-- Container -->
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;">
+            <tr>
+              <td style="background-color:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px; box-shadow:0 1px 3px rgba(17,24,39,0.06); padding:32px 28px;">
+                <!-- Logo -->
+                <p style="margin:0 0 20px 0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:16px; line-height:24px; color:#111827; font-weight:700;">
+                  {{app_name}}
+                </p>
+
+                <!-- Title -->
+                <h1 style="margin:0 0 12px 0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:28px; line-height:34px; color:#111827; font-weight:700;">
+                  New login detected
+                </h1>
+
+                <!-- Message body -->
+                <p style="margin:0 0 16px 0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:16px; line-height:26px; color:#374151;">
+                  Hi {{user_name}}, we noticed a new login to your account.
+                </p>
+
+                <!-- Secondary info / details -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #E5E7EB; border-radius:10px;">
+                  <tr>
+                    <td style="padding:14px 14px 6px 14px; font-family:Inter,Arial,Helvetica,sans-serif; font-size:13px; color:#6B7280;">Device</td>
+                    <td style="padding:14px 14px 6px 14px; font-family:Inter,Arial,Helvetica,sans-serif; font-size:14px; color:#111827; text-align:right;">{{device}}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 14px; font-family:Inter,Arial,Helvetica,sans-serif; font-size:13px; color:#6B7280;">Location</td>
+                    <td style="padding:6px 14px; font-family:Inter,Arial,Helvetica,sans-serif; font-size:14px; color:#111827; text-align:right;">{{location}}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 14px 14px 14px; font-family:Inter,Arial,Helvetica,sans-serif; font-size:13px; color:#6B7280;">Time</td>
+                    <td style="padding:6px 14px 14px 14px; font-family:Inter,Arial,Helvetica,sans-serif; font-size:14px; color:#111827; text-align:right;">{{login_time}}</td>
+                  </tr>
+                </table>
+
+                <!-- CTA button -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
+                  <tr>
+                    <td style="border-radius:8px; background-color:#2563EB;">
+                      <a href="{{action_url}}" style="display:inline-block; padding:12px 20px; font-family:Inter,Arial,Helvetica,sans-serif; font-size:15px; line-height:20px; color:#FFFFFF; text-decoration:none; font-weight:600; border-radius:8px;">
+                        Secure your account
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Fallback link -->
+                <p style="margin:16px 0 0 0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:13px; line-height:20px; color:#6B7280;">
+                  If this was not you, secure your account now:<br />
+                  <a href="{{action_url}}" style="color:#2563EB; text-decoration:underline; word-break:break-all;">{{action_url}}</a>
+                </p>
+
+                <!-- Divider -->
+                <hr style="border:0; border-top:1px solid #E5E7EB; margin:24px 0;" />
+
+                <!-- Footer -->
+                <p style="margin:0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:12px; line-height:20px; color:#6B7280;">
+                  Need help? Contact <a href="mailto:{{support_email}}" style="color:#2563EB; text-decoration:none;">{{support_email}}</a><br />
+                  <a href="{{action_url}}" style="color:#6B7280; text-decoration:underline;">Unsubscribe</a><br />
+                  © {{year}} {{company_name}}. All rights reserved.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

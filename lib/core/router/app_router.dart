@@ -19,10 +19,14 @@ import 'package:smartbudget/features/subscriptions/presentation/screens/edit_sub
 import 'package:smartbudget/features/reports/presentation/screens/reports_screen.dart';
 import 'package:smartbudget/features/auth/presentation/screens/security_screen.dart';
 import 'package:smartbudget/features/settings/presentation/screens/settings_screen.dart';
-import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
+import 'package:smartbudget/features/auth/presentation/screens/login_screen.dart';
+import 'package:smartbudget/features/auth/presentation/screens/signup_screen.dart';
+import 'package:smartbudget/features/auth/presentation/screens/forgot_password_screen.dart';
+import 'package:smartbudget/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:smartbudget/features/auth/presentation/screens/verify_email_screen.dart';
+import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/onboarding/presentation/screens/legal_document_screen.dart';
 import 'package:smartbudget/features/onboarding/presentation/screens/onboarding_screen.dart';
-import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
@@ -34,15 +38,14 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 @riverpod
 GoRouter router(RouterRef ref) {
-  final authState = ref.watch(authControllerProvider);
+  final sessionState = ref.watch(sessionControllerProvider);
   final onboardingState = ref.watch(onboardingStatusProvider);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
-      // Wait for auth check to complete
-      if (authState.isLoading || onboardingState.isLoading) return '/splash';
+      if (sessionState.initializing || onboardingState.isLoading) return '/splash';
 
       final onboardingStatus = onboardingState.valueOrNull ??
           const OnboardingStatus(
@@ -51,9 +54,20 @@ GoRouter router(RouterRef ref) {
           );
       final onboardingComplete = onboardingStatus.isReady;
 
-      final isAuthenticated = authState.valueOrNull ?? false;
+        final isAuthenticated = sessionState.authenticated;
+        final localUnlockRequired =
+          sessionState.authenticated && sessionState.localUnlockRequired;
       final isSplashRoute = state.matchedLocation == '/splash';
-      final isAuthRoute = state.matchedLocation == '/login';
+        final isLoginRoute = state.matchedLocation == '/login';
+        final isSignupRoute = state.matchedLocation == '/signup';
+      final isForgotPasswordRoute = state.matchedLocation == '/forgot-password';
+      final isResetPasswordRoute = state.matchedLocation == '/reset-password';
+      final isVerifyEmailRoute = state.matchedLocation == '/verify-email';
+      final isAuthRoute = isLoginRoute ||
+          isSignupRoute ||
+          isForgotPasswordRoute ||
+          isResetPasswordRoute ||
+          isVerifyEmailRoute;
       final isOnboardingRoute = state.matchedLocation == '/onboarding';
       final isLegalRoute = state.matchedLocation.startsWith('/legal/');
       final isPublicRoute =
@@ -68,7 +82,12 @@ GoRouter router(RouterRef ref) {
       }
 
       if (!isAuthenticated && !isPublicRoute) return '/login';
-      if (isAuthenticated && isAuthRoute) return '/';
+
+      if (isAuthenticated && localUnlockRequired && !isLoginRoute) {
+        return '/login';
+      }
+
+      if (isAuthenticated && !localUnlockRequired && isAuthRoute) return '/';
 
       return null;
     },
@@ -93,6 +112,23 @@ GoRouter router(RouterRef ref) {
             const LegalDocumentScreen(type: LegalDocumentType.privacy),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, state) => ResetPasswordScreen(
+          token: state.uri.queryParameters['token'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/verify-email',
+        builder: (context, state) => VerifyEmailScreen(
+          token: state.uri.queryParameters['token'] ?? '',
+        ),
+      ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) => ScaffoldWithNavBar(child: child),
@@ -684,88 +720,6 @@ class _MoreGridTile extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class LoginScreen extends ConsumerWidget {
-  const LoginScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.lock_outline, size: 64, color: Color(0xFF6366F1)),
-            const SizedBox(height: 32),
-            const Text(
-              'SmartSpend',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.authSecureFinancialManagement,
-              style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.72),
-              ),
-            ),
-            const SizedBox(height: 48),
-            FilledButton.icon(
-              onPressed: () async {
-                final result = await ref
-                    .read(authControllerProvider.notifier)
-                    .authenticate();
-                if (result != bio.AuthStatus.authenticated && context.mounted) {
-                  final message = switch (result) {
-                    bio.AuthStatus.notAvailable =>
-                      l10n.authBiometricNotAvailable,
-                    bio.AuthStatus.noBiometricsEnrolled =>
-                      l10n.authNoBiometricsEnrolled,
-                    bio.AuthStatus.lockedOut => l10n.authBiometricLockedOut,
-                    bio.AuthStatus.permanentlyLockedOut =>
-                      l10n.authBiometricPermanentlyLocked,
-                    bio.AuthStatus.denied => l10n.authDenied,
-                    bio.AuthStatus.error => l10n.authSystemError,
-                    bio.AuthStatus.authenticated => l10n.authAuthenticated,
-                  };
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(message)),
-                  );
-                }
-              },
-              icon: const Icon(Icons.fingerprint),
-              label: Text(l10n.authAuthenticate),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 8,
-              children: [
-                TextButton(
-                  onPressed: () => GoRouter.of(context).push('/legal/terms'),
-                  child: Text(l10n.legalTermsTitle),
-                ),
-                TextButton(
-                  onPressed: () => GoRouter.of(context).push('/legal/privacy'),
-                  child: Text(l10n.legalPrivacyTitle),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );

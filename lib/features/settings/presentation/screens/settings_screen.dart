@@ -18,6 +18,7 @@ import 'package:smartbudget/features/insights/presentation/providers/insight_pro
 import 'package:smartbudget/features/savings/presentation/providers/savings_provider.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -568,6 +569,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               subtitle: Text(l10n.settingsAuthenticationSettingsSubtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => GoRouter.of(context).push('/security'),
+            ),
+            ListTile(
+              title: const Text('Sign out'),
+              subtitle: const Text('End server session and remove local tokens.'),
+              trailing: const Icon(Icons.logout),
+              onTap: () async {
+                final router = GoRouter.of(context);
+                await ref.read(sessionControllerProvider.notifier).logout();
+                if (!mounted) return;
+                router.go('/login');
+              },
             ),
             const SizedBox(height: UiTokens.sectionGapLg),
             Text(

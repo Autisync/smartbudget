@@ -1,4 +1,7 @@
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
+
+const _uuid = Uuid();
 
 class Transactions extends Table {
   TextColumn get id => text().clientDefault(() => _generateUuid())();
@@ -162,11 +165,5 @@ class SecuritySettings extends Table {
 }
 
 String _generateUuid() {
-  // Simple UUID v4 generator
-  return '${_randomHex(8)}-${_randomHex(4)}-4${_randomHex(3)}-${_randomHex(4)}-${_randomHex(12)}';
-}
-
-String _randomHex(int length) {
-  final random = DateTime.now().millisecondsSinceEpoch.toString();
-  return random.substring(random.length - length);
+  return _uuid.v4();
 }
