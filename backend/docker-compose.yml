@@ -6,8 +6,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    env_file:
-      - .env
     environment:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       API_HOST: ${API_HOST:-0.0.0.0}
