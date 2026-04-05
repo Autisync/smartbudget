@@ -30,9 +30,10 @@ class OnboardingService {
         await _secureStorage.read(key: _keyLegalAccepted) == 'true';
     final legalReviewedAtRaw =
         await _secureStorage.read(key: _keyLegalReviewedAt);
-    final legalReviewedAt = legalReviewedAtRaw == null || legalReviewedAtRaw.isEmpty
-        ? null
-        : DateTime.tryParse(legalReviewedAtRaw);
+    final legalReviewedAt =
+        legalReviewedAtRaw == null || legalReviewedAtRaw.isEmpty
+            ? null
+            : DateTime.tryParse(legalReviewedAtRaw);
 
     return OnboardingStatus(
       onboardingComplete: onboardingComplete,

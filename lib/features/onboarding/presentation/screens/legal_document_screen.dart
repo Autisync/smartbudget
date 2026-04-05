@@ -279,8 +279,9 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                       child: MarkdownBody(
                         data: markdown,
                         selectable: true,
-                        styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
-                            .copyWith(
+                        styleSheet:
+                            MarkdownStyleSheet.fromTheme(Theme.of(context))
+                                .copyWith(
                           p: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 height: 1.5,
                               ),

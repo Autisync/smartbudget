@@ -30,8 +30,8 @@ Use the values from your production/legal team before publishing to app stores.
 1. Copy `legal/placeholders.example.env` to `legal/placeholders.env`.
 2. Fill in final legal/compliance values.
 3. Validate values and unresolved placeholders:
-	- `scripts/apply_legal_placeholders.sh --check`
+   - `scripts/apply_legal_placeholders.sh --check`
 4. Apply replacements to the 8 legal markdown files:
-	- `scripts/apply_legal_placeholders.sh --apply`
+   - `scripts/apply_legal_placeholders.sh --apply`
 
 You can pass a custom env file with `--env <path>`.

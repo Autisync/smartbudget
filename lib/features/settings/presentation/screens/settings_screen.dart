@@ -124,10 +124,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         : l10n.settingsNotificationsPaused;
     final legalReviewedAt = onboardingStatus?.legalReviewedAt;
     final legalReviewedAtLabel = legalReviewedAt == null
-      ? 'No timestamp recorded yet.'
-      : DateFormat.yMMMd(appLocale.languageCode)
-        .add_jm()
-        .format(legalReviewedAt.toLocal());
+        ? 'No timestamp recorded yet.'
+        : DateFormat.yMMMd(appLocale.languageCode)
+            .add_jm()
+            .format(legalReviewedAt.toLocal());
 
     return Scaffold(
       appBar: AppBar(
@@ -579,7 +579,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             ListTile(
               title: const Text('Sign out'),
-              subtitle: const Text('End server session and remove local tokens.'),
+              subtitle:
+                  const Text('End server session and remove local tokens.'),
               trailing: const Icon(Icons.logout),
               onTap: () async {
                 final router = GoRouter.of(context);

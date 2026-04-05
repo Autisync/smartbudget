@@ -45,7 +45,8 @@ GoRouter router(RouterRef ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
-      if (sessionState.initializing || onboardingState.isLoading) return '/splash';
+      if (sessionState.initializing || onboardingState.isLoading)
+        return '/splash';
 
       final onboardingStatus = onboardingState.valueOrNull ??
           const OnboardingStatus(
@@ -54,12 +55,12 @@ GoRouter router(RouterRef ref) {
           );
       final onboardingComplete = onboardingStatus.isReady;
 
-        final isAuthenticated = sessionState.authenticated;
-        final localUnlockRequired =
+      final isAuthenticated = sessionState.authenticated;
+      final localUnlockRequired =
           sessionState.authenticated && sessionState.localUnlockRequired;
       final isSplashRoute = state.matchedLocation == '/splash';
-        final isLoginRoute = state.matchedLocation == '/login';
-        final isSignupRoute = state.matchedLocation == '/signup';
+      final isLoginRoute = state.matchedLocation == '/login';
+      final isSignupRoute = state.matchedLocation == '/signup';
       final isForgotPasswordRoute = state.matchedLocation == '/forgot-password';
       final isResetPasswordRoute = state.matchedLocation == '/reset-password';
       final isVerifyEmailRoute = state.matchedLocation == '/verify-email';
@@ -69,7 +70,7 @@ GoRouter router(RouterRef ref) {
           isResetPasswordRoute ||
           isVerifyEmailRoute;
       final isOnboardingRoute = state.matchedLocation == '/onboarding';
-        final isLegalRoute = state.matchedLocation == '/legal' ||
+      final isLegalRoute = state.matchedLocation == '/legal' ||
           state.matchedLocation.startsWith('/legal/');
       final isPublicRoute =
           isSplashRoute || isAuthRoute || isOnboardingRoute || isLegalRoute;
@@ -149,7 +150,8 @@ GoRouter router(RouterRef ref) {
             const LegalDocumentScreen(type: LegalDocumentType.disclaimers),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-      GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
+      GoRoute(
+          path: '/signup', builder: (context, state) => const SignupScreen()),
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
