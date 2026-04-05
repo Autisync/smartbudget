@@ -290,13 +290,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingAcceptLegal.
   ///
   /// In en, this message translates to:
-  /// **'I accept the Terms & Conditions and Privacy Policy.'**
+  /// **'I accept the Terms, Privacy Policy, and all legal documents.'**
   String get onboardingAcceptLegal;
 
   /// No description provided for @onboardingAcceptLegalError.
   ///
   /// In en, this message translates to:
-  /// **'Please accept the Terms and Privacy Policy to continue.'**
+  /// **'Please accept the legal documents to continue.'**
   String get onboardingAcceptLegalError;
 
   /// No description provided for @onboardingPage1Title.
@@ -454,6 +454,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can review, edit, or delete app data from within the product where supported. You can also disable biometric authentication and related security features at any time.'**
   String get legalPrivacyControlBody;
+
+  /// No description provided for @legalCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal Center'**
+  String get legalCenterTitle;
+
+  /// No description provided for @legalCenterIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Review all legal documents that govern SmartSpend, including terms, privacy, security, and data handling policies.'**
+  String get legalCenterIntro;
+
+  /// No description provided for @legalAllDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'All legal documents'**
+  String get legalAllDocuments;
+
+  /// No description provided for @legalAllDocumentsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the complete legal center with all policies.'**
+  String get legalAllDocumentsSubtitle;
+
+  /// No description provided for @legalCookiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cookies & Tracking Notice'**
+  String get legalCookiesTitle;
+
+  /// No description provided for @legalCookiesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How tracking technologies and analytics are used in the app.'**
+  String get legalCookiesSubtitle;
+
+  /// No description provided for @legalAupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Acceptable Use Policy'**
+  String get legalAupTitle;
+
+  /// No description provided for @legalAupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules and prohibited behavior when using SmartSpend.'**
+  String get legalAupSubtitle;
+
+  /// No description provided for @legalDataRetentionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Retention Policy'**
+  String get legalDataRetentionTitle;
+
+  /// No description provided for @legalDataRetentionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How long data is retained and when it is deleted.'**
+  String get legalDataRetentionSubtitle;
+
+  /// No description provided for @legalSecurityDisclosureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Disclosure Policy'**
+  String get legalSecurityDisclosureTitle;
+
+  /// No description provided for @legalSecurityDisclosureSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to report vulnerabilities and how we respond.'**
+  String get legalSecurityDisclosureSubtitle;
+
+  /// No description provided for @legalThirdPartyServicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Third-Party Services Notice'**
+  String get legalThirdPartyServicesTitle;
+
+  /// No description provided for @legalThirdPartyServicesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which external services process data for SmartSpend.'**
+  String get legalThirdPartyServicesSubtitle;
+
+  /// No description provided for @legalDisclaimersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Disclaimers'**
+  String get legalDisclaimersTitle;
+
+  /// No description provided for @legalDisclaimersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Important limitations and non-advice statements.'**
+  String get legalDisclaimersSubtitle;
+
+  /// No description provided for @legalLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not load this legal document.'**
+  String get legalLoadError;
+
+  /// No description provided for @legalTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get legalTryAgain;
 
   /// No description provided for @legalAndOnboarding.
   ///
@@ -3290,7 +3398,7 @@ abstract class AppLocalizations {
   /// No description provided for @savingsSimulatePlus50.
   ///
   /// In en, this message translates to:
-  /// **'Simulate +\$50/mo'**
+  /// **'Simulate monthly boost'**
   String get savingsSimulatePlus50;
 
   /// No description provided for @savingsGoalAchieved.

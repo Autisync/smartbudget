@@ -99,6 +99,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ref.watch(notificationDispatchStatusProvider('savingsNudges'));
     final healthNextEligible =
         ref.watch(notificationDispatchStatusProvider('healthInsights'));
+    final onboardingStatus = ref.watch(onboardingStatusProvider).valueOrNull;
     final appCurrency = ref.watch(appCurrencyControllerProvider);
     final appLocale = ref.watch(appLocaleControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
@@ -121,6 +122,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final notificationsLabel = notificationPrefs.enabled
         ? l10n.settingsNotificationsEnabled
         : l10n.settingsNotificationsPaused;
+    final legalReviewedAt = onboardingStatus?.legalReviewedAt;
+    final legalReviewedAtLabel = legalReviewedAt == null
+      ? 'No timestamp recorded yet.'
+      : DateFormat.yMMMd(appLocale.languageCode)
+        .add_jm()
+        .format(legalReviewedAt.toLocal());
 
     return Scaffold(
       appBar: AppBar(
@@ -590,6 +597,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
+            ListTile(
+              title: Text(l10n.legalAllDocuments),
+              subtitle: Text(l10n.legalAllDocumentsSubtitle),
+              trailing: const Icon(Icons.open_in_new),
+              onTap: () => GoRouter.of(context).push('/legal'),
+            ),
+            ListTile(
+              title: const Text('Legal review confirmation'),
+              subtitle: Text(legalReviewedAtLabel),
+              trailing: const Icon(Icons.verified_user_outlined),
+            ),
             ListTile(
               title: Text(l10n.reviewTerms),
               trailing: const Icon(Icons.open_in_new),

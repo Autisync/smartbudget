@@ -6,7 +6,7 @@ part of 'financial_health_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$financialHealthHash() => r'220ccded9cc616d545e7ec8f5dc28b9de97dc7cd';
+String _$financialHealthHash() => r'6e9dda64b3e374ee994e4baf0b19b00e45f72bb0';
 
 /// See also [financialHealth].
 @ProviderFor(financialHealth)
@@ -26,7 +26,7 @@ final financialHealthProvider =
 typedef FinancialHealthRef
     = AutoDisposeFutureProviderRef<FinancialHealthSnapshot>;
 String _$financialHealthHistoryHash() =>
-    r'8a8d0e22dba21ee45cf3a2a4978127c34793d24a';
+    r'b4b03c2a5ee601a118b2ed2d6e66366e4c83394b';
 
 /// Copied from Dart SDK
 class _SystemHash {

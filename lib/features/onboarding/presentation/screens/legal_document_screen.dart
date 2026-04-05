@@ -1,9 +1,109 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
-enum LegalDocumentType { terms, privacy }
+enum LegalDocumentType {
+  terms,
+  privacy,
+  cookies,
+  acceptableUse,
+  dataRetention,
+  securityDisclosure,
+  thirdPartyServices,
+  disclaimers,
+}
+
+class LegalDocumentDefinition {
+  final String title;
+  final String subtitle;
+  final String assetPath;
+
+  const LegalDocumentDefinition({
+    required this.title,
+    required this.subtitle,
+    required this.assetPath,
+  });
+}
+
+String legalRouteForType(LegalDocumentType type) {
+  switch (type) {
+    case LegalDocumentType.terms:
+      return '/legal/terms';
+    case LegalDocumentType.privacy:
+      return '/legal/privacy';
+    case LegalDocumentType.cookies:
+      return '/legal/cookies';
+    case LegalDocumentType.acceptableUse:
+      return '/legal/acceptable-use';
+    case LegalDocumentType.dataRetention:
+      return '/legal/data-retention';
+    case LegalDocumentType.securityDisclosure:
+      return '/legal/security-disclosure';
+    case LegalDocumentType.thirdPartyServices:
+      return '/legal/third-party-services';
+    case LegalDocumentType.disclaimers:
+      return '/legal/disclaimers';
+  }
+}
+
+LegalDocumentDefinition legalDocumentForType(
+  LegalDocumentType type,
+  AppLocalizations l10n,
+) {
+  switch (type) {
+    case LegalDocumentType.terms:
+      return LegalDocumentDefinition(
+        title: l10n.legalTermsTitle,
+        subtitle: 'Your rights and responsibilities when using SmartSpend.',
+        assetPath: 'legal/TERMS_OF_USE.md',
+      );
+    case LegalDocumentType.privacy:
+      return LegalDocumentDefinition(
+        title: l10n.legalPrivacyTitle,
+        subtitle: 'How personal and financial data is handled in SmartSpend.',
+        assetPath: 'legal/PRIVACY_POLICY.md',
+      );
+    case LegalDocumentType.cookies:
+      return LegalDocumentDefinition(
+        title: l10n.legalCookiesTitle,
+        subtitle: l10n.legalCookiesSubtitle,
+        assetPath: 'legal/COOKIES_AND_TRACKING_NOTICE.md',
+      );
+    case LegalDocumentType.acceptableUse:
+      return LegalDocumentDefinition(
+        title: l10n.legalAupTitle,
+        subtitle: l10n.legalAupSubtitle,
+        assetPath: 'legal/ACCEPTABLE_USE_POLICY.md',
+      );
+    case LegalDocumentType.dataRetention:
+      return LegalDocumentDefinition(
+        title: l10n.legalDataRetentionTitle,
+        subtitle: l10n.legalDataRetentionSubtitle,
+        assetPath: 'legal/DATA_RETENTION_POLICY.md',
+      );
+    case LegalDocumentType.securityDisclosure:
+      return LegalDocumentDefinition(
+        title: l10n.legalSecurityDisclosureTitle,
+        subtitle: l10n.legalSecurityDisclosureSubtitle,
+        assetPath: 'legal/SECURITY_DISCLOSURE_POLICY.md',
+      );
+    case LegalDocumentType.thirdPartyServices:
+      return LegalDocumentDefinition(
+        title: l10n.legalThirdPartyServicesTitle,
+        subtitle: l10n.legalThirdPartyServicesSubtitle,
+        assetPath: 'legal/THIRD_PARTY_SERVICES_NOTICE.md',
+      );
+    case LegalDocumentType.disclaimers:
+      return LegalDocumentDefinition(
+        title: l10n.legalDisclaimersTitle,
+        subtitle: l10n.legalDisclaimersSubtitle,
+        assetPath: 'legal/DISCLAIMERS.md',
+      );
+  }
+}
 
 class LegalDocumentScreen extends StatefulWidget {
   final LegalDocumentType type;
@@ -19,6 +119,27 @@ class LegalDocumentScreen extends StatefulWidget {
 
 class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
   bool _isAppBarScrolled = false;
+  late Future<String> _documentFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _documentFuture = _loadDocument();
+  }
+
+  @override
+  void didUpdateWidget(covariant LegalDocumentScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.type != widget.type) {
+      setState(() => _documentFuture = _loadDocument());
+    }
+  }
+
+  Future<String> _loadDocument() async {
+    final l10n = AppLocalizations.of(context)!;
+    final document = legalDocumentForType(widget.type, l10n);
+    return rootBundle.loadString(document.assetPath);
+  }
 
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
@@ -31,7 +152,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final document = _documentFor(widget.type, l10n);
+    final document = legalDocumentForType(widget.type, l10n);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -74,125 +195,108 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
           ],
         ),
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          if (notification.metrics.axis == Axis.vertical) {
-            _updateAppBarScrollState(notification.metrics.pixels);
+      body: FutureBuilder<String>(
+        future: _documentFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
           }
-          return false;
-        },
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Text(
-              document.title,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              document.subtitle,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.72),
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, size: 32),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.legalLoadError,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${snapshot.error}',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () {
+                        setState(() => _documentFuture = _loadDocument());
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: Text(l10n.legalTryAgain),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final markdown = snapshot.data ?? '';
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              final horizontalPadding = width >= 1200
+                  ? (width - 980) / 2
+                  : width >= 768
+                      ? 24.0
+                      : 16.0;
+
+              return NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (notification.metrics.axis == Axis.vertical) {
+                    _updateAppBarScrollState(notification.metrics.pixels);
+                  }
+                  return false;
+                },
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    20,
+                    horizontalPadding,
+                    28,
                   ),
-            ),
-            const SizedBox(height: 24),
-            for (final section in document.sections) ...[
-              Text(
-                section.heading,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                section.body,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 20),
-            ],
-          ],
-        ),
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 980),
+                      child: Text(
+                        document.subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.72),
+                            ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 980),
+                      child: MarkdownBody(
+                        data: markdown,
+                        selectable: true,
+                        styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                            .copyWith(
+                          p: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                height: 1.5,
+                              ),
+                          h1: Theme.of(context).textTheme.headlineSmall,
+                          h2: Theme.of(context).textTheme.titleLarge,
+                          h3: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
-
-  _LegalDocument _documentFor(LegalDocumentType type, AppLocalizations l10n) {
-    switch (type) {
-      case LegalDocumentType.terms:
-        return _LegalDocument(
-          title: l10n.legalTermsTitle,
-          subtitle: l10n.legalTermsSubtitle,
-          sections: [
-            _LegalSection(
-              heading: l10n.legalTermsUseHeading,
-              body: l10n.legalTermsUseBody,
-            ),
-            _LegalSection(
-              heading: l10n.legalTermsGuidanceHeading,
-              body: l10n.legalTermsGuidanceBody,
-            ),
-            _LegalSection(
-              heading: l10n.legalTermsSecurityHeading,
-              body: l10n.legalTermsSecurityBody,
-            ),
-            _LegalSection(
-              heading: l10n.legalTermsChangesHeading,
-              body: l10n.legalTermsChangesBody,
-            ),
-          ],
-        );
-      case LegalDocumentType.privacy:
-        return _LegalDocument(
-          title: l10n.legalPrivacyTitle,
-          subtitle: l10n.legalPrivacySubtitle,
-          sections: [
-            _LegalSection(
-              heading: l10n.legalPrivacyDataHeading,
-              body: l10n.legalPrivacyDataBody,
-            ),
-            _LegalSection(
-              heading: l10n.legalPrivacyStorageHeading,
-              body: l10n.legalPrivacyStorageBody,
-            ),
-            _LegalSection(
-              heading: l10n.legalPrivacyBiometricHeading,
-              body: l10n.legalPrivacyBiometricBody,
-            ),
-            _LegalSection(
-              heading: l10n.legalPrivacyControlHeading,
-              body: l10n.legalPrivacyControlBody,
-            ),
-          ],
-        );
-    }
-  }
-}
-
-class _LegalDocument {
-  final String title;
-  final String subtitle;
-  final List<_LegalSection> sections;
-
-  const _LegalDocument({
-    required this.title,
-    required this.subtitle,
-    required this.sections,
-  });
-}
-
-class _LegalSection {
-  final String heading;
-  final String body;
-
-  const _LegalSection({
-    required this.heading,
-    required this.body,
-  });
 }

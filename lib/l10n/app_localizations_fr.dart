@@ -186,6 +186,60 @@ class AppLocalizationsFr extends AppLocalizations {
   String get legalPrivacyControlBody => 'Vous pouvez consulter, modifier ou supprimer les données de l’application lorsque cela est pris en charge. Vous pouvez également désactiver l’authentification biométrique et les fonctions de sécurité associées à tout moment.';
 
   @override
+  String get legalCenterTitle => 'Legal Center';
+
+  @override
+  String get legalCenterIntro => 'Review all legal documents that govern SmartSpend, including terms, privacy, security, and data handling policies.';
+
+  @override
+  String get legalAllDocuments => 'All legal documents';
+
+  @override
+  String get legalAllDocumentsSubtitle => 'Open the complete legal center with all policies.';
+
+  @override
+  String get legalCookiesTitle => 'Cookies & Tracking Notice';
+
+  @override
+  String get legalCookiesSubtitle => 'How tracking technologies and analytics are used in the app.';
+
+  @override
+  String get legalAupTitle => 'Acceptable Use Policy';
+
+  @override
+  String get legalAupSubtitle => 'Rules and prohibited behavior when using SmartSpend.';
+
+  @override
+  String get legalDataRetentionTitle => 'Data Retention Policy';
+
+  @override
+  String get legalDataRetentionSubtitle => 'How long data is retained and when it is deleted.';
+
+  @override
+  String get legalSecurityDisclosureTitle => 'Security Disclosure Policy';
+
+  @override
+  String get legalSecurityDisclosureSubtitle => 'How to report vulnerabilities and how we respond.';
+
+  @override
+  String get legalThirdPartyServicesTitle => 'Third-Party Services Notice';
+
+  @override
+  String get legalThirdPartyServicesSubtitle => 'Which external services process data for SmartSpend.';
+
+  @override
+  String get legalDisclaimersTitle => 'Disclaimers';
+
+  @override
+  String get legalDisclaimersSubtitle => 'Important limitations and non-advice statements.';
+
+  @override
+  String get legalLoadError => 'We could not load this legal document.';
+
+  @override
+  String get legalTryAgain => 'Try again';
+
+  @override
   String get legalAndOnboarding => 'Juridique et onboarding';
 
   @override

@@ -40,7 +40,7 @@ final savingsGoalListProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$SavingsGoalList = AutoDisposeAsyncNotifier<List<SavingsGoal>>;
-String _$savingsNudgesHash() => r'c2977d5ff6f9cbcc239d33bee6e225bb325c496c';
+String _$savingsNudgesHash() => r'0fa6ae9e701e746ce460da241c3a2c5254af5a42';
 
 /// See also [SavingsNudges].
 @ProviderFor(SavingsNudges)

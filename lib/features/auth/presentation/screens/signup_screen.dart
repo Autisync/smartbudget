@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/signup_form_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -15,9 +16,11 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _acceptedLegal = false;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final form = ref.watch(signupFormProvider);
     final formController = ref.read(signupFormProvider.notifier);
     final theme = Theme.of(context);
@@ -185,7 +188,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ],
             const SizedBox(height: 20),
             FilledButton.icon(
-              onPressed: (!form.isValid || form.submitting)
+              onPressed: (!form.isValid || !_acceptedLegal || form.submitting)
                   ? null
                   : () => _submit(context),
               icon: form.submitting
@@ -200,13 +203,56 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               ),
             ),
             const SizedBox(height: 12),
+            CheckboxListTile(
+              value: _acceptedLegal,
+              onChanged: form.submitting
+                  ? null
+                  : (value) {
+                      setState(() => _acceptedLegal = value ?? false);
+                      if (value == true && form.errorMessage != null) {
+                        formController.setError(null);
+                      }
+                    },
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(
+                l10n.onboardingAcceptLegal,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.35,
+                ),
+              ),
+            ),
             Text(
-              'By continuing, you confirm that the information provided is accurate and that you will use this account to manage your own financial workspace.',
+              'By creating an account, you agree to the Terms of Use and Privacy Policy. You also confirm that the information provided is accurate and that you will use this account to manage your own financial workspace.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 height: 1.4,
               ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              children: [
+                TextButton(
+                  onPressed: () => context.push('/legal/terms'),
+                  child: Text(l10n.legalTermsTitle),
+                ),
+                Text(
+                  '•',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push('/legal/privacy'),
+                  child: Text(l10n.legalPrivacyTitle),
+                ),
+              ],
             ),
           ],
         ),
@@ -215,8 +261,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   Future<void> _submit(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final form = ref.read(signupFormProvider);
     final formController = ref.read(signupFormProvider.notifier);
+
+    if (!_acceptedLegal) {
+      formController.setError(l10n.onboardingAcceptLegalError);
+      return;
+    }
 
     formController.setSubmitting(true);
     final ok = await ref.read(sessionControllerProvider.notifier).signup(

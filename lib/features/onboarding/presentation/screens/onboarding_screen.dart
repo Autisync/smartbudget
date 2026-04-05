@@ -148,6 +148,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onPressed: () => context.push('/legal/privacy'),
                       child: Text(l10n.legalPrivacyTitle),
                     ),
+                    TextButton(
+                      onPressed: () => context.push('/legal'),
+                      child: Text(l10n.legalAllDocuments),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -178,7 +182,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
                     await ref
                         .read(onboardingServiceProvider)
-                        .completeOnboarding(acceptedLegal: true);
+                        .completeOnboarding(
+                          acceptedLegal: true,
+                          reviewedAt: DateTime.now().toUtc(),
+                        );
                     ref.invalidate(onboardingStatusProvider);
 
                     if (!mounted) return;

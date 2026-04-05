@@ -25,6 +25,7 @@ import 'package:smartbudget/features/auth/presentation/screens/reset_password_sc
 import 'package:smartbudget/features/auth/presentation/screens/verify_email_screen.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/onboarding/presentation/screens/legal_document_screen.dart';
+import 'package:smartbudget/features/onboarding/presentation/screens/legal_center_screen.dart';
 import 'package:smartbudget/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
@@ -68,7 +69,8 @@ GoRouter router(RouterRef ref) {
           isResetPasswordRoute ||
           isVerifyEmailRoute;
       final isOnboardingRoute = state.matchedLocation == '/onboarding';
-      final isLegalRoute = state.matchedLocation.startsWith('/legal/');
+        final isLegalRoute = state.matchedLocation == '/legal' ||
+          state.matchedLocation.startsWith('/legal/');
       final isPublicRoute =
           isSplashRoute || isAuthRoute || isOnboardingRoute || isLegalRoute;
 
@@ -101,6 +103,10 @@ GoRouter router(RouterRef ref) {
         builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
+        path: '/legal',
+        builder: (context, state) => const LegalCenterScreen(),
+      ),
+      GoRoute(
         path: '/legal/terms',
         builder: (context, state) =>
             const LegalDocumentScreen(type: LegalDocumentType.terms),
@@ -109,6 +115,38 @@ GoRouter router(RouterRef ref) {
         path: '/legal/privacy',
         builder: (context, state) =>
             const LegalDocumentScreen(type: LegalDocumentType.privacy),
+      ),
+      GoRoute(
+        path: '/legal/cookies',
+        builder: (context, state) =>
+            const LegalDocumentScreen(type: LegalDocumentType.cookies),
+      ),
+      GoRoute(
+        path: '/legal/acceptable-use',
+        builder: (context, state) =>
+            const LegalDocumentScreen(type: LegalDocumentType.acceptableUse),
+      ),
+      GoRoute(
+        path: '/legal/data-retention',
+        builder: (context, state) =>
+            const LegalDocumentScreen(type: LegalDocumentType.dataRetention),
+      ),
+      GoRoute(
+        path: '/legal/security-disclosure',
+        builder: (context, state) => const LegalDocumentScreen(
+          type: LegalDocumentType.securityDisclosure,
+        ),
+      ),
+      GoRoute(
+        path: '/legal/third-party-services',
+        builder: (context, state) => const LegalDocumentScreen(
+          type: LegalDocumentType.thirdPartyServices,
+        ),
+      ),
+      GoRoute(
+        path: '/legal/disclaimers',
+        builder: (context, state) =>
+            const LegalDocumentScreen(type: LegalDocumentType.disclaimers),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),

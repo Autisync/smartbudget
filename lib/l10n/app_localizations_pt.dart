@@ -102,10 +102,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get onboardingGetStarted => 'Começar';
 
   @override
-  String get onboardingAcceptLegal => 'Aceito os Termos e Condições e a Política de Privacidade.';
+  String get onboardingAcceptLegal => 'Aceito os Termos, a Política de Privacidade e todos os documentos legais.';
 
   @override
-  String get onboardingAcceptLegalError => 'Aceite os Termos e a Política de Privacidade para continuar.';
+  String get onboardingAcceptLegalError => 'Aceite os documentos legais para continuar.';
 
   @override
   String get onboardingPage1Title => 'Assuma o controle do seu dinheiro';
@@ -184,6 +184,60 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get legalPrivacyControlBody => 'Você pode revisar, editar ou excluir dados do aplicativo quando houver suporte. Também pode desativar a autenticação biométrica e recursos de segurança relacionados a qualquer momento.';
+
+  @override
+  String get legalCenterTitle => 'Central Jurídica';
+
+  @override
+  String get legalCenterIntro => 'Revise todos os documentos legais que regem o SmartSpend, incluindo termos, privacidade, segurança e políticas de dados.';
+
+  @override
+  String get legalAllDocuments => 'Todos os documentos legais';
+
+  @override
+  String get legalAllDocumentsSubtitle => 'Abra a central jurídica completa com todas as políticas.';
+
+  @override
+  String get legalCookiesTitle => 'Aviso de Cookies e Rastreamento';
+
+  @override
+  String get legalCookiesSubtitle => 'Como tecnologias de rastreamento e analytics são usadas no app.';
+
+  @override
+  String get legalAupTitle => 'Política de Uso Aceitável';
+
+  @override
+  String get legalAupSubtitle => 'Regras e comportamentos proibidos ao usar o SmartSpend.';
+
+  @override
+  String get legalDataRetentionTitle => 'Política de Retenção de Dados';
+
+  @override
+  String get legalDataRetentionSubtitle => 'Por quanto tempo os dados são retidos e quando são excluídos.';
+
+  @override
+  String get legalSecurityDisclosureTitle => 'Política de Divulgação de Segurança';
+
+  @override
+  String get legalSecurityDisclosureSubtitle => 'Como reportar vulnerabilidades e como respondemos.';
+
+  @override
+  String get legalThirdPartyServicesTitle => 'Aviso de Serviços de Terceiros';
+
+  @override
+  String get legalThirdPartyServicesSubtitle => 'Quais serviços externos processam dados do SmartSpend.';
+
+  @override
+  String get legalDisclaimersTitle => 'Isenções de Responsabilidade';
+
+  @override
+  String get legalDisclaimersSubtitle => 'Limitações importantes e declarações de não aconselhamento.';
+
+  @override
+  String get legalLoadError => 'Não foi possível carregar este documento legal.';
+
+  @override
+  String get legalTryAgain => 'Tentar novamente';
 
   @override
   String get legalAndOnboarding => 'Jurídico e onboarding';
@@ -1752,7 +1806,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get savingsAddFunds => 'Adicionar valor';
 
   @override
-  String get savingsSimulatePlus50 => 'Simular +\$50/mês';
+  String get savingsSimulatePlus50 => 'Simular aumento mensal';
 
   @override
   String get savingsGoalAchieved => 'Meta concluída! Arquive-a ou crie uma nova para manter o ritmo.';
