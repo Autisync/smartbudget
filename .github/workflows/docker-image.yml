@@ -1,100 +1,98 @@
-name: Backend Docker CI
+name: Mobile Build CI
 
 on:
   push:
     branches: [main, master]
     paths:
-      - 'backend/**'
-      - '.github/workflows/docker-image.yml'
+      - 'lib/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/mobile-build.yml'
   pull_request:
     paths:
-      - 'backend/**'
-      - '.github/workflows/docker-image.yml'
+      - 'lib/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/mobile-build.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
-  packages: write
-
-env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/smartbudget-backend
 
 jobs:
-  docker-compose-smoke:
+  build-android-apk:
+    name: Build Android APK
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: backend
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Prepare env
-        run: cp .env.example .env
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-      - name: Build and start backend stack
-        run: docker compose up -d --build
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
 
-      - name: Wait for API health
-        run: |
-          for i in {1..30}; do
-            if curl -fsS http://localhost:8000/api/v1/health; then
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "Health check failed"
-          exit 1
+      - name: Flutter pub get
+        run: flutter pub get
 
-      - name: Show service status and logs on failure
-        if: failure()
-        run: |
-          docker compose ps
-          docker compose logs --no-color
+      - name: Run tests
+        run: flutter test
 
-      - name: Cleanup
-        if: always()
-        run: docker compose down -v
+      - name: Build release APK
+        run: flutter build apk --release
 
-  publish-ghcr:
-    runs-on: ubuntu-latest
-    needs: docker-compose-smoke
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-release
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
 
-    defaults:
-      run:
-        working-directory: backend
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          channel: stable
+          cache: true
 
-      - name: Extract image metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=
-            type=raw,value=latest
+      - name: Flutter pub get
+        run: flutter pub get
 
-      - name: Build and push image
-        uses: docker/build-push-action@v6
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build iOS without codesign
+        run: flutter build ios --release --no-codesign
+
+      - name: Package iOS app bundle
+        run: |
+          cd build/ios/iphoneos
+          zip -r Runner.app.zip Runner.app
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          name: ios-runner-app-release
+          path: build/ios/iphoneos/Runner.app.zip
+          if-no-files-found: error
