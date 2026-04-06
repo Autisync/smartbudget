@@ -56,7 +56,7 @@ services:
       - traefik
     labels:
       - traefik.enable=true
-      - traefik.docker.network=traefik
+      - traefik.docker.network=proxy
       - traefik.http.routers.smaartspend-backend.rule=Host(`smaartspend.com`)
       - traefik.http.routers.smaartspend-backend.entrypoints=websecure
       - traefik.http.routers.smaartspend-backend.tls=true
@@ -107,4 +107,4 @@ networks:
     driver: bridge
   traefik:
     external: true
-    name: traefik
+    name: proxy
