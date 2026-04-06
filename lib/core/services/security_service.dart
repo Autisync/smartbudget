@@ -13,7 +13,7 @@ class SecurityService {
 
     final companion = SecuritySettingsCompanion.insert(
       sessionTimeout: const Value(300),
-      biometricEnabled: const Value(true),
+      biometricEnabled: const Value(false),
       pinEnabled: const Value(false),
       maxFailedAttempts: const Value(5),
       lockoutDuration: const Value(900),

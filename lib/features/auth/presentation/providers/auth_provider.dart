@@ -19,9 +19,6 @@ class AuthController extends _$AuthController {
     final settings = await securityService.loadSecuritySettings();
     if (!settings.biometricEnabled) return true;
 
-    final isEnabled = await bioService.isBiometricEnabled();
-    if (!isEnabled) return true;
-
     return false; // Need to authenticate
   }
 
@@ -50,10 +47,40 @@ class AuthController extends _$AuthController {
     return result;
   }
 
-  Future<void> enableBiometric(bool enable) async {
+  Future<AuthStatus> enableBiometric(bool enable) async {
     final bioService = ref.read(biometricAuthServiceProvider);
     final securityService = ref.read(securityServiceProvider);
-    await bioService.setBiometricEnabled(enable);
-    await securityService.updateBiometricEnabled(enable);
+
+    if (!enable) {
+      await bioService.setBiometricEnabled(false);
+      await securityService.updateBiometricEnabled(false);
+      return AuthStatus.authenticated;
+    }
+
+    final isSupported = await bioService.isDeviceSupported();
+    if (!isSupported) {
+      return AuthStatus.notAvailable;
+    }
+
+    final canCheck = await bioService.canCheckBiometrics();
+    if (!canCheck) {
+      return AuthStatus.noBiometricsEnrolled;
+    }
+
+    final available = await bioService.getAvailableBiometrics();
+    if (available.isEmpty) {
+      return AuthStatus.noBiometricsEnrolled;
+    }
+
+    final result = await bioService.authenticate(
+      reason: 'Confirm biometric setup',
+    );
+    if (result != AuthStatus.authenticated) {
+      return result;
+    }
+
+    await bioService.setBiometricEnabled(true);
+    await securityService.updateBiometricEnabled(true);
+    return AuthStatus.authenticated;
   }
 }

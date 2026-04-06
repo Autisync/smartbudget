@@ -93,8 +93,6 @@ class SessionController extends StateNotifier<SessionState> {
   Future<bool> _shouldRequireLocalUnlock() async {
     final settings = await _securityService.loadSecuritySettings();
     if (!settings.biometricEnabled) return false;
-    final isBiometricEnabled = await _biometricAuthService.isBiometricEnabled();
-    if (!isBiometricEnabled) return false;
     return _biometricAuthService.shouldRequireAuth();
   }
 

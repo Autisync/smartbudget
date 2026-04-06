@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
@@ -111,12 +112,34 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                             subtitle: Text(l10n.securityBiometricAuthSubtitle),
                             value: settings.biometricEnabled,
                             onChanged: (value) async {
-                              await ref
+                              final result = await ref
                                   .read(authControllerProvider.notifier)
                                   .enableBiometric(value);
-                              await ref
-                                  .read(securityServiceProvider)
-                                  .updateBiometricEnabled(value);
+
+                              if (!context.mounted) return;
+
+                              if (value && result != bio.AuthStatus.authenticated) {
+                                final message = switch (result) {
+                                  bio.AuthStatus.notAvailable =>
+                                    'Biometric authentication is not available on this device.',
+                                  bio.AuthStatus.noBiometricsEnrolled =>
+                                    'No biometrics are enrolled on this device.',
+                                  bio.AuthStatus.lockedOut =>
+                                    'Biometric authentication is temporarily locked.',
+                                  bio.AuthStatus.permanentlyLockedOut =>
+                                    'Biometric authentication is locked. Unlock with device passcode first.',
+                                  bio.AuthStatus.denied =>
+                                    'Biometric setup was not confirmed.',
+                                  bio.AuthStatus.error =>
+                                    'Could not enable biometric authentication.',
+                                  bio.AuthStatus.authenticated =>
+                                    'Biometric authentication enabled.',
+                                };
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(message)),
+                                );
+                              }
+
                               ref.invalidate(securitySettingProvider);
                             },
                           ),
