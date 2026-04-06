@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart';
@@ -49,10 +50,13 @@ class SessionState {
 }
 
 final authBaseUrlProvider = Provider<String>((ref) {
-  return const String.fromEnvironment(
-    'AUTH_API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8000',
-  );
+  const configured = String.fromEnvironment('AUTH_API_BASE_URL', defaultValue: '');
+  if (configured.isNotEmpty) {
+    return configured;
+  }
+
+  // Release builds default to the public API host; local debug keeps emulator routing.
+  return kReleaseMode ? 'https://api.smaartspend.com' : 'http://10.0.2.2:8000';
 });
 
 final authTokenStorageProvider = Provider<AuthTokenStorage>((ref) {

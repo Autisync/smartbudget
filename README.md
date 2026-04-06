@@ -273,6 +273,20 @@ Use your machine LAN IP (example shown):
 flutter run -d <device_id> --dart-define=AUTH_API_BASE_URL=http://192.168.0.175:8000
 ```
 
+#### Production backend (api.smaartspend.com)
+
+Point the app to the deployed backend:
+
+```bash
+flutter run --dart-define=AUTH_API_BASE_URL=https://api.smaartspend.com
+```
+
+For release builds:
+
+```bash
+flutter build apk --release --dart-define=AUTH_API_BASE_URL=https://api.smaartspend.com
+```
+
 ### 5) Verify auth flow manually
 
 - Sign up with a new email/password
