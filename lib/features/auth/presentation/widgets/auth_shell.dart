@@ -73,8 +73,8 @@ class AuthScaffold extends StatelessWidget {
                                       maxWidth: cardWidth,
                                     ),
                                     child: _AuthCard(
-                                      child: child,
                                       footer: footer,
+                                      child: child,
                                     ),
                                   ),
                                 ],
@@ -94,8 +94,8 @@ class AuthScaffold extends StatelessWidget {
                                       maxWidth: cardWidth,
                                     ),
                                     child: _AuthCard(
-                                      child: child,
                                       footer: footer,
+                                      child: child,
                                     ),
                                   ),
                                 ],
@@ -311,10 +311,10 @@ class _AuthHero extends StatelessWidget {
             ),
           ),
           const SizedBox(height: UiTokens.sectionGapLg),
-          Wrap(
+          const Wrap(
             spacing: UiTokens.chipSpacing,
             runSpacing: UiTokens.chipRunSpacing,
-            children: const [
+            children: [
               _AuthHeroPill(
                 icon: Icons.security_rounded,
                 label: 'Secure access',

@@ -40,7 +40,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       cardWidth: 500,
       footer: const SizedBox.shrink(),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuthBackButton(
             label: 'Back to sign in',
@@ -75,7 +75,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             ),
             onChanged: (_) => setState(() => _message = null),
             onSubmitted: (_) async {
-              if (_submitting || !_hasValidEmail) return;
+              if (_submitting || !_hasValidEmail) {
+                return;
+              }
               await _submit();
             },
           ),
@@ -87,9 +89,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   colorScheme.surfaceContainerHighest.withValues(alpha: 0.62),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 _RecoveryStep(
                     index: '1',
                     text: 'Enter the email linked to your account.'),

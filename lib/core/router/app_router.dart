@@ -45,8 +45,9 @@ GoRouter router(RouterRef ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
-      if (sessionState.initializing || onboardingState.isLoading)
+      if (sessionState.initializing || onboardingState.isLoading) {
         return '/splash';
+      }
 
       final onboardingStatus = onboardingState.valueOrNull ??
           const OnboardingStatus(
@@ -83,13 +84,17 @@ GoRouter router(RouterRef ref) {
         return isAuthenticated ? '/' : '/login';
       }
 
-      if (!isAuthenticated && !isPublicRoute) return '/login';
+      if (!isAuthenticated && !isPublicRoute) {
+        return '/login';
+      }
 
       if (isAuthenticated && localUnlockRequired && !isLoginRoute) {
         return '/login';
       }
 
-      if (isAuthenticated && !localUnlockRequired && isAuthRoute) return '/';
+      if (isAuthenticated && !localUnlockRequired && isAuthRoute) {
+        return '/';
+      }
 
       return null;
     },
