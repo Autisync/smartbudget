@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
 from app.core import errors
@@ -43,14 +45,41 @@ class AuthService:
         self.email.send_verification_email(email=user.email, token=verification_token)
         return self._issue_tokens(user_id=str(user.id), device_name=device_name, platform=platform, user=user)
 
-    def login(self, *, email: str, password: str, device_name: str | None, platform: str | None):
+    def login(
+        self,
+        *,
+        email: str,
+        password: str,
+        device_name: str | None,
+        platform: str | None,
+        request_ip: str | None = None,
+    ):
         user = self.users.get_by_email(email)
         if not user or not verify_password(password, user.password_hash):
             raise errors.unauthorized("Invalid email or password")
         if not user.is_active:
             raise errors.forbidden("User is inactive")
 
-        return self._issue_tokens(user_id=str(user.id), device_name=device_name, platform=platform, user=user)
+        auth_response = self._issue_tokens(
+            user_id=str(user.id),
+            device_name=device_name,
+            platform=platform,
+            user=user,
+        )
+
+        login_device = device_name or platform or "Unknown device"
+        login_location = request_ip or "Unknown location"
+        login_time = datetime.now(timezone.utc).isoformat()
+        self.email.send_login_alert_email(
+            email=user.email,
+            user_name=user.first_name,
+            action_url="smartbudget://security",
+            device=login_device,
+            location=login_location,
+            login_time=login_time,
+        )
+
+        return auth_response
 
     def refresh(self, *, refresh_token: str):
         payload = decode_refresh_token(refresh_token)
@@ -101,6 +130,12 @@ class AuthService:
         user.is_verified = True
         self.db.add(user)
         self.db.commit()
+
+        self.email.send_welcome_email(
+            email=user.email,
+            user_name=user.first_name,
+            action_url="smartbudget://dashboard",
+        )
 
     def _issue_tokens(self, *, user_id: str, device_name: str | None, platform: str | None, user):
         access_token, access_expires_in = create_access_token(user_id)
