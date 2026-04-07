@@ -55,8 +55,16 @@ final authBaseUrlProvider = Provider<String>((ref) {
     return configured;
   }
 
-  // Release builds default to the public API host; local debug keeps emulator routing.
-  return kReleaseMode ? 'https://api.smaartspend.com' : 'http://10.0.2.2:8000';
+  // Release builds use production API; debug defaults vary by platform.
+  if (kReleaseMode) {
+    return 'https://api.smaartspend.com';
+  }
+
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.android => 'http://10.0.2.2:8000',
+    TargetPlatform.iOS => 'https://api.smaartspend.com',
+    _ => 'http://127.0.0.1:8000',
+  };
 });
 
 final authTokenStorageProvider = Provider<AuthTokenStorage>((ref) {

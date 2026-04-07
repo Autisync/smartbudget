@@ -48,7 +48,7 @@ class BiometricAuthService {
         return AuthStatus.authenticated;
       }
 
-      if (Platform.isMacOS) {
+      if (Platform.isMacOS || Platform.isIOS) {
         final didAuthenticateWithDeviceAuth = await _authenticateWithOptions(
           reason: reason,
           biometricOnly: false,
