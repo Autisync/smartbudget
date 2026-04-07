@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:smartbudget/intelligence/models/forecast_data_point.dart';
@@ -39,6 +41,8 @@ class ForecastChartWidget extends StatelessWidget {
       actualSpots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b),
       predictedSpots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b),
     ].reduce((a, b) => a > b ? a : b);
+    final safeMaxY = math.max(maxY * 1.1, 1.0);
+    final safeHorizontalInterval = math.max(safeMaxY / 4, 0.25);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -62,11 +66,11 @@ class ForecastChartWidget extends StatelessWidget {
                   minX: 1,
                   maxX: dataPoints.length.toDouble(),
                   minY: 0,
-                  maxY: maxY * 1.1,
+                  maxY: safeMaxY,
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: false,
-                    horizontalInterval: maxY / 4,
+                    horizontalInterval: safeHorizontalInterval,
                     getDrawingHorizontalLine: (value) => FlLine(
                       color: Theme.of(context).dividerColor,
                       strokeWidth: 1,
