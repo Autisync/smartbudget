@@ -29,6 +29,7 @@ import 'package:smartbudget/features/onboarding/presentation/screens/legal_cente
 import 'package:smartbudget/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/widgets/logo_loading_indicator.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 part 'app_router.g.dart';
@@ -101,8 +102,13 @@ GoRouter router(RouterRef ref) {
     routes: [
       GoRoute(
         path: '/splash',
-        builder: (context, state) =>
-            const Scaffold(body: Center(child: CircularProgressIndicator())),
+        builder: (context, state) => Scaffold(
+          body: Center(
+            child: LogoLoadingIndicator(
+              label: 'Loading SmartSpend...',
+            ),
+          ),
+        ),
       ),
       GoRoute(
         path: '/onboarding',
