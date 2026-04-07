@@ -5,7 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/exchange_rate_service.dart';
+import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class ExchangeRatesScreen extends ConsumerStatefulWidget {
@@ -97,7 +99,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.navExchangeRates),
+        title: BrandedTitle(label: l10n.navExchangeRates),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
@@ -135,9 +137,9 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                   controller: _amountController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
+                  style: InputStyles.inputTextStyle(Theme.of(context)),
                   decoration: InputDecoration(
                     labelText: l10n.amount,
-                    border: const OutlineInputBorder(),
                   ),
                   onChanged: (_) => setState(() {}),
                 ),
@@ -148,9 +150,9 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                       child: DropdownButtonFormField<String>(
                         key: ValueKey('base-$_baseCurrency'),
                         initialValue: _baseCurrency,
+                        icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.exchangeRatesFrom,
-                          border: const OutlineInputBorder(),
                         ),
                         items: _currencies
                             .map(
@@ -177,9 +179,9 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                       child: DropdownButtonFormField<String>(
                         key: ValueKey('target-$_targetCurrency'),
                         initialValue: _targetCurrency,
+                        icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.exchangeRatesTo,
-                          border: const OutlineInputBorder(),
                         ),
                         items: _currencies
                             .map(

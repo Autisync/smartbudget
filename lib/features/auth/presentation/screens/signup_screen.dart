@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/signup_form_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
@@ -65,6 +66,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       TextField(
                         textInputAction: TextInputAction.next,
                         autofillHints: const [AutofillHints.givenName],
+                        style: InputStyles.inputTextStyle(theme),
                         decoration: const InputDecoration(
                           labelText: 'First name',
                           prefixIcon: Icon(Icons.badge_outlined),
@@ -84,6 +86,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       TextField(
                         textInputAction: TextInputAction.next,
                         autofillHints: const [AutofillHints.familyName],
+                        style: InputStyles.inputTextStyle(theme),
                         decoration: const InputDecoration(
                           labelText: 'Last name',
                           prefixIcon: Icon(Icons.person_outline_rounded),
@@ -108,6 +111,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 labelText: 'name@example.com',
                 prefixIcon: Icon(Icons.alternate_email_rounded),
               ),
+              style: InputStyles.inputTextStyle(theme),
               onChanged: formController.setEmail,
             ),
             const SizedBox(height: 16),
@@ -117,6 +121,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.newPassword],
+              style: InputStyles.inputTextStyle(theme),
               decoration: InputDecoration(
                 labelText: 'Create a password',
                 prefixIcon: const Icon(Icons.lock_outline_rounded),
@@ -150,6 +155,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               obscureText: _obscureConfirmPassword,
               textInputAction: TextInputAction.done,
               autofillHints: const [AutofillHints.newPassword],
+              style: InputStyles.inputTextStyle(theme),
               decoration: InputDecoration(
                 labelText: 'Re-enter your password',
                 prefixIcon: const Icon(Icons.verified_user_outlined),

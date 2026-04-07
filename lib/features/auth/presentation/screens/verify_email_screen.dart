@@ -89,7 +89,13 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: statusColor.withValues(alpha: 0.18)),
+              boxShadow: [
+                BoxShadow(
+                  color: statusColor.withValues(alpha: 0.16),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               children: [

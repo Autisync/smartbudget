@@ -7,6 +7,7 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/security_provider.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class SecurityScreen extends ConsumerStatefulWidget {
@@ -46,7 +47,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(l10n.securitySettingsTitle),
+          child: BrandedTitle(label: l10n.securitySettingsTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -118,7 +119,8 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
 
                               if (!context.mounted) return;
 
-                              if (value && result != bio.AuthStatus.authenticated) {
+                              if (value &&
+                                  result != bio.AuthStatus.authenticated) {
                                 final message = switch (result) {
                                   bio.AuthStatus.notAvailable =>
                                     'Biometric authentication is not available on this device.',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
 
@@ -82,6 +83,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             enabled: !tokenMissing,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.newPassword],
+            style: InputStyles.inputTextStyle(theme),
             decoration: InputDecoration(
               labelText: 'Create a new password',
               prefixIcon: const Icon(Icons.lock_outline_rounded),
@@ -119,6 +121,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             enabled: !tokenMissing,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.newPassword],
+            style: InputStyles.inputTextStyle(theme),
             decoration: InputDecoration(
               labelText: 'Re-enter the new password',
               prefixIcon: const Icon(Icons.verified_user_outlined),

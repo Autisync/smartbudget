@@ -78,6 +78,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get noTransactions => 'Nenhuma transação ainda';
 
   @override
+  String get noTransactionsSubtitle => 'Adicione sua primeira receita ou despesa para começar a acompanhar seu dinheiro.';
+
+  @override
   String get totalBalance => 'Saldo Total';
 
   @override

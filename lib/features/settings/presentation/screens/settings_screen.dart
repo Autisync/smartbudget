@@ -1,15 +1,15 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/locale_service.dart';
-import 'package:smartbudget/core/services/notification_preferences_service.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
-import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/features/balance_sheet/presentation/screens/recurring_balance_sheet_screen.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
@@ -30,6 +30,49 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isAppBarScrolled = false;
+
+  Future<void> _sendSupportFeedbackEmail() async {
+    final emailUri = Uri(
+      scheme: 'mailto',
+      path: 'support@autisync.com',
+      queryParameters: {
+        'subject': 'SmartSpend Feedback (Tech & General)',
+        'body':
+            'Hi Autisync team,%0A%0AI would like to share feedback:%0A%0A- Technical feedback:%0A- General feedback:%0A%0AThanks!',
+      },
+    );
+
+    try {
+      final launched = await launchUrl(
+        emailUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open email app on this device.'),
+          ),
+        );
+      }
+    } on MissingPluginException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Email plugin not ready yet. Please fully restart the app and try again.',
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open email app right now.'),
+        ),
+      );
+    }
+  }
 
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
@@ -86,22 +129,283 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _openControlCenterSheet({
+    required AppLocalizations l10n,
+    required ThemeMode themeMode,
+    required String appCurrency,
+    required Locale appLocale,
+    required List<(String, String)> languageOptions,
+    required String displayName,
+    required String userEmail,
+    required bool isActive,
+    required bool isVerified,
+  }) async {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor:
+                          colorScheme.primary.withValues(alpha: 0.14),
+                      child: Text(
+                        displayName.isNotEmpty
+                            ? displayName.characters.first.toUpperCase()
+                            : 'U',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            userEmail,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (isVerified
+                                ? Colors.green
+                                : colorScheme.onSurfaceVariant)
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        isVerified ? 'Verified' : 'Unverified',
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: isVerified
+                                      ? Colors.green.shade700
+                                      : colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _MoreActionTile(
+                  icon: Icons.badge_outlined,
+                  title: 'Account info',
+                  subtitle: 'View your account details',
+                  onTap: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Account info'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _AccountInfoRow(
+                                  label: 'Name', value: displayName),
+                              _AccountInfoRow(label: 'Email', value: userEmail),
+                              _AccountInfoRow(
+                                label: 'Email status',
+                                value: isVerified ? 'Verified' : 'Unverified',
+                              ),
+                              _AccountInfoRow(
+                                label: 'Account status',
+                                value: isActive ? 'Active' : 'Inactive',
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+                _MoreActionTile(
+                  icon: Icons.palette_outlined,
+                  title: l10n.settingsAppearance,
+                  subtitle: switch (themeMode) {
+                    ThemeMode.system => l10n.themeSystem,
+                    ThemeMode.light => l10n.themeLight,
+                    ThemeMode.dark => l10n.themeDark,
+                  },
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    final selected = await showDialog<ThemeMode>(
+                      context: context,
+                      builder: (context) => SimpleDialog(
+                        title: Text(l10n.settingsAppearance),
+                        children: [
+                          RadioListTile<ThemeMode>(
+                            value: ThemeMode.system,
+                            groupValue: themeMode,
+                            title: Text(l10n.themeSystem),
+                            onChanged: (value) =>
+                                Navigator.of(context).pop(value),
+                          ),
+                          RadioListTile<ThemeMode>(
+                            value: ThemeMode.light,
+                            groupValue: themeMode,
+                            title: Text(l10n.themeLight),
+                            onChanged: (value) =>
+                                Navigator.of(context).pop(value),
+                          ),
+                          RadioListTile<ThemeMode>(
+                            value: ThemeMode.dark,
+                            groupValue: themeMode,
+                            title: Text(l10n.themeDark),
+                            onChanged: (value) =>
+                                Navigator.of(context).pop(value),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (selected == null) return;
+                    await ref
+                        .read(themeModeControllerProvider.notifier)
+                        .setThemeMode(selected);
+                  },
+                ),
+                _MoreActionTile(
+                  icon: Icons.language_rounded,
+                  title: l10n.language,
+                  subtitle: languageOptions
+                      .firstWhere(
+                        (option) => option.$1 == appLocale.languageCode,
+                        orElse: () => languageOptions.first,
+                      )
+                      .$2,
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    final selected = await showDialog<String>(
+                      context: context,
+                      builder: (context) => SimpleDialog(
+                        title: Text(l10n.language),
+                        children: [
+                          for (final option in languageOptions)
+                            RadioListTile<String>(
+                              value: option.$1,
+                              groupValue: appLocale.languageCode,
+                              title: Text(option.$2),
+                              onChanged: (value) =>
+                                  Navigator.of(context).pop(value),
+                            ),
+                        ],
+                      ),
+                    );
+                    if (selected == null) return;
+                    await ref
+                        .read(appLocaleControllerProvider.notifier)
+                        .setLanguageCode(selected);
+                  },
+                ),
+                _MoreActionTile(
+                  icon: Icons.currency_exchange_rounded,
+                  title: l10n.currency,
+                  subtitle: appCurrency,
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    final selected = await showDialog<String>(
+                      context: context,
+                      builder: (context) => SimpleDialog(
+                        title: Text(l10n.currency),
+                        children: [
+                          for (final code
+                              in CurrencyService.supportedCurrencyCodes)
+                            RadioListTile<String>(
+                              value: code,
+                              groupValue: appCurrency,
+                              title: Text(code),
+                              onChanged: (value) =>
+                                  Navigator.of(context).pop(value),
+                            ),
+                        ],
+                      ),
+                    );
+                    if (selected == null) return;
+                    await _handleCurrencyChange(selected);
+                  },
+                ),
+                _MoreActionTile(
+                  icon: Icons.lock_outline,
+                  title: l10n.settingsAuthenticationSettings,
+                  subtitle: l10n.settingsAuthenticationSettingsSubtitle,
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    GoRouter.of(context).push('/security');
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final themeMode = ref.watch(themeModeControllerProvider);
-    final rolloverPolicy = ref.watch(rolloverPolicyControllerProvider);
     final notificationPrefs =
         ref.watch(notificationPreferencesControllerProvider);
-    final budgetNextEligible =
-        ref.watch(notificationDispatchStatusProvider('budgetAlerts'));
-    final savingsNextEligible =
-        ref.watch(notificationDispatchStatusProvider('savingsNudges'));
-    final healthNextEligible =
-        ref.watch(notificationDispatchStatusProvider('healthInsights'));
+    final session = ref.watch(sessionControllerProvider);
     final onboardingStatus = ref.watch(onboardingStatusProvider).valueOrNull;
     final appCurrency = ref.watch(appCurrencyControllerProvider);
     final appLocale = ref.watch(appLocaleControllerProvider);
+    final transactionsCount =
+        ref.watch(transactionListProvider()).valueOrNull?.length ?? 0;
+    final itemsCount =
+        (ref.watch(budgetListProvider).valueOrNull?.length ?? 0) +
+            (ref.watch(savingsGoalListProvider).valueOrNull?.length ?? 0) +
+            (ref.watch(subscriptionListProvider).valueOrNull?.length ?? 0);
     final colorScheme = Theme.of(context).colorScheme;
     const languageOptions = [
       ('en', 'English'),
@@ -122,6 +426,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final notificationsLabel = notificationPrefs.enabled
         ? l10n.settingsNotificationsEnabled
         : l10n.settingsNotificationsPaused;
+    final userEmail = session.user?.email ?? 'Not signed in';
+    final isActive = session.user?.isActive ?? false;
+    final displayName = [
+      session.user?.firstName ?? '',
+      session.user?.lastName ?? '',
+    ].where((part) => part.trim().isNotEmpty).join(' ').trim();
+    final userDisplayName =
+        displayName.isEmpty ? 'SmartSpend User' : displayName;
+    final isVerified = session.user?.isVerified ?? false;
     final legalReviewedAt = onboardingStatus?.legalReviewedAt;
     final legalReviewedAtLabel = legalReviewedAt == null
         ? 'No timestamp recorded yet.'
@@ -130,19 +443,66 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             .format(legalReviewedAt.toLocal());
 
     return Scaffold(
+      backgroundColor: colorScheme.surfaceContainerLowest,
       appBar: AppBar(
         title: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: EdgeInsets.zero,
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+              alpha: 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(l10n.settings),
+          child: Text(
+            'Settings',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontSize: 38,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              final selected = await showDialog<ThemeMode>(
+                context: context,
+                builder: (context) {
+                  return SimpleDialog(
+                    title: Text(l10n.settingsAppearance),
+                    children: [
+                      RadioListTile<ThemeMode>(
+                        value: ThemeMode.system,
+                        groupValue: themeMode,
+                        title: Text(l10n.themeSystem),
+                        onChanged: (value) => Navigator.of(context).pop(value),
+                      ),
+                      RadioListTile<ThemeMode>(
+                        value: ThemeMode.light,
+                        groupValue: themeMode,
+                        title: Text(l10n.themeLight),
+                        onChanged: (value) => Navigator.of(context).pop(value),
+                      ),
+                      RadioListTile<ThemeMode>(
+                        value: ThemeMode.dark,
+                        groupValue: themeMode,
+                        title: Text(l10n.themeDark),
+                        onChanged: (value) => Navigator.of(context).pop(value),
+                      ),
+                    ],
+                  );
+                },
+              );
+              if (selected == null) return;
+              await ref
+                  .read(themeModeControllerProvider.notifier)
+                  .setThemeMode(selected);
+            },
+            icon: const Icon(Icons.settings_rounded),
+            tooltip: l10n.settings,
+          ),
+        ],
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
@@ -177,458 +537,463 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           return false;
         },
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: AppSurfaces.elevated(
-                context,
-                radius: 22,
-                color: colorScheme.surfaceContainerHigh,
-                opacity: 0.06,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => _openControlCenterSheet(
+                  l10n: l10n,
+                  themeMode: themeMode,
+                  appCurrency: appCurrency,
+                  appLocale: appLocale,
+                  languageOptions: languageOptions,
+                  displayName: userDisplayName,
+                  userEmail: userEmail,
+                  isActive: isActive,
+                  isVerified: isVerified,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: AppSurfaces.elevated(context, radius: 18),
+                  child: Row(
                     children: [
-                      Icon(
-                        Icons.tune_rounded,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        l10n.settingsControlCenterTitle,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    l10n.settingsControlCenterSubtitle,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor:
+                            colorScheme.primary.withValues(alpha: 0.14),
+                        child: Text(
+                          userDisplayName.characters.first.toUpperCase(),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                         ),
-                  ),
-                  const SizedBox(height: UiTokens.sectionGapSm),
-                  Wrap(
-                    spacing: UiTokens.chipSpacing,
-                    runSpacing: UiTokens.chipRunSpacing,
-                    children: [
-                      _SettingsPill(
-                        icon: Icons.palette_outlined,
-                        label: l10n.settingsTheme,
-                        value: activeThemeLabel,
                       ),
-                      _SettingsPill(
-                        icon: Icons.notifications_active_outlined,
-                        label: l10n.settingsAlerts,
-                        value: notificationsLabel,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userDisplayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              userEmail,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
-                      _SettingsPill(
-                        icon: Icons.language_rounded,
-                        label: l10n.language,
-                        value: activeLanguageLabel,
+                      Icon(
+                        Icons.chevron_right,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: AppSurfaces.elevated(context, radius: 18),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _StatsTile(
+                      icon: Icons.receipt_long_rounded,
+                      value: '$transactionsCount',
+                      label: 'Transactions',
+                    ),
+                  ),
+                  SizedBox(
+                    height: 42,
+                    child: VerticalDivider(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.28),
+                      thickness: 1,
+                    ),
+                  ),
+                  Expanded(
+                    child: _StatsTile(
+                      icon: Icons.inventory_2_outlined,
+                      value: '$itemsCount',
+                      label: 'Items',
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: UiTokens.sectionGapXl),
-            _SettingsSection(
-              title: l10n.settingsAppearance,
-              children: [
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.darkMode),
-                  subtitle: Text(l10n.settingsAppearanceSubtitle),
-                  trailing: DropdownButton<ThemeMode>(
-                    value: themeMode,
-                    items: [
-                      DropdownMenuItem(
-                        value: ThemeMode.system,
-                        child: Text(l10n.themeSystem),
+            const SizedBox(height: 12),
+            const _SectionDivider(),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: AppSurfaces.elevated(context, radius: 18),
+              child: Column(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Main Features',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w800),
                       ),
-                      DropdownMenuItem(
-                        value: ThemeMode.light,
-                        child: Text(l10n.themeLight),
-                      ),
-                      DropdownMenuItem(
-                        value: ThemeMode.dark,
-                        child: Text(l10n.themeDark),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Essential tools to manage spending, plan ahead, and improve financial health.',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                       ),
                     ],
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await ref
-                          .read(themeModeControllerProvider.notifier)
-                          .setThemeMode(value);
-                    },
                   ),
-                ),
-                Divider(
-                  height: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  color: Theme.of(context).dividerColor,
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.language),
-                  subtitle: Text(l10n.settingsLanguageSubtitle),
-                  trailing: DropdownButton<String>(
-                    value: appLocale.languageCode,
-                    items: languageOptions
-                        .map(
-                          (option) => DropdownMenuItem<String>(
-                            value: option.$1,
-                            child: Text(option.$2),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await ref
-                          .read(appLocaleControllerProvider.notifier)
-                          .setLanguageCode(value);
-                    },
-                  ),
-                ),
-                Divider(
-                  height: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  color: Theme.of(context).dividerColor,
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.currency),
-                  subtitle: Text(l10n.settingsCurrencySubtitle),
-                  trailing: DropdownButton<String>(
-                    value: appCurrency,
-                    items: CurrencyService.supportedCurrencyCodes
-                        .map(
-                          (code) => DropdownMenuItem<String>(
-                            value: code,
-                            child: Text(code),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await _handleCurrencyChange(value);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: UiTokens.sectionGapXl),
-            _SettingsSection(
-              title: l10n.settingsBudgetRollover,
-              children: [
-                SwitchListTile.adaptive(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.settingsAutoRolloverBudgets),
-                  subtitle: Text(l10n.settingsAutoRolloverBudgetsSubtitle),
-                  value: rolloverPolicy.autoRolloverEnabled,
-                  onChanged: (value) async {
-                    await ref
-                        .read(rolloverPolicyControllerProvider.notifier)
-                        .setAutoRollover(value);
-                  },
-                ),
-                Divider(
-                  height: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  color: Theme.of(context).dividerColor,
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.settingsRolloverDay),
-                  subtitle: Text(l10n.settingsRolloverDaySubtitle),
-                  trailing: DropdownButton<int>(
-                    value: rolloverPolicy.rolloverDay,
-                    items: List.generate(
-                      31,
-                      (index) => DropdownMenuItem(
-                        value: index + 1,
-                        child: Text('${index + 1}'),
-                      ),
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    onChanged: rolloverPolicy.autoRolloverEnabled
-                        ? (value) async {
-                            if (value == null) return;
-                            await ref
-                                .read(rolloverPolicyControllerProvider.notifier)
-                                .setRolloverDay(value);
-                          }
-                        : null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: UiTokens.sectionGapXl),
-            _SettingsSection(
-              title: l10n.settingsNotifications,
-              children: [
-                SwitchListTile.adaptive(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.settingsEnableNotifications),
-                  subtitle: Text(l10n.settingsEnableNotificationsSubtitle),
-                  value: notificationPrefs.enabled,
-                  onChanged: (value) async {
-                    await ref
-                        .read(
-                            notificationPreferencesControllerProvider.notifier)
-                        .setEnabled(value);
-                  },
-                ),
-                Divider(
-                  height: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  color: Theme.of(context).dividerColor,
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.settingsNudgeFrequency),
-                  trailing: DropdownButton<NotificationFrequency>(
-                    value: notificationPrefs.frequency,
-                    items: [
-                      DropdownMenuItem(
-                        value: NotificationFrequency.immediate,
-                        child: Text(l10n.frequencyImmediate),
-                      ),
-                      DropdownMenuItem(
-                        value: NotificationFrequency.daily,
-                        child: Text(l10n.frequencyDaily),
-                      ),
-                      DropdownMenuItem(
-                        value: NotificationFrequency.weekly,
-                        child: Text(l10n.frequencyWeekly),
-                      ),
-                    ],
-                    onChanged: notificationPrefs.enabled
-                        ? (value) async {
-                            if (value == null) return;
-                            await ref
-                                .read(notificationPreferencesControllerProvider
-                                    .notifier)
-                                .setFrequency(value);
-                          }
-                        : null,
-                  ),
-                ),
-                Divider(
-                  height: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  color: Theme.of(context).dividerColor,
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.settingsQuietHours),
-                  subtitle: Text(
-                    '${notificationPrefs.quietHoursStart.toString().padLeft(2, '0')}:00 - ${notificationPrefs.quietHoursEnd.toString().padLeft(2, '0')}:00',
-                  ),
-                  trailing: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 140),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        DropdownButton<int>(
-                          value: notificationPrefs.quietHoursStart,
-                          items: List.generate(
-                            24,
-                            (i) => DropdownMenuItem(
-                                value: i,
-                                child:
-                                    Text('${i.toString().padLeft(2, '0')}h')),
-                          ),
-                          onChanged: notificationPrefs.enabled
-                              ? (value) async {
-                                  if (value == null) return;
-                                  await ref
-                                      .read(
-                                          notificationPreferencesControllerProvider
-                                              .notifier)
-                                      .setQuietHours(
-                                        start: value,
-                                        end: notificationPrefs.quietHoursEnd,
-                                      );
-                                }
-                              : null,
+                        Text(
+                          "What's included",
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                         ),
-                        const SizedBox(width: 6),
-                        DropdownButton<int>(
-                          value: notificationPrefs.quietHoursEnd,
-                          items: List.generate(
-                            24,
-                            (i) => DropdownMenuItem(
-                                value: i,
-                                child:
-                                    Text('${i.toString().padLeft(2, '0')}h')),
-                          ),
-                          onChanged: notificationPrefs.enabled
-                              ? (value) async {
-                                  if (value == null) return;
-                                  await ref
-                                      .read(
-                                          notificationPreferencesControllerProvider
-                                              .notifier)
-                                      .setQuietHours(
-                                        start:
-                                            notificationPrefs.quietHoursStart,
-                                        end: value,
-                                      );
-                                }
-                              : null,
-                        ),
+                        const SizedBox(height: 12),
+                        _IncludedItem(
+                            label: 'Transactions and recurring entries'),
+                        _IncludedItem(
+                            label: 'Budgets, savings goals, and subscriptions'),
+                        _IncludedItem(
+                            label: 'Insights, forecasts, and anomaly alerts'),
                       ],
                     ),
                   ),
-                ),
-                Divider(
-                  height: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  color: Theme.of(context).dividerColor,
-                ),
-                SwitchListTile.adaptive(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.settingsBudgetAlerts),
-                  value: notificationPrefs.categories['budgetAlerts'] ?? true,
-                  onChanged: notificationPrefs.enabled
-                      ? (value) async {
-                          await ref
-                              .read(notificationPreferencesControllerProvider
-                                  .notifier)
-                              .setCategoryEnabled('budgetAlerts', value);
-                        }
-                      : null,
-                ),
-                SwitchListTile.adaptive(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.settingsSavingsNudges),
-                  value: notificationPrefs.categories['savingsNudges'] ?? true,
-                  onChanged: notificationPrefs.enabled
-                      ? (value) async {
-                          await ref
-                              .read(notificationPreferencesControllerProvider
-                                  .notifier)
-                              .setCategoryEnabled('savingsNudges', value);
-                        }
-                      : null,
-                ),
-                SwitchListTile.adaptive(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(l10n.settingsHealthInsights),
-                  value: notificationPrefs.categories['healthInsights'] ?? true,
-                  onChanged: notificationPrefs.enabled
-                      ? (value) async {
-                          await ref
-                              .read(notificationPreferencesControllerProvider
-                                  .notifier)
-                              .setCategoryEnabled('healthInsights', value);
-                        }
-                      : null,
-                ),
-                const SizedBox(height: 4),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 2),
-                  child: Text(
-                    l10n.settingsNextEligibleSendTime,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            const _SectionDivider(),
+            const SizedBox(height: 22),
+            Text(
+              'Explore features',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: AspectRatio(
+                    aspectRatio: 0.82,
+                    child: _FeatureCard(
+                      icon: Icons.description_outlined,
+                      title: 'Fin Simulator',
+                      subtitle:
+                          'Run what-if financial scenarios with projected outcomes.',
+                      tag: 'Coming soon',
+                    ),
                   ),
                 ),
-                _NextEligibleTile(
-                  title: l10n.settingsBudgetAlerts,
-                  dateAsync: budgetNextEligible,
-                ),
-                _NextEligibleTile(
-                  title: l10n.settingsSavingsNudges,
-                  dateAsync: savingsNextEligible,
-                ),
-                _NextEligibleTile(
-                  title: l10n.settingsHealthInsights,
-                  dateAsync: healthNextEligible,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AspectRatio(
+                    aspectRatio: 0.82,
+                    child: _FeatureCard(
+                      icon: Icons.auto_awesome_mosaic_rounded,
+                      title: 'AI Budget Coach',
+                      subtitle:
+                          'Get weekly personalized spending and savings guidance.',
+                      tag: 'Coming soon',
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: UiTokens.sectionGapLg),
+            const SizedBox(height: 14),
+            const _SectionDivider(),
+            const SizedBox(height: 26),
             Text(
-              l10n.settingsSecurity,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              'Others',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 10),
+            Container(
+              decoration: AppSurfaces.elevated(context, radius: 16),
+              child: Column(
+                children: [
+                  _MoreActionTile(
+                    icon: Icons.people_alt_outlined,
+                    title: 'Tell a friend',
+                    tileVerticalPadding: 12,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Referral sharing coming soon.'),
+                        ),
+                      );
+                    },
+                  ),
+                  _MoreActionTile(
+                    icon: Icons.mail_outline,
+                    title: 'Send feedback',
+                    subtitle: 'Email tech and general feedback',
+                    tileVerticalPadding: 12,
+                    showChevron: true,
+                    onTap: _sendSupportFeedbackEmail,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            const _SectionDivider(),
+            const SizedBox(height: 26),
+            Text(
+              l10n.settings,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 10),
+            _ModernSettingsGroup(
+              title: 'Preferences',
+              children: [
+                _MoreActionTile(
+                  icon: Icons.palette_outlined,
+                  title: l10n.settingsAppearance,
+                  subtitle: activeThemeLabel,
+                  showLeading: false,
+                  showChevron: false,
+                  trailing: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  tileVerticalPadding: 10,
+                  onTap: () async {
+                    final selected = await showDialog<ThemeMode>(
+                      context: context,
+                      builder: (context) {
+                        return SimpleDialog(
+                          title: Text(l10n.settingsAppearance),
+                          children: [
+                            RadioListTile<ThemeMode>(
+                              value: ThemeMode.system,
+                              groupValue: themeMode,
+                              title: Text(l10n.themeSystem),
+                              onChanged: (value) =>
+                                  Navigator.of(context).pop(value),
+                            ),
+                            RadioListTile<ThemeMode>(
+                              value: ThemeMode.light,
+                              groupValue: themeMode,
+                              title: Text(l10n.themeLight),
+                              onChanged: (value) =>
+                                  Navigator.of(context).pop(value),
+                            ),
+                            RadioListTile<ThemeMode>(
+                              value: ThemeMode.dark,
+                              groupValue: themeMode,
+                              title: Text(l10n.themeDark),
+                              onChanged: (value) =>
+                                  Navigator.of(context).pop(value),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    if (selected == null) return;
+                    await ref
+                        .read(themeModeControllerProvider.notifier)
+                        .setThemeMode(selected);
+                  },
+                ),
+                _MoreActionTile(
+                  icon: Icons.language_rounded,
+                  title: l10n.language,
+                  subtitle: activeLanguageLabel,
+                  showLeading: false,
+                  showChevron: false,
+                  trailing: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  tileVerticalPadding: 10,
+                  onTap: () async {
+                    final selected = await showDialog<String>(
+                      context: context,
+                      builder: (context) {
+                        return SimpleDialog(
+                          title: Text(l10n.language),
+                          children: [
+                            for (final option in languageOptions)
+                              RadioListTile<String>(
+                                value: option.$1,
+                                groupValue: appLocale.languageCode,
+                                title: Text(option.$2),
+                                onChanged: (value) =>
+                                    Navigator.of(context).pop(value),
+                              ),
+                          ],
+                        );
+                      },
+                    );
+                    if (selected == null) return;
+                    await ref
+                        .read(appLocaleControllerProvider.notifier)
+                        .setLanguageCode(selected);
+                  },
+                ),
+                _MoreActionTile(
+                  icon: Icons.currency_exchange_rounded,
+                  title: l10n.currency,
+                  subtitle: appCurrency,
+                  showLeading: false,
+                  showChevron: false,
+                  trailing: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  tileVerticalPadding: 10,
+                  onTap: () async {
+                    final selected = await showDialog<String>(
+                      context: context,
+                      builder: (context) {
+                        return SimpleDialog(
+                          title: Text(l10n.currency),
+                          children: [
+                            for (final code
+                                in CurrencyService.supportedCurrencyCodes)
+                              RadioListTile<String>(
+                                value: code,
+                                groupValue: appCurrency,
+                                title: Text(code),
+                                onChanged: (value) =>
+                                    Navigator.of(context).pop(value),
+                              ),
+                          ],
+                        );
+                      },
+                    );
+                    if (selected == null) return;
+                    await _handleCurrencyChange(selected);
+                  },
+                ),
+                _MoreActionTile(
+                  icon: Icons.notifications_active_outlined,
+                  title: l10n.settingsNotifications,
+                  subtitle: notificationsLabel,
+                  showLeading: false,
+                  showChevron: false,
+                  tileVerticalPadding: 10,
+                  onTap: () async {
+                    await ref
+                        .read(
+                            notificationPreferencesControllerProvider.notifier)
+                        .setEnabled(!notificationPrefs.enabled);
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 12),
-            ListTile(
-              title: Text(l10n.settingsAuthenticationSettings),
-              subtitle: Text(l10n.settingsAuthenticationSettingsSubtitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => GoRouter.of(context).push('/security'),
-            ),
-            ListTile(
-              title: const Text('Sign out'),
-              subtitle:
-                  const Text('End server session and remove local tokens.'),
-              trailing: const Icon(Icons.logout),
-              onTap: () async {
-                final router = GoRouter.of(context);
-                await ref.read(sessionControllerProvider.notifier).logout();
-                if (!mounted) return;
-                router.go('/login');
-              },
-            ),
-            const SizedBox(height: UiTokens.sectionGapLg),
-            Text(
-              l10n.legalAndOnboarding,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+            _ModernSettingsGroup(
+              title: 'Legal & Onboarding',
+              children: [
+                _MoreActionTile(
+                  icon: Icons.gavel_rounded,
+                  title: l10n.legalAllDocuments,
+                  subtitle: l10n.legalAllDocumentsSubtitle,
+                  showLeading: false,
+                  showChevron: true,
+                  tileVerticalPadding: 10,
+                  onTap: () => GoRouter.of(context).push('/legal'),
+                ),
+                _MoreActionTile(
+                  icon: Icons.verified_user_outlined,
+                  title: 'Legal review confirmation',
+                  subtitle: legalReviewedAtLabel,
+                  showLeading: false,
+                  showChevron: false,
+                  tileVerticalPadding: 10,
+                ),
+                _MoreActionTile(
+                  icon: Icons.refresh_rounded,
+                  title: l10n.restartOnboarding,
+                  subtitle: l10n.restartOnboardingSubtitle,
+                  showLeading: false,
+                  showChevron: true,
+                  tileVerticalPadding: 10,
+                  onTap: () async {
+                    final router = GoRouter.of(context);
+                    await ref.read(onboardingServiceProvider).resetOnboarding();
+                    ref.invalidate(onboardingStatusProvider);
+                    if (!mounted) return;
+                    router.go('/onboarding');
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 12),
-            ListTile(
-              title: Text(l10n.legalAllDocuments),
-              subtitle: Text(l10n.legalAllDocumentsSubtitle),
-              trailing: const Icon(Icons.open_in_new),
-              onTap: () => GoRouter.of(context).push('/legal'),
-            ),
-            ListTile(
-              title: const Text('Legal review confirmation'),
-              subtitle: Text(legalReviewedAtLabel),
-              trailing: const Icon(Icons.verified_user_outlined),
-            ),
-            ListTile(
-              title: Text(l10n.reviewTerms),
-              trailing: const Icon(Icons.open_in_new),
-              onTap: () => GoRouter.of(context).push('/legal/terms'),
-            ),
-            ListTile(
-              title: Text(l10n.reviewPrivacy),
-              trailing: const Icon(Icons.open_in_new),
-              onTap: () => GoRouter.of(context).push('/legal/privacy'),
-            ),
-            ListTile(
-              title: Text(l10n.restartOnboarding),
-              subtitle: Text(l10n.restartOnboardingSubtitle),
-              trailing: const Icon(Icons.refresh),
-              onTap: () async {
-                final router = GoRouter.of(context);
-                await ref.read(onboardingServiceProvider).resetOnboarding();
-                ref.invalidate(onboardingStatusProvider);
-                router.go('/onboarding');
-              },
+            _ModernSettingsGroup(
+              title: 'Security',
+              children: [
+                _MoreActionTile(
+                  icon: Icons.lock_outline,
+                  title: l10n.settingsAuthenticationSettings,
+                  subtitle: l10n.settingsAuthenticationSettingsSubtitle,
+                  showLeading: false,
+                  showChevron: true,
+                  tileVerticalPadding: 10,
+                  onTap: () => GoRouter.of(context).push('/security'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.error,
+                      foregroundColor: colorScheme.onError,
+                      minimumSize: const Size(double.infinity, 52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () async {
+                      final router = GoRouter.of(context);
+                      await ref
+                          .read(sessionControllerProvider.notifier)
+                          .logout();
+                      if (!mounted) return;
+                      router.go('/login');
+                    },
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Sign out'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -637,35 +1002,47 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 }
 
-class _SettingsSection extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _SettingsSection({
+class _ModernSettingsGroup extends StatelessWidget {
+  const _ModernSettingsGroup({
     required this.title,
     required this.children,
   });
 
+  final String title;
+  final List<Widget> children;
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 2, bottom: 12),
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w700,
-                  fontSize: 18,
+                  letterSpacing: 0.2,
                 ),
           ),
         ),
         Container(
-          decoration: AppSurfaces.elevated(context, radius: 20),
-          clipBehavior: Clip.hardEdge,
+          decoration: AppSurfaces.elevated(context, radius: 16),
           child: Column(
-            children: children,
+            children: [
+              for (int i = 0; i < children.length; i++) ...[
+                children[i],
+                if (i != children.length - 1)
+                  Divider(
+                    height: 1,
+                    indent: 14,
+                    endIndent: 14,
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.22),
+                  ),
+              ],
+            ],
           ),
         ),
       ],
@@ -673,204 +1050,260 @@ class _SettingsSection extends StatelessWidget {
   }
 }
 
-class _NextEligibleTile extends StatelessWidget {
-  const _NextEligibleTile({
-    required this.title,
-    required this.dateAsync,
+class _StatsTile extends StatelessWidget {
+  const _StatsTile({
+    required this.icon,
+    required this.value,
+    required this.label,
   });
 
-  final String title;
-  final AsyncValue<NotificationDispatchStatus> dateAsync;
+  final IconData icon;
+  final String value;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final now = DateTime.now();
-    final subtitle = dateAsync.when(
-      data: (status) {
-        final lineStyle = Theme.of(context).textTheme.bodySmall;
-        final reasonColor = _reasonColor(context, status.blockReason);
-        final reasonIcon = _reasonIcon(status.blockReason);
-
-        if (status.nextEligibleAt == null) {
-          final reason = status.blockReason ==
-                  NotificationDispatchBlockReason.notificationsDisabled
-              ? l10n.settingsBlockedNotificationsDisabled
-              : l10n.settingsBlockedCategoryDisabled;
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l10n.settingsNotEligibleRightNow, style: lineStyle),
-              Row(
-                children: [
-                  Icon(reasonIcon, size: 14, color: reasonColor),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      reason,
-                      style: lineStyle?.copyWith(color: reasonColor),
-                    ),
-                  ),
-                ],
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Icon(icon, color: colorScheme.onSurfaceVariant),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
-            ],
-          );
-        }
-
-        final formatter = DateFormat('EEE, MMM d • HH:mm',
-            Localizations.localeOf(context).toLanguageTag());
-        final when = formatter.format(status.nextEligibleAt!);
-        final remaining = status.nextEligibleAt!.difference(now);
-        final countdown = _formatCountdown(remaining, l10n);
-
-        String detail;
-        switch (status.blockReason) {
-          case NotificationDispatchBlockReason.quietHours:
-            detail = l10n.settingsBlockedByQuietHoursUntil(when, countdown);
-            break;
-          case NotificationDispatchBlockReason.frequencyCooldown:
-            detail = l10n.settingsBlockedByFrequencyCooldownUntil(
-              when,
-              countdown,
-            );
-            break;
-          case NotificationDispatchBlockReason.notificationsDisabled:
-            detail = l10n.settingsNotificationsAreDisabled;
-            break;
-          case NotificationDispatchBlockReason.categoryDisabled:
-            detail = l10n.settingsThisCategoryIsDisabled;
-            break;
-          case null:
-            detail = l10n.settingsReadyToSendNow;
-            break;
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.settingsNextEligible(when), style: lineStyle),
-            Row(
-              children: [
-                Icon(reasonIcon, size: 14, color: reasonColor),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    detail,
-                    style: lineStyle?.copyWith(color: reasonColor),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-      loading: () => Text(
-        l10n.settingsCalculating,
-        style: Theme.of(context).textTheme.bodySmall,
-      ),
-      error: (_, __) => Text(
-        l10n.settingsUnavailable,
-        style: Theme.of(context).textTheme.bodySmall,
-      ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+        ),
+      ],
     );
-
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(title),
-      subtitle: subtitle,
-      dense: true,
-    );
-  }
-
-  String _formatCountdown(Duration duration, AppLocalizations l10n) {
-    final d = duration;
-    if (d.inSeconds <= 0) {
-      return l10n.commonNow;
-    }
-
-    final totalMinutes = d.inMinutes;
-    final days = totalMinutes ~/ (24 * 60);
-    final hours = (totalMinutes % (24 * 60)) ~/ 60;
-    final minutes = totalMinutes % 60;
-
-    if (days > 0) {
-      return '${days}d ${hours}h';
-    }
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    }
-    return '${minutes}m';
-  }
-
-  Color _reasonColor(
-    BuildContext context,
-    NotificationDispatchBlockReason? reason,
-  ) {
-    return switch (reason) {
-      NotificationDispatchBlockReason.quietHours => Colors.orange,
-      NotificationDispatchBlockReason.frequencyCooldown => Colors.blue,
-      NotificationDispatchBlockReason.notificationsDisabled =>
-        Theme.of(context).colorScheme.error,
-      NotificationDispatchBlockReason.categoryDisabled =>
-        Theme.of(context).colorScheme.onSurfaceVariant,
-      null => Colors.green,
-    };
-  }
-
-  IconData _reasonIcon(NotificationDispatchBlockReason? reason) {
-    return switch (reason) {
-      NotificationDispatchBlockReason.quietHours => Icons.nights_stay_outlined,
-      NotificationDispatchBlockReason.frequencyCooldown =>
-        Icons.schedule_outlined,
-      NotificationDispatchBlockReason.notificationsDisabled =>
-        Icons.notifications_off_outlined,
-      NotificationDispatchBlockReason.categoryDisabled =>
-        Icons.visibility_off_outlined,
-      null => Icons.check_circle_outline,
-    };
   }
 }
 
-class _SettingsPill extends StatelessWidget {
-  const _SettingsPill({
+class _IncludedItem extends StatelessWidget {
+  const _IncludedItem({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(Icons.check, size: 22, color: colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeatureCard extends StatelessWidget {
+  const _FeatureCard({
     required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.tag,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String? tag;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: AppSurfaces.elevated(context, radius: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: colorScheme.primary, size: 28),
+              ),
+              if (tag != null) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          tag!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: Colors.brown.shade700,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            title,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MoreActionTile extends StatelessWidget {
+  const _MoreActionTile({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+    this.showLeading = true,
+    this.showChevron = true,
+    this.tileVerticalPadding = 2,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final bool showLeading;
+  final bool showChevron;
+  final double tileVerticalPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: tileVerticalPadding,
+      ),
+      leading: showLeading
+          ? CircleAvatar(
+              backgroundColor: colorScheme.primary.withValues(alpha: 0.14),
+              child: Icon(
+                icon,
+                color: colorScheme.primary,
+              ),
+            )
+          : null,
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+      subtitle: subtitle == null
+          ? null
+          : Text(
+              subtitle!,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+      trailing: trailing ??
+          (showChevron
+              ? Icon(
+                  Icons.chevron_right,
+                  color: colorScheme.onSurfaceVariant,
+                )
+              : null),
+      onTap: onTap,
+    );
+  }
+}
+
+class _SectionDivider extends StatelessWidget {
+  const _SectionDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 10,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+    );
+  }
+}
+
+class _AccountInfoRow extends StatelessWidget {
+  const _AccountInfoRow({
     required this.label,
     required this.value,
   });
 
-  final IconData icon;
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.18),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: colorScheme.primary),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              '$label: $value',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 2),
+          SelectableText(
+            value,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
         ],
       ),

@@ -16,6 +16,7 @@ import 'package:smartbudget/features/subscriptions/presentation/providers/subscr
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/intelligence/models/insight.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 enum RecurringBalanceEntryKind { income, expense, subscription }
@@ -551,22 +552,7 @@ class _RecurringBalanceSheetScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(
-              Icons.account_balance_rounded,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                l10n.dashboardBalanceSheetTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        title: BrandedTitle(label: l10n.dashboardBalanceSheetTitle),
       ),
       body: snapshotAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -1050,7 +1036,13 @@ class _RecurringMetricChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: tone.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(UiTokens.radiusLg),
-        border: Border.all(color: tone.withValues(alpha: 0.18)),
+        boxShadow: [
+          BoxShadow(
+            color: tone.withValues(alpha: 0.14),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

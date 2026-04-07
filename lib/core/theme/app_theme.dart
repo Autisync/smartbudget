@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartbudget/core/theme/input_styles.dart';
 
 class AppTheme {
-  static const _lightSurface = Color(0xFFF7F8FC);
+  static const _lightSurface = Color(0xFFFFFFFF);
   static const _lightSurfaceHigh = Color(0xFFFFFFFF);
-  static const _lightBackground = Color(0xFFF1F4FB);
+  static const _lightBackground = Color(0xFFFFFFFF);
   static const _darkSurface = Color(0xFF1A1D29);
   static const _darkSurfaceHigh = Color(0xFF232838);
   static const _darkBackground = Color(0xFF0D111B);
@@ -24,8 +25,8 @@ class AppTheme {
         secondary: _secondary,
         error: _danger,
         onSurface: Color(0xFF111827),
-        surfaceContainerHighest: Color(0xFFE7EEF9),
-        surfaceContainerHigh: Color(0xFFF8FAFD),
+        surfaceContainerHighest: Color(0xFFEEF2F8),
+        surfaceContainerHigh: Color(0xFFF4F6FA),
         shadow: Color(0xFF0F172A),
       ),
       textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme).copyWith(
@@ -128,11 +129,15 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: _lightSurfaceHigh,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        elevation: 2,
         shadowColor: const Color(0xFF0F172A).withValues(alpha: 0.10),
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(
+            color: Color(0x0D0F172A),
+            width: 0.5,
+          ),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -140,6 +145,7 @@ class AppTheme {
         backgroundColor: _lightSurfaceHigh,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        shadowColor: Colors.transparent,
         indicatorColor: const Color(0xFFDCEBFF),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
@@ -168,10 +174,10 @@ class AppTheme {
           backgroundColor: _accent,
           foregroundColor: Colors.white,
           elevation: 0,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(0, 52),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
       ),
@@ -183,7 +189,7 @@ class AppTheme {
           shadowColor: Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
       ),
@@ -201,26 +207,14 @@ class AppTheme {
           borderRadius: BorderRadius.circular(999),
         ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: _lightSurfaceHigh,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: _accent, width: 1.5),
-        ),
-        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
+      inputDecorationTheme: InputStyles.inputDecorationTheme(
+        brightness: Brightness.light,
+        primaryColor: _accent,
+        errorColor: _danger,
+      ),
+      sliderTheme: InputStyles.sliderTheme(
+        primaryColor: _accent,
+        inactiveColor: const Color(0xFFD1D5DB),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: _lightSurfaceHigh,
@@ -230,8 +224,8 @@ class AppTheme {
         ),
       ),
       dividerTheme: const DividerThemeData(
-        color: Color(0xFFD9E2F0),
-        thickness: 1,
+        color: Color(0xFFE8EEF7),
+        thickness: 0.8,
       ),
     );
   }
@@ -392,10 +386,10 @@ class AppTheme {
           backgroundColor: _accent,
           foregroundColor: Colors.white,
           elevation: 0,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(0, 52),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
       ),
@@ -407,7 +401,7 @@ class AppTheme {
           shadowColor: Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
       ),
@@ -425,26 +419,14 @@ class AppTheme {
           borderRadius: BorderRadius.circular(999),
         ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: _darkSurfaceHigh,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: _accent, width: 1.5),
-        ),
-        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
+      inputDecorationTheme: InputStyles.inputDecorationTheme(
+        brightness: Brightness.dark,
+        primaryColor: _accent,
+        errorColor: _danger,
+      ),
+      sliderTheme: InputStyles.sliderTheme(
+        primaryColor: _accent,
+        inactiveColor: const Color(0xFF475569),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: _darkSurfaceHigh,
@@ -454,8 +436,8 @@ class AppTheme {
         ),
       ),
       dividerTheme: const DividerThemeData(
-        color: Color(0xFF2C3346),
-        thickness: 1,
+        color: Color(0xFF39435A),
+        thickness: 0.8,
       ),
     );
   }

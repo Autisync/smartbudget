@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 enum LegalDocumentType {
@@ -136,9 +137,19 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
   }
 
   Future<String> _loadDocument() async {
-    final l10n = AppLocalizations.of(context)!;
-    final document = legalDocumentForType(widget.type, l10n);
-    return rootBundle.loadString(document.assetPath);
+    final assetPath = switch (widget.type) {
+      LegalDocumentType.terms => 'legal/TERMS_OF_USE.md',
+      LegalDocumentType.privacy => 'legal/PRIVACY_POLICY.md',
+      LegalDocumentType.cookies => 'legal/COOKIES_AND_TRACKING_NOTICE.md',
+      LegalDocumentType.acceptableUse => 'legal/ACCEPTABLE_USE_POLICY.md',
+      LegalDocumentType.dataRetention => 'legal/DATA_RETENTION_POLICY.md',
+      LegalDocumentType.securityDisclosure =>
+        'legal/SECURITY_DISCLOSURE_POLICY.md',
+      LegalDocumentType.thirdPartyServices =>
+        'legal/THIRD_PARTY_SERVICES_NOTICE.md',
+      LegalDocumentType.disclaimers => 'legal/DISCLAIMERS.md',
+    };
+    return rootBundle.loadString(assetPath);
   }
 
   void _updateAppBarScrollState(double offset) {
@@ -167,7 +178,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(document.title),
+          child: BrandedTitle(label: document.title),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,

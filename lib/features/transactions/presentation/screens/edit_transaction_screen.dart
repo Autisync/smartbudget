@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class EditTransactionScreen extends ConsumerWidget {
@@ -24,7 +25,8 @@ class EditTransactionScreen extends ConsumerWidget {
 
         if (snapshot.hasError || snapshot.data == null) {
           return Scaffold(
-            appBar: AppBar(title: Text(l10n.transactionsEditTransaction)),
+            appBar: AppBar(
+                title: BrandedTitle(label: l10n.transactionsEditTransaction)),
             body: Center(child: Text(l10n.transactionsNotFound)),
           );
         }

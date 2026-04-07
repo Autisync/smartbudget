@@ -68,6 +68,7 @@ dependencies:
   intl: ^0.20.2
   go_router: ^13.2.0
   collection: ^1.18.0
+  url_launcher: ^6.3.1
 
   # Reports & Export
   pdf: ^3.10.7
@@ -88,6 +89,7 @@ dev_dependencies:
   riverpod_generator: ^2.4.0
   freezed: ^2.5.8
   json_serializable: ^6.8.0
+  flutter_native_splash: ^2.4.1
   # retrofit_generator removed due to generator compatibility issues; re-add if needed
 
 # For information on the generic Dart part of this file, see the
@@ -104,6 +106,7 @@ flutter:
   assets:
     - assets/fonts/Roboto-Regular.ttf
     - assets/fonts/Roboto-Bold.ttf
+    - assets/images/logo/
     - legal/
 
   # To add assets to your application, add an assets section, like this:
@@ -136,3 +139,19 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  color: "#F1F4FB"
+  color_dark: "#0D111B"
+  image: assets/images/logo/app_logo_splash.png
+  image_dark: assets/images/logo/app_logo_splash.png
+  android: true
+  ios: true
+  web: false
+  android_gravity: center
+  ios_content_mode: scaleAspectFit
+  android_12:
+    color: "#F1F4FB"
+    color_dark: "#0D111B"
+    image: assets/images/logo/app_logo_splash.png
+    image_dark: assets/images/logo/app_logo_splash.png

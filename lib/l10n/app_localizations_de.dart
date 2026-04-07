@@ -78,6 +78,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noTransactions => 'Noch keine Transaktionen';
 
   @override
+  String get noTransactionsSubtitle => 'Fügen Sie Ihre erste Einnahme oder Ausgabe hinzu, um Ihr Geld zu verfolgen.';
+
+  @override
   String get totalBalance => 'Gesamtsaldo';
 
   @override

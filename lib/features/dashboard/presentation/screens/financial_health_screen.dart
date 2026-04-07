@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class FinancialHealthScreen extends ConsumerStatefulWidget {
@@ -47,7 +48,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(l10n.financialHealthTitle),
+          child: BrandedTitle(label: l10n.financialHealthTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,

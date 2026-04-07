@@ -23,6 +23,7 @@
   "language": "Idioma",
   "logout": "Cerrar sesión",
   "noTransactions": "Aún no hay transacciones",
+  "noTransactionsSubtitle": "Agrega tu primer ingreso o gasto para comenzar a rastrear tu dinero.",
   "totalBalance": "Saldo total",
   "monthlySpending": "Gasto mensual",
   "remainingBudget": "Presupuesto restante",

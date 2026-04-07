@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/theme/input_styles.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/form_date_field.dart';
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/features/savings/presentation/providers/savings_provider.dart';
 import 'package:smartbudget/domain/entities/savings_goal.dart';
@@ -93,7 +96,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(l10n.savingsGoalsTitle),
+          child: BrandedTitle(label: l10n.savingsGoalsTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -197,10 +200,15 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: () => _openGoalForm(context, ref),
-                        icon: const Icon(Icons.add),
-                        label: Text(l10n.savingsCreateGoal),
+                      SizedBox(
+                        width: (MediaQuery.sizeOf(context).width - 48)
+                            .clamp(220.0, 320.0)
+                            .toDouble(),
+                        child: FilledButton.icon(
+                          onPressed: () => _openGoalForm(context, ref),
+                          icon: const Icon(Icons.add),
+                          label: Text(l10n.savingsCreateGoal),
+                        ),
                       ),
                     ],
                   ),
@@ -656,7 +664,9 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     final result = await showModalBottomSheet<_SavingsGoalFormResult>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Theme.of(context).colorScheme.surfaceContainerHigh
+          : Theme.of(context).colorScheme.surface,
       builder: (_) => _SavingsGoalFormSheet(
         existingGoal: existingGoal,
         currencySymbol: CurrencyUtils.symbol(appCurrency),
@@ -973,153 +983,143 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
     final baseTheme = Theme.of(context);
     final modalBackgroundColor = baseTheme.brightness == Brightness.dark
         ? baseTheme.colorScheme.surfaceContainerHigh
-        : baseTheme.colorScheme.surfaceContainerHigh;
-    final inputFillColor = baseTheme.brightness == Brightness.dark
-        ? baseTheme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6)
-        : Colors.white.withValues(alpha: 0.95);
+        : baseTheme.colorScheme.surface;
 
     return Padding(
       padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: Theme(
-        data: baseTheme.copyWith(
-          inputDecorationTheme: baseTheme.inputDecorationTheme.copyWith(
-            filled: true,
-            fillColor: inputFillColor,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: modalBackgroundColor,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(28),
           ),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: modalBackgroundColor,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.existingGoal == null
+                    ? l10n.savingsCreateGoal
+                    : l10n.savingsEditGoal,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _titleController,
+                style: InputStyles.inputTextStyle(baseTheme),
+                decoration: InputDecoration(labelText: l10n.savingsGoalName),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return l10n.savingsEnterGoalName;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              TextFormField(
+                controller: _targetController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: InputStyles.inputTextStyle(baseTheme),
+                decoration: InputDecoration(
+                  labelText: l10n.savingsTargetAmount,
+                  prefixText: '${widget.currencySymbol} ',
+                ),
+                validator: (value) {
+                  final parsed = double.tryParse(value ?? '');
+                  if (parsed == null || parsed <= 0) {
+                    return l10n.savingsEnterValidTargetAmount;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              TextFormField(
+                controller: _savedController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: InputStyles.inputTextStyle(baseTheme),
+                decoration: InputDecoration(
+                  labelText: l10n.savingsCurrentSavedAmount,
+                  prefixText: '${widget.currencySymbol} ',
+                ),
+                validator: (value) {
+                  final parsed = double.tryParse(value ?? '');
+                  if (parsed == null || parsed < 0) {
+                    return l10n.savingsEnterValidSavedAmount;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              DropdownButtonFormField<GoalPriority>(
+                initialValue: _priority,
+                icon: InputStyles.dropdownIcon(context),
+                decoration: InputDecoration(labelText: l10n.savingsPriority),
+                items: GoalPriority.values
+                    .map(
+                      (p) => DropdownMenuItem(
+                        value: p,
+                        child: Text(
+                          switch (p) {
+                            GoalPriority.low =>
+                              l10n.subscriptionsFilterLowPriority,
+                            GoalPriority.medium =>
+                              l10n.subscriptionsImportanceMedium,
+                            GoalPriority.high =>
+                              l10n.subscriptionsFilterHighPriority,
+                            GoalPriority.critical =>
+                              l10n.subscriptionsFilterCritical,
+                          },
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() => _priority = value);
+                },
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              SwitchListTile.adaptive(
+                value: _autoAllocate,
+                title: Text(l10n.savingsEnableAutoAllocation),
+                contentPadding: EdgeInsets.zero,
+                onChanged: (value) => setState(() => _autoAllocate = value),
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              FormDateField(
+                label: l10n.savingsDeadlineOptional,
+                value: _deadline == null
+                    ? l10n.savingsNoDeadline
+                    : MaterialLocalizations.of(context)
+                        .formatMediumDate(_deadline!),
+                trailing: _deadline == null
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => setState(() => _deadline = null),
+                      ),
+                onTap: _pickDeadline,
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              FilledButton(
+                onPressed: _submit,
+                child: Text(
                   widget.existingGoal == null
-                      ? l10n.savingsCreateGoal
-                      : l10n.savingsEditGoal,
-                  style: Theme.of(context).textTheme.titleLarge,
+                      ? l10n.savingsSaveGoal
+                      : l10n.savingsUpdateGoal,
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(labelText: l10n.savingsGoalName),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return l10n.savingsEnterGoalName;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _targetController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: l10n.savingsTargetAmount,
-                    prefixText: '${widget.currencySymbol} ',
-                  ),
-                  validator: (value) {
-                    final parsed = double.tryParse(value ?? '');
-                    if (parsed == null || parsed <= 0) {
-                      return l10n.savingsEnterValidTargetAmount;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _savedController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: l10n.savingsCurrentSavedAmount,
-                    prefixText: '${widget.currencySymbol} ',
-                  ),
-                  validator: (value) {
-                    final parsed = double.tryParse(value ?? '');
-                    if (parsed == null || parsed < 0) {
-                      return l10n.savingsEnterValidSavedAmount;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<GoalPriority>(
-                  initialValue: _priority,
-                  decoration: InputDecoration(labelText: l10n.savingsPriority),
-                  items: GoalPriority.values
-                      .map(
-                        (p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(
-                            switch (p) {
-                              GoalPriority.low =>
-                                l10n.subscriptionsFilterLowPriority,
-                              GoalPriority.medium =>
-                                l10n.subscriptionsImportanceMedium,
-                              GoalPriority.high =>
-                                l10n.subscriptionsFilterHighPriority,
-                              GoalPriority.critical =>
-                                l10n.subscriptionsFilterCritical,
-                            },
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() => _priority = value);
-                  },
-                ),
-                SwitchListTile.adaptive(
-                  value: _autoAllocate,
-                  title: Text(l10n.savingsEnableAutoAllocation),
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (value) => setState(() => _autoAllocate = value),
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.event),
-                  title: Text(l10n.savingsDeadlineOptional),
-                  subtitle: Text(
-                    _deadline == null
-                        ? l10n.savingsNoDeadline
-                        : MaterialLocalizations.of(context)
-                            .formatMediumDate(_deadline!),
-                  ),
-                  trailing: _deadline == null
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => setState(() => _deadline = null),
-                        ),
-                  onTap: _pickDeadline,
-                ),
-                const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: _submit,
-                  child: Text(
-                    widget.existingGoal == null
-                        ? l10n.savingsSaveGoal
-                        : l10n.savingsUpdateGoal,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1168,6 +1168,7 @@ class _ContributionDialogState extends State<_ContributionDialog> {
       content: TextField(
         controller: _controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        style: InputStyles.inputTextStyle(Theme.of(context)),
         decoration: InputDecoration(
           labelText: l10n.amount,
           prefixText: '${widget.currencySymbol} ',

@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/features/onboarding/presentation/screens/legal_document_screen.dart';
+import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class LegalCenterScreen extends StatefulWidget {
@@ -51,7 +53,7 @@ class _LegalCenterScreenState extends State<LegalCenterScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(l10n.legalCenterTitle),
+          child: BrandedTitle(label: l10n.legalCenterTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -119,20 +121,27 @@ class _LegalCenterScreenState extends State<LegalCenterScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                for (final type in legalTypes) ...[
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 980),
-                    child: _LegalCenterTile(
-                      type: type,
-                      onTap: () => context.push(legalRouteForType(type)),
+                const SizedBox(height: 8),
+                for (final type in legalTypes)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 980),
+                      child: Container(
+                        decoration: AppSurfaces.elevated(
+                          context,
+                          radius: 14,
+                          blur: 12,
+                          offsetY: 4,
+                          opacity: 0.06,
+                        ),
+                        child: _LegalCenterTile(
+                          type: type,
+                          onTap: () => context.push(legalRouteForType(type)),
+                        ),
+                      ),
                     ),
                   ),
-                  Divider(
-                    height: 1,
-                    color: Theme.of(context).dividerColor,
-                  ),
-                ],
               ],
             ),
           );
@@ -157,10 +166,11 @@ class _LegalCenterTile extends StatelessWidget {
     final document = legalDocumentForType(type, l10n);
 
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       title: Text(document.title),
       subtitle: Text(document.subtitle),
       trailing: const Icon(Icons.chevron_right),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       onTap: onTap,
     );
   }

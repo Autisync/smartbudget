@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
 
@@ -40,7 +41,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       cardWidth: 500,
       footer: const SizedBox.shrink(),
       child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuthBackButton(
             label: 'Back to sign in',
@@ -69,6 +70,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             autofillHints: const [AutofillHints.email],
             autocorrect: false,
             enableSuggestions: false,
+            style: InputStyles.inputTextStyle(theme),
             decoration: const InputDecoration(
               labelText: 'name@example.com',
               prefixIcon: Icon(Icons.alternate_email_rounded),

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -53,7 +54,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(l10n.notificationsTitle),
+          child: BrandedTitle(label: l10n.notificationsTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,

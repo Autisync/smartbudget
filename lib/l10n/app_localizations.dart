@@ -239,6 +239,12 @@ abstract class AppLocalizations {
   /// **'No transactions yet'**
   String get noTransactions;
 
+  /// No description provided for @noTransactionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first income or expense to start tracking your money.'**
+  String get noTransactionsSubtitle;
+
   /// No description provided for @totalBalance.
   ///
   /// In en, this message translates to:

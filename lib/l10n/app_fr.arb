@@ -23,6 +23,7 @@
   "language": "Langue",
   "logout": "Se déconnecter",
   "noTransactions": "Aucune transaction pour le moment",
+  "noTransactionsSubtitle": "Ajoutez votre premier revenu ou dépense pour commencer à suivre votre argent.",
   "totalBalance": "Solde total",
   "monthlySpending": "Dépenses mensuelles",
   "remainingBudget": "Budget restant",

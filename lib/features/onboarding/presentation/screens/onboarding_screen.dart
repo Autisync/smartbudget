@@ -14,7 +14,6 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _pageIndex = 0;
-  bool _acceptedLegal = false;
 
   @override
   void dispose() {
@@ -127,35 +126,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   },
                 ),
               ),
-              if (isLastPage) ...[
-                CheckboxListTile(
-                  value: _acceptedLegal,
-                  onChanged: (value) {
-                    setState(() => _acceptedLegal = value ?? false);
-                  },
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  title: Text(l10n.onboardingAcceptLegal),
-                ),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    TextButton(
-                      onPressed: () => context.push('/legal/terms'),
-                      child: Text(l10n.legalTermsTitle),
-                    ),
-                    TextButton(
-                      onPressed: () => context.push('/legal/privacy'),
-                      child: Text(l10n.legalPrivacyTitle),
-                    ),
-                    TextButton(
-                      onPressed: () => context.push('/legal'),
-                      child: Text(l10n.legalAllDocuments),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -166,16 +136,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       await _pageController.nextPage(
                         duration: const Duration(milliseconds: 250),
                         curve: Curves.easeOut,
-                      );
-                      return;
-                    }
-
-                    if (!_acceptedLegal) {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.onboardingAcceptLegalError),
-                        ),
                       );
                       return;
                     }

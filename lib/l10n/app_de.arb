@@ -23,6 +23,7 @@
   "language": "Sprache",
   "logout": "Abmelden",
   "noTransactions": "Noch keine Transaktionen",
+  "noTransactionsSubtitle": "Fügen Sie Ihre erste Einnahme oder Ausgabe hinzu, um Ihr Geld zu verfolgen.",
   "totalBalance": "Gesamtsaldo",
   "monthlySpending": "Monatliche Ausgaben",
   "remainingBudget": "Verbleibendes Budget",

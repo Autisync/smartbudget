@@ -13,6 +13,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/form_date_field.dart';
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
@@ -68,7 +70,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(l10n.reportsTitle),
+          child: BrandedTitle(label: l10n.reportsTitle),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -325,59 +327,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     required DateTime date,
     required VoidCallback onTap,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Material(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: onTap,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.15),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.calendar_month_rounded,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      DateFormat('MMM dd, yyyy').format(date),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+    return FormDateField(
+      label: label,
+      value: DateFormat('MMM dd, yyyy').format(date),
+      onTap: onTap,
     );
   }
 
@@ -407,11 +360,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           decoration: BoxDecoration(
             color: iconBadgeColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.14)
-                  : colorScheme.primary.withValues(alpha: 0.18),
-            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.12),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Icon(
             icon,
@@ -501,12 +456,16 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         .surfaceContainerHighest
                         .withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .outline
-                          .withValues(alpha: 0.12),
-                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .shadow
+                            .withValues(alpha: 0.06),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: ListTile(
                     contentPadding:
@@ -1193,9 +1152,14 @@ class _ReportMetricChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

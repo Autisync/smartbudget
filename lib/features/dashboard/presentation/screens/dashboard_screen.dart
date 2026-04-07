@@ -8,6 +8,7 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/exchange_rate_service.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/domain/entities/budget_alert.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
@@ -197,8 +198,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        l10n.appTitle,
+                      child: BrandedTitle(
+                        label: l10n.appTitle,
+                        logoSize: 22,
                         style:
                             Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
@@ -1134,7 +1136,13 @@ class _DashboardMetricChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(UiTokens.radiusMd),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.18)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
@@ -57,7 +58,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.transactionsTitle),
+        title: BrandedTitle(label: l10n.transactionsTitle),
         actions: [
           NotificationBellButton(
             onPressed: () => context.push('/notifications'),
@@ -67,7 +68,44 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       body: transactionsAsync.when(
         data: (transactions) {
           if (transactions.isEmpty) {
-            return Center(child: Text(l10n.noTransactions));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.receipt_long_outlined,
+                      size: 52,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.noTransactions,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 18),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.noTransactionsSubtitle,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: (MediaQuery.sizeOf(context).width - 48)
+                          .clamp(220.0, 320.0)
+                          .toDouble(),
+                      child: FilledButton.icon(
+                        onPressed: () => context.push('/transactions/add'),
+                        icon: const Icon(Icons.add),
+                        label: Text(l10n.addTransaction),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
           final now = DateTime.now();
           final monthStart = DateTime(now.year, now.month, 1);
@@ -533,7 +571,13 @@ class _TransactionFilterChip extends StatelessWidget {
             decoration: BoxDecoration(
               color: tone.withValues(alpha: backgroundAlpha),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: tone.withValues(alpha: borderAlpha)),
+              boxShadow: [
+                BoxShadow(
+                  color: tone.withValues(alpha: borderAlpha),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -586,9 +630,13 @@ class _CompactDecisionChip extends StatelessWidget {
             .surfaceContainerHigh
             .withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.16),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

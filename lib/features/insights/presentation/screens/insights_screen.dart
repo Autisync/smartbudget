@@ -6,6 +6,7 @@ import 'package:smartbudget/data/datasources/local/app_database.dart'
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/features/insights/presentation/providers/insight_provider.dart';
 import 'package:smartbudget/features/insights/presentation/widgets/alert_banner.dart';
@@ -27,22 +28,7 @@ class InsightsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(
-              Icons.auto_awesome_rounded,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                l10n.insightsFinancialCopilot,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        title: BrandedTitle(label: l10n.insightsFinancialCopilot),
         actions: [
           NotificationBellButton(
             onPressed: () => context.push('/notifications'),
@@ -386,7 +372,13 @@ class _InsightMetricChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.18)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

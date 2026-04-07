@@ -3,6 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/theme/input_styles.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/form_date_field.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
@@ -68,7 +71,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(l10n.navBudgets),
+          child: BrandedTitle(label: l10n.navBudgets),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -139,10 +142,15 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: () => _openBudgetForm(context, ref),
-                        icon: const Icon(Icons.add),
-                        label: Text(l10n.budgetCreateButton),
+                      SizedBox(
+                        width: (MediaQuery.sizeOf(context).width - 48)
+                            .clamp(220.0, 320.0)
+                            .toDouble(),
+                        child: FilledButton.icon(
+                          onPressed: () => _openBudgetForm(context, ref),
+                          icon: const Icon(Icons.add),
+                          label: Text(l10n.budgetCreateButton),
+                        ),
                       ),
                     ],
                   ),
@@ -625,7 +633,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     final result = await showModalBottomSheet<_BudgetFormResult>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Theme.of(context).colorScheme.surfaceContainerHigh
+          : Theme.of(context).colorScheme.surface,
       builder: (_) => _BudgetFormSheet(
         existingBudget: existingBudget,
         currencySymbol: CurrencyUtils.symbol(appCurrency),
@@ -883,135 +893,118 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
     final baseTheme = Theme.of(context);
     final modalBackgroundColor = baseTheme.brightness == Brightness.dark
         ? baseTheme.colorScheme.surfaceContainerHigh
-        : baseTheme.colorScheme.surfaceContainerHigh;
-    final inputFillColor = baseTheme.brightness == Brightness.dark
-        ? baseTheme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6)
-        : Colors.white.withValues(alpha: 0.95);
+        : baseTheme.colorScheme.surface;
 
     return Padding(
       padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: Theme(
-        data: baseTheme.copyWith(
-          inputDecorationTheme: baseTheme.inputDecorationTheme.copyWith(
-            filled: true,
-            fillColor: inputFillColor,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: modalBackgroundColor,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(28),
           ),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: modalBackgroundColor,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.existingBudget == null
-                      ? l10n.budgetCreate
-                      : l10n.budgetEdit,
-                  style: Theme.of(context).textTheme.titleLarge,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.existingBudget == null
+                    ? l10n.budgetCreate
+                    : l10n.budgetEdit,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _categoryController,
+                style: InputStyles.inputTextStyle(baseTheme),
+                decoration: InputDecoration(
+                  labelText: l10n.category,
+                  hintText: l10n.budgetCategoryHint,
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _categoryController,
-                  decoration: InputDecoration(
-                    labelText: l10n.category,
-                    hintText: l10n.budgetCategoryHint,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return l10n.budgetEnterCategory;
-                    }
-                    return null;
-                  },
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return l10n.budgetEnterCategory;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              TextFormField(
+                controller: _amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: l10n.budgetAmount,
-                    prefixText: '${widget.currencySymbol} ',
-                  ),
-                  validator: (value) {
-                    final parsed = double.tryParse(value ?? '');
-                    if (parsed == null || parsed <= 0) {
-                      return l10n.budgetEnterValidAmount;
-                    }
-                    return null;
-                  },
+                style: InputStyles.inputTextStyle(baseTheme),
+                decoration: InputDecoration(
+                  labelText: l10n.budgetAmount,
+                  prefixText: '${widget.currencySymbol} ',
                 ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<BudgetPeriod>(
-                  initialValue: _period,
-                  decoration: InputDecoration(labelText: l10n.budgetPeriod),
-                  items: BudgetPeriod.values
-                      .map(
-                        (p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(
-                            switch (p) {
-                              BudgetPeriod.weekly => l10n.reportsBillingWeekly,
-                              BudgetPeriod.monthly =>
-                                l10n.reportsBillingMonthly,
-                              BudgetPeriod.yearly => l10n.reportsBillingYearly,
-                            },
-                          ),
+                validator: (value) {
+                  final parsed = double.tryParse(value ?? '');
+                  if (parsed == null || parsed <= 0) {
+                    return l10n.budgetEnterValidAmount;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              DropdownButtonFormField<BudgetPeriod>(
+                initialValue: _period,
+                icon: InputStyles.dropdownIcon(context),
+                decoration: InputDecoration(labelText: l10n.budgetPeriod),
+                items: BudgetPeriod.values
+                    .map(
+                      (p) => DropdownMenuItem(
+                        value: p,
+                        child: Text(
+                          switch (p) {
+                            BudgetPeriod.weekly => l10n.reportsBillingWeekly,
+                            BudgetPeriod.monthly => l10n.reportsBillingMonthly,
+                            BudgetPeriod.yearly => l10n.reportsBillingYearly,
+                          },
                         ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() => _period = value);
-                  },
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() => _period = value);
+                },
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              Slider(
+                value: _alertThreshold.toDouble(),
+                min: 60,
+                max: 95,
+                divisions: 7,
+                label: l10n.budgetAlertPercent(_alertThreshold),
+                onChanged: (value) {
+                  setState(() => _alertThreshold = value.round());
+                },
+              ),
+              const SizedBox(height: 4),
+              FormDateField(
+                label: l10n.budgetStartDate,
+                value: MaterialLocalizations.of(context)
+                    .formatMediumDate(_startDate),
+                onTap: _pickStartDate,
+              ),
+              const SizedBox(height: InputStyles.fieldSpacing),
+              FilledButton(
+                onPressed: _submit,
+                child: Text(
+                  widget.existingBudget == null
+                      ? l10n.budgetSave
+                      : l10n.budgetUpdate,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.budgetAlertAt(_alertThreshold),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                Slider(
-                  value: _alertThreshold.toDouble(),
-                  min: 60,
-                  max: 95,
-                  divisions: 7,
-                  label: l10n.budgetAlertPercent(_alertThreshold),
-                  onChanged: (value) {
-                    setState(() => _alertThreshold = value.round());
-                  },
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.calendar_today),
-                  title: Text(l10n.budgetStartDate),
-                  subtitle: Text(
-                    MaterialLocalizations.of(context)
-                        .formatMediumDate(_startDate),
-                  ),
-                  onTap: _pickStartDate,
-                ),
-                const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: _submit,
-                  child: Text(
-                    widget.existingBudget == null
-                        ? l10n.budgetSave
-                        : l10n.budgetUpdate,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

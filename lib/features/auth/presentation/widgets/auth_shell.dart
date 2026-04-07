@@ -277,7 +277,16 @@ class _AuthHero extends StatelessWidget {
               color: colorScheme.primary.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(22),
             ),
-            child: Icon(icon, color: colorScheme.primary, size: 30),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Image.asset(
+                'assets/images/logo/app_logo.png',
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(icon, color: colorScheme.primary, size: 30);
+                },
+              ),
+            ),
           ),
           const SizedBox(height: UiTokens.sectionGapLg),
           Text(

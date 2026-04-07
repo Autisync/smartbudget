@@ -23,6 +23,7 @@
   "language": "Idioma",
   "logout": "Sair",
   "noTransactions": "Nenhuma transação ainda",
+  "noTransactionsSubtitle": "Adicione sua primeira receita ou despesa para começar a acompanhar seu dinheiro.",
   "totalBalance": "Saldo Total",
   "monthlySpending": "Gastos Mensais",
   "remainingBudget": "Orçamento Restante",

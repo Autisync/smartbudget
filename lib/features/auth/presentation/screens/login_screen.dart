@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/login_form_provider.dart';
@@ -109,6 +110,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 labelText: 'name@example.com',
                 prefixIcon: Icon(Icons.alternate_email_rounded),
               ),
+              style: InputStyles.inputTextStyle(theme),
               onChanged: formController.setEmail,
             ),
             const SizedBox(height: 16),
@@ -118,6 +120,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
               autofillHints: const [AutofillHints.password],
+              style: InputStyles.inputTextStyle(theme),
               decoration: InputDecoration(
                 labelText: 'Enter your password',
                 prefixIcon: const Icon(Icons.lock_outline_rounded),

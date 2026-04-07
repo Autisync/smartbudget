@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
-import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/theme/input_styles.dart';
+import 'package:smartbudget/core/widgets/form_date_field.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
 import 'package:smartbudget/data/models/tables.dart'
     show BillingCycle, SubscriptionImportance;
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
@@ -283,6 +285,9 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     final currencyFormat = NumberFormat.currency(symbol: '');
 
     return Scaffold(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? null
+          : colorScheme.surface,
       appBar: AppBar(
         title: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
@@ -294,8 +299,8 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(
-            isEditing
+          child: BrandedTitle(
+            label: isEditing
                 ? l10n.subscriptionsEditSubscription
                 : l10n.subscriptionsAddSubscription,
           ),
@@ -367,14 +372,10 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   // Subscription name
                   TextFormField(
                     controller: _nameController,
+                    style: InputStyles.inputTextStyle(Theme.of(context)),
                     decoration: InputDecoration(
                       labelText: l10n.subscriptionsName,
                       hintText: l10n.subscriptionsNameHint,
-                      filled: true,
-                      fillColor: colorScheme.surface.withValues(alpha: 0.95),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -393,14 +394,9 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       final categoryField = DropdownButtonFormField<String>(
                         isExpanded: true,
                         initialValue: _category,
+                        icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.category,
-                          filled: true,
-                          fillColor:
-                              colorScheme.surface.withValues(alpha: 0.95),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
                         ),
                         items: _defaultCategories
                             .map((c) => DropdownMenuItem(
@@ -417,15 +413,10 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
 
                       final amountField = TextFormField(
                         controller: _amountController,
+                        style: InputStyles.inputTextStyle(Theme.of(context)),
                         decoration: InputDecoration(
                           labelText: l10n.amount,
                           prefixText: '${CurrencyUtils.symbol(appCurrency)} ',
-                          filled: true,
-                          fillColor:
-                              colorScheme.surface.withValues(alpha: 0.95),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
@@ -470,14 +461,9 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       final cycleField = DropdownButtonFormField<BillingCycle>(
                         isExpanded: true,
                         initialValue: _billingCycle,
+                        icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.subscriptionsBillingCycle,
-                          filled: true,
-                          fillColor:
-                              colorScheme.surface.withValues(alpha: 0.95),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
                         ),
                         items: BillingCycle.values
                             .map((c) => DropdownMenuItem(
@@ -496,14 +482,9 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                           DropdownButtonFormField<SubscriptionImportance>(
                         isExpanded: true,
                         initialValue: _importance,
+                        icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.subscriptionsImportance,
-                          filled: true,
-                          fillColor:
-                              colorScheme.surface.withValues(alpha: 0.95),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
                         ),
                         items: SubscriptionImportance.values
                             .map((imp) => DropdownMenuItem(
@@ -563,10 +544,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   // Cost summary card
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: AppSurfaces.elevated(
-                      context,
-                      radius: 16,
-                    ),
+                    decoration: InputStyles.costSummaryDecoration(context),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -649,14 +627,8 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   // Importance info card
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _getImportanceColor(_importance)
-                          .withValues(alpha: 0.1),
-                      border: Border.all(
-                        color: _getImportanceColor(_importance)
-                            .withValues(alpha: 0.3),
-                      ),
-                      borderRadius: BorderRadius.circular(12),
+                    decoration: InputStyles.importanceBannerDecoration(
+                      _getImportanceColor(_importance),
                     ),
                     child: Row(
                       children: [
@@ -696,23 +668,10 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                         required String label,
                         required String value,
                       }) {
-                        return OutlinedButton.icon(
-                          onPressed: onPressed,
-                          icon: const Icon(Icons.calendar_today),
-                          label: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                label,
-                                style: Theme.of(context).textTheme.labelSmall,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                value,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
+                        return FormDateField(
+                          label: label,
+                          value: value,
+                          onTap: onPressed,
                         );
                       }
 
@@ -783,14 +742,10 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   // Payment method
                   TextFormField(
                     controller: _paymentMethodController,
+                    style: InputStyles.inputTextStyle(Theme.of(context)),
                     decoration: InputDecoration(
                       labelText: l10n.subscriptionsPaymentMethod,
                       hintText: l10n.subscriptionsPaymentMethodHint,
-                      filled: true,
-                      fillColor: colorScheme.surface.withValues(alpha: 0.95),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -798,14 +753,10 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   // Website
                   TextFormField(
                     controller: _websiteController,
+                    style: InputStyles.inputTextStyle(Theme.of(context)),
                     decoration: InputDecoration(
                       labelText: l10n.subscriptionsWebsite,
                       hintText: l10n.subscriptionsWebsiteHint,
-                      filled: true,
-                      fillColor: colorScheme.surface.withValues(alpha: 0.95),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -813,14 +764,10 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                   // Description
                   TextFormField(
                     controller: _descriptionController,
+                    style: InputStyles.inputTextStyle(Theme.of(context)),
                     decoration: InputDecoration(
                       labelText: l10n.subscriptionsNotes,
                       hintText: l10n.subscriptionsNotesHint,
-                      filled: true,
-                      fillColor: colorScheme.surface.withValues(alpha: 0.95),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                     maxLines: 3,
                   ),
@@ -831,10 +778,14 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerLowest,
-                      border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.2),
-                      ),
                       borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.shadow.withValues(alpha: 0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

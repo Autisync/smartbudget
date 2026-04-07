@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/add_subscription_screen.dart';
@@ -19,14 +20,16 @@ class EditSubscriptionScreen extends ConsumerWidget {
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
-        appBar: AppBar(title: Text(l10n.subscriptionsEditSubscription)),
+        appBar: AppBar(
+            title: BrandedTitle(label: l10n.subscriptionsEditSubscription)),
         body:
             Center(child: Text(l10n.subscriptionsLoadError(error.toString()))),
       ),
       data: (subscription) {
         if (subscription == null) {
           return Scaffold(
-            appBar: AppBar(title: Text(l10n.subscriptionsEditSubscription)),
+            appBar: AppBar(
+                title: BrandedTitle(label: l10n.subscriptionsEditSubscription)),
             body: Center(child: Text(l10n.subscriptionsNotFound)),
           );
         }

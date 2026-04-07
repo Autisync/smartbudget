@@ -23,6 +23,7 @@
   "language": "Language",
   "logout": "Logout",
   "noTransactions": "No transactions yet",
+  "noTransactionsSubtitle": "Add your first income or expense to start tracking your money.",
   "totalBalance": "Total Balance",
   "monthlySpending": "Monthly Spending",
   "remainingBudget": "Remaining Budget",

@@ -6,11 +6,14 @@ import 'package:go_router/go_router.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/data/models/tables.dart'
     show TransactionType, TransactionRecurrence;
+import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/widgets/form_date_field.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:uuid/uuid.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
@@ -123,8 +126,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(
-            widget.existingTransaction != null
+          child: BrandedTitle(
+            label: widget.existingTransaction != null
                 ? l10n.transactionsUpdateTransaction
                 : l10n.addTransaction,
           ),
@@ -199,7 +202,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     setState(() => _type = set.first);
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: InputStyles.fieldSpacing),
 
                 // Amount
                 TextFormField(
@@ -207,17 +210,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: _type == TransactionType.expense
-                            ? Colors.redAccent
-                            : Colors.greenAccent,
-                      ),
+                  style: InputStyles.inputTextStyle(Theme.of(context)),
                   decoration: InputDecoration(
+                    labelText: l10n.amount,
                     prefixText: '${CurrencyUtils.symbol(appCurrency)} ',
                     hintText: '0.00',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -229,11 +226,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: InputStyles.fieldSpacing),
 
                 // Category
                 DropdownButtonFormField<String>(
                   initialValue: _category,
+                  icon: InputStyles.dropdownIcon(context),
                   decoration: InputDecoration(
                     labelText: l10n.category,
                     prefixIcon: const Icon(Icons.category),
@@ -245,16 +243,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     if (value != null) setState(() => _category = value);
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: InputStyles.fieldSpacing),
 
                 // Date
-                ListTile(
-                  leading: const Icon(Icons.calendar_today),
-                  title: Text(l10n.date),
-                  subtitle: Text(
-                    MaterialLocalizations.of(context).formatFullDate(_date),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
+                FormDateField(
+                  label: l10n.date,
+                  value:
+                      MaterialLocalizations.of(context).formatFullDate(_date),
                   onTap: () async {
                     final picked = await showDatePicker(
                       context: context,
@@ -265,22 +260,24 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     if (picked != null) setState(() => _date = picked);
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: InputStyles.fieldSpacing),
 
                 // Note
                 TextFormField(
                   controller: _noteController,
+                  style: InputStyles.inputTextStyle(Theme.of(context)),
                   decoration: InputDecoration(
                     labelText: l10n.transactionsNoteOptional,
                     prefixIcon: const Icon(Icons.edit),
                   ),
                   maxLines: 2,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: InputStyles.fieldSpacing),
 
                 // Recurrence
                 DropdownButtonFormField<TransactionRecurrence>(
                   initialValue: _recurrence,
+                  icon: InputStyles.dropdownIcon(context),
                   decoration: InputDecoration(
                     labelText: l10n.transactionsRecurrence,
                     prefixIcon: const Icon(Icons.repeat),
@@ -310,7 +307,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: InputStyles.fieldSpacing),
 
                 // Save Button
                 FilledButton(

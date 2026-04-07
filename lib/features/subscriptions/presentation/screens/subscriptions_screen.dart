@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
@@ -148,7 +149,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(l10n.navSubscriptions),
+          child: BrandedTitle(label: l10n.navSubscriptions),
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -403,11 +404,16 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 24),
-                              FilledButton.icon(
-                                onPressed: () =>
-                                    context.push('/subscriptions/add'),
-                                icon: const Icon(Icons.add),
-                                label: Text(l10n.subscriptionsAdd),
+                              SizedBox(
+                                width: (MediaQuery.sizeOf(context).width - 48)
+                                    .clamp(220.0, 320.0)
+                                    .toDouble(),
+                                child: FilledButton.icon(
+                                  onPressed: () =>
+                                      context.push('/subscriptions/add'),
+                                  icon: const Icon(Icons.add),
+                                  label: Text(l10n.subscriptionsAdd),
+                                ),
                               ),
                             ],
                           ),
@@ -690,7 +696,13 @@ class _SubscriptionSummaryChip extends StatelessWidget {
             decoration: BoxDecoration(
               color: tone.withValues(alpha: backgroundAlpha),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: tone.withValues(alpha: borderAlpha)),
+              boxShadow: [
+                BoxShadow(
+                  color: tone.withValues(alpha: borderAlpha),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -835,10 +847,16 @@ class SubscriptionCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: _getImportanceColor(),
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.surface,
-                        width: 2,
-                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .shadow
+                              .withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                   ),
                 ],
