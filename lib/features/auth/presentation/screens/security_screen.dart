@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/security_provider.dart';
 import 'package:smartbudget/core/widgets/branded_title.dart';
@@ -137,8 +138,12 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                   bio.AuthStatus.authenticated =>
                                     'Biometric authentication enabled.',
                                 };
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(message)),
+                                AppFeedback.show(
+                                  context,
+                                  message: message,
+                                  type: result == bio.AuthStatus.authenticated
+                                      ? AppFeedbackType.success
+                                      : AppFeedbackType.warning,
                                 );
                               }
 

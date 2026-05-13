@@ -18,10 +18,21 @@ abstract class AuthRepository {
     String? platform,
   });
 
+  Future<(AuthUser, AuthTokens)> socialLogin({
+    required String provider,
+    required String idToken,
+    String? email,
+    String? firstName,
+    String? lastName,
+    String? deviceName,
+    String? platform,
+  });
+
   Future<AuthTokens> refreshToken();
   Future<void> logout();
   Future<void> forgotPassword(String email);
-  Future<void> resetPassword({required String token, required String newPassword});
+  Future<void> resetPassword(
+      {required String token, required String newPassword});
   Future<void> verifyEmail(String token);
   Future<AuthUser> me();
   Future<AuthTokens?> readStoredTokens();

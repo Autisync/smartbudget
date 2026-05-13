@@ -1,4 +1,18 @@
 {
+  "dart.previewFlutterUiGuides": true,
+  "dart.openDevTools": "flutter",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "files.exclude": {
+    "**/.dart_tool": true,
+    "**/build": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "python.envFile": "${workspaceFolder}/backend/.env",
   "chat.tools.terminal.autoApprove": {
     "command": true,
     "brew": true

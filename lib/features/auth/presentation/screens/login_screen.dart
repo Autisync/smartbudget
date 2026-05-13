@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smartbudget/core/theme/input_styles.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/login_form_provider.dart';
@@ -17,6 +19,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
+  bool _emailTouched = false;
+  bool _passwordTouched = false;
+  bool _socialSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +55,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               'Authentication failed due to a system error.',
             bio.AuthStatus.authenticated => 'Authenticated',
           };
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(message)));
+          AppFeedback.show(
+            context,
+            message: message,
+            type: AppFeedbackType.error,
+          );
         },
         onUseDifferentAccount: () async {
           await ref.read(sessionControllerProvider.notifier).logout();
@@ -66,14 +74,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final formController = ref.read(loginFormProvider.notifier);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final emailError = _emailTouched ? _emailValidation(form.email) : null;
+    final passwordError =
+        _passwordTouched ? _passwordValidation(form.password) : null;
 
     return AuthScaffold(
       title: 'Welcome back',
-      subtitle:
-          'Sign in to continue with your secure account session and pick up where you left off.',
+      subtitle: 'Manage your finances with confidence.',
       icon: Icons.lock_open_rounded,
       footer: AuthInlinePrompt(
-        label: 'New to SmartSpend?',
+        label: 'New here?',
         actionLabel: 'Create account',
         onPressed: form.submitting ? () {} : () => context.push('/signup'),
       ),
@@ -82,22 +92,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Sign in',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
+              'Sign In',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
-              'Use the credentials linked to your SmartSpend account.',
-              style: theme.textTheme.bodyMedium?.copyWith(
+              'Use your account credentials to continue.',
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 24),
-            const AuthSectionLabel(text: 'Email address'),
-            const SizedBox(height: 8),
-            TextField(
+            const SizedBox(height: 16),
+            AuthTextField(
+              label: 'Email',
+              hint: 'name@example.com',
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               autofillHints: const [
@@ -106,42 +116,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ],
               autocorrect: false,
               enableSuggestions: false,
-              decoration: const InputDecoration(
-                labelText: 'name@example.com',
-                prefixIcon: Icon(Icons.alternate_email_rounded),
-              ),
-              style: InputStyles.inputTextStyle(theme),
-              onChanged: formController.setEmail,
+              prefixIcon: const Icon(Icons.alternate_email_rounded, size: 19),
+              errorText: emailError,
+              onChanged: (value) {
+                if (!_emailTouched) {
+                  setState(() => _emailTouched = true);
+                }
+                formController.setEmail(value);
+              },
             ),
-            const SizedBox(height: 16),
-            const AuthSectionLabel(text: 'Password'),
-            const SizedBox(height: 8),
-            TextField(
+            const SizedBox(height: 14),
+            AuthTextField(
+              label: 'Password',
+              hint: 'Enter password',
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
               autofillHints: const [AutofillHints.password],
-              style: InputStyles.inputTextStyle(theme),
-              decoration: InputDecoration(
-                labelText: 'Enter your password',
-                prefixIcon: const Icon(Icons.lock_outline_rounded),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off_rounded
-                        : Icons.visibility_rounded,
-                  ),
+              prefixIcon: const Icon(Icons.lock_outline_rounded, size: 19),
+              errorText: passwordError,
+              suffix: IconButton(
+                onPressed: () {
+                  setState(() => _obscurePassword = !_obscurePassword);
+                },
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
                 ),
               ),
-              onChanged: formController.setPassword,
+              onChanged: (value) {
+                if (!_passwordTouched) {
+                  setState(() => _passwordTouched = true);
+                }
+                formController.setPassword(value);
+              },
               onSubmitted: (_) async {
-                if (!form.isValid || form.submitting) return;
+                if (form.submitting) return;
                 await _submit(context);
               },
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 4),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
@@ -152,34 +166,95 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
             if (form.errorMessage != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               AuthMessageBanner(
                 message: form.errorMessage!,
                 isError: true,
               ),
             ],
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: (!form.isValid || form.submitting)
-                  ? null
-                  : () => _submit(context),
-              icon: form.submitting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.login_rounded),
-              label: Text(form.submitting ? 'Signing in...' : 'Sign in'),
-            ),
             const SizedBox(height: 12),
+            AuthButton(
+              label: form.submitting ? 'Signing in...' : 'Sign in',
+              loading: form.submitting,
+              leading: const Icon(Icons.login_rounded, size: 18),
+              enabled: !form.submitting,
+              onPressed: () => _submit(context),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: Divider(color: colorScheme.outlineVariant),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    'or',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Divider(color: colorScheme.outlineVariant),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            SocialButton(
+              icon: Icons.apple,
+              label: 'Continue with Apple',
+              onPressed: (_socialSubmitting || form.submitting)
+                  ? () {}
+                  : () => _signInWithApple(context),
+            ),
+            const SizedBox(height: 10),
+            SocialButton(
+              icon: Icons.g_mobiledata_rounded,
+              label: 'Continue with Google',
+              onPressed: (_socialSubmitting || form.submitting)
+                  ? () {}
+                  : () => _signInWithGoogle(context),
+            ),
+            if (_socialSubmitting) ...[
+              const SizedBox(height: 8),
+              const Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
             Text(
-              'Biometric unlock remains available after your authenticated session is established on this device.',
+              'Face ID / biometrics remain available after first sign in.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
-                height: 1.4,
+                height: 1.35,
               ),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 0,
+              children: [
+                TextButton(
+                  onPressed: () => context.push('/legal/terms'),
+                  child: const Text('Terms'),
+                ),
+                Text(
+                  '•',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push('/legal/privacy'),
+                  child: const Text('Privacy'),
+                ),
+              ],
             ),
           ],
         ),
@@ -187,16 +262,152 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  String? _emailValidation(String email) {
+    if (email.trim().isEmpty) return 'Email is required';
+    final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email.trim());
+    if (!ok) return 'Enter a valid email';
+    return null;
+  }
+
+  String? _passwordValidation(String password) {
+    if (password.isEmpty) return 'Password is required';
+    if (password.length < 8) return 'Must be at least 8 characters';
+    return null;
+  }
+
+  Future<void> _signInWithGoogle(BuildContext context) async {
+    final sessionController = ref.read(sessionControllerProvider.notifier);
+    setState(() => _socialSubmitting = true);
+    try {
+      final googleSignIn = GoogleSignIn(scopes: const ['email', 'profile']);
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        return;
+      }
+
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        _showError('Google sign-in did not return an ID token.');
+        return;
+      }
+
+      final nameParts =
+          (account.displayName ?? '').trim().split(RegExp(r'\s+'));
+      final firstName = nameParts.isNotEmpty && nameParts.first.isNotEmpty
+          ? nameParts.first
+          : null;
+      final lastName =
+          nameParts.length > 1 ? nameParts.sublist(1).join(' ') : null;
+
+      final ok = await sessionController.socialLogin(
+        provider: 'google',
+        idToken: idToken,
+        email: account.email,
+        firstName: firstName,
+        lastName: lastName,
+      );
+
+      if (!mounted) return;
+
+      if (ok && context.mounted) {
+        context.go('/');
+        return;
+      }
+      final session = ref.read(sessionControllerProvider);
+      _showError(session.errorMessage ?? 'Google sign-in failed.');
+    } catch (_) {
+      _showError('Google sign-in failed. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() => _socialSubmitting = false);
+      }
+    }
+  }
+
+  Future<void> _signInWithApple(BuildContext context) async {
+    final sessionController = ref.read(sessionControllerProvider.notifier);
+    setState(() => _socialSubmitting = true);
+    try {
+      final available = await SignInWithApple.isAvailable();
+      if (!available) {
+        _showError('Apple sign-in is not available on this device.');
+        return;
+      }
+
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: const [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName
+        ],
+      );
+
+      final idToken = credential.identityToken;
+      if (idToken == null || idToken.isEmpty) {
+        _showError('Apple sign-in did not return an ID token.');
+        return;
+      }
+
+      final ok = await sessionController.socialLogin(
+        provider: 'apple',
+        idToken: idToken,
+        email: credential.email,
+        firstName: credential.givenName,
+        lastName: credential.familyName,
+      );
+
+      if (!mounted) return;
+
+      if (ok && context.mounted) {
+        context.go('/');
+        return;
+      }
+      final session = ref.read(sessionControllerProvider);
+      _showError(session.errorMessage ?? 'Apple sign-in failed.');
+    } catch (_) {
+      _showError('Apple sign-in failed. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() => _socialSubmitting = false);
+      }
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    AppFeedback.show(
+      context,
+      message: message,
+      type: AppFeedbackType.error,
+    );
+  }
+
   Future<void> _submit(BuildContext context) async {
     final form = ref.read(loginFormProvider);
     final formController = ref.read(loginFormProvider.notifier);
+    final sessionController = ref.read(sessionControllerProvider.notifier);
+
+    setState(() {
+      _emailTouched = true;
+      _passwordTouched = true;
+    });
+
+    if (!form.isValid) {
+      formController.setError(
+        'Enter a valid email and password to sign in.',
+      );
+      return;
+    }
 
     formController.setSubmitting(true);
-    final ok = await ref.read(sessionControllerProvider.notifier).login(
-          email: form.email,
-          password: form.password,
-        );
+    final ok = await sessionController.login(
+      email: form.email,
+      password: form.password,
+    );
+
     formController.setSubmitting(false);
+
+    if (!mounted) return;
 
     final sessionAfter = ref.read(sessionControllerProvider);
     if (!ok) {
@@ -225,8 +436,7 @@ class _BiometricUnlockView extends StatelessWidget {
 
     return AuthScaffold(
       title: 'Unlock your session',
-      subtitle:
-          'Your account is already authenticated. Confirm with biometrics to regain local access on this device.',
+      subtitle: 'Verify your identity to continue securely.',
       icon: Icons.fingerprint_rounded,
       cardWidth: 460,
       child: Column(
@@ -234,23 +444,23 @@ class _BiometricUnlockView extends StatelessWidget {
         children: [
           Text(
             'Biometric unlock',
-            style: theme.textTheme.headlineSmall?.copyWith(
+            style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'This quick check protects your local session without changing the signed-in account.',
+            'Use Face ID or fingerprint to restore local access.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: colorScheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               children: [
@@ -268,13 +478,13 @@ class _BiometricUnlockView extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
+          const SizedBox(height: 16),
+          AuthButton(
+            label: 'Unlock with biometrics',
+            leading: const Icon(Icons.lock_open_rounded, size: 18),
             onPressed: () => onUnlock(),
-            icon: const Icon(Icons.lock_open_rounded),
-            label: const Text('Unlock with biometrics'),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           OutlinedButton(
             onPressed: () => onUseDifferentAccount(),
             child: const Text('Use a different account'),

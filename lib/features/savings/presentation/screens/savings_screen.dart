@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/input_styles.dart';
+import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/core/widgets/form_date_field.dart';
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/features/savings/presentation/providers/savings_provider.dart';
@@ -177,40 +179,18 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             }).length;
 
             if (goals.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.savings_outlined,
-                        size: 52,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.savingsEmptyTitle,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 18),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.savingsEmptySubtitle,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: (MediaQuery.sizeOf(context).width - 48)
-                            .clamp(220.0, 320.0)
-                            .toDouble(),
-                        child: FilledButton.icon(
-                          onPressed: () => _openGoalForm(context, ref),
-                          icon: const Icon(Icons.add),
-                          label: Text(l10n.savingsCreateGoal),
-                        ),
-                      ),
-                    ],
+              return AppEmptyState(
+                icon: Icons.savings_outlined,
+                title: l10n.savingsEmptyTitle,
+                message: l10n.savingsEmptySubtitle,
+                action: SizedBox(
+                  width: (MediaQuery.sizeOf(context).width - 48)
+                      .clamp(220.0, 320.0)
+                      .toDouble(),
+                  child: FilledButton.icon(
+                    onPressed: () => _openGoalForm(context, ref),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.savingsCreateGoal),
                   ),
                 ),
               );
@@ -233,21 +213,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .shadow
-                              .withValues(alpha: 0.08),
-                          blurRadius: 18,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
+                  child: PremiumCard(
                     padding: const EdgeInsets.all(14),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,11 +280,13 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                 nudgesAsync.when(
                   data: (nudges) {
                     if (nudges.isEmpty) return const SizedBox.shrink();
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: PremiumCard(
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -378,11 +346,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                   error: (_, __) => const SizedBox.shrink(),
                 ),
                 if (monthlySurplus > 0)
-                  Card(
-                    margin:
+                  Padding(
+                    padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
+                    child: PremiumCard(
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -451,22 +419,55 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                         )
                       : 0;
 
-                  return Card(
-                    margin:
+                  final statusColor = _goalStatusColor(progress, projectedLate);
+
+                  return Padding(
+                    padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
+                    child: PremiumCard(
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              CircularFinanceProgress(
+                                value: progress,
+                                color: statusColor,
+                                size: 78,
+                                center: Text(
+                                  '${(progress * 100).toStringAsFixed(0)}%',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(fontWeight: FontWeight.w900),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
                               Expanded(
-                                child: Text(
-                                  goal.title,
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      goal.title,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    StatusPill(
+                                      label: _goalStatusLabel(
+                                        l10n,
+                                        progress,
+                                        projectedLate,
+                                      ),
+                                      color: statusColor,
+                                    ),
+                                  ],
                                 ),
                               ),
                               PopupMenuButton<String>(
@@ -493,32 +494,19 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              _SavingsStatusChip(
-                                label: _goalStatusLabel(
-                                  l10n,
-                                  progress,
-                                  projectedLate,
-                                ),
-                                color:
-                                    _goalStatusColor(progress, projectedLate),
-                              ),
-                              const SizedBox(width: 8),
-                              if (hasDeadline)
-                                Text(
-                                  l10n.savingsTimelineTracked,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 12),
                           Text(
                             '${currencyFormat.format(goal.savedAmount)} / ${currencyFormat.format(goal.targetAmount)}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                           const SizedBox(height: 6),
-                          LinearProgressIndicator(value: progress),
+                          AnimatedFinanceProgressBar(
+                            value: progress,
+                            color: statusColor,
+                          ),
                           const SizedBox(height: 6),
                           Text(
                             l10n.savingsProgressLine(
@@ -533,6 +521,10 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                                 MaterialLocalizations.of(context)
                                     .formatMediumDate(goal.deadline!),
                               ),
+                            ),
+                            Text(
+                              l10n.savingsTimelineTracked,
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
                             _GoalTimeline(
                               l10n: l10n,
@@ -606,7 +598,14 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemBuilder: (_, index) => AppSkeleton(
+              height: index == 0 ? 148 : 190,
+            ),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemCount: 4,
+          ),
           error: (err, st) => Center(
             child: Text(l10n.transactionsError(err.toString())),
           ),
@@ -701,7 +700,9 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     WidgetRef ref,
     SavingsGoal goal,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final appCurrency = ref.read(appCurrencyControllerProvider);
+    final currencyFormat = CurrencyUtils.getFormat(appCurrency);
     final amount = await showDialog<double>(
       context: context,
       builder: (_) => _ContributionDialog(
@@ -717,6 +718,22 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       await ref
           .read(savingsGoalListProvider.notifier)
           .updateSavingsGoal(updated);
+      if (!context.mounted) return;
+      AppFeedback.show(
+        context,
+        message: l10n.savingsProgressLine(
+          ((updated.savedAmount / updated.targetAmount) * 100)
+              .clamp(0, 100)
+              .toStringAsFixed(1),
+          currencyFormat.format(
+            (updated.targetAmount - updated.savedAmount).clamp(
+              0,
+              double.infinity,
+            ),
+          ),
+        ),
+        type: AppFeedbackType.success,
+      );
     }
   }
 
@@ -851,34 +868,6 @@ class _SavingsSummaryMetric extends StatelessWidget {
                 ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SavingsStatusChip extends StatelessWidget {
-  const _SavingsStatusChip({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-        ),
       ),
     );
   }

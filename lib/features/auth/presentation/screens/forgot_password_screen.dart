@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
 
@@ -17,6 +16,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   bool _submitting = false;
   String? _message;
+  bool _emailTouched = false;
 
   bool get _hasValidEmail => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
       .hasMatch(_emailController.text.trim());
@@ -32,11 +32,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isError = _message != null && _message == 'Enter a valid email.';
+    final emailError =
+        _emailTouched ? _emailValidation(_emailController.text) : null;
 
     return AuthScaffold(
-      title: 'Recover account access',
-      subtitle:
-          'Enter the email tied to your account and we will send instructions to reset your password securely.',
+      title: 'Forgot password',
+      subtitle: 'Recover account access in a few quick steps.',
       icon: Icons.mark_email_read_rounded,
       cardWidth: 500,
       footer: const SizedBox.shrink(),
@@ -49,33 +50,35 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           ),
           Text(
             'Forgot password',
-            style: theme.textTheme.headlineSmall?.copyWith(
+            style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
-            'For security, we always send the same response whether or not the email exists in our system.',
-            style: theme.textTheme.bodyMedium?.copyWith(
+            'Enter your email and we will send a secure reset link.',
+            style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 24),
-          const AuthSectionLabel(text: 'Email address'),
-          const SizedBox(height: 8),
-          TextField(
+          const SizedBox(height: 16),
+          AuthTextField(
+            label: 'Email',
+            hint: 'name@example.com',
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.email],
             autocorrect: false,
             enableSuggestions: false,
-            style: InputStyles.inputTextStyle(theme),
-            decoration: const InputDecoration(
-              labelText: 'name@example.com',
-              prefixIcon: Icon(Icons.alternate_email_rounded),
-            ),
-            onChanged: (_) => setState(() => _message = null),
+            prefixIcon: const Icon(Icons.alternate_email_rounded, size: 19),
+            errorText: emailError,
+            onChanged: (_) {
+              setState(() {
+                _message = null;
+                _emailTouched = true;
+              });
+            },
             onSubmitted: (_) async {
               if (_submitting || !_hasValidEmail) {
                 return;
@@ -83,13 +86,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               await _submit();
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color:
-                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.62),
-              borderRadius: BorderRadius.circular(18),
+                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.40),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,27 +112,21 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             ),
           ),
           if (_message != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             AuthMessageBanner(
               message: _message!,
               isError: isError,
             ),
           ],
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: (_submitting || !_hasValidEmail) ? null : _submit,
-            icon: _submitting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.send_rounded),
-            label: Text(
-              _submitting ? 'Sending reset link...' : 'Send reset email',
-            ),
+          const SizedBox(height: 14),
+          AuthButton(
+            label: _submitting ? 'Sending reset link...' : 'Send reset email',
+            loading: _submitting,
+            enabled: _hasValidEmail,
+            leading: const Icon(Icons.send_rounded, size: 18),
+            onPressed: _submit,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           TextButton(
             onPressed: _submitting ? null : () => context.go('/login'),
             child: const Text('Return to sign in'),
@@ -157,6 +154,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       _message = session.errorMessage ??
           'If this account exists, reset instructions were sent.';
     });
+  }
+
+  String? _emailValidation(String email) {
+    if (email.trim().isEmpty) return 'Email is required';
+    if (!_hasValidEmail) return 'Enter a valid email';
+    return null;
   }
 }
 

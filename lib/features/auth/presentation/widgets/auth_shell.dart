@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
@@ -10,11 +9,11 @@ class AuthScaffold extends StatelessWidget {
     super.key,
     required this.title,
     required this.subtitle,
-    required this.icon,
     required this.child,
+    this.icon = Icons.lock_open_rounded,
     this.footer,
-    this.maxWidth = 1120,
-    this.cardWidth = 520,
+    this.maxWidth = 540,
+    this.cardWidth = 540,
   });
 
   final String title;
@@ -27,85 +26,539 @@ class AuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final mediaQuery = MediaQuery.of(context);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: colorScheme.surface,
       body: Stack(
         children: [
           const _AuthBackground(),
           SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final useSplitLayout = constraints.maxWidth >= 920;
-
-                return Align(
-                  alignment: Alignment.topCenter,
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(
-                      16,
-                      16,
-                      16,
-                      MediaQuery.paddingOf(context).bottom + 32,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxWidth),
-                      child: IntrinsicHeight(
-                        child: useSplitLayout
-                            ? Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: UiTokens.sectionGapLg,
-                                      ),
-                                      child: _AuthHero(
-                                        title: title,
-                                        subtitle: subtitle,
-                                        icon: icon,
-                                      ),
-                                    ),
-                                  ),
-                                  ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      maxWidth: cardWidth,
-                                    ),
-                                    child: _AuthCard(
-                                      footer: footer,
-                                      child: child,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  _AuthHero(
-                                    title: title,
-                                    subtitle: subtitle,
-                                    icon: icon,
-                                    compact: true,
-                                  ),
-                                  const SizedBox(height: UiTokens.sectionGapLg),
-                                  ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      maxWidth: cardWidth,
-                                    ),
-                                    child: _AuthCard(
-                                      footer: footer,
-                                      child: child,
-                                    ),
-                                  ),
-                                ],
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.fromLTRB(
+                    22,
+                    18,
+                    22,
+                    mediaQuery.padding.bottom +
+                        mediaQuery.viewInsets.bottom +
+                        24,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: maxWidth),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: 1),
+                          duration: const Duration(milliseconds: 420),
+                          curve: Curves.easeOut,
+                          builder: (context, value, child) {
+                            return Opacity(
+                              opacity: value,
+                              child: Transform.translate(
+                                offset: Offset(0, (1 - value) * 14),
+                                child: child,
                               ),
-                      ),
+                            );
+                          },
+                          child: _AuthHero(
+                            title: title,
+                            subtitle: subtitle,
+                            icon: icon,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: 1),
+                          duration: const Duration(milliseconds: 480),
+                          curve: Curves.easeOut,
+                          builder: (context, value, child) {
+                            return Opacity(
+                              opacity: value,
+                              child: Transform.translate(
+                                offset: Offset(0, (1 - value) * 16),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: cardWidth),
+                            child: _AuthCard(
+                              footer: footer,
+                              child: child,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
+                ),
+              ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AuthTextField extends StatefulWidget {
+  const AuthTextField({
+    super.key,
+    required this.label,
+    required this.hint,
+    this.controller,
+    this.onChanged,
+    this.onSubmitted,
+    this.keyboardType,
+    this.textInputAction,
+    this.autofillHints,
+    this.obscureText = false,
+    this.errorText,
+    this.prefixIcon,
+    this.suffix,
+    this.enabled = true,
+    this.autocorrect = true,
+    this.enableSuggestions = true,
+  });
+
+  final String label;
+  final String hint;
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final Iterable<String>? autofillHints;
+  final bool obscureText;
+  final String? errorText;
+  final Widget? prefixIcon;
+  final Widget? suffix;
+  final bool enabled;
+  final bool autocorrect;
+  final bool enableSuggestions;
+
+  @override
+  State<AuthTextField> createState() => _AuthTextFieldState();
+}
+
+class _AuthTextFieldState extends State<AuthTextField> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_onFocusChanged);
+  }
+
+  void _onFocusChanged() => setState(() {});
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isFocused = _focusNode.hasFocus;
+    final hasError = widget.errorText != null;
+
+    final fillColor = theme.brightness == Brightness.dark
+        ? const Color(0xFF211F2B)
+        : const Color(0xFFF2F0F7);
+    final borderColor = hasError
+        ? colorScheme.error
+        : isFocused
+            ? colorScheme.primary.withValues(alpha: 0.38)
+            : Colors.transparent;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 8),
+        AnimatedContainer(
+          duration: UiTokens.motionFast,
+          curve: UiTokens.motionCurve,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor, width: 1.1),
+            boxShadow: isFocused
+                ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.10),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10),
+                    ),
+                  ]
+                : const [],
+          ),
+          child: TextField(
+            controller: widget.controller,
+            focusNode: _focusNode,
+            onChanged: widget.onChanged,
+            onSubmitted: widget.onSubmitted,
+            keyboardType: widget.keyboardType,
+            textInputAction: widget.textInputAction,
+            autofillHints: widget.autofillHints?.toList(),
+            obscureText: widget.obscureText,
+            enabled: widget.enabled,
+            autocorrect: widget.autocorrect,
+            enableSuggestions: widget.enableSuggestions,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: true,
+              fillColor: fillColor,
+              hintText: widget.hint,
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
+              ),
+              prefixIcon: widget.prefixIcon,
+              suffixIcon: widget.suffix,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            ),
+          ),
+        ),
+        AnimatedSwitcher(
+          duration: UiTokens.motionFast,
+          child: hasError
+              ? Padding(
+                  key: ValueKey(widget.errorText),
+                  padding: const EdgeInsets.only(top: 6, left: 4),
+                  child: Text(
+                    widget.errorText!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+class AuthButton extends StatefulWidget {
+  const AuthButton({
+    super.key,
+    required this.label,
+    this.leading,
+    this.onPressed,
+    this.loading = false,
+    this.enabled = true,
+  });
+
+  final String label;
+  final Widget? leading;
+  final VoidCallback? onPressed;
+  final bool loading;
+  final bool enabled;
+
+  @override
+  State<AuthButton> createState() => _AuthButtonState();
+}
+
+class _AuthButtonState extends State<AuthButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isEnabled =
+        widget.enabled && !widget.loading && widget.onPressed != null;
+    final shadowOpacity = isEnabled ? (_pressed ? 0.08 : 0.12) : 0.04;
+    final blurRadius = _pressed ? 8.0 : 12.0;
+    final offsetY = _pressed ? 2.0 : 4.0;
+
+    return Listener(
+      onPointerDown: isEnabled ? (_) => setState(() => _pressed = true) : null,
+      onPointerUp: (_) => setState(() => _pressed = false),
+      onPointerCancel: (_) => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.992 : 1,
+        duration: const Duration(milliseconds: 120),
+        curve: UiTokens.motionCurve,
+        child: AnimatedContainer(
+          duration: UiTokens.motionFast,
+          curve: UiTokens.motionCurve,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: LinearGradient(
+              colors: [
+                colorScheme.primary,
+                const Color(0xFF8B5CF6),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: shadowOpacity),
+                blurRadius: blurRadius,
+                offset: Offset(0, offsetY),
+              ),
+            ],
+          ),
+          child: FilledButton(
+            onPressed: isEnabled
+                ? () {
+                    HapticFeedback.selectionClick();
+                    widget.onPressed!.call();
+                  }
+                : null,
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              disabledBackgroundColor: colorScheme.surfaceContainerHighest,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 54),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ).copyWith(
+              elevation: const WidgetStatePropertyAll(0),
+              shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+            ),
+            child: AnimatedSwitcher(
+              duration: UiTokens.motionFast,
+              child: widget.loading
+                  ? SizedBox(
+                      key: const ValueKey('loader'),
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          colorScheme.onPrimary,
+                        ),
+                      ),
+                    )
+                  : Row(
+                      key: ValueKey(widget.label),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (widget.leading != null) ...[
+                          widget.leading!,
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          widget.label,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SocialButton extends StatelessWidget {
+  const SocialButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return OutlinedButton.icon(
+      onPressed: () {
+        HapticFeedback.lightImpact();
+        onPressed();
+      },
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 52),
+        backgroundColor: colorScheme.surfaceContainerHigh.withValues(
+          alpha: Theme.of(context).brightness == Brightness.dark ? 0.32 : 0.45,
+        ),
+        foregroundColor: colorScheme.onSurface,
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.30),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+    );
+  }
+}
+
+class PasswordStrengthIndicator extends StatelessWidget {
+  const PasswordStrengthIndicator({
+    super.key,
+    required this.password,
+    this.confirmPassword,
+  });
+
+  final String password;
+  final String? confirmPassword;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final checks = <bool>[
+      password.length >= 8,
+      RegExp(r'[A-Z]').hasMatch(password),
+      RegExp(r'[a-z]').hasMatch(password),
+      RegExp(r'[0-9]').hasMatch(password),
+    ];
+    final passed = checks.where((ok) => ok).length;
+    final levelLabel = switch (passed) {
+      0 || 1 => 'Weak',
+      2 || 3 => 'Good',
+      _ => 'Strong',
+    };
+    final levelColor = switch (passed) {
+      0 || 1 => colorScheme.error,
+      2 || 3 => const Color(0xFFCA8A04),
+      _ => const Color(0xFF15803D),
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Password strength',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                levelLabel,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: levelColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: List.generate(4, (index) {
+              final active = index < passed;
+              return Expanded(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  height: 4,
+                  margin: EdgeInsets.only(right: index == 3 ? 0 : 6),
+                  decoration: BoxDecoration(
+                    color: active
+                        ? levelColor
+                        : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              _RuleChip(label: '8+ chars', met: checks[0]),
+              _RuleChip(label: 'Uppercase', met: checks[1]),
+              _RuleChip(label: 'Lowercase', met: checks[2]),
+              _RuleChip(label: 'Number', met: checks[3]),
+              if (confirmPassword != null && confirmPassword!.isNotEmpty)
+                _RuleChip(
+                  label: 'Passwords match',
+                  met: confirmPassword == password,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RuleChip extends StatelessWidget {
+  const _RuleChip({
+    required this.label,
+    required this.met,
+  });
+
+  final String label;
+  final bool met;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final tone = met ? const Color(0xFF15803D) : colorScheme.onSurfaceVariant;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: tone.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            met ? Icons.check_rounded : Icons.circle_outlined,
+            size: 14,
+            color: tone,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: tone,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ],
       ),
@@ -149,11 +602,11 @@ class AuthMessageBanner extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: tone.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(UiTokens.radiusMd),
-        border: Border.all(color: tone.withValues(alpha: 0.18)),
+        color: tone.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: tone.withValues(alpha: 0.10)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,7 +622,7 @@ class AuthMessageBanner extends StatelessWidget {
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: tone,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
             ),
           ),
@@ -248,13 +701,11 @@ class _AuthHero extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
-    this.compact = false,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -262,116 +713,30 @@ class _AuthHero extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: compact ? 8 : 24,
-        horizontal: compact ? 4 : 8,
-      ),
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Image.asset(
-                'assets/images/logo/app_logo.png',
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(icon, color: colorScheme.primary, size: 30);
-                },
-              ),
-            ),
-          ),
-          const SizedBox(height: UiTokens.sectionGapLg),
           Text(
-            'SmartSpend',
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.4,
+            title,
+            style: theme.textTheme.headlineLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              height: 1.18,
             ),
           ),
           const SizedBox(height: 10),
-          Text(
-            title,
-            style: (compact
-                    ? theme.textTheme.headlineMedium
-                    : theme.textTheme.displaySmall)
-                ?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1.05,
-            ),
-          ),
-          const SizedBox(height: 12),
           ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
+            constraints: const BoxConstraints(maxWidth: 420),
             child: Text(
               subtitle,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,
-                height: 1.5,
+                height: 1.35,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(height: UiTokens.sectionGapLg),
-          const Wrap(
-            spacing: UiTokens.chipSpacing,
-            runSpacing: UiTokens.chipRunSpacing,
-            children: [
-              _AuthHeroPill(
-                icon: Icons.security_rounded,
-                label: 'Secure access',
-              ),
-              _AuthHeroPill(
-                icon: Icons.insights_outlined,
-                label: 'Financial clarity',
-              ),
-              _AuthHeroPill(
-                icon: Icons.sync_lock_rounded,
-                label: 'Trusted session flow',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AuthHeroPill extends StatelessWidget {
-  const _AuthHeroPill({
-    required this.icon,
-    required this.label,
-  });
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.84),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.6),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: colorScheme.primary),
-          const SizedBox(width: 8),
-          Text(label),
         ],
       ),
     );
@@ -390,47 +755,34 @@ class _AuthCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: AppSurfaces.elevated(
         context,
-        radius: 28,
-        color: colorScheme.surface.withValues(alpha: 0.92),
-        blur: 28,
-        opacity: 0.12,
+        radius: 30,
+        color: colorScheme.surface.withValues(alpha: isDark ? 0.86 : 0.92),
+        blur: 30,
+        opacity: isDark ? 0.22 : 0.08,
         offsetY: 16,
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.45),
-              ),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.surface.withValues(alpha: 0.96),
-                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.72),
-                ],
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                child,
-                if (footer != null) ...[
-                  const SizedBox(height: UiTokens.sectionGapMd),
-                  footer!,
-                ],
-              ],
-            ),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          color: colorScheme.surface.withValues(alpha: isDark ? 0.86 : 0.94),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.10),
           ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            child,
+            if (footer != null) ...[
+              const SizedBox(height: 18),
+              footer!,
+            ],
+          ],
         ),
       ),
     );
@@ -451,57 +803,14 @@ class _AuthBackground extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             colorScheme.surface,
-            colorScheme.surfaceContainerLowest,
-            colorScheme.surfaceContainerLow,
+            colorScheme.primary.withValues(alpha: 0.035),
+            const Color(0xFF2EA7FF).withValues(alpha: 0.025),
+            colorScheme.surface,
           ],
+          stops: const [0, 0.52, 0.78, 1],
         ),
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -80,
-            right: -20,
-            child: _GlowOrb(
-              size: 240,
-              color: colorScheme.primary.withValues(alpha: 0.14),
-            ),
-          ),
-          Positioned(
-            bottom: -40,
-            left: -50,
-            child: _GlowOrb(
-              size: 220,
-              color: const Color(0xFF0EA5E9).withValues(alpha: 0.14),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GlowOrb extends StatelessWidget {
-  const _GlowOrb({
-    required this.size,
-    required this.color,
-  });
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [color, color.withValues(alpha: 0)],
-          ),
-        ),
-      ),
+      child: const SizedBox.expand(),
     );
   }
 }

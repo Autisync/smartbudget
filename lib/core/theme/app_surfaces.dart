@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class AppSurfaces {
   static BoxDecoration elevated(
     BuildContext context, {
-    double radius = 22,
+    double radius = 24,
     Color? color,
-    double blur = 24,
-    double offsetY = 8,
-    double opacity = 0.09,
+    double blur = 28,
+    double offsetY = 12,
+    double opacity = 0.08,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
@@ -17,7 +17,7 @@ class AppSurfaces {
       border: isDark
           ? null
           : Border.all(
-              color: const Color(0xFF0F172A).withValues(alpha: 0.055),
+              color: const Color(0xFF111827).withValues(alpha: 0.06),
               width: 0.5,
             ),
       boxShadow: [
@@ -27,6 +27,29 @@ class AppSurfaces {
           blurRadius: blur,
           offset: Offset(0, offsetY),
           spreadRadius: -2,
+        ),
+      ],
+    );
+  }
+
+  static BoxDecoration gradientCard(
+    BuildContext context, {
+    List<Color> colors = const [Color(0xFF312E81), Color(0xFF7C3AED)],
+    double radius = 28,
+  }) {
+    return BoxDecoration(
+      gradient: LinearGradient(
+        colors: colors,
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(radius),
+      boxShadow: [
+        BoxShadow(
+          color: colors.last.withValues(alpha: 0.30),
+          blurRadius: 34,
+          offset: const Offset(0, 18),
+          spreadRadius: -8,
         ),
       ],
     );

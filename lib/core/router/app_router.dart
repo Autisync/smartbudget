@@ -1,6 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:smartbudget/features/dashboard/presentation/screens/financial_health_screen.dart';
 import 'package:smartbudget/features/transactions/presentation/screens/add_transaction_screen.dart';
@@ -102,7 +106,7 @@ GoRouter router(RouterRef ref) {
     routes: [
       GoRoute(
         path: '/splash',
-        builder: (context, state) => Scaffold(
+        builder: (context, state) => const Scaffold(
           body: Center(
             child: LogoLoadingIndicator(
               label: 'Loading SmartSpend...',
@@ -285,6 +289,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
           ? Row(
               children: [
                 NavigationRail(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  indicatorColor:
+                      Theme.of(context).colorScheme.primaryContainer,
                   selectedIndex: _calculateSelectedIndex(context),
                   onDestinationSelected: (index) =>
                       _onItemTapped(index, context),
@@ -337,6 +344,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
               ],
             )
           : child,
+      extendBody: !useRail,
       bottomNavigationBar: useRail
           ? null
           : useCompactNav
@@ -344,52 +352,68 @@ class ScaffoldWithNavBar extends StatelessWidget {
                   context,
                   _calculateSelectedIndex(context, compact: true),
                 )
-              : NavigationBar(
-                  selectedIndex: _calculateSelectedIndex(context),
-                  onDestinationSelected: (index) =>
-                      _onItemTapped(index, context),
-                  destinations: [
-                    NavigationDestination(
-                      icon: const Icon(Icons.home_outlined),
-                      selectedIcon: const Icon(Icons.home),
-                      label: l10n.navHome,
+              : Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    0,
+                    20,
+                    16 + MediaQuery.paddingOf(context).bottom,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(UiTokens.radius2xl),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: NavigationBar(
+                        selectedIndex: _calculateSelectedIndex(context),
+                        onDestinationSelected: (index) =>
+                            _onItemTapped(index, context),
+                        destinations: [
+                          NavigationDestination(
+                            icon: const Icon(Icons.home_outlined),
+                            selectedIcon: const Icon(Icons.home),
+                            label: l10n.navHome,
+                          ),
+                          NavigationDestination(
+                            icon: const Icon(Icons.receipt_long_outlined),
+                            selectedIcon: const Icon(Icons.receipt_long),
+                            label: l10n.transactionsTitle,
+                          ),
+                          NavigationDestination(
+                            icon: const Icon(
+                                Icons.account_balance_wallet_outlined),
+                            selectedIcon:
+                                const Icon(Icons.account_balance_wallet),
+                            label: l10n.navBudgets,
+                          ),
+                          NavigationDestination(
+                            icon: const Icon(Icons.savings_outlined),
+                            selectedIcon: const Icon(Icons.savings),
+                            label: l10n.navSavings,
+                          ),
+                          NavigationDestination(
+                            icon: const Icon(Icons.subscriptions_outlined),
+                            selectedIcon: const Icon(Icons.subscriptions),
+                            label: l10n.navSubscriptions,
+                          ),
+                          NavigationDestination(
+                            icon: const Icon(Icons.description_outlined),
+                            selectedIcon: const Icon(Icons.description),
+                            label: l10n.reportsTitle,
+                          ),
+                          NavigationDestination(
+                            icon: const Icon(Icons.insights_outlined),
+                            selectedIcon: const Icon(Icons.insights),
+                            label: l10n.navInsights,
+                          ),
+                          NavigationDestination(
+                            icon: const Icon(Icons.settings_outlined),
+                            selectedIcon: const Icon(Icons.settings),
+                            label: l10n.settings,
+                          ),
+                        ],
+                      ),
                     ),
-                    NavigationDestination(
-                      icon: const Icon(Icons.receipt_long_outlined),
-                      selectedIcon: const Icon(Icons.receipt_long),
-                      label: l10n.transactionsTitle,
-                    ),
-                    NavigationDestination(
-                      icon: const Icon(Icons.account_balance_wallet_outlined),
-                      selectedIcon: const Icon(Icons.account_balance_wallet),
-                      label: l10n.navBudgets,
-                    ),
-                    NavigationDestination(
-                      icon: const Icon(Icons.savings_outlined),
-                      selectedIcon: const Icon(Icons.savings),
-                      label: l10n.navSavings,
-                    ),
-                    NavigationDestination(
-                      icon: const Icon(Icons.subscriptions_outlined),
-                      selectedIcon: const Icon(Icons.subscriptions),
-                      label: l10n.navSubscriptions,
-                    ),
-                    NavigationDestination(
-                      icon: const Icon(Icons.description_outlined),
-                      selectedIcon: const Icon(Icons.description),
-                      label: l10n.reportsTitle,
-                    ),
-                    NavigationDestination(
-                      icon: const Icon(Icons.insights_outlined),
-                      selectedIcon: const Icon(Icons.insights),
-                      label: l10n.navInsights,
-                    ),
-                    NavigationDestination(
-                      icon: const Icon(Icons.settings_outlined),
-                      selectedIcon: const Icon(Icons.settings),
-                      label: l10n.settings,
-                    ),
-                  ],
+                  ),
                 ),
     );
   }
@@ -483,118 +507,155 @@ class ScaffoldWithNavBar extends StatelessWidget {
     }) {
       final selected = selectedIndex == index;
       return Expanded(
-        child: InkWell(
-          onTap: () => _onCompactItemTapped(index, context),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  selected ? selectedIcon : icon,
-                  size: 24,
-                  color: selected
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  label,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: selected
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        child: Semantics(
+          button: true,
+          selected: selected,
+          label: label,
+          child: InkWell(
+            onTap: () => _onCompactItemTapped(index, context),
+            borderRadius: BorderRadius.circular(18),
+            child: AnimatedContainer(
+              duration: UiTokens.motionFast,
+              curve: UiTokens.motionCurve,
+              margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 7),
+              decoration: BoxDecoration(
+                color: selected
+                    ? colorScheme.primary.withValues(alpha: 0.10)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedScale(
+                    duration: UiTokens.motionFast,
+                    curve: UiTokens.motionCurve,
+                    scale: selected ? 1.06 : 1,
+                    child: Icon(
+                      selected ? selectedIcon : icon,
+                      size: 23,
+                      color: selected
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: textTheme.labelSmall?.copyWith(
+                      color: selected
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                      fontWeight:
+                          selected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        14 + MediaQuery.paddingOf(context).bottom,
       ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 68,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              navItem(
-                icon: Icons.receipt_long_outlined,
-                selectedIcon: Icons.receipt_long,
-                label: l10n.navTxns,
-                index: 0,
-              ),
-              navItem(
-                icon: Icons.account_balance_wallet_outlined,
-                selectedIcon: Icons.account_balance_wallet,
-                label: l10n.navBudgets,
-                index: 1,
-              ),
-              // Center Home button
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _onCompactItemTapped(2, context),
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: selectedIndex == 2
-                              ? colorScheme.primary
-                              : colorScheme.primaryContainer,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  colorScheme.primary.withValues(alpha: 0.35),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(UiTokens.radius2xl),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+          child: Container(
+            height: 72,
+            decoration: AppSurfaces.elevated(
+              context,
+              radius: UiTokens.radius2xl,
+              color: colorScheme.surface.withValues(alpha: 0.90),
+              blur: 34,
+              offsetY: 16,
+              opacity: 0.14,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                navItem(
+                  icon: Icons.receipt_long_outlined,
+                  selectedIcon: Icons.receipt_long,
+                  label: l10n.navTxns,
+                  index: 0,
+                ),
+                navItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  selectedIcon: Icons.account_balance_wallet,
+                  label: l10n.navBudgets,
+                  index: 1,
+                ),
+                // Center Home button
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _onCompactItemTapped(2, context),
+                    behavior: HitTestBehavior.opaque,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedContainer(
+                          duration: UiTokens.motionFast,
+                          curve: UiTokens.motionCurve,
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            gradient: selectedIndex == 2
+                                ? const LinearGradient(
+                                    colors: [
+                                      Color(0xFF6D5DF6),
+                                      Color(0xFF9B5CFF),
+                                    ],
+                                  )
+                                : null,
+                            color: selectedIndex == 2
+                                ? null
+                                : colorScheme.primaryContainer,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.home,
+                            size: 26,
+                            color: selectedIndex == 2
+                                ? colorScheme.onPrimary
+                                : colorScheme.onPrimaryContainer,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.home,
-                          size: 26,
-                          color: selectedIndex == 2
-                              ? colorScheme.onPrimary
-                              : colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              navItem(
-                icon: Icons.savings_outlined,
-                selectedIcon: Icons.savings,
-                label: l10n.navSavings,
-                index: 3,
-              ),
-              navItem(
-                icon: Icons.grid_view_outlined,
-                selectedIcon: Icons.grid_view,
-                label: l10n.navMore,
-                index: 4,
-              ),
-            ],
+                navItem(
+                  icon: Icons.savings_outlined,
+                  selectedIcon: Icons.savings,
+                  label: l10n.navSavings,
+                  index: 3,
+                ),
+                navItem(
+                  icon: Icons.grid_view_outlined,
+                  selectedIcon: Icons.grid_view,
+                  label: l10n.navMore,
+                  index: 4,
+                ),
+              ],
+            ),
           ),
         ),
       ),

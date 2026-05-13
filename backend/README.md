@@ -112,13 +112,13 @@ Copy-Item .env.example .env -Force
 2. Start services:
 
 ```bash
-docker compose up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 3. Stop services:
 
 ```bash
-docker compose down
+docker compose -f docker-compose.dev.yml down
 ```
 
 ## GitHub Docker CI/CD (GHCR)
@@ -139,7 +139,7 @@ GitHub-hosted runners are ephemeral and not publicly routable for your phone/emu
 Use one of these approaches:
 
 1. Local development (recommended for day-to-day)
-	 - Run `docker compose up --build` locally
+	 - Run `docker compose -f docker-compose.dev.yml up --build` locally
 	 - Start Flutter with your local API base URL (LAN IP for physical device)
 
 2. Remote deployment for shared/stable backend URL

@@ -1,0 +1,136 @@
+name: smartbudget-dev
+
+services:
+  backend:
+    container_name: smartbudget-backend-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: development
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173,http://localhost:8080,http://127.0.0.1:8080}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://smartbudget:smartbudget@postgres:5432/smartbudget}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/1}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-only-change-me}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_TTL_SECONDS: ${ACCESS_TOKEN_TTL_SECONDS:-900}
+      REFRESH_TOKEN_TTL_SECONDS: ${REFRESH_TOKEN_TTL_SECONDS:-2592000}
+      PASSWORD_RESET_TTL_SECONDS: ${PASSWORD_RESET_TTL_SECONDS:-1800}
+      VERIFY_EMAIL_TTL_SECONDS: ${VERIFY_EMAIL_TTL_SECONDS:-86400}
+      LOGIN_RATE_LIMIT_WINDOW_SECONDS: ${LOGIN_RATE_LIMIT_WINDOW_SECONDS:-60}
+      LOGIN_RATE_LIMIT_MAX_ATTEMPTS: ${LOGIN_RATE_LIMIT_MAX_ATTEMPTS:-10}
+      RESET_PASSWORD_DEEP_LINK_BASE: ${RESET_PASSWORD_DEEP_LINK_BASE:-smartbudget://reset-password}
+      VERIFY_EMAIL_DEEP_LINK_BASE: ${VERIFY_EMAIL_DEEP_LINK_BASE:-smartbudget://verify-email}
+      SMTP_ENABLED: ${SMTP_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      SMTP_USE_SSL: ${SMTP_USE_SSL:-false}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-noreply@example.test}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-SmartBudget}
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    networks:
+      - backend
+
+  celery-worker:
+    container_name: smartbudget-celery-worker-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://smartbudget:smartbudget@postgres:5432/smartbudget}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/1}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-only-change-me}
+    command: ["celery", "-A", "app.core.celery_app.celery_app", "worker", "--loglevel=INFO"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    networks:
+      - backend
+
+  celery-beat:
+    container_name: smartbudget-celery-beat-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://smartbudget:smartbudget@postgres:5432/smartbudget}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/1}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-only-change-me}
+    command: ["celery", "-A", "app.core.celery_app.celery_app", "beat", "--loglevel=INFO"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    networks:
+      - backend
+
+  postgres:
+    container_name: smartbudget-postgres-dev
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: smartbudget
+      POSTGRES_USER: smartbudget
+      POSTGRES_PASSWORD: smartbudget
+    ports:
+      - "5432:5432"
+    volumes:
+      - smartbudget_postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartbudget -d smartbudget"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: smartbudget-redis-dev
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - smartbudget_redis_dev_data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  smartbudget_postgres_dev_data:
+  smartbudget_redis_dev_data:
+
+networks:
+  backend:
+    name: smartbudget-backend-dev
+    driver: bridge

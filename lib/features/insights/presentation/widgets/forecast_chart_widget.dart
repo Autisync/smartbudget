@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:smartbudget/core/theme/ui_tokens.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/intelligence/models/forecast_data_point.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
@@ -13,10 +15,12 @@ class ForecastChartWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     if (dataPoints.isEmpty) {
-      return SizedBox(
-        height: 220,
-        child: Center(child: Text(l10n.insightsNoForecastData)),
+      return AppEmptyState(
+        icon: Icons.show_chart_rounded,
+        title: l10n.insightsForecastChart,
+        message: l10n.insightsNoForecastData,
       );
     }
 
@@ -44,10 +48,10 @@ class ForecastChartWidget extends StatelessWidget {
     final safeMaxY = math.max(maxY * 1.1, 1.0);
     final safeHorizontalInterval = math.max(safeMaxY / 4, 0.25);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: PremiumCard(
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -56,12 +60,21 @@ class ForecastChartWidget extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
+                  ?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: UiTokens.space4),
+            Text(
+              '${l10n.insightsActual} / ${l10n.insightsPredicted}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
             ),
             const SizedBox(height: 12),
             SizedBox(
               height: 260,
               child: LineChart(
+                duration: UiTokens.motionSlow,
+                curve: UiTokens.motionCurve,
                 LineChartData(
                   minX: 1,
                   maxX: dataPoints.length.toDouble(),
@@ -72,7 +85,9 @@ class ForecastChartWidget extends StatelessWidget {
                     drawVerticalLine: false,
                     horizontalInterval: safeHorizontalInterval,
                     getDrawingHorizontalLine: (value) => FlLine(
-                      color: Theme.of(context).dividerColor,
+                      color: Theme.of(context).dividerColor.withValues(
+                            alpha: 0.65,
+                          ),
                       strokeWidth: 1,
                     ),
                   ),
@@ -107,20 +122,52 @@ class ForecastChartWidget extends StatelessWidget {
                     topTitles: const AxisTitles(
                         sideTitles: SideTitles(showTitles: false)),
                   ),
-                  lineTouchData: const LineTouchData(enabled: true),
+                  lineTouchData: LineTouchData(
+                    enabled: true,
+                    touchTooltipData: LineTouchTooltipData(
+                      tooltipRoundedRadius: 12,
+                      tooltipPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      getTooltipItems: (spots) => spots.map((spot) {
+                        final isActual = spot.barIndex == 0;
+                        return LineTooltipItem(
+                          '${isActual ? l10n.insightsActual : l10n.insightsPredicted}\n${spot.y.toStringAsFixed(0)}',
+                          TextStyle(
+                            color: isActual
+                                ? colorScheme.primary
+                                : colorScheme.secondary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                   borderData: FlBorderData(show: false),
                   lineBarsData: [
                     LineChartBarData(
                       spots: actualSpots,
                       isCurved: true,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: colorScheme.primary,
                       barWidth: 3,
                       dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            colorScheme.primary.withValues(alpha: 0.18),
+                            colorScheme.primary.withValues(alpha: 0.01),
+                          ],
+                        ),
+                      ),
                     ),
                     LineChartBarData(
                       spots: predictedSpots,
                       isCurved: true,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: colorScheme.secondary,
                       barWidth: 3,
                       dashArray: const [6, 4],
                       dotData: const FlDotData(show: false),
@@ -133,12 +180,14 @@ class ForecastChartWidget extends StatelessWidget {
             Row(
               children: [
                 _LegendDot(
-                    color: Theme.of(context).colorScheme.primary,
-                    label: l10n.insightsActual),
+                  color: colorScheme.primary,
+                  label: l10n.insightsActual,
+                ),
                 const SizedBox(width: 16),
                 _LegendDot(
-                    color: Theme.of(context).colorScheme.secondary,
-                    label: l10n.insightsPredicted),
+                  color: colorScheme.secondary,
+                  label: l10n.insightsPredicted,
+                ),
               ],
             ),
           ],
@@ -158,7 +207,14 @@ class _LegendDot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 10, height: 10, color: color),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
         const SizedBox(width: 6),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],

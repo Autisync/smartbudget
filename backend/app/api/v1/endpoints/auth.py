@@ -16,6 +16,7 @@ from app.schemas.auth import (
     MessageResponse,
     RefreshRequest,
     ResetPasswordRequest,
+    SocialLoginRequest,
     SignupRequest,
     VerifyEmailRequest,
 )
@@ -58,6 +59,26 @@ def login(
     return service.login(
         email=payload.email,
         password=payload.password,
+        device_name=payload.device_name,
+        platform=payload.platform,
+        request_ip=ip_key,
+    )
+
+
+@router.post("/social-login", response_model=AuthResponse)
+def social_login(
+    payload: SocialLoginRequest,
+    request: Request,
+    db: Session = Depends(db_session),
+):
+    ip_key = request.client.host if request.client else "unknown"
+    service = AuthService(db)
+    return service.social_login(
+        provider=payload.provider,
+        id_token=payload.id_token,
+        email=payload.email,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
         device_name=payload.device_name,
         platform=payload.platform,
         request_ip=ip_key,

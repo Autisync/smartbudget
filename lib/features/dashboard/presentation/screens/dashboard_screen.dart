@@ -9,6 +9,7 @@ import 'package:smartbudget/core/services/exchange_rate_service.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/domain/entities/budget_alert.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
@@ -671,19 +672,12 @@ class _BalanceCard extends StatelessWidget {
     final balance = income - expenses;
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(99, 102, 241, 0.3),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
+      decoration: AppSurfaces.gradientCard(
+        context,
+        colors: const [
+          Color(0xFF24184E),
+          Color(0xFF5B55E7),
+          Color(0xFF9B5CFF),
         ],
       ),
       child: Column(
@@ -719,15 +713,9 @@ class _BalanceCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            currencyFormat.format(balance),
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -1,
-                ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          FinanceAmount(
+            value: currencyFormat.format(balance),
+            color: Colors.white,
           ),
           const SizedBox(height: 24),
           Row(
@@ -1062,14 +1050,7 @@ class _LoadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: const Center(child: CircularProgressIndicator()),
-    );
+    return const AppSkeleton(height: 180);
   }
 }
 

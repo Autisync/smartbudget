@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -26,6 +28,16 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
+    device_name: str | None = Field(default=None, max_length=120)
+    platform: str | None = Field(default=None, max_length=40)
+
+
+class SocialLoginRequest(BaseModel):
+    provider: Literal["google", "apple"]
+    id_token: str = Field(min_length=20)
+    email: EmailStr | None = None
+    first_name: str | None = Field(default=None, max_length=120)
+    last_name: str | None = Field(default=None, max_length=120)
     device_name: str | None = Field(default=None, max_length=120)
     platform: str | None = Field(default=None, max_length=40)
 

@@ -1,0 +1,28 @@
+from celery import Celery
+
+from app.core.config import settings
+
+celery_app = Celery(
+    "smartbudget",
+    broker=settings.celery_broker_url,
+    backend=settings.celery_result_backend,
+    include=["app.tasks.finance"],
+)
+
+celery_app.conf.update(
+    task_acks_late=True,
+    task_track_started=True,
+    worker_prefetch_multiplier=1,
+    broker_connection_retry_on_startup=True,
+    timezone="UTC",
+    beat_schedule={
+        "subscription-checks-hourly": {
+            "task": "app.tasks.finance.check_subscriptions",
+            "schedule": 3600.0,
+        },
+        "monthly-summary-daily": {
+            "task": "app.tasks.finance.generate_monthly_summaries",
+            "schedule": 86400.0,
+        },
+    },
+)

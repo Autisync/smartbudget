@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart';
 import 'package:smartbudget/core/services/security_service.dart';
@@ -50,7 +51,8 @@ class SessionState {
 }
 
 final authBaseUrlProvider = Provider<String>((ref) {
-  const configured = String.fromEnvironment('AUTH_API_BASE_URL', defaultValue: '');
+  const configured =
+      String.fromEnvironment('AUTH_API_BASE_URL', defaultValue: '');
   if (configured.isNotEmpty) {
     return configured;
   }
@@ -168,15 +170,74 @@ class SessionController extends StateNotifier<SessionState> {
         initializing: false,
         authenticated: false,
         localUnlockRequired: false,
-        errorMessage: _errorMessageFromDio(e),
+        errorMessage: _errorMessageFromDio(
+          e,
+          fallback: 'Unable to sign in right now.',
+          unauthorizedMessage: 'Email or password is incorrect.',
+        ),
       );
       return false;
-    } catch (_) {
-      state = const SessionState(
+    } catch (e) {
+      state = SessionState(
         initializing: false,
         authenticated: false,
         localUnlockRequired: false,
-        errorMessage: 'Unable to sign in right now.',
+        errorMessage: AppErrorMapper.from(
+          e,
+          fallback: 'Unable to sign in right now.',
+        ),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> socialLogin({
+    required String provider,
+    required String idToken,
+    String? email,
+    String? firstName,
+    String? lastName,
+  }) async {
+    state = state.copyWith(initializing: true, errorMessage: null);
+    try {
+      final result = await _repository.socialLogin(
+        provider: provider,
+        idToken: idToken,
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        deviceName: Platform.operatingSystem,
+        platform: Platform.operatingSystem,
+      );
+      state = SessionState(
+        initializing: false,
+        authenticated: true,
+        localUnlockRequired: false,
+        user: result.$1,
+      );
+      return true;
+    } on DioException catch (e) {
+      state = SessionState(
+        initializing: false,
+        authenticated: false,
+        localUnlockRequired: false,
+        errorMessage: _errorMessageFromDio(
+          e,
+          fallback: 'Unable to complete social sign in right now.',
+          unauthorizedMessage:
+              'Social authentication failed. Please try again.',
+        ),
+      );
+      return false;
+    } catch (e) {
+      state = SessionState(
+        initializing: false,
+        authenticated: false,
+        localUnlockRequired: false,
+        errorMessage: AppErrorMapper.from(
+          e,
+          fallback: 'Unable to complete social sign in right now.',
+        ),
       );
       return false;
     }
@@ -210,15 +271,21 @@ class SessionController extends StateNotifier<SessionState> {
         initializing: false,
         authenticated: false,
         localUnlockRequired: false,
-        errorMessage: _errorMessageFromDio(e),
+        errorMessage: _errorMessageFromDio(
+          e,
+          fallback: 'Unable to create account right now.',
+        ),
       );
       return false;
-    } catch (_) {
-      state = const SessionState(
+    } catch (e) {
+      state = SessionState(
         initializing: false,
         authenticated: false,
         localUnlockRequired: false,
-        errorMessage: 'Unable to create account right now.',
+        errorMessage: AppErrorMapper.from(
+          e,
+          fallback: 'Unable to create account right now.',
+        ),
       );
       return false;
     }
@@ -230,9 +297,21 @@ class SessionController extends StateNotifier<SessionState> {
       await _repository.forgotPassword(email);
       state = state.copyWith(initializing: false, errorMessage: null);
     } on DioException catch (e) {
-      state = state.copyWith(initializing: false, errorMessage: _errorMessageFromDio(e));
-    } catch (_) {
-      state = state.copyWith(initializing: false, errorMessage: 'Unable to process request.');
+      state = state.copyWith(
+        initializing: false,
+        errorMessage: _errorMessageFromDio(
+          e,
+          fallback: 'Unable to process request.',
+        ),
+      );
+    } catch (e) {
+      state = state.copyWith(
+        initializing: false,
+        errorMessage: AppErrorMapper.from(
+          e,
+          fallback: 'Unable to process request.',
+        ),
+      );
     }
   }
 
@@ -248,13 +327,19 @@ class SessionController extends StateNotifier<SessionState> {
     } on DioException catch (e) {
       state = state.copyWith(
         initializing: false,
-        errorMessage: _errorMessageFromDio(e),
+        errorMessage: _errorMessageFromDio(
+          e,
+          fallback: 'Unable to reset password right now.',
+        ),
       );
       return false;
-    } catch (_) {
+    } catch (e) {
       state = state.copyWith(
         initializing: false,
-        errorMessage: 'Unable to reset password right now.',
+        errorMessage: AppErrorMapper.from(
+          e,
+          fallback: 'Unable to reset password right now.',
+        ),
       );
       return false;
     }
@@ -269,13 +354,19 @@ class SessionController extends StateNotifier<SessionState> {
     } on DioException catch (e) {
       state = state.copyWith(
         initializing: false,
-        errorMessage: _errorMessageFromDio(e),
+        errorMessage: _errorMessageFromDio(
+          e,
+          fallback: 'Unable to verify email right now.',
+        ),
       );
       return false;
-    } catch (_) {
+    } catch (e) {
       state = state.copyWith(
         initializing: false,
-        errorMessage: 'Unable to verify email right now.',
+        errorMessage: AppErrorMapper.from(
+          e,
+          fallback: 'Unable to verify email right now.',
+        ),
       );
       return false;
     }
@@ -309,17 +400,21 @@ class SessionController extends StateNotifier<SessionState> {
     );
   }
 
-  String _errorMessageFromDio(DioException e) {
-    final payload = e.response?.data;
-    if (payload is Map<String, dynamic>) {
-      final detail = payload['detail'];
-      if (detail is String && detail.isNotEmpty) return detail;
-    }
-    return 'Something went wrong. Please try again.';
+  String _errorMessageFromDio(
+    DioException e, {
+    String fallback = 'Something went wrong. Please try again.',
+    String unauthorizedMessage = 'Authentication failed. Please sign in again.',
+  }) {
+    return AppErrorMapper.fromDio(
+      e,
+      fallback: fallback,
+      unauthorizedMessage: unauthorizedMessage,
+    );
   }
 }
 
-final sessionControllerProvider = StateNotifierProvider<SessionController, SessionState>((ref) {
+final sessionControllerProvider =
+    StateNotifierProvider<SessionController, SessionState>((ref) {
   final repository = ref.watch(authRepositoryProvider);
   final biometricService = ref.watch(biometricAuthServiceProvider);
   final securityService = ref.watch(securityServiceProvider);
