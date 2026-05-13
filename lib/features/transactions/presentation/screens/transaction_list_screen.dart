@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
@@ -29,23 +32,36 @@ class TransactionListScreen extends ConsumerStatefulWidget {
 
 class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   _TransactionFilter? _activeFilter;
+  String _searchQuery = '';
 
   List<Transaction> _filterTransactions(List<Transaction> transactions) {
+    final query = _searchQuery.trim().toLowerCase();
+    final searched = query.isEmpty
+        ? transactions
+        : transactions.where((tx) {
+            return tx.category.toLowerCase().contains(query) ||
+                (tx.note ?? '').toLowerCase().contains(query) ||
+                DateFormat('MMM dd yyyy')
+                    .format(tx.date)
+                    .toLowerCase()
+                    .contains(query);
+          }).toList();
+
     switch (_activeFilter) {
       case _TransactionFilter.income:
-        return transactions
+        return searched
             .where((tx) => tx.type == TransactionType.income)
             .toList();
       case _TransactionFilter.spent:
-        return transactions
+        return searched
             .where((tx) => tx.type == TransactionType.expense)
             .toList();
       case _TransactionFilter.recurring:
-        return transactions
+        return searched
             .where((tx) => tx.recurrence != TransactionRecurrence.none)
             .toList();
       case null:
-        return transactions;
+        return searched;
     }
   }
 
@@ -68,41 +84,18 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       body: transactionsAsync.when(
         data: (transactions) {
           if (transactions.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.receipt_long_outlined,
-                      size: 52,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l10n.noTransactions,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 18),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.noTransactionsSubtitle,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: (MediaQuery.sizeOf(context).width - 48)
-                          .clamp(220.0, 320.0)
-                          .toDouble(),
-                      child: FilledButton.icon(
-                        onPressed: () => context.push('/transactions/add'),
-                        icon: const Icon(Icons.add),
-                        label: Text(l10n.addTransaction),
-                      ),
-                    ),
-                  ],
+            return AppEmptyState(
+              icon: Icons.receipt_long_outlined,
+              title: l10n.noTransactions,
+              message: l10n.noTransactionsSubtitle,
+              action: SizedBox(
+                width: (MediaQuery.sizeOf(context).width - 48)
+                    .clamp(220.0, 320.0)
+                    .toDouble(),
+                child: FilledButton.icon(
+                  onPressed: () => context.push('/transactions/add'),
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.addTransaction),
                 ),
               ),
             );
@@ -218,21 +211,32 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     if (index == 0) {
-                      return _TransactionDecisionSummary(
-                        message: decisionMessage,
-                        monthIncome: monthIncome,
-                        monthExpense: monthExpense,
-                        recurringCount: recurringCount,
-                        netFlow: monthIncome - monthExpense,
-                        topCategory: topCategory?.key,
-                        currencyCode: appCurrency,
-                        activeFilter: _activeFilter,
-                        onFilterSelected: (filter) {
-                          setState(() {
-                            _activeFilter =
-                                _activeFilter == filter ? null : filter;
-                          });
-                        },
+                      return Column(
+                        children: [
+                          _TransactionSearchField(
+                            value: _searchQuery,
+                            onChanged: (value) {
+                              setState(() => _searchQuery = value);
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          _TransactionDecisionSummary(
+                            message: decisionMessage,
+                            monthIncome: monthIncome,
+                            monthExpense: monthExpense,
+                            recurringCount: recurringCount,
+                            netFlow: monthIncome - monthExpense,
+                            topCategory: topCategory?.key,
+                            currencyCode: appCurrency,
+                            activeFilter: _activeFilter,
+                            onFilterSelected: (filter) {
+                              setState(() {
+                                _activeFilter =
+                                    _activeFilter == filter ? null : filter;
+                              });
+                            },
+                          ),
+                        ],
                       );
                     }
                     final tx = displayedTransactions[index - 1];
@@ -240,161 +244,138 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     final amountColor = isExpense
                         ? Theme.of(context).colorScheme.error
                         : const Color(0xFF059669);
-                    return Dismissible(
+                    return Slidable(
                       key: ValueKey(tx.id),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.error,
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 16),
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      onDismissed: (_) async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        await ref
-                            .read(transactionListProvider().notifier)
-                            .deleteTransaction(tx.id);
-                        messenger.showSnackBar(
-                          SnackBar(content: Text(l10n.transactionsDeleted)),
-                        );
-                      },
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(22),
-                          onTap: () {
-                            context.push('/transactions/edit/${tx.id}');
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: AppSurfaces.elevated(
-                              context,
-                              color: Theme.of(context).colorScheme.surface,
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: amountColor.withValues(alpha: 0.14),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Icon(
-                                    isExpense
-                                        ? Icons.arrow_outward_rounded
-                                        : Icons.arrow_downward_rounded,
-                                    color: amountColor,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              tx.category,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                            ),
-                                          ),
-                                          if (tx.recurrence !=
-                                              TransactionRecurrence.none) ...[
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primaryContainer,
-                                                borderRadius:
-                                                    BorderRadius.circular(999),
-                                              ),
-                                              child: Text(
-                                                _getRecurrenceLabel(
-                                                  tx.recurrence,
-                                                  l10n,
-                                                ),
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .labelSmall
-                                                    ?.copyWith(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onPrimaryContainer,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        tx.note?.isNotEmpty == true
-                                            ? tx.note!
-                                            : l10n.transactionsNoNote,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Flexible(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w800,
-                                              color: amountColor,
-                                            ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        DateFormat('MMM dd').format(tx.date),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                      endActionPane: ActionPane(
+                        motion: const BehindMotion(),
+                        extentRatio: 0.28,
+                        children: [
+                          SlidableAction(
+                            onPressed: (_) async {
+                              await ref
+                                  .read(transactionListProvider().notifier)
+                                  .deleteTransaction(tx.id);
+                              if (!context.mounted) return;
+                              AppFeedback.show(
+                                context,
+                                message: l10n.transactionsDeleted,
+                                type: AppFeedbackType.success,
+                              );
+                            },
+                            backgroundColor:
+                                Theme.of(context).colorScheme.error,
+                            foregroundColor: Colors.white,
+                            icon: Icons.delete_outline_rounded,
+                            label: 'Delete',
+                            borderRadius: BorderRadius.circular(22),
                           ),
+                        ],
+                      ),
+                      child: PremiumCard(
+                        padding: const EdgeInsets.all(16),
+                        onTap: () {
+                          context.push('/transactions/edit/${tx.id}');
+                        },
+                        child: Row(
+                          children: [
+                            _MerchantAvatar(
+                              label: tx.category,
+                              isExpense: isExpense,
+                              color: amountColor,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          tx.category,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                      ),
+                                      if (tx.recurrence !=
+                                          TransactionRecurrence.none) ...[
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primaryContainer,
+                                            borderRadius:
+                                                BorderRadius.circular(999),
+                                          ),
+                                          child: Text(
+                                            _getRecurrenceLabel(
+                                              tx.recurrence,
+                                              l10n,
+                                            ),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall
+                                                ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onPrimaryContainer,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    tx.note?.isNotEmpty == true
+                                        ? tx.note!
+                                        : l10n.transactionsNoNote,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  FinanceAmount(
+                                    value:
+                                        '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
+                                    color: amountColor,
+                                    compact: true,
+                                    textAlign: TextAlign.end,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat('MMM dd').format(tx.date),
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -428,6 +409,125 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       case TransactionRecurrence.none:
         return l10n.transactionsRecurrenceNone;
     }
+  }
+}
+
+class _TransactionSearchField extends StatefulWidget {
+  const _TransactionSearchField({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_TransactionSearchField> createState() =>
+      _TransactionSearchFieldState();
+}
+
+class _TransactionSearchFieldState extends State<_TransactionSearchField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TransactionSearchField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != _controller.text) {
+      _controller.text = widget.value;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      onChanged: widget.onChanged,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        hintText: 'Search transactions, notes, or dates',
+        prefixIcon: const Icon(Icons.search_rounded),
+        suffixIcon: widget.value.isEmpty
+            ? null
+            : IconButton(
+                tooltip: 'Clear search',
+                onPressed: () {
+                  _controller.clear();
+                  widget.onChanged('');
+                },
+                icon: const Icon(Icons.close_rounded),
+              ),
+      ),
+    );
+  }
+}
+
+class _MerchantAvatar extends StatelessWidget {
+  const _MerchantAvatar({
+    required this.label,
+    required this.isExpense,
+    required this.color,
+  });
+
+  final String label;
+  final bool isExpense;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = label.trim().isEmpty ? '?' : label.trim()[0].toUpperCase();
+    return Semantics(
+      label: '$label ${isExpense ? 'expense' : 'income'}',
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withValues(alpha: 0.20),
+              color.withValues(alpha: 0.08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Text(
+              initial,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            Positioned(
+              right: 5,
+              bottom: 5,
+              child: Icon(
+                isExpense
+                    ? Icons.arrow_outward_rounded
+                    : Icons.arrow_downward_rounded,
+                color: color,
+                size: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

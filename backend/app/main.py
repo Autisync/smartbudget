@@ -1,14 +1,16 @@
 import logging
 import json
+import asyncio
 from html import escape
 from urllib.parse import quote
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.core.redis import get_async_redis
 
 logger = logging.getLogger(__name__)
 
@@ -281,7 +283,29 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.include_router(api_router)
+app.include_router(api_router)
+
+
+@app.websocket("/ws/v1/balance/{user_id}")
+async def balance_updates(websocket: WebSocket, user_id: str):
+    await websocket.accept()
+    redis_client = get_async_redis()
+    pubsub = redis_client.pubsub()
+    channel = f"balance:{user_id}"
+    await pubsub.subscribe(channel)
+    try:
+        await websocket.send_json({"type": "connected", "channel": channel})
+        while True:
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.5)
+            if message and message.get("data"):
+                await websocket.send_text(message["data"])
+            await asyncio.sleep(0.05)
+    except WebSocketDisconnect:
+        logger.info("balance websocket disconnected", extra={"user_id": user_id})
+    finally:
+        await pubsub.unsubscribe(channel)
+        await pubsub.close()
+        await redis_client.aclose()
 
     @app.get("/r/reset-password", response_class=HTMLResponse)
     def reset_password_redirect(token: str) -> str:

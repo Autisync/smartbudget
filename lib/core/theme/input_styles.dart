@@ -97,7 +97,7 @@ class InputStyles {
       overlayColor: primaryColor.withValues(alpha: 0.12),
       thumbColor: Colors.white,
       thumbShape: const _InputSliderThumbShape(),
-      showValueIndicator: ShowValueIndicator.always,
+      showValueIndicator: ShowValueIndicator.onDrag,
       valueIndicatorColor: primaryColor,
       valueIndicatorTextStyle: const TextStyle(
         color: Colors.white,

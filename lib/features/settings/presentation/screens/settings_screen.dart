@@ -686,11 +686,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   ),
                         ),
                         const SizedBox(height: 12),
-                        _IncludedItem(
+                        const _IncludedItem(
                             label: 'Transactions and recurring entries'),
-                        _IncludedItem(
+                        const _IncludedItem(
                             label: 'Budgets, savings goals, and subscriptions'),
-                        _IncludedItem(
+                        const _IncludedItem(
                             label: 'Insights, forecasts, and anomaly alerts'),
                       ],
                     ),
@@ -708,7 +708,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
             ),
             const SizedBox(height: 12),
-            Row(
+            const Row(
               children: [
                 Expanded(
                   child: AspectRatio(
@@ -722,7 +722,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: AspectRatio(
                     aspectRatio: 0.82,

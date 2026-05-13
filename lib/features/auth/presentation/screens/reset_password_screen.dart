@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
 
@@ -22,6 +21,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   bool _submitting = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _passwordTouched = false;
+  bool _confirmTouched = false;
 
   @override
   void dispose() {
@@ -45,11 +46,16 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     final colorScheme = theme.colorScheme;
     final isSuccess = (_message ?? '').toLowerCase().contains('success');
     final isError = _message != null && !isSuccess;
+    final passwordError =
+        _passwordTouched ? _passwordValidation(_passwordController.text) : null;
+    final confirmError = _confirmTouched
+        ? _confirmValidation(
+            _passwordController.text, _confirmPasswordController.text)
+        : null;
 
     return AuthScaffold(
       title: 'Set a new password',
-      subtitle:
-          'Choose a strong new password for your account and continue back into SmartSpend with a fresh secure credential.',
+      subtitle: 'Protect your account with a strong replacement password.',
       icon: Icons.password_rounded,
       cardWidth: 520,
       child: Column(
@@ -61,121 +67,106 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           ),
           Text(
             'Reset password',
-            style: theme.textTheme.headlineSmall?.copyWith(
+            style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             tokenMissing
                 ? 'The reset link is missing or incomplete. Open the most recent password reset email and use that link again.'
                 : 'Enter your new password below. Your old password will stop working after this update.',
-            style: theme.textTheme.bodyMedium?.copyWith(
+            style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 24),
-          const AuthSectionLabel(text: 'New password'),
-          const SizedBox(height: 8),
-          TextField(
+          const SizedBox(height: 16),
+          AuthTextField(
+            label: 'New password',
+            hint: 'Create a new password',
             controller: _passwordController,
             obscureText: _obscurePassword,
             enabled: !tokenMissing,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.newPassword],
-            style: InputStyles.inputTextStyle(theme),
-            decoration: InputDecoration(
-              labelText: 'Create a new password',
-              prefixIcon: const Icon(Icons.lock_outline_rounded),
-              suffixIcon: IconButton(
-                onPressed: tokenMissing
-                    ? null
-                    : () {
-                        setState(() => _obscurePassword = !_obscurePassword);
-                      },
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_off_rounded
-                      : Icons.visibility_rounded,
-                ),
+            prefixIcon: const Icon(Icons.lock_outline_rounded, size: 19),
+            errorText: passwordError,
+            suffix: IconButton(
+              onPressed: tokenMissing
+                  ? null
+                  : () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
+              icon: Icon(
+                _obscurePassword
+                    ? Icons.visibility_off_rounded
+                    : Icons.visibility_rounded,
               ),
             ),
-            onChanged: (_) => setState(() {}),
+            onChanged: (_) {
+              setState(() {
+                _passwordTouched = true;
+              });
+            },
+          ),
+          const SizedBox(height: 10),
+          PasswordStrengthIndicator(
+            password: _passwordController.text,
+            confirmPassword: _confirmPasswordController.text,
           ),
           const SizedBox(height: 12),
-          _ResetRequirement(
-            label: 'At least 8 characters',
-            met: _passwordController.text.length >= 8,
-          ),
-          const SizedBox(height: 6),
-          _ResetRequirement(
-            label: 'Includes uppercase, lowercase, and number',
-            met: _isStrongPassword,
-          ),
-          const SizedBox(height: 16),
-          const AuthSectionLabel(text: 'Confirm password'),
-          const SizedBox(height: 8),
-          TextField(
+          AuthTextField(
+            label: 'Confirm password',
+            hint: 'Re-enter the password',
             controller: _confirmPasswordController,
             obscureText: _obscureConfirmPassword,
             enabled: !tokenMissing,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.newPassword],
-            style: InputStyles.inputTextStyle(theme),
-            decoration: InputDecoration(
-              labelText: 'Re-enter the new password',
-              prefixIcon: const Icon(Icons.verified_user_outlined),
-              suffixIcon: IconButton(
-                onPressed: tokenMissing
-                    ? null
-                    : () {
-                        setState(() =>
-                            _obscureConfirmPassword = !_obscureConfirmPassword);
-                      },
-                icon: Icon(
-                  _obscureConfirmPassword
-                      ? Icons.visibility_off_rounded
-                      : Icons.visibility_rounded,
-                ),
+            prefixIcon: const Icon(Icons.verified_user_outlined, size: 19),
+            errorText: confirmError,
+            suffix: IconButton(
+              onPressed: tokenMissing
+                  ? null
+                  : () {
+                      setState(() =>
+                          _obscureConfirmPassword = !_obscureConfirmPassword);
+                    },
+              icon: Icon(
+                _obscureConfirmPassword
+                    ? Icons.visibility_off_rounded
+                    : Icons.visibility_rounded,
               ),
             ),
-            onChanged: (_) => setState(() {}),
+            onChanged: (_) {
+              setState(() {
+                _confirmTouched = true;
+              });
+            },
             onSubmitted: (_) async {
               if (tokenMissing || _submitting) return;
               await _submit();
             },
           ),
-          if (_confirmPasswordController.text.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _ResetRequirement(
-              label: 'Passwords match',
-              met: _passwordController.text == _confirmPasswordController.text,
-            ),
-          ],
           if (_message != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             AuthMessageBanner(
               message: _message!,
               isError: isError,
             ),
           ],
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: tokenMissing || _submitting ? null : _submit,
-            icon: _submitting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Icon(
-                    isSuccess ? Icons.check_rounded : Icons.password_rounded,
-                  ),
-            label: Text(
-              _submitting ? 'Updating password...' : 'Reset password',
+          const SizedBox(height: 14),
+          AuthButton(
+            label: _submitting ? 'Updating password...' : 'Reset password',
+            loading: _submitting,
+            enabled: !tokenMissing,
+            leading: Icon(
+              isSuccess ? Icons.check_rounded : Icons.password_rounded,
+              size: 18,
             ),
+            onPressed: _submit,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           OutlinedButton(
             onPressed: () => context.go('/login'),
             child: Text(isSuccess ? 'Continue to sign in' : 'Back to sign in'),
@@ -212,43 +203,16 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           : (session.errorMessage ?? 'Could not reset password.');
     });
   }
-}
 
-class _ResetRequirement extends StatelessWidget {
-  const _ResetRequirement({
-    required this.label,
-    required this.met,
-  });
+  String? _passwordValidation(String password) {
+    if (password.isEmpty) return 'Password is required';
+    if (password.length < 8) return 'Must be at least 8 characters';
+    return null;
+  }
 
-  final String label;
-  final bool met;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = met
-        ? const Color(0xFF0F9D58)
-        : Theme.of(context).colorScheme.onSurfaceVariant;
-
-    return Row(
-      children: [
-        Icon(
-          met
-              ? Icons.check_circle_rounded
-              : Icons.radio_button_unchecked_rounded,
-          size: 18,
-          color: color,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: color,
-                  fontWeight: met ? FontWeight.w600 : FontWeight.w500,
-                ),
-          ),
-        ),
-      ],
-    );
+  String? _confirmValidation(String password, String confirmPassword) {
+    if (confirmPassword.isEmpty) return 'Please confirm your password';
+    if (password != confirmPassword) return 'Passwords do not match';
+    return null;
   }
 }

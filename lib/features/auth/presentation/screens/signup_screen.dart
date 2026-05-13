@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/signup_form_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
@@ -18,6 +17,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _acceptedLegal = false;
+  bool _firstNameTouched = false;
+  bool _lastNameTouched = false;
+  bool _emailTouched = false;
+  bool _passwordTouched = false;
+  bool _confirmTouched = false;
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +30,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final formController = ref.read(signupFormProvider.notifier);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final firstNameError = _firstNameTouched
+        ? _requiredValidation(form.firstName, 'First name')
+        : null;
+    final lastNameError = _lastNameTouched
+        ? _requiredValidation(form.lastName, 'Last name')
+        : null;
+    final emailError = _emailTouched ? _emailValidation(form.email) : null;
+    final passwordError =
+        _passwordTouched ? _passwordValidation(form.password) : null;
+    final confirmError = _confirmTouched
+        ? _confirmValidation(form.password, form.confirmPassword)
+        : null;
 
     return AuthScaffold(
-      title: 'Create your account',
-      subtitle:
-          'Set up a secure SmartSpend account to manage transactions, budgets, subscriptions, and insights in one place.',
+      title: 'Create account',
+      subtitle: 'Start building healthier financial habits.',
       icon: Icons.person_add_alt_1_rounded,
       footer: AuthInlinePrompt(
         label: 'Already have an account?',
@@ -42,203 +57,204 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Account details',
-              style: theme.textTheme.headlineSmall?.copyWith(
+              'Sign Up',
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
-              'Complete the fields below to create your account.',
-              style: theme.textTheme.bodyMedium?.copyWith(
+              'Create your secure SmartSpend account.',
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
             Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const AuthSectionLabel(text: 'First name'),
-                      const SizedBox(height: 8),
-                      TextField(
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.givenName],
-                        style: InputStyles.inputTextStyle(theme),
-                        decoration: const InputDecoration(
-                          labelText: 'First name',
-                          prefixIcon: Icon(Icons.badge_outlined),
-                        ),
-                        onChanged: formController.setFirstName,
-                      ),
-                    ],
+                  child: AuthTextField(
+                    label: 'First name',
+                    hint: 'First',
+                    textInputAction: TextInputAction.next,
+                    autofillHints: const [AutofillHints.givenName],
+                    prefixIcon: const Icon(Icons.badge_outlined, size: 19),
+                    errorText: firstNameError,
+                    onChanged: (value) {
+                      if (!_firstNameTouched) {
+                        setState(() => _firstNameTouched = true);
+                      }
+                      formController.setFirstName(value);
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const AuthSectionLabel(text: 'Last name'),
-                      const SizedBox(height: 8),
-                      TextField(
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.familyName],
-                        style: InputStyles.inputTextStyle(theme),
-                        decoration: const InputDecoration(
-                          labelText: 'Last name',
-                          prefixIcon: Icon(Icons.person_outline_rounded),
-                        ),
-                        onChanged: formController.setLastName,
-                      ),
-                    ],
+                  child: AuthTextField(
+                    label: 'Last name',
+                    hint: 'Last',
+                    textInputAction: TextInputAction.next,
+                    autofillHints: const [AutofillHints.familyName],
+                    prefixIcon:
+                        const Icon(Icons.person_outline_rounded, size: 19),
+                    errorText: lastNameError,
+                    onChanged: (value) {
+                      if (!_lastNameTouched) {
+                        setState(() => _lastNameTouched = true);
+                      }
+                      formController.setLastName(value);
+                    },
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            const AuthSectionLabel(text: 'Email address'),
-            const SizedBox(height: 8),
-            TextField(
+            const SizedBox(height: 12),
+            AuthTextField(
+              label: 'Email',
+              hint: 'name@example.com',
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.email],
               autocorrect: false,
               enableSuggestions: false,
-              decoration: const InputDecoration(
-                labelText: 'name@example.com',
-                prefixIcon: Icon(Icons.alternate_email_rounded),
-              ),
-              style: InputStyles.inputTextStyle(theme),
-              onChanged: formController.setEmail,
+              prefixIcon: const Icon(Icons.alternate_email_rounded, size: 19),
+              errorText: emailError,
+              onChanged: (value) {
+                if (!_emailTouched) {
+                  setState(() => _emailTouched = true);
+                }
+                formController.setEmail(value);
+              },
             ),
-            const SizedBox(height: 16),
-            const AuthSectionLabel(text: 'Password'),
-            const SizedBox(height: 8),
-            TextField(
+            const SizedBox(height: 12),
+            AuthTextField(
+              label: 'Password',
+              hint: 'Create password',
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.newPassword],
-              style: InputStyles.inputTextStyle(theme),
-              decoration: InputDecoration(
-                labelText: 'Create a password',
-                prefixIcon: const Icon(Icons.lock_outline_rounded),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off_rounded
-                        : Icons.visibility_rounded,
-                  ),
+              prefixIcon: const Icon(Icons.lock_outline_rounded, size: 19),
+              errorText: passwordError,
+              suffix: IconButton(
+                onPressed: () {
+                  setState(() => _obscurePassword = !_obscurePassword);
+                },
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
                 ),
               ),
-              onChanged: formController.setPassword,
+              onChanged: (value) {
+                if (!_passwordTouched) {
+                  setState(() => _passwordTouched = true);
+                }
+                formController.setPassword(value);
+              },
+            ),
+            const SizedBox(height: 10),
+            PasswordStrengthIndicator(
+              password: form.password,
+              confirmPassword: form.confirmPassword,
             ),
             const SizedBox(height: 12),
-            _PasswordRequirement(
-              label: 'At least 8 characters',
-              met: form.password.length >= 8,
-            ),
-            const SizedBox(height: 6),
-            _PasswordRequirement(
-              label: 'Includes uppercase, lowercase, and number',
-              met: form.passwordStrong,
-            ),
-            const SizedBox(height: 16),
-            const AuthSectionLabel(text: 'Confirm password'),
-            const SizedBox(height: 8),
-            TextField(
+            AuthTextField(
+              label: 'Confirm password',
+              hint: 'Repeat password',
               obscureText: _obscureConfirmPassword,
               textInputAction: TextInputAction.done,
               autofillHints: const [AutofillHints.newPassword],
-              style: InputStyles.inputTextStyle(theme),
-              decoration: InputDecoration(
-                labelText: 'Re-enter your password',
-                prefixIcon: const Icon(Icons.verified_user_outlined),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    );
-                  },
-                  icon: Icon(
-                    _obscureConfirmPassword
-                        ? Icons.visibility_off_rounded
-                        : Icons.visibility_rounded,
-                  ),
+              prefixIcon: const Icon(Icons.verified_user_outlined, size: 19),
+              errorText: confirmError,
+              suffix: IconButton(
+                onPressed: () {
+                  setState(
+                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                  );
+                },
+                icon: Icon(
+                  _obscureConfirmPassword
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
                 ),
               ),
-              onChanged: formController.setConfirmPassword,
+              onChanged: (value) {
+                if (!_confirmTouched) {
+                  setState(() => _confirmTouched = true);
+                }
+                formController.setConfirmPassword(value);
+              },
               onSubmitted: (_) async {
-                if (!form.isValid || form.submitting) return;
+                if (form.submitting) return;
                 await _submit(context);
               },
             ),
-            if (form.confirmPassword.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _PasswordRequirement(
-                label: 'Passwords match',
-                met: form.password == form.confirmPassword,
-              ),
-            ],
             if (form.errorMessage != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               AuthMessageBanner(
                 message: form.errorMessage!,
                 isError: true,
               ),
             ],
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: (!form.isValid || !_acceptedLegal || form.submitting)
-                  ? null
-                  : () => _submit(context),
-              icon: form.submitting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.person_add_alt_1_rounded),
-              label: Text(
-                form.submitting ? 'Creating account...' : 'Create account',
-              ),
+            const SizedBox(height: 14),
+            AuthButton(
+              label: form.submitting ? 'Creating account...' : 'Create account',
+              loading: form.submitting,
+              enabled: !form.submitting,
+              leading: const Icon(Icons.person_add_alt_1_rounded, size: 18),
+              onPressed: () => _submit(context),
             ),
             const SizedBox(height: 12),
-            CheckboxListTile(
-              value: _acceptedLegal,
-              onChanged: form.submitting
-                  ? null
-                  : (value) {
-                      setState(() => _acceptedLegal = value ?? false);
-                      if (value == true && form.errorMessage != null) {
-                        formController.setError(null);
-                      }
-                    },
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              title: Text(
-                l10n.onboardingAcceptLegal,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  height: 1.35,
-                ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color:
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Transform.scale(
+                    scale: 0.92,
+                    child: Checkbox(
+                      value: _acceptedLegal,
+                      visualDensity: VisualDensity.compact,
+                      onChanged: form.submitting
+                          ? null
+                          : (value) {
+                              setState(() => _acceptedLegal = value ?? false);
+                              if (value == true && form.errorMessage != null) {
+                                formController.setError(null);
+                              }
+                            },
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 7),
+                      child: Text(
+                        l10n.onboardingAcceptLegal,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 6),
             Text(
-              'By creating an account, you agree to the Terms of Use and Privacy Policy. You also confirm that the information provided is accurate and that you will use this account to manage your own financial workspace.',
+              'By continuing, you agree to our Terms and Privacy Policy.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
-                height: 1.4,
+                height: 1.3,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Wrap(
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
@@ -266,24 +282,67 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 
+  String? _requiredValidation(String value, String field) {
+    if (value.trim().isEmpty) return '$field is required';
+    return null;
+  }
+
+  String? _emailValidation(String value) {
+    if (value.trim().isEmpty) return 'Email is required';
+    final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim());
+    if (!valid) return 'Enter a valid email';
+    return null;
+  }
+
+  String? _passwordValidation(String value) {
+    if (value.isEmpty) return 'Password is required';
+    if (value.length < 8) return 'Must be at least 8 characters';
+    return null;
+  }
+
+  String? _confirmValidation(String password, String confirmPassword) {
+    if (confirmPassword.isEmpty) return 'Please confirm your password';
+    if (password != confirmPassword) return 'Passwords do not match';
+    return null;
+  }
+
   Future<void> _submit(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     final form = ref.read(signupFormProvider);
     final formController = ref.read(signupFormProvider.notifier);
+    final sessionController = ref.read(sessionControllerProvider.notifier);
 
-    if (!_acceptedLegal) {
-      formController.setError(l10n.onboardingAcceptLegalError);
+    setState(() {
+      _firstNameTouched = true;
+      _lastNameTouched = true;
+      _emailTouched = true;
+      _passwordTouched = true;
+      _confirmTouched = true;
+    });
+
+    final hasInvalidFields = !form.isValid;
+    if (hasInvalidFields || !_acceptedLegal) {
+      formController.setError(
+        hasInvalidFields && !_acceptedLegal
+            ? 'Complete the required fields and accept the legal terms.'
+            : hasInvalidFields
+                ? 'Complete the highlighted fields to create your account.'
+                : l10n.onboardingAcceptLegalError,
+      );
       return;
     }
 
     formController.setSubmitting(true);
-    final ok = await ref.read(sessionControllerProvider.notifier).signup(
-          email: form.email,
-          password: form.password,
-          firstName: form.firstName,
-          lastName: form.lastName,
-        );
+    final ok = await sessionController.signup(
+      email: form.email,
+      password: form.password,
+      firstName: form.firstName,
+      lastName: form.lastName,
+    );
+
     formController.setSubmitting(false);
+
+    if (!mounted) return;
 
     final session = ref.read(sessionControllerProvider);
     if (!ok) {
@@ -294,44 +353,5 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
     if (!context.mounted) return;
     context.go('/');
-  }
-}
-
-class _PasswordRequirement extends StatelessWidget {
-  const _PasswordRequirement({
-    required this.label,
-    required this.met,
-  });
-
-  final String label;
-  final bool met;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = met
-        ? const Color(0xFF0F9D58)
-        : Theme.of(context).colorScheme.onSurfaceVariant;
-
-    return Row(
-      children: [
-        Icon(
-          met
-              ? Icons.check_circle_rounded
-              : Icons.radio_button_unchecked_rounded,
-          size: 18,
-          color: color,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: color,
-                  fontWeight: met ? FontWeight.w600 : FontWeight.w500,
-                ),
-          ),
-        ),
-      ],
-    );
   }
 }

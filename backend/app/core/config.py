@@ -13,6 +13,8 @@ class Settings(BaseSettings):
 
     database_url: str = Field(default="postgresql+psycopg://postgres:postgres@postgres:5432/smartbudget")
     redis_url: str = Field(default="redis://redis:6379/0")
+    celery_broker_url: str = Field(default="redis://redis:6379/1")
+    celery_result_backend: str = Field(default="redis://redis:6379/2")
 
     jwt_secret_key: str = "change-me"
     jwt_algorithm: str = "HS256"
@@ -26,6 +28,8 @@ class Settings(BaseSettings):
 
     reset_password_deep_link_base: str = "smartbudget://reset-password"
     verify_email_deep_link_base: str = "smartbudget://verify-email"
+    google_oauth_client_ids: str = ""
+    apple_oauth_audiences: str = ""
 
     smtp_enabled: bool = False
     smtp_host: str = ""
@@ -54,6 +58,12 @@ class Settings(BaseSettings):
             issues.append("SMTP_FROM_EMAIL is required when SMTP_ENABLED=true")
 
         return issues
+
+    def google_oauth_client_id_list(self) -> list[str]:
+        return [value.strip() for value in self.google_oauth_client_ids.split(",") if value.strip()]
+
+    def apple_oauth_audience_list(self) -> list[str]:
+        return [value.strip() for value in self.apple_oauth_audiences.split(",") if value.strip()]
 
 
 settings = Settings()

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/input_styles.dart';
+import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/core/widgets/form_date_field.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
@@ -118,41 +120,18 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         child: budgetsAsync.when(
           data: (budgets) {
             if (budgets.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.pie_chart_outline,
-                        size: 52,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.budgetEmptyTitle,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 18),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.budgetEmptySubtitle,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: (MediaQuery.sizeOf(context).width - 48)
-                            .clamp(220.0, 320.0)
-                            .toDouble(),
-                        child: FilledButton.icon(
-                          onPressed: () => _openBudgetForm(context, ref),
-                          icon: const Icon(Icons.add),
-                          label: Text(l10n.budgetCreateButton),
-                        ),
-                      ),
-                    ],
+              return AppEmptyState(
+                icon: Icons.pie_chart_outline_rounded,
+                title: l10n.budgetEmptyTitle,
+                message: l10n.budgetEmptySubtitle,
+                action: SizedBox(
+                  width: (MediaQuery.sizeOf(context).width - 48)
+                      .clamp(220.0, 320.0)
+                      .toDouble(),
+                  child: FilledButton.icon(
+                    onPressed: () => _openBudgetForm(context, ref),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.budgetCreateButton),
                   ),
                 ),
               );
@@ -183,21 +162,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .shadow
-                              .withValues(alpha: 0.08),
-                          blurRadius: 18,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
+                  child: PremiumCard(
                     padding: const EdgeInsets.all(14),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,23 +301,23 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       await _quickAdjustBudget(
                           ref, budget, increase ? 1.1 : 0.9);
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              increase
-                                  ? l10n.budgetIncreasedSnack(budget.category)
-                                  : l10n.budgetReducedSnack(budget.category),
-                            ),
-                          ),
+                        AppFeedback.show(
+                          context,
+                          message: increase
+                              ? l10n.budgetIncreasedSnack(budget.category)
+                              : l10n.budgetReducedSnack(budget.category),
+                          type: AppFeedbackType.success,
                         );
                       }
                       return false;
                     },
-                    child: Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: PremiumCard(
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -366,10 +331,12 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                     children: [
                                       Text(
                                         budget.category,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 17,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w800,
+                                            ),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
@@ -416,7 +383,12 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                               l10n.budgetLimitLabel(
                                 currencyFormat.format(budget.limitAmount),
                               ),
-                              style: Theme.of(context).textTheme.titleSmall,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                             ),
                             const SizedBox(height: 8),
                             spentAsync.when(
@@ -466,8 +438,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                   children: [
                                     Row(
                                       children: [
-                                        _StatusChip(
-                                            label: status, color: statusColor),
+                                        StatusPill(
+                                          label: status,
+                                          color: statusColor,
+                                        ),
                                         const SizedBox(width: 8),
                                         Text(
                                           daysLeft < 0
@@ -495,12 +469,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          LinearProgressIndicator(
+                                          AnimatedFinanceProgressBar(
                                             value: progress,
                                             color: statusColor,
-                                            backgroundColor:
-                                                Colors.grey.shade200,
-                                            minHeight: 8,
                                           ),
                                           const SizedBox(height: 6),
                                           Text(
@@ -510,8 +481,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                               usagePercentage
                                                   .toStringAsFixed(1),
                                             ),
-                                            style:
-                                                const TextStyle(fontSize: 12),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall,
                                           ),
                                           Text(
                                             l10n.budgetTapBarHint,
@@ -574,7 +546,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                   ],
                                 );
                               },
-                              loading: () => const LinearProgressIndicator(),
+                              loading: () => const AppSkeleton(height: 92),
                               error: (err, st) =>
                                   Text(l10n.budgetErrorLoadingProgress),
                             ),
@@ -587,7 +559,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemBuilder: (_, index) => AppSkeleton(
+              height: index == 0 ? 148 : 176,
+            ),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemCount: 4,
+          ),
           error: (err, st) => Center(
             child: Text(l10n.transactionsError(err.toString())),
           ),
@@ -619,8 +598,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         );
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.budgetRolloverComplete)),
+    AppFeedback.show(
+      context,
+      message: l10n.budgetRolloverComplete,
+      type: AppFeedbackType.success,
     );
   }
 
@@ -771,34 +752,6 @@ class _CompactBudgetChip extends StatelessWidget {
                 ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-        ),
       ),
     );
   }

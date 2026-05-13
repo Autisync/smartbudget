@@ -1,4 +1,9 @@
 from datetime import datetime, timezone
+from uuid import uuid4
+
+import jwt
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 
 from sqlalchemy.orm import Session
 
@@ -20,6 +25,8 @@ from app.services.email_service import EmailService
 
 
 class AuthService:
+    _apple_jwk_client = jwt.PyJWKClient("https://appleid.apple.com/auth/keys")
+
     def __init__(self, db: Session):
         self.db = db
         self.users = UserRepository(db)
@@ -59,6 +66,67 @@ class AuthService:
             raise errors.unauthorized("Invalid email or password")
         if not user.is_active:
             raise errors.forbidden("User is inactive")
+
+        auth_response = self._issue_tokens(
+            user_id=str(user.id),
+            device_name=device_name,
+            platform=platform,
+            user=user,
+        )
+
+        login_device = device_name or platform or "Unknown device"
+        login_location = request_ip or "Unknown location"
+        login_time = datetime.now(timezone.utc).isoformat()
+        self.email.send_login_alert_email(
+            email=user.email,
+            user_name=user.first_name,
+            action_url="smartbudget://security",
+            device=login_device,
+            location=login_location,
+            login_time=login_time,
+        )
+
+        return auth_response
+
+    def social_login(
+        self,
+        *,
+        provider: str,
+        id_token: str,
+        email: str | None,
+        first_name: str | None,
+        last_name: str | None,
+        device_name: str | None,
+        platform: str | None,
+        request_ip: str | None = None,
+    ):
+        profile = self._verify_social_token(
+            provider=provider,
+            id_token=id_token,
+            fallback_email=email,
+            fallback_first_name=first_name,
+            fallback_last_name=last_name,
+        )
+        resolved_email = profile["email"]
+
+        user = self.users.get_by_email(resolved_email)
+        if user is None:
+            generated_password = f"{uuid4().hex}A1a!"
+            user = self.users.create(
+                email=resolved_email,
+                password_hash=hash_password(generated_password),
+                first_name=profile["first_name"],
+                last_name=profile["last_name"],
+            )
+
+        if not user.is_active:
+            raise errors.forbidden("User is inactive")
+
+        if profile["email_verified"] and not user.is_verified:
+            user.is_verified = True
+            self.db.add(user)
+            self.db.commit()
+            self.db.refresh(user)
 
         auth_response = self._issue_tokens(
             user_id=str(user.id),
@@ -136,6 +204,119 @@ class AuthService:
             user_name=user.first_name,
             action_url="smartbudget://dashboard",
         )
+
+    def _verify_social_token(
+        self,
+        *,
+        provider: str,
+        id_token: str,
+        fallback_email: str | None,
+        fallback_first_name: str | None,
+        fallback_last_name: str | None,
+    ) -> dict:
+        if provider == "google":
+            return self._verify_google_token(
+                id_token=id_token,
+                fallback_first_name=fallback_first_name,
+                fallback_last_name=fallback_last_name,
+            )
+
+        if provider == "apple":
+            return self._verify_apple_token(
+                id_token=id_token,
+                fallback_email=fallback_email,
+                fallback_first_name=fallback_first_name,
+                fallback_last_name=fallback_last_name,
+            )
+
+        raise errors.bad_request("Unsupported social provider")
+
+    def _verify_google_token(
+        self,
+        *,
+        id_token: str,
+        fallback_first_name: str | None,
+        fallback_last_name: str | None,
+    ) -> dict:
+        audiences = settings.google_oauth_client_id_list()
+        if not audiences:
+            raise errors.bad_request("Google sign-in is not configured")
+
+        payload: dict | None = None
+        request_adapter = google_requests.Request()
+        for audience in audiences:
+            try:
+                payload = google_id_token.verify_oauth2_token(
+                    id_token,
+                    request_adapter,
+                    audience=audience,
+                )
+                break
+            except Exception:
+                continue
+
+        if payload is None:
+            raise errors.unauthorized("Invalid Google identity token")
+
+        email = payload.get("email")
+        if not isinstance(email, str) or not email:
+            raise errors.bad_request("Google account does not expose an email")
+
+        email_verified = bool(payload.get("email_verified", False))
+        first_name = payload.get("given_name") or fallback_first_name or "Smart"
+        last_name = payload.get("family_name") or fallback_last_name or "User"
+
+        return {
+            "email": email.lower().strip(),
+            "email_verified": email_verified,
+            "first_name": first_name.strip()[:120],
+            "last_name": last_name.strip()[:120],
+        }
+
+    def _verify_apple_token(
+        self,
+        *,
+        id_token: str,
+        fallback_email: str | None,
+        fallback_first_name: str | None,
+        fallback_last_name: str | None,
+    ) -> dict:
+        audiences = settings.apple_oauth_audience_list()
+        if not audiences:
+            raise errors.bad_request("Apple sign-in is not configured")
+
+        try:
+            signing_key = self._apple_jwk_client.get_signing_key_from_jwt(id_token)
+            payload = jwt.decode(
+                id_token,
+                signing_key.key,
+                algorithms=["RS256"],
+                audience=audiences,
+                issuer="https://appleid.apple.com",
+            )
+        except Exception:
+            raise errors.unauthorized("Invalid Apple identity token")
+
+        claim_email = payload.get("email")
+        email = claim_email if isinstance(claim_email, str) and claim_email else fallback_email
+        if not email:
+            raise errors.bad_request("Apple account email is required for first login")
+
+        email_verified_value = payload.get("email_verified", False)
+        if isinstance(email_verified_value, str):
+            email_verified = email_verified_value.lower() == "true"
+        else:
+            email_verified = bool(email_verified_value)
+
+        first_name = fallback_first_name or "Smart"
+        last_name = fallback_last_name or "User"
+
+        return {
+            "email": email.lower().strip(),
+            "email_verified": email_verified,
+            "first_name": first_name.strip()[:120],
+            "last_name": last_name.strip()[:120],
+        }
 
     def _issue_tokens(self, *, user_id: str, device_name: str | None, platform: str | None, user):
         access_token, access_expires_in = create_access_token(user_id)

@@ -200,13 +200,13 @@ Copy-Item .env.example .env -Force
 #### Option A: Run backend with Docker (recommended)
 
 ```bash
-docker compose up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 To stop:
 
 ```bash
-docker compose down
+docker compose -f docker-compose.dev.yml down
 ```
 
 #### Option B: Run backend without Docker
@@ -253,6 +253,34 @@ List connected devices:
 
 ```bash
 flutter devices
+```
+
+### VS Code setup
+
+Recommended extensions are listed in `.vscode/extensions.json`. When VS Code prompts you, install the workspace recommendations.
+
+Available debug profiles:
+
+- `Flutter: Current Device`
+- `Flutter: Android Emulator`
+- `Flutter: Web Chrome`
+- `Backend: FastAPI`
+- `Backend + Flutter Web`
+
+Useful tasks are available from **Terminal > Run Task**, including:
+
+- `Flutter: pub get`
+- `Flutter: analyze`
+- `Flutter: test`
+- `Flutter: generate code`
+- `Backend: install requirements`
+- `Backend: migrate database`
+- `Backend: Docker compose up`
+
+For local Dart defines, create `.env.json` from the committed template:
+
+```bash
+cp .env.example .env.json
 ```
 
 ### 4) Run app with backend URL
@@ -339,7 +367,7 @@ xcrun simctl openurl booted "smartbudget://verify-email?token=test-token"
 ### 8) Common issues
 
 - Docker engine not running:
-  - Start Docker Desktop, then rerun `docker compose up --build`
+  - Start Docker Desktop, then rerun `docker compose -f docker-compose.dev.yml up --build`
 - Android app cannot reach backend:
   - Verify device and PC are on same network
   - Check firewall allows port 8000

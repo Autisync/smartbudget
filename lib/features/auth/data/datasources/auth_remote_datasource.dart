@@ -20,7 +20,8 @@ class AuthTokenStorage {
   Future<AuthTokensModel?> readTokens() async {
     final raw = await _secureStorage.read(key: _tokensKey);
     if (raw == null || raw.isEmpty) return null;
-    return AuthTokensModel.fromStorageJson(jsonDecode(raw) as Map<String, dynamic>);
+    return AuthTokensModel.fromStorageJson(
+        jsonDecode(raw) as Map<String, dynamic>);
   }
 
   Future<void> clearTokens() async {
@@ -96,7 +97,8 @@ class AuthApiClient {
           final latestTokens = await storage.readTokens();
           final retryOptions = err.requestOptions;
           retryOptions.extra['retried'] = true;
-          retryOptions.headers['Authorization'] = 'Bearer ${latestTokens!.accessToken}';
+          retryOptions.headers['Authorization'] =
+              'Bearer ${latestTokens!.accessToken}';
 
           try {
             final response = await _dio.fetch<dynamic>(retryOptions);
@@ -173,6 +175,31 @@ class AuthApiClient {
     return AuthResponseModel.fromJson(response.data!);
   }
 
+  Future<AuthResponseModel> socialLogin({
+    required String provider,
+    required String idToken,
+    String? email,
+    String? firstName,
+    String? lastName,
+    String? deviceName,
+    String? platform,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/v1/auth/social-login',
+      options: Options(extra: {'requiresAuth': false}),
+      data: {
+        'provider': provider,
+        'id_token': idToken,
+        'email': email,
+        'first_name': firstName,
+        'last_name': lastName,
+        'device_name': deviceName,
+        'platform': platform,
+      },
+    );
+    return AuthResponseModel.fromJson(response.data!);
+  }
+
   Future<AuthTokensModel> refresh({required String refreshToken}) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/api/v1/auth/refresh',
@@ -198,7 +225,8 @@ class AuthApiClient {
     );
   }
 
-  Future<void> resetPassword({required String token, required String newPassword}) async {
+  Future<void> resetPassword(
+      {required String token, required String newPassword}) async {
     await _dio.post<void>(
       '/api/v1/auth/reset-password',
       options: Options(extra: {'requiresAuth': false}),

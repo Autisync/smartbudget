@@ -3,15 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartbudget/core/theme/input_styles.dart';
 
 class AppTheme {
-  static const _lightSurface = Color(0xFFFFFFFF);
+  static const _lightSurface = Color(0xFFFFFCF8);
   static const _lightSurfaceHigh = Color(0xFFFFFFFF);
-  static const _lightBackground = Color(0xFFFFFFFF);
-  static const _darkSurface = Color(0xFF1A1D29);
-  static const _darkSurfaceHigh = Color(0xFF232838);
-  static const _darkBackground = Color(0xFF0D111B);
-  static const _accent = Color(0xFF2563EB);
-  static const _secondary = Color(0xFF14B8A6);
-  static const _danger = Color(0xFFEF4444);
+  static const _lightBackground = Color(0xFFF7F5F2);
+  static const _darkSurface = Color(0xFF17151F);
+  static const _darkSurfaceHigh = Color(0xFF211F2B);
+  static const _darkBackground = Color(0xFF0F0D16);
+  static const _accent = Color(0xFF6D5DF6);
+  static const _secondary = Color(0xFF2EA7FF);
+  static const _success = Color(0xFF10A66A);
+  static const _danger = Color(0xFFE25563);
 
   static ThemeData get lightTheme {
     final base = ThemeData.light();
@@ -24,36 +25,40 @@ class AppTheme {
         primary: _accent,
         secondary: _secondary,
         error: _danger,
-        onSurface: Color(0xFF111827),
-        surfaceContainerHighest: Color(0xFFEEF2F8),
-        surfaceContainerHigh: Color(0xFFF4F6FA),
-        shadow: Color(0xFF0F172A),
+        tertiary: _success,
+        onSurface: Color(0xFF171421),
+        onSurfaceVariant: Color(0xFF676171),
+        surfaceContainerHighest: Color(0xFFEDEAF3),
+        surfaceContainerHigh: Color(0xFFF2EFF7),
+        primaryContainer: Color(0xFFE9E6FF),
+        onPrimaryContainer: Color(0xFF251B72),
+        shadow: Color(0xFF181225),
       ),
       textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme).copyWith(
         // Display styles - for hero/main content
         displayLarge: const TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.w800,
-          letterSpacing: -1.5,
+          letterSpacing: 0,
           height: 1.2,
         ),
         displayMedium: const TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.w800,
-          letterSpacing: -1.2,
+          letterSpacing: 0,
           height: 1.25,
         ),
         // Headline styles - for section headers (SEO: h1, h2, h3)
         headlineLarge: const TextStyle(
           fontSize: 26,
           fontWeight: FontWeight.w800,
-          letterSpacing: -0.8,
+          letterSpacing: 0,
           height: 1.3,
         ),
         headlineMedium: const TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
+          letterSpacing: 0,
           height: 1.35,
         ),
         headlineSmall: const TextStyle(
@@ -129,13 +134,13 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: _lightSurfaceHigh,
         surfaceTintColor: Colors.transparent,
-        elevation: 2,
-        shadowColor: const Color(0xFF0F172A).withValues(alpha: 0.10),
+        elevation: 0,
+        shadowColor: const Color(0xFF181225).withValues(alpha: 0.10),
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
           side: const BorderSide(
-            color: Color(0x0D0F172A),
+            color: Color(0x14181225),
             width: 0.5,
           ),
         ),
@@ -146,19 +151,19 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         shadowColor: Colors.transparent,
-        indicatorColor: const Color(0xFFDCEBFF),
+        indicatorColor: const Color(0xFFE9E6FF),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
             fontSize: 12,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? _accent : const Color(0xFF64748B),
+            color: selected ? _accent : const Color(0xFF676171),
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? _accent : const Color(0xFF64748B),
+            color: selected ? _accent : const Color(0xFF676171),
             size: 24,
           );
         }),
@@ -177,7 +182,7 @@ class AppTheme {
           minimumSize: const Size(0, 52),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
@@ -189,13 +194,13 @@ class AppTheme {
           shadowColor: Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: const Color(0xFFEAF1FB),
-        selectedColor: const Color(0xFFDCEBFF),
+        backgroundColor: const Color(0xFFEFEAFB),
+        selectedColor: const Color(0xFFE9E6FF),
         disabledColor: const Color(0xFFE5E7EB),
         labelStyle: const TextStyle(
           color: Color(0xFF0F172A),
@@ -224,7 +229,7 @@ class AppTheme {
         ),
       ),
       dividerTheme: const DividerThemeData(
-        color: Color(0xFFE8EEF7),
+        color: Color(0xFFE5E0EA),
         thickness: 0.8,
       ),
     );
@@ -242,8 +247,12 @@ class AppTheme {
         primary: _accent,
         secondary: _secondary,
         error: _danger,
+        tertiary: _success,
         onSurface: Colors.white,
-        surfaceContainerHighest: Color(0xFF2C3346),
+        onSurfaceVariant: Color(0xFFB4AEBD),
+        surfaceContainerHighest: Color(0xFF2B2836),
+        primaryContainer: Color(0xFF292359),
+        onPrimaryContainer: Color(0xFFE9E6FF),
         shadow: Colors.black,
       ),
       textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme).copyWith(
@@ -251,26 +260,26 @@ class AppTheme {
         displayLarge: const TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.w800,
-          letterSpacing: -1.5,
+          letterSpacing: 0,
           height: 1.2,
         ),
         displayMedium: const TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.w800,
-          letterSpacing: -1.2,
+          letterSpacing: 0,
           height: 1.25,
         ),
         // Headline styles - for section headers (SEO: h1, h2, h3)
         headlineLarge: const TextStyle(
           fontSize: 26,
           fontWeight: FontWeight.w800,
-          letterSpacing: -0.8,
+          letterSpacing: 0,
           height: 1.3,
         ),
         headlineMedium: const TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
+          letterSpacing: 0,
           height: 1.35,
         ),
         headlineSmall: const TextStyle(

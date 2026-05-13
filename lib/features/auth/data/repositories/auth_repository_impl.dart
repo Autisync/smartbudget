@@ -5,7 +5,8 @@ import 'package:smartbudget/features/auth/domain/entities/auth_user.dart';
 import 'package:smartbudget/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl({required AuthApiClient remoteClient, required AuthTokenStorage storage})
+  AuthRepositoryImpl(
+      {required AuthApiClient remoteClient, required AuthTokenStorage storage})
       : _remoteClient = remoteClient,
         _storage = storage;
 
@@ -51,6 +52,29 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<(AuthUser, AuthTokens)> socialLogin({
+    required String provider,
+    required String idToken,
+    String? email,
+    String? firstName,
+    String? lastName,
+    String? deviceName,
+    String? platform,
+  }) async {
+    final response = await _remoteClient.socialLogin(
+      provider: provider,
+      idToken: idToken,
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      deviceName: deviceName,
+      platform: platform,
+    );
+    await _storage.saveTokens(response.tokens);
+    return (response.user, response.tokens);
+  }
+
+  @override
   Future<void> logout() async {
     final tokens = await _storage.readTokens();
     if (tokens != null) {
@@ -69,7 +93,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> resetPassword({required String token, required String newPassword}) {
+  Future<void> resetPassword(
+      {required String token, required String newPassword}) {
     return _remoteClient.resetPassword(token: token, newPassword: newPassword);
   }
 
@@ -89,7 +114,8 @@ class AuthRepositoryImpl implements AuthRepository {
     if (existing == null) {
       throw Exception('No refresh token available');
     }
-    final refreshed = await _remoteClient.refresh(refreshToken: existing.refreshToken);
+    final refreshed =
+        await _remoteClient.refresh(refreshToken: existing.refreshToken);
     await _storage.saveTokens(refreshed);
     return refreshed;
   }
