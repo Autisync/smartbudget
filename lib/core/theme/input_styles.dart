@@ -94,10 +94,9 @@ class InputStyles {
       trackHeight: 4,
       activeTrackColor: primaryColor,
       inactiveTrackColor: inactiveColor,
-      overlayColor: primaryColor.withValues(alpha: 0.12),
+      overlayColor: primaryColor.withOpacity(0.12),
       thumbColor: Colors.white,
       thumbShape: const _InputSliderThumbShape(),
-      showValueIndicator: ShowValueIndicator.onDrag,
       valueIndicatorColor: primaryColor,
       valueIndicatorTextStyle: const TextStyle(
         color: Colors.white,
@@ -127,7 +126,7 @@ class InputStyles {
       borderRadius: BorderRadius.circular(16),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
+          color: Colors.black.withOpacity(0.06),
           blurRadius: 8,
           offset: const Offset(0, 4),
         ),
@@ -137,7 +136,7 @@ class InputStyles {
 
   static BoxDecoration importanceBannerDecoration(Color color) {
     return BoxDecoration(
-      color: color.withValues(alpha: 0.15),
+      color: color.withOpacity(0.15),
       borderRadius: BorderRadius.circular(12),
     );
   }
@@ -174,7 +173,7 @@ class _InputSliderThumbShape extends RoundSliderThumbShape {
     context.canvas.drawCircle(
       center + const Offset(0, 2),
       10,
-      Paint()..color = Colors.black.withValues(alpha: 0.12),
+      Paint()..color = Colors.black.withOpacity(0.12),
     );
 
     super.paint(

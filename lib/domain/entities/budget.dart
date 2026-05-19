@@ -29,3 +29,7 @@ class BudgetProgress with _$BudgetProgress {
     required bool isNearLimit,
   }) = _BudgetProgress;
 }
+
+
+
+

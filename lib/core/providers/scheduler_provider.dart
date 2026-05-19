@@ -9,3 +9,7 @@ Future<void> recurringSync(RecurringSyncRef ref) async {
   final scheduler = ref.watch(recurringSchedulerServiceProvider);
   await scheduler.syncRecurringTransactions();
 }
+
+
+
+

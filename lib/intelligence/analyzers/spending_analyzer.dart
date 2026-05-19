@@ -163,3 +163,7 @@ class SpendingAnalyzer {
     return TrendDirection.stable;
   }
 }
+
+
+
+

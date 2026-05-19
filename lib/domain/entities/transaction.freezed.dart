@@ -354,3 +354,7 @@ abstract class _Transaction implements Transaction {
   _$$TransactionImplCopyWith<_$TransactionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+
+
+

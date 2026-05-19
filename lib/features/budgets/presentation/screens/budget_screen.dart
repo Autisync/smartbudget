@@ -68,15 +68,13 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: l10n.navBudgets),
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -92,7 +90,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
+                          color: colorScheme.surface.withOpacity(0.08),
                         ),
                       ),
                     )
@@ -102,8 +100,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         ),
         actions: [
           NotificationBellButton(
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
             onPressed: () => context.push('/notifications'),
           ),
@@ -252,7 +249,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       margin: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.2),
+                        color: Colors.green.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       alignment: Alignment.centerLeft,
@@ -275,7 +272,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       margin: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.2),
+                        color: Colors.orange.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       alignment: Alignment.centerRight,
@@ -908,7 +905,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
               ),
               const SizedBox(height: InputStyles.fieldSpacing),
               DropdownButtonFormField<BudgetPeriod>(
-                initialValue: _period,
+                value: _period,
                 icon: InputStyles.dropdownIcon(context),
                 decoration: InputDecoration(labelText: l10n.budgetPeriod),
                 items: BudgetPeriod.values
@@ -964,3 +961,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
     );
   }
 }
+
+
+
+

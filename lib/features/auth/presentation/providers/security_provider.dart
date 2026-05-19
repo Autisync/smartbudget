@@ -13,3 +13,7 @@ Future<SecuritySetting> securitySetting(SecuritySettingRef ref) async {
 Future<List<AuthLog>> authLogs(AuthLogsRef ref) async {
   return ref.watch(securityServiceProvider).fetchRecentAuthLogs(limit: 25);
 }
+
+
+
+

@@ -17,13 +17,13 @@ class AppSurfaces {
       border: isDark
           ? null
           : Border.all(
-              color: const Color(0xFF111827).withValues(alpha: 0.06),
+              color: const Color(0xFF111827).withOpacity(0.06),
               width: 0.5,
             ),
       boxShadow: [
         BoxShadow(
           color: colorScheme.shadow
-              .withValues(alpha: isDark ? opacity : opacity * 1.4),
+              .withOpacity(isDark ? opacity : opacity * 1.4),
           blurRadius: blur,
           offset: Offset(0, offsetY),
           spreadRadius: -2,
@@ -46,7 +46,7 @@ class AppSurfaces {
       borderRadius: BorderRadius.circular(radius),
       boxShadow: [
         BoxShadow(
-          color: colors.last.withValues(alpha: 0.30),
+          color: colors.last.withOpacity(0.30),
           blurRadius: 34,
           offset: const Offset(0, 18),
           spreadRadius: -8,
@@ -55,3 +55,7 @@ class AppSurfaces {
     );
   }
 }
+
+
+
+

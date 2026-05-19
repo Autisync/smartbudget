@@ -25,3 +25,7 @@ class InsightResults {
     required this.securitySetting,
   });
 }
+
+
+
+

@@ -23,3 +23,7 @@ class Insight {
     required this.type,
   });
 }
+
+
+
+

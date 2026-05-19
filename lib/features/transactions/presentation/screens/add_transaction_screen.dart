@@ -121,8 +121,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -132,8 +131,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 : l10n.addTransaction,
           ),
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -149,7 +147,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
+                          color: colorScheme.surface.withOpacity(0.08),
                         ),
                       ),
                     )
@@ -161,8 +159,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         ),
         leading: IconButton(
           style: IconButton.styleFrom(
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
           ),
           icon: const Icon(Icons.close),
@@ -230,7 +227,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
                 // Category
                 DropdownButtonFormField<String>(
-                  initialValue: _category,
+                  value: _category,
                   icon: InputStyles.dropdownIcon(context),
                   decoration: InputDecoration(
                     labelText: l10n.category,
@@ -276,7 +273,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
                 // Recurrence
                 DropdownButtonFormField<TransactionRecurrence>(
-                  initialValue: _recurrence,
+                  value: _recurrence,
                   icon: InputStyles.dropdownIcon(context),
                   decoration: InputDecoration(
                     labelText: l10n.transactionsRecurrence,
@@ -375,3 +372,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     super.dispose();
   }
 }
+
+
+
+

@@ -40,7 +40,7 @@ dependencies:
   freezed_annotation: ^2.4.4
 
   # Database
-  drift: ^2.26.1
+  drift: ^2.23.1
   drift_flutter: ^0.1.0
   sqlite3: ^2.9.4
   path: ^1.9.0
@@ -67,7 +67,7 @@ dependencies:
   # Utils
   json_annotation: ^4.9.0
   uuid: ^4.4.0
-  intl: ^0.20.2
+  intl: ^0.19.0
   go_router: ^13.2.0
   collection: ^1.18.0
   url_launcher: ^6.3.1
@@ -75,21 +75,20 @@ dependencies:
   # Reports & Export
   pdf: ^3.10.7
   csv: ^6.0.0
-  share_plus: ^12.0.0
+  share_plus: ^7.2.0
 
   # Background Tasks & Notifications
-  workmanager: ^0.9.0+3
+  workmanager: ^0.5.2
   flutter_local_notifications: ^17.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-  analyzer: ^7.6.0
+  flutter_lints: ^5.0.0
   build_runner: ^2.4.13
-  drift_dev: ^2.26.1
+  drift_dev: ^2.23.1
   riverpod_generator: ^2.4.0
-  freezed: ^2.5.8
+  freezed: ^2.4.7
   json_serializable: ^6.8.0
   flutter_native_splash: ^2.4.1
   # retrofit_generator removed due to generator compatibility issues; re-add if needed

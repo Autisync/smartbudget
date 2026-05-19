@@ -495,8 +495,8 @@ class _MerchantAvatar extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              color.withValues(alpha: 0.20),
-              color.withValues(alpha: 0.08),
+              color.withOpacity(0.20),
+              color.withOpacity(0.08),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -669,11 +669,11 @@ class _TransactionFilterChip extends StatelessWidget {
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: tone.withValues(alpha: backgroundAlpha),
+              color: tone.withOpacity(backgroundAlpha),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: tone.withValues(alpha: borderAlpha),
+                  color: tone.withOpacity(borderAlpha),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -728,11 +728,11 @@ class _CompactDecisionChip extends StatelessWidget {
         color: Theme.of(context)
             .colorScheme
             .surfaceContainerHigh
-            .withValues(alpha: 0.08),
+            .withOpacity(0.08),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.08),
+            color: Theme.of(context).colorScheme.shadow.withOpacity(0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -764,3 +764,7 @@ class _CompactDecisionChip extends StatelessWidget {
     );
   }
 }
+
+
+
+

@@ -43,15 +43,13 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: l10n.financialHealthTitle),
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -67,7 +65,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
+                          color: colorScheme.surface.withOpacity(0.08),
                         ),
                       ),
                     )
@@ -181,7 +179,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                         color: toneColor,
                         backgroundColor: Theme.of(context)
                             .dividerColor
-                            .withValues(alpha: 0.4),
+                            .withOpacity(0.4),
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -338,7 +336,7 @@ class _FactorTile extends StatelessWidget {
               minHeight: 7,
               color: color,
               backgroundColor:
-                  Theme.of(context).dividerColor.withValues(alpha: 0.35),
+                  Theme.of(context).dividerColor.withOpacity(0.35),
             ),
             const SizedBox(height: 8),
             Text(
@@ -393,7 +391,7 @@ class _HealthPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
+        color: color.withOpacity(0.16),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -544,3 +542,7 @@ class _HealthTrendCard extends StatelessWidget {
     );
   }
 }
+
+
+
+

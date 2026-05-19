@@ -10,6 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+from psycopg.errors import DuplicateObject
 
 
 revision: str = "0002_create_finance_tables"
@@ -18,13 +19,24 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-money_direction = postgresql.ENUM("income", "expense", name="moneydirection")
-recurrence = postgresql.ENUM("none", "daily", "weekly", "monthly", "yearly", name="recurrence")
+money_direction = postgresql.ENUM(
+    "income", "expense", name="moneydirection", create_type=False
+)
+recurrence = postgresql.ENUM(
+    "none", "daily", "weekly", "monthly", "yearly", name="recurrence", create_type=False
+)
 
 
 def upgrade() -> None:
-    money_direction.create(op.get_bind(), checkfirst=True)
-    recurrence.create(op.get_bind(), checkfirst=True)
+    try:
+        money_direction.create(op.get_bind(), checkfirst=True)
+    except DuplicateObject:
+        pass
+    
+    try:
+        recurrence.create(op.get_bind(), checkfirst=True)
+    except DuplicateObject:
+        pass
 
     op.create_table(
         "transactions",

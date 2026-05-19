@@ -11,3 +11,7 @@ class ForecastDataPoint {
     required this.predicted,
   });
 }
+
+
+
+

@@ -107,7 +107,7 @@ class AppEmptyState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.10),
+                color: colorScheme.primary.withOpacity(0.10),
                 borderRadius: BorderRadius.circular(UiTokens.radiusXl),
               ),
               child: Icon(icon, size: 34, color: colorScheme.primary),
@@ -153,8 +153,8 @@ class AppSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Shimmer.fromColors(
-      baseColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
-      highlightColor: colorScheme.surface.withValues(alpha: 0.90),
+      baseColor: colorScheme.surfaceContainerHighest.withOpacity(0.55),
+      highlightColor: colorScheme.surface.withOpacity(0.90),
       child: Container(
         height: height,
         decoration: BoxDecoration(
@@ -183,7 +183,7 @@ class StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
+        color: color.withOpacity(0.14),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -293,3 +293,7 @@ class CircularFinanceProgress extends StatelessWidget {
     );
   }
 }
+
+
+
+

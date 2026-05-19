@@ -13,3 +13,7 @@ class BudgetAlert with _$BudgetAlert {
     required DateTime generatedAt,
   }) = _BudgetAlert;
 }
+
+
+
+

@@ -16,5 +16,6 @@
   "chat.tools.terminal.autoApprove": {
     "command": true,
     "brew": true
-  }
+  },
+  "cmake.sourceDirectory": "C:/Users/pizt1/Documents/Business/smartbudget/windows/flutter"
 }

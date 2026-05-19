@@ -162,7 +162,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     CircleAvatar(
                       radius: 24,
                       backgroundColor:
-                          colorScheme.primary.withValues(alpha: 0.14),
+                          colorScheme.primary.withOpacity(0.14),
                       child: Text(
                         displayName.isNotEmpty
                             ? displayName.characters.first.toUpperCase()
@@ -212,7 +212,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         color: (isVerified
                                 ? Colors.green
                                 : colorScheme.onSurfaceVariant)
-                            .withValues(alpha: 0.12),
+                            .withOpacity(0.12),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -450,8 +450,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           curve: Curves.easeOut,
           padding: EdgeInsets.zero,
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0,
+            color: colorScheme.surfaceContainerHighest.withOpacity(0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -503,8 +502,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             tooltip: l10n.settings,
           ),
         ],
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -520,7 +518,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
+                          color: colorScheme.surface.withOpacity(0.08),
                         ),
                       ),
                     )
@@ -562,7 +560,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       CircleAvatar(
                         radius: 28,
                         backgroundColor:
-                            colorScheme.primary.withValues(alpha: 0.14),
+                            colorScheme.primary.withOpacity(0.14),
                         child: Text(
                           userDisplayName.characters.first.toUpperCase(),
                           style:
@@ -626,7 +624,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   SizedBox(
                     height: 42,
                     child: VerticalDivider(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.28),
+                      color: colorScheme.outlineVariant.withOpacity(0.28),
                       thickness: 1,
                     ),
                   ),
@@ -672,7 +670,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.08),
+                      color: colorScheme.primary.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Column(
@@ -1039,7 +1037,7 @@ class _ModernSettingsGroup extends StatelessWidget {
                     height: 1,
                     indent: 14,
                     endIndent: 14,
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.22),
+                    color: colorScheme.outlineVariant.withOpacity(0.22),
                   ),
               ],
             ],
@@ -1159,7 +1157,7 @@ class _FeatureCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.35),
+                          color: Colors.amber.withOpacity(0.35),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
@@ -1231,7 +1229,7 @@ class _MoreActionTile extends StatelessWidget {
       ),
       leading: showLeading
           ? CircleAvatar(
-              backgroundColor: colorScheme.primary.withValues(alpha: 0.14),
+              backgroundColor: colorScheme.primary.withOpacity(0.14),
               child: Icon(
                 icon,
                 color: colorScheme.primary,
@@ -1310,3 +1308,7 @@ class _AccountInfoRow extends StatelessWidget {
     );
   }
 }
+
+
+
+

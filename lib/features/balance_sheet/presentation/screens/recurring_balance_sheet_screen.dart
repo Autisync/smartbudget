@@ -634,7 +634,7 @@ class _RecurringBalanceSheetScreenState
                           context,
                           radius: 16,
                           color: colorScheme.tertiaryContainer
-                              .withValues(alpha: 0.75),
+                              .withOpacity(0.75),
                           opacity: 0.05,
                         ),
                         child: Text(
@@ -652,8 +652,8 @@ class _RecurringBalanceSheetScreenState
                         context,
                         radius: UiTokens.radiusXl,
                         color: snapshot.canCoverRecurring
-                            ? const Color(0xFF059669).withValues(alpha: 0.08)
-                            : colorScheme.errorContainer.withValues(alpha: 0.8),
+                            ? const Color(0xFF059669).withOpacity(0.08)
+                            : colorScheme.errorContainer.withOpacity(0.8),
                         opacity: 0.06,
                       ),
                       child: Column(
@@ -772,7 +772,7 @@ class _RecurringBalanceSheetScreenState
                                     ? Colors.orange
                                     : colorScheme.error,
                             backgroundColor: colorScheme.outlineVariant
-                                .withValues(alpha: 0.45),
+                                .withOpacity(0.45),
                           ),
                           const SizedBox(height: 10),
                           Text(
@@ -901,9 +901,9 @@ class _RecurringBalanceSheetScreenState
                               decoration: BoxDecoration(
                                 color: simulatedNetBalance >= 0
                                     ? const Color(0xFF059669)
-                                        .withValues(alpha: 0.08)
+                                        .withOpacity(0.08)
                                     : colorScheme.errorContainer
-                                        .withValues(alpha: 0.8),
+                                        .withOpacity(0.8),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Column(
@@ -1034,11 +1034,11 @@ class _RecurringMetricChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: tone.withValues(alpha: 0.1),
+        color: tone.withOpacity(0.1),
         borderRadius: BorderRadius.circular(UiTokens.radiusLg),
         boxShadow: [
           BoxShadow(
-            color: tone.withValues(alpha: 0.14),
+            color: tone.withOpacity(0.14),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1137,7 +1137,7 @@ class _RecurringEntryCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: tone.withValues(alpha: 0.12),
+                color: tone.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
@@ -1235,7 +1235,7 @@ class _RecurringPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: tone.withValues(alpha: 0.1),
+        color: tone.withOpacity(0.1),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -1310,3 +1310,7 @@ class _ScenarioSlider extends StatelessWidget {
     );
   }
 }
+
+
+
+

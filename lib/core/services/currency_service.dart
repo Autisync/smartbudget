@@ -88,3 +88,7 @@ class AppCurrencyController extends StateNotifier<String> {
     await _service.saveCurrencyCode(normalized);
   }
 }
+
+
+
+

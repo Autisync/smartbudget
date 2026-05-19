@@ -93,15 +93,13 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: l10n.savingsGoalsTitle),
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -117,7 +115,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
+                          color: colorScheme.surface.withOpacity(0.08),
                         ),
                       ),
                     )
@@ -127,8 +125,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         ),
         actions: [
           NotificationBellButton(
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
             onPressed: () => context.push('/notifications'),
           ),
@@ -585,7 +582,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                               margin: const EdgeInsets.only(top: 10),
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.12),
+                                color: Colors.green.withOpacity(0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(l10n.savingsGoalAchieved),
@@ -1050,7 +1047,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
               ),
               const SizedBox(height: InputStyles.fieldSpacing),
               DropdownButtonFormField<GoalPriority>(
-                initialValue: _priority,
+                value: _priority,
                 icon: InputStyles.dropdownIcon(context),
                 decoration: InputDecoration(labelText: l10n.savingsPriority),
                 items: GoalPriority.values
@@ -1177,3 +1174,7 @@ class _ContributionDialogState extends State<_ContributionDialog> {
     );
   }
 }
+
+
+
+

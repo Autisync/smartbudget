@@ -144,15 +144,13 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: l10n.navSubscriptions),
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -168,7 +166,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
+                          color: colorScheme.surface.withOpacity(0.08),
                         ),
                       ),
                     )
@@ -180,8 +178,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
         ),
         actions: [
           NotificationBellButton(
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
             onPressed: () => context.push('/notifications'),
           ),
@@ -309,7 +306,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                         color: Theme.of(context)
                             .colorScheme
                             .errorContainer
-                            .withValues(alpha: 0.72),
+                            .withOpacity(0.72),
                         opacity: 0.06,
                       ),
                       child: Column(
@@ -694,11 +691,11 @@ class _SubscriptionSummaryChip extends StatelessWidget {
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: tone.withValues(alpha: backgroundAlpha),
+              color: tone.withOpacity(backgroundAlpha),
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: tone.withValues(alpha: borderAlpha),
+                  color: tone.withOpacity(borderAlpha),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -833,7 +830,7 @@ class SubscriptionCard extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .secondaryContainer
-                          .withValues(alpha: 0.8),
+                          .withOpacity(0.8),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
@@ -852,7 +849,7 @@ class SubscriptionCard extends StatelessWidget {
                           color: Theme.of(context)
                               .colorScheme
                               .shadow
-                              .withValues(alpha: 0.2),
+                              .withOpacity(0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -954,3 +951,7 @@ class SubscriptionCard extends StatelessWidget {
     }
   }
 }
+
+
+
+

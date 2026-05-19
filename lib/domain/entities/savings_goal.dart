@@ -17,3 +17,7 @@ class SavingsGoal with _$SavingsGoal {
     DateTime? createdAt,
   }) = _SavingsGoal;
 }
+
+
+
+

@@ -110,3 +110,7 @@ Future<void> recurringTransactions(RecurringTransactionsRef ref) async {
   final repo = ref.watch(transactionRepositoryProvider);
   await repo.generateRecurringTransactions();
 }
+
+
+
+

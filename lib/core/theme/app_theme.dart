@@ -131,11 +131,11 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: _lightSurfaceHigh,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        shadowColor: const Color(0xFF181225).withValues(alpha: 0.10),
+        shadowColor: const Color(0xFF181225).withOpacity(0.10),
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
@@ -352,11 +352,11 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: _darkSurfaceHigh,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        shadowColor: Colors.black.withValues(alpha: 0.35),
+        shadowColor: Colors.black.withOpacity(0.35),
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
@@ -451,3 +451,5 @@ class AppTheme {
     );
   }
 }
+
+

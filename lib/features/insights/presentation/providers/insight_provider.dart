@@ -21,3 +21,7 @@ final insightResultsProvider = FutureProvider<InsightResults>((ref) async {
     securitySetting: securitySettings,
   );
 });
+
+
+
+

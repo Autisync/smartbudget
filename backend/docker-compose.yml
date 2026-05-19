@@ -34,7 +34,12 @@ services:
       SMTP_USE_SSL: ${SMTP_USE_SSL:-false}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-no-reply@smaartspend.com}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME:-SmartBudget}
-    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    command:
+      [
+        "sh",
+        "-c",
+        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000",
+      ]
     restart: always
     depends_on:
       postgres:
@@ -78,7 +83,14 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-    command: ["celery", "-A", "app.core.celery_app.celery_app", "worker", "--loglevel=INFO"]
+    command:
+      [
+        "celery",
+        "-A",
+        "app.core.celery_app.celery_app",
+        "worker",
+        "--loglevel=INFO",
+      ]
     restart: always
     depends_on:
       postgres:
@@ -100,7 +112,14 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-    command: ["celery", "-A", "app.core.celery_app.celery_app", "beat", "--loglevel=INFO"]
+    command:
+      [
+        "celery",
+        "-A",
+        "app.core.celery_app.celery_app",
+        "beat",
+        "--loglevel=INFO",
+      ]
     restart: always
     depends_on:
       redis:
@@ -121,7 +140,11 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smartbudget} -d ${POSTGRES_DB:-smartbudget}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-smartbudget} -d ${POSTGRES_DB:-smartbudget}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

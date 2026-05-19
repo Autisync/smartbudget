@@ -129,3 +129,7 @@ class CurrencyMigrationService {
     return double.parse((amount * rate).toStringAsFixed(2));
   }
 }
+
+
+
+

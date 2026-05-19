@@ -294,8 +294,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -305,8 +304,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                 : l10n.subscriptionsAddSubscription,
           ),
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -322,7 +320,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
+                          color: colorScheme.surface.withOpacity(0.08),
                         ),
                       ),
                     )
@@ -393,7 +391,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
 
                       final categoryField = DropdownButtonFormField<String>(
                         isExpanded: true,
-                        initialValue: _category,
+                        value: _category,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.category,
@@ -460,7 +458,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
 
                       final cycleField = DropdownButtonFormField<BillingCycle>(
                         isExpanded: true,
-                        initialValue: _billingCycle,
+                        value: _billingCycle,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.subscriptionsBillingCycle,
@@ -481,7 +479,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       final importanceField =
                           DropdownButtonFormField<SubscriptionImportance>(
                         isExpanded: true,
-                        initialValue: _importance,
+                        value: _importance,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.subscriptionsImportance,
@@ -781,7 +779,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: colorScheme.shadow.withValues(alpha: 0.08),
+                          color: colorScheme.shadow.withOpacity(0.08),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -871,3 +869,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     );
   }
 }
+
+
+
+

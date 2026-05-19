@@ -6338,3 +6338,7 @@ class $AppDatabaseManager {
   $$SecuritySettingsTableTableManager get securitySettings =>
       $$SecuritySettingsTableTableManager(_db, _db.securitySettings);
 }
+
+
+
+

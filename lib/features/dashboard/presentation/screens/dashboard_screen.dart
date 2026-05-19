@@ -159,8 +159,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               expandedHeight: 120,
               floating: true,
               pinned: true,
-              backgroundColor: colorScheme.surface.withValues(
-                alpha: _isAppBarScrolled ? 0.88 : 0,
+              backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
               ),
               surfaceTintColor: Colors.transparent,
               elevation: 0,
@@ -179,7 +178,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                               child: Container(
                                 color:
-                                    colorScheme.surface.withValues(alpha: 0.08),
+                                    colorScheme.surface.withOpacity(0.08),
                               ),
                             ),
                           )
@@ -194,8 +193,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withValues(
-                          alpha: _isAppBarScrolled ? 0.9 : 0,
+                        color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -220,14 +218,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               actions: [
                 NotificationBellButton(
                   backgroundColor: colorScheme.surfaceContainerHighest
-                      .withValues(alpha: _isAppBarScrolled ? 0.9 : 0),
+                      .withOpacity(_isAppBarScrolled ? 0.9 : 0),
                   onPressed: () => context.push('/notifications'),
                 ),
                 IconButton(
                   style: IconButton.styleFrom(
                     backgroundColor:
-                        colorScheme.surfaceContainerHighest.withValues(
-                      alpha: _isAppBarScrolled ? 0.9 : 0,
+                        colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
                     ),
                   ),
                   icon: const Icon(Icons.settings_outlined),
@@ -323,7 +320,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             height: 46,
                             decoration: BoxDecoration(
                               color:
-                                  colorScheme.primary.withValues(alpha: 0.12),
+                                  colorScheme.primary.withOpacity(0.12),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
@@ -541,7 +538,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             color: Theme.of(context)
                                 .colorScheme
                                 .shadow
-                                .withValues(alpha: 0.08),
+                                .withOpacity(0.08),
                             blurRadius: 18,
                             offset: const Offset(0, 10),
                           ),
@@ -560,7 +557,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  color: amountColor.withValues(alpha: 0.14),
+                                  color: amountColor.withOpacity(0.14),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Icon(
@@ -815,7 +812,7 @@ class _SpendingOverview extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.08),
+            color: colorScheme.shadow.withOpacity(0.08),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -835,7 +832,7 @@ class _SpendingOverview extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withValues(alpha: 0.72),
+                          .withOpacity(0.72),
                     ),
               ),
               Container(
@@ -874,7 +871,7 @@ class _SpendingOverview extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.12),
+                  color: colorScheme.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
@@ -990,7 +987,7 @@ class _FinancialHealthCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.08),
+            color: colorScheme.shadow.withOpacity(0.08),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -1010,7 +1007,7 @@ class _FinancialHealthCard extends StatelessWidget {
               ),
               Chip(
                 label: Text('$roundedScore/100 • $label'),
-                backgroundColor: toneColor.withValues(alpha: 0.14),
+                backgroundColor: toneColor.withOpacity(0.14),
                 labelStyle: TextStyle(color: toneColor),
               ),
             ],
@@ -1021,7 +1018,7 @@ class _FinancialHealthCard extends StatelessWidget {
             minHeight: 8,
             color: toneColor,
             backgroundColor:
-                Theme.of(context).dividerColor.withValues(alpha: 0.4),
+                Theme.of(context).dividerColor.withOpacity(0.4),
           ),
           const SizedBox(height: 10),
           Text(
@@ -1115,11 +1112,11 @@ class _DashboardMetricChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withValues(alpha: 0.08),
+        color: colorScheme.primary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(UiTokens.radiusMd),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withValues(alpha: 0.12),
+            color: colorScheme.primary.withOpacity(0.12),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1287,7 +1284,7 @@ class _DashboardLiveRateQuote extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.08),
+                color: colorScheme.primary.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
@@ -1311,3 +1308,7 @@ class _DashboardLiveRateQuote extends StatelessWidget {
     );
   }
 }
+
+
+
+

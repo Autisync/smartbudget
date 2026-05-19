@@ -59,7 +59,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 gradient: LinearGradient(
                   colors: [
                     colorScheme.surface,
-                    colorScheme.primary.withValues(alpha: 0.08),
+                    colorScheme.primary.withOpacity(0.08),
                     colorScheme.surface,
                   ],
                   begin: Alignment.topLeft,
@@ -91,8 +91,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 decoration: BoxDecoration(
                                   color: isActive
                                       ? colorScheme.primary
-                                      : colorScheme.onSurface.withValues(
-                                          alpha: 0.14,
+                                      : colorScheme.onSurface.withOpacity(0.14,
                                         ),
                                   borderRadius: BorderRadius.circular(999),
                                 ),
@@ -144,8 +143,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                         child: Icon(
                                           page.icon,
                                           size: 132,
-                                          color: Colors.white.withValues(
-                                            alpha: 0.16,
+                                          color: Colors.white.withOpacity(0.16,
                                           ),
                                         ),
                                       ),
@@ -155,8 +153,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                           width: 72,
                                           height: 72,
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.18,
+                                            color: Colors.white.withOpacity(0.18,
                                             ),
                                             borderRadius:
                                                 BorderRadius.circular(22),
@@ -258,3 +255,7 @@ class _OnboardingPageData {
     required this.colors,
   });
 }
+
+
+
+

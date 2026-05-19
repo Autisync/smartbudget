@@ -53,3 +53,7 @@ class AppLocaleController extends StateNotifier<Locale> {
     await _service.saveLanguageCode(normalized);
   }
 }
+
+
+
+

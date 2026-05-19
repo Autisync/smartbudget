@@ -282,3 +282,7 @@ class AppDatabase extends _$AppDatabase {
     return query.getSingleOrNull();
   }
 }
+
+
+
+

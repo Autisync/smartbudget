@@ -45,3 +45,7 @@ class Subscription with _$Subscription {
 
   DateTime get nextDueDate => nextBillingDate;
 }
+
+
+
+

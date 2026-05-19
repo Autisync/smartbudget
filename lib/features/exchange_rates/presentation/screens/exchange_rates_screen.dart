@@ -149,7 +149,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         key: ValueKey('base-$_baseCurrency'),
-                        initialValue: _baseCurrency,
+                        value: _baseCurrency,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.exchangeRatesFrom,
@@ -178,7 +178,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         key: ValueKey('target-$_targetCurrency'),
-                        initialValue: _targetCurrency,
+                        value: _targetCurrency,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.exchangeRatesTo,
@@ -339,7 +339,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                                         color: Theme.of(context)
                                             .colorScheme
                                             .primary
-                                            .withValues(alpha: 0.12),
+                                            .withOpacity(0.12),
                                       ),
                                     ),
                                   ],
@@ -355,3 +355,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
     );
   }
 }
+
+
+
+

@@ -521,7 +521,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 7),
               decoration: BoxDecoration(
                 color: selected
-                    ? colorScheme.primary.withValues(alpha: 0.10)
+                    ? colorScheme.primary.withOpacity(0.10)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(18),
               ),
@@ -575,7 +575,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
             decoration: AppSurfaces.elevated(
               context,
               radius: UiTokens.radius2xl,
-              color: colorScheme.surface.withValues(alpha: 0.90),
+              color: colorScheme.surface.withOpacity(0.90),
               blur: 34,
               offsetY: 16,
               opacity: 0.14,
@@ -624,7 +624,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
                             boxShadow: [
                               BoxShadow(
                                 color:
-                                    colorScheme.primary.withValues(alpha: 0.35),
+                                    colorScheme.primary.withOpacity(0.35),
                                 blurRadius: 10,
                                 offset: const Offset(0, 3),
                               ),
@@ -725,7 +725,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: colorScheme.onSurface.withValues(alpha: 0.12),
+                    color: colorScheme.onSurface.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -799,7 +799,7 @@ class _MoreGridTile extends StatelessWidget {
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -809,7 +809,7 @@ class _MoreGridTile extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
+                  color: color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(icon, color: color, size: 24),
@@ -836,3 +836,7 @@ class _MoreGridTile extends StatelessWidget {
     );
   }
 }
+
+
+
+

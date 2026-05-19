@@ -15,3 +15,7 @@ class AuthUser {
   final bool isActive;
   final bool isVerified;
 }
+
+
+
+

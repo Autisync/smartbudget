@@ -2102,3 +2102,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get balanceSheetOptional => 'Optional';
 }
+
+
+
+
