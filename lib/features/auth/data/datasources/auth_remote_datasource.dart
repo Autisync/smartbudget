@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:smartbudget/core/network/debug_tls_noop.dart'
+    if (dart.library.io) 'package:smartbudget/core/network/debug_tls_io.dart';
 import 'package:smartbudget/features/auth/data/models/auth_models.dart';
 
 class AuthTokenStorage {
@@ -49,6 +51,9 @@ class AuthApiClient {
             headers: const {'Content-Type': 'application/json'},
           ),
         ) {
+    configureDebugTlsAdapter(_dio, baseUrl);
+    configureDebugTlsAdapter(_refreshDio, baseUrl);
+
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -247,7 +252,3 @@ class AuthApiClient {
     return AuthUserModel.fromJson(response.data!);
   }
 }
-
-
-
-

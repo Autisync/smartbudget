@@ -65,7 +65,8 @@ class EmailService:
                     server.send_message(message)
         except Exception:
             logger.exception("SMTP send failed for to=%s subject=%s", to_email, subject)
-            raise
+            # Email delivery must not break core auth flows (login/signup/reset).
+            return
 
     def send_verification_email(self, *, email: str, token: str) -> None:
         verification_link = self._build_link(settings.verify_email_deep_link_base, token)
