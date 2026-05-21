@@ -87,19 +87,24 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? null
+          : const Color(0xFFF8F8FA),
       appBar: AppBar(
         title: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: l10n.savingsGoalsTitle),
         ),
-        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -115,7 +120,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withOpacity(0.08),
+                          color: colorScheme.surface.withValues(alpha: 0.08),
                         ),
                       ),
                     )
@@ -125,12 +130,17 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         ),
         actions: [
           NotificationBellButton(
-            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
             onPressed: () => context.push('/notifications'),
           ),
           const SizedBox(width: 8),
         ],
+      ),
+      floatingActionButton: AppFloatingActionButton(
+        onPressed: () => _openGoalForm(context, ref),
+        icon: Icons.add_rounded,
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
@@ -193,10 +203,6 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               );
             }
 
-            final nudgesCount = nudgesAsync.maybeWhen(
-              data: (nudges) => nudges.length,
-              orElse: () => 0,
-            );
             final decisionMessage = atRiskGoals > 0
                 ? l10n.savingsGoalsBehindPace(atRiskGoals)
                 : monthlySurplus > 0
@@ -206,200 +212,59 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                     : l10n.savingsSteadyProgress;
 
             return ListView(
-              padding: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-                  child: PremiumCard(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.tips_and_updates_outlined,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                l10n.savingsPortfolioTitle,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          decisionMessage,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _SavingsSummaryMetric(
-                              label: l10n.financialHealthGoals,
-                              value: '${goals.length}',
-                            ),
-                            _SavingsSummaryMetric(
-                              label: l10n.savingsSaved,
-                              value: currencyFormat.format(totalSaved),
-                            ),
-                            _SavingsSummaryMetric(
-                              label: l10n.budgetAtRisk,
-                              value: '$atRiskGoals',
-                              valueColor: atRiskGoals > 0
-                                  ? Theme.of(context).colorScheme.error
-                                  : Theme.of(context).colorScheme.primary,
-                            ),
-                            _SavingsSummaryMetric(
-                              label: l10n.savingsTarget,
-                              value: currencyFormat.format(totalTarget),
-                            ),
-                            _SavingsSummaryMetric(
-                              label: l10n.savingsNudgesLabel,
-                              value: '$nudgesCount',
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                // Savings Portfolio Card
+                _SavingsPortfolioCard(
+                  totalTarget: totalTarget,
+                  totalSaved: totalSaved,
+                  atRiskGoals: atRiskGoals,
+                  goalsCount: goals.length,
+                  decisionMessage: decisionMessage,
+                  colorScheme: colorScheme,
+                  currencyFormat: currencyFormat,
                 ),
+                const SizedBox(height: 16),
+
+                // Nudges Section
                 nudgesAsync.when(
                   data: (nudges) {
                     if (nudges.isEmpty) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      child: PremiumCard(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.savingsNudgesLabel,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 6),
-                            ...nudges.take(3).map(
-                                  (n) => Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 4),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Icon(
-                                          n.severity ==
-                                                  SavingsNudgeSeverity.critical
-                                              ? Icons.error_outline
-                                              : n.severity ==
-                                                      SavingsNudgeSeverity
-                                                          .warning
-                                                  ? Icons.warning_amber_outlined
-                                                  : Icons.info_outline,
-                                          size: 18,
-                                          color: n.severity ==
-                                                  SavingsNudgeSeverity.critical
-                                              ? Colors.red
-                                              : n.severity ==
-                                                      SavingsNudgeSeverity
-                                                          .warning
-                                                  ? Colors.orange
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            n.message,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                          ],
-                        ),
-                      ),
+                    return Column(
+                      children: [
+                        _SavingsNudgeCard(nudges: nudges.take(2).toList()),
+                        const SizedBox(height: 16),
+                      ],
                     );
                   },
                   loading: () => const SizedBox.shrink(),
                   error: (_, __) => const SizedBox.shrink(),
                 ),
+
+                // Surplus Allocation Section
                 if (monthlySurplus > 0)
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: PremiumCard(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.savingsSurplusDetected(
-                              currencyFormat.format(monthlySurplus),
-                            ),
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(l10n.savingsAllocateSurplusHint),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            children: [
-                              ActionChip(
-                                label: Text(
-                                  l10n.savingsAllocateAmount(
-                                    currencyFormat.format(50),
-                                  ),
-                                ),
-                                onPressed: () => _allocateSurplusToTopGoal(
-                                  ref,
-                                  goals,
-                                  50,
-                                ),
-                              ),
-                              ActionChip(
-                                label: Text(
-                                  l10n.savingsAllocateAmount(
-                                    currencyFormat.format(100),
-                                  ),
-                                ),
-                                onPressed: () => _allocateSurplusToTopGoal(
-                                  ref,
-                                  goals,
-                                  100,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                  Column(
+                    children: [
+                      _SavingsSurplusCard(
+                        monthlySurplus: monthlySurplus,
+                        currencyFormat: currencyFormat,
+                        onAllocate50: () =>
+                            _allocateSurplusToTopGoal(ref, goals, 50),
+                        onAllocate100: () =>
+                            _allocateSurplusToTopGoal(ref, goals, 100),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
+
+                // Savings Goals
                 ...goals.map((goal) {
                   final progress = goal.targetAmount > 0
                       ? (goal.savedAmount / goal.targetAmount).clamp(0.0, 1.0)
                       : 0.0;
                   final remaining =
                       (goal.targetAmount - goal.savedAmount).clamp(
-                    0,
+                    0.0,
                     double.infinity,
                   );
                   final hasDeadline = goal.deadline != null;
@@ -419,175 +284,32 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                   final statusColor = _goalStatusColor(progress, projectedLate);
 
                   return Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: PremiumCard(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CircularFinanceProgress(
-                                value: progress,
-                                color: statusColor,
-                                size: 78,
-                                center: Text(
-                                  '${(progress * 100).toStringAsFixed(0)}%',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelLarge
-                                      ?.copyWith(fontWeight: FontWeight.w900),
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      goal.title,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    StatusPill(
-                                      label: _goalStatusLabel(
-                                        l10n,
-                                        progress,
-                                        projectedLate,
-                                      ),
-                                      color: statusColor,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuButton<String>(
-                                onSelected: (value) {
-                                  if (value == 'edit') {
-                                    _openGoalForm(context, ref,
-                                        existingGoal: goal);
-                                  } else if (value == 'delete') {
-                                    ref
-                                        .read(savingsGoalListProvider.notifier)
-                                        .deleteSavingsGoal(goal.id);
-                                  }
-                                },
-                                itemBuilder: (_) => [
-                                  PopupMenuItem(
-                                    value: 'edit',
-                                    child: Text(l10n.savingsEditGoal),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'delete',
-                                    child: Text(l10n.savingsDeleteGoal),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            '${currencyFormat.format(goal.savedAmount)} / ${currencyFormat.format(goal.targetAmount)}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 6),
-                          AnimatedFinanceProgressBar(
-                            value: progress,
-                            color: statusColor,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            l10n.savingsProgressLine(
-                              (progress * 100).toStringAsFixed(1),
-                              currencyFormat.format(remaining),
-                            ),
-                          ),
-                          if (hasDeadline) ...[
-                            const SizedBox(height: 6),
-                            Text(
-                              l10n.savingsDeadlineLabel(
-                                MaterialLocalizations.of(context)
-                                    .formatMediumDate(goal.deadline!),
-                              ),
-                            ),
-                            Text(
-                              l10n.savingsTimelineTracked,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            _GoalTimeline(
-                              l10n: l10n,
-                              createdAt: goal.createdAt ?? now,
-                              deadline: goal.deadline!,
-                              progress: progress,
-                            ),
-                          ],
-                          const SizedBox(height: 6),
-                          const Wrap(
-                            spacing: 6,
-                            children: [
-                              Chip(label: Text('25%')),
-                              Chip(label: Text('50%')),
-                              Chip(label: Text('75%')),
-                              Chip(label: Text('100%')),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.savingsSuggestionMonthly(
-                              currencyFormat.format(suggestedMonthly),
-                            ),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          if (projectedLate > 0)
-                            Text(
-                              l10n.savingsProjectedLate(projectedLate),
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                                fontSize: 12,
-                              ),
-                            ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            children: [
-                              ActionChip(
-                                label: Text(l10n.savingsAddFunds),
-                                onPressed: () =>
-                                    _openContributionDialog(context, ref, goal),
-                              ),
-                              ActionChip(
-                                label: Text(
-                                  'Simulate +${currencyFormat.format(50)}/mo',
-                                ),
-                                onPressed: () => _showSimulation(
-                                  context,
-                                  goal,
-                                  50,
-                                  currencyFormat,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (goal.savedAmount >= goal.targetAmount)
-                            Container(
-                              margin: const EdgeInsets.only(top: 10),
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(l10n.savingsGoalAchieved),
-                            ),
-                        ],
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _SavingsGoalCard(
+                      goal: goal,
+                      progress: progress,
+                      remaining: remaining,
+                      statusColor: statusColor,
+                      statusLabel:
+                          _goalStatusLabel(l10n, progress, projectedLate),
+                      suggestedMonthly: suggestedMonthly,
+                      projectedLate: projectedLate,
+                      monthsRemaining: monthsRemaining,
+                      hasDeadline: hasDeadline,
+                      currencyFormat: currencyFormat,
+                      l10n: l10n,
+                      onEdit: () =>
+                          _openGoalForm(context, ref, existingGoal: goal),
+                      onDelete: () => ref
+                          .read(savingsGoalListProvider.notifier)
+                          .deleteSavingsGoal(goal.id),
+                      onAddFunds: () =>
+                          _openContributionDialog(context, ref, goal),
+                      onSimulate: () => _showSimulation(
+                        context,
+                        goal,
+                        50,
+                        currencyFormat,
                       ),
                     ),
                   );
@@ -607,10 +329,6 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             child: Text(l10n.transactionsError(err.toString())),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openGoalForm(context, ref),
-        child: const Icon(Icons.add),
       ),
     );
   }
@@ -660,9 +378,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     final result = await showModalBottomSheet<_SavingsGoalFormResult>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? Theme.of(context).colorScheme.surfaceContainerHigh
-          : Theme.of(context).colorScheme.surface,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => _SavingsGoalFormSheet(
         existingGoal: existingGoal,
         currencySymbol: CurrencyUtils.symbol(appCurrency),
@@ -795,80 +512,761 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
   }
 }
 
-class _GoalTimeline extends StatelessWidget {
-  const _GoalTimeline({
-    required this.l10n,
-    required this.createdAt,
-    required this.deadline,
-    required this.progress,
+// ============================================================================
+// NEW MODERN SAVINGS COMPONENTS
+// ============================================================================
+
+/// Redesigned Savings Portfolio Card with gradient background and 2x2 grid
+class _SavingsPortfolioCard extends StatelessWidget {
+  const _SavingsPortfolioCard({
+    required this.totalTarget,
+    required this.totalSaved,
+    required this.atRiskGoals,
+    required this.goalsCount,
+    required this.decisionMessage,
+    required this.colorScheme,
+    required this.currencyFormat,
   });
 
-  final AppLocalizations l10n;
-  final DateTime createdAt;
-  final DateTime deadline;
-  final double progress;
+  final double totalTarget;
+  final double totalSaved;
+  final int atRiskGoals;
+  final int goalsCount;
+  final String decisionMessage;
+  final ColorScheme colorScheme;
+  final NumberFormat currencyFormat;
 
   @override
   Widget build(BuildContext context) {
-    final total = deadline.difference(createdAt).inDays;
-    final elapsed = DateTime.now().difference(createdAt).inDays;
-    final timeProgress = total <= 0 ? 1.0 : (elapsed / total).clamp(0.0, 1.0);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 6),
-        LinearProgressIndicator(value: timeProgress),
-        const SizedBox(height: 4),
-        Text(
-          l10n.savingsTimeProgressLine(
-            (timeProgress * 100).toStringAsFixed(0),
-            (progress * 100).toStringAsFixed(0),
-          ),
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
-    );
-  }
-}
-
-class _SavingsSummaryMetric extends StatelessWidget {
-  const _SavingsSummaryMetric({
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
-
-  final String label;
-  final String value;
-  final Color? valueColor;
-
-  @override
-  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
+        gradient: LinearGradient(
+          colors: [
+            isDark ? const Color(0xFF1E1A40) : const Color(0xFFECDDFF),
+            isDark ? const Color(0xFF221540) : const Color(0xFFF1EEFF),
+            isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF7F9FF),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            spreadRadius: 1,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: valueColor,
+          // Header with icon and title
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: Icon(
+                  Icons.savings_outlined,
+                  color: colorScheme.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Savings Portfolio',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Description
+          Text(
+            decisionMessage,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 16),
+
+          // 2x2 Metric Grid
+          Row(
+            children: [
+              // Left column (smaller metrics)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _PortfolioMetric(
+                      label: 'Goals',
+                      value: goalsCount.toString(),
+                      isLarge: false,
+                    ),
+                    const SizedBox(height: 12),
+                    _PortfolioMetric(
+                      label: 'At Risk',
+                      value: atRiskGoals.toString(),
+                      isLarge: false,
+                      tone: atRiskGoals > 0 ? Colors.orange : null,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Right column (larger metrics)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _PortfolioMetric(
+                      label: 'Saved',
+                      value: currencyFormat.format(totalSaved),
+                      isLarge: true,
+                    ),
+                    const SizedBox(height: 12),
+                    _PortfolioMetric(
+                      label: 'Target',
+                      value: currencyFormat.format(totalTarget),
+                      isLarge: true,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 }
+
+/// Portfolio metric display widget
+class _PortfolioMetric extends StatelessWidget {
+  const _PortfolioMetric({
+    required this.label,
+    required this.value,
+    required this.isLarge,
+    this.tone,
+  });
+
+  final String label;
+  final String value;
+  final bool isLarge;
+  final Color? tone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                fontSize: isLarge ? 24 : 18,
+                color: tone,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Redesigned Savings Nudge Card
+class _SavingsNudgeCard extends StatelessWidget {
+  const _SavingsNudgeCard({required this.nudges});
+
+  final List<SavingsNudge> nudges;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.blue.withValues(alpha: 0.15),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.lightbulb_outline,
+                  size: 16,
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Insights',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...nudges.map((nudge) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    _getSeverityIcon(nudge.severity),
+                    size: 16,
+                    color: _getSeverityColor(nudge.severity),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      nudge.message,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  IconData _getSeverityIcon(SavingsNudgeSeverity severity) {
+    return switch (severity) {
+      SavingsNudgeSeverity.critical => Icons.error_outline,
+      SavingsNudgeSeverity.warning => Icons.warning_amber_outlined,
+      SavingsNudgeSeverity.info => Icons.info_outline,
+    };
+  }
+
+  Color _getSeverityColor(SavingsNudgeSeverity severity) {
+    return switch (severity) {
+      SavingsNudgeSeverity.critical => Colors.red,
+      SavingsNudgeSeverity.warning => Colors.orange,
+      SavingsNudgeSeverity.info => Colors.blue,
+    };
+  }
+}
+
+/// Surplus allocation card
+class _SavingsSurplusCard extends StatelessWidget {
+  const _SavingsSurplusCard({
+    required this.monthlySurplus,
+    required this.currencyFormat,
+    required this.onAllocate50,
+    required this.onAllocate100,
+  });
+
+  final double monthlySurplus;
+  final NumberFormat currencyFormat;
+  final VoidCallback onAllocate50;
+  final VoidCallback onAllocate100;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.green.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Monthly Surplus Available',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            currencyFormat.format(monthlySurplus),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 28,
+                  color: Colors.green,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Allocate to your highest priority goal',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onAllocate50,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.green,
+                    side: const BorderSide(color: Colors.green, width: 1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    'Allocate 50',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onAllocate100,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.green,
+                    side: const BorderSide(color: Colors.green, width: 1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    'Allocate 100',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Redesigned Savings Goal Card
+class _SavingsGoalCard extends StatelessWidget {
+  const _SavingsGoalCard({
+    required this.goal,
+    required this.progress,
+    required this.remaining,
+    required this.statusColor,
+    required this.statusLabel,
+    required this.suggestedMonthly,
+    required this.projectedLate,
+    required this.monthsRemaining,
+    required this.hasDeadline,
+    required this.currencyFormat,
+    required this.l10n,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onAddFunds,
+    required this.onSimulate,
+  });
+
+  final SavingsGoal goal;
+  final double progress;
+  final double remaining;
+  final Color statusColor;
+  final String statusLabel;
+  final double suggestedMonthly;
+  final int projectedLate;
+  final int monthsRemaining;
+  final bool hasDeadline;
+  final NumberFormat currencyFormat;
+  final AppLocalizations l10n;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onAddFunds;
+  final VoidCallback onSimulate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: Goal title, status badge, and menu
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.flag_rounded,
+                  color: statusColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      goal.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        statusLabel,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuButton<String>(
+                tooltip: l10n.savingsEditGoal,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 10,
+                color: Theme.of(context).colorScheme.surface,
+                shadowColor: Colors.black.withValues(alpha: 0.12),
+                surfaceTintColor: Colors.transparent,
+                position: PopupMenuPosition.under,
+                icon: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    )
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.more_horiz,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    onEdit();
+                  } else if (value == 'delete') {
+                    onDelete();
+                  }
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.edit_outlined,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(l10n.savingsEditGoal),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete_outline,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          l10n.savingsDeleteGoal,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Amount row: Saved / Target
+          Text(
+            '${currencyFormat.format(goal.savedAmount)} / ${currencyFormat.format(goal.targetAmount)}',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+          ),
+          const SizedBox(height: 12),
+
+          // Progress bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: Colors.grey.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Progress text
+          Text(
+            '${(progress * 100).toStringAsFixed(1)}% complete • ${currencyFormat.format(remaining)} remaining',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+
+          // Deadline info
+          if (hasDeadline) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Deadline: ${MaterialLocalizations.of(context).formatMediumDate(goal.deadline!)} • $monthsRemaining months',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+
+          const SizedBox(height: 12),
+
+          // Quick percentage chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: ['25%', '50%', '75%', '100%']
+                .map((percent) => _SavingsQuickPercentageChip(label: percent))
+                .toList(),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Suggestion text
+          Text(
+            'Suggested: ${currencyFormat.format(suggestedMonthly)}/month',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+
+          if (projectedLate > 0)
+            Text(
+              'Projected late by $projectedLate months',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+
+          const SizedBox(height: 16),
+
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onAddFunds,
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    side: BorderSide(
+                      color: statusColor.withValues(alpha: 0.4),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    l10n.savingsAddFunds,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onSimulate,
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    side: BorderSide(
+                      color: statusColor.withValues(alpha: 0.4),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    'Simulate',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Achieved badge
+          if (goal.savedAmount >= goal.targetAmount) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.savingsGoalAchieved,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Colors.green,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Quick percentage chip
+class _SavingsQuickPercentageChip extends StatelessWidget {
+  const _SavingsQuickPercentageChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// FORM AND HELPER DATA STRUCTURES
+// ============================================================================
 
 class _SavingsGoalFormResult {
   const _SavingsGoalFormResult({
@@ -976,136 +1374,193 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: modalBackgroundColor,
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(28),
+            top: Radius.circular(32),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: baseTheme.colorScheme.shadow.withValues(alpha: 0.15),
+              blurRadius: 24,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.existingGoal == null
-                    ? l10n.savingsCreateGoal
-                    : l10n.savingsEditGoal,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _titleController,
-                style: InputStyles.inputTextStyle(baseTheme),
-                decoration: InputDecoration(labelText: l10n.savingsGoalName),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return l10n.savingsEnterGoalName;
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: InputStyles.fieldSpacing),
-              TextFormField(
-                controller: _targetController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.flag_rounded,
+                      color: baseTheme.colorScheme.primary,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.existingGoal == null
+                                ? l10n.savingsCreateGoal
+                                : l10n.savingsEditGoal,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                style: InputStyles.inputTextStyle(baseTheme),
-                decoration: InputDecoration(
-                  labelText: l10n.savingsTargetAmount,
-                  prefixText: '${widget.currencySymbol} ',
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _titleController,
+                  style: InputStyles.inputTextStyle(baseTheme),
+                  decoration: InputDecoration(labelText: l10n.savingsGoalName),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return l10n.savingsEnterGoalName;
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  final parsed = double.tryParse(value ?? '');
-                  if (parsed == null || parsed <= 0) {
-                    return l10n.savingsEnterValidTargetAmount;
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: InputStyles.fieldSpacing),
-              TextFormField(
-                controller: _savedController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+                const SizedBox(height: InputStyles.fieldSpacing),
+                TextFormField(
+                  controller: _targetController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  style: InputStyles.inputTextStyle(baseTheme),
+                  decoration: InputDecoration(
+                    labelText: l10n.savingsTargetAmount,
+                    prefixText: '${widget.currencySymbol} ',
+                  ),
+                  validator: (value) {
+                    final parsed = double.tryParse(value ?? '');
+                    if (parsed == null || parsed <= 0) {
+                      return l10n.savingsEnterValidTargetAmount;
+                    }
+                    return null;
+                  },
                 ),
-                style: InputStyles.inputTextStyle(baseTheme),
-                decoration: InputDecoration(
-                  labelText: l10n.savingsCurrentSavedAmount,
-                  prefixText: '${widget.currencySymbol} ',
+                const SizedBox(height: InputStyles.fieldSpacing),
+                TextFormField(
+                  controller: _savedController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  style: InputStyles.inputTextStyle(baseTheme),
+                  decoration: InputDecoration(
+                    labelText: l10n.savingsCurrentSavedAmount,
+                    prefixText: '${widget.currencySymbol} ',
+                  ),
+                  validator: (value) {
+                    final parsed = double.tryParse(value ?? '');
+                    if (parsed == null || parsed < 0) {
+                      return l10n.savingsEnterValidSavedAmount;
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  final parsed = double.tryParse(value ?? '');
-                  if (parsed == null || parsed < 0) {
-                    return l10n.savingsEnterValidSavedAmount;
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: InputStyles.fieldSpacing),
-              DropdownButtonFormField<GoalPriority>(
-                value: _priority,
-                icon: InputStyles.dropdownIcon(context),
-                decoration: InputDecoration(labelText: l10n.savingsPriority),
-                items: GoalPriority.values
-                    .map(
-                      (p) => DropdownMenuItem(
-                        value: p,
-                        child: Text(
-                          switch (p) {
-                            GoalPriority.low =>
-                              l10n.subscriptionsFilterLowPriority,
-                            GoalPriority.medium =>
-                              l10n.subscriptionsImportanceMedium,
-                            GoalPriority.high =>
-                              l10n.subscriptionsFilterHighPriority,
-                            GoalPriority.critical =>
-                              l10n.subscriptionsFilterCritical,
-                          },
+                const SizedBox(height: InputStyles.fieldSpacing),
+                DropdownButtonFormField<GoalPriority>(
+                  initialValue: _priority,
+                  icon: InputStyles.dropdownIcon(context),
+                  decoration: InputDecoration(
+                    labelText: l10n.savingsPriority,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  items: GoalPriority.values
+                      .map(
+                        (p) => DropdownMenuItem(
+                          value: p,
+                          child: Text(
+                            switch (p) {
+                              GoalPriority.low =>
+                                l10n.subscriptionsFilterLowPriority,
+                              GoalPriority.medium =>
+                                l10n.subscriptionsImportanceMedium,
+                              GoalPriority.high =>
+                                l10n.subscriptionsFilterHighPriority,
+                              GoalPriority.critical =>
+                                l10n.subscriptionsFilterCritical,
+                            },
+                          ),
                         ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _priority = value);
-                },
-              ),
-              const SizedBox(height: InputStyles.fieldSpacing),
-              SwitchListTile.adaptive(
-                value: _autoAllocate,
-                title: Text(l10n.savingsEnableAutoAllocation),
-                contentPadding: EdgeInsets.zero,
-                onChanged: (value) => setState(() => _autoAllocate = value),
-              ),
-              const SizedBox(height: InputStyles.fieldSpacing),
-              FormDateField(
-                label: l10n.savingsDeadlineOptional,
-                value: _deadline == null
-                    ? l10n.savingsNoDeadline
-                    : MaterialLocalizations.of(context)
-                        .formatMediumDate(_deadline!),
-                trailing: _deadline == null
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => setState(() => _deadline = null),
-                      ),
-                onTap: _pickDeadline,
-              ),
-              const SizedBox(height: InputStyles.fieldSpacing),
-              FilledButton(
-                onPressed: _submit,
-                child: Text(
-                  widget.existingGoal == null
-                      ? l10n.savingsSaveGoal
-                      : l10n.savingsUpdateGoal,
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() => _priority = value);
+                  },
                 ),
-              ),
-            ],
+                const SizedBox(height: InputStyles.fieldSpacing),
+                SwitchListTile.adaptive(
+                  value: _autoAllocate,
+                  title: Text(l10n.savingsEnableAutoAllocation),
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: (value) => setState(() => _autoAllocate = value),
+                ),
+                const SizedBox(height: InputStyles.fieldSpacing),
+                FormDateField(
+                  label: l10n.savingsDeadlineOptional,
+                  value: _deadline == null
+                      ? l10n.savingsNoDeadline
+                      : MaterialLocalizations.of(context)
+                          .formatMediumDate(_deadline!),
+                  trailing: _deadline == null
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => setState(() => _deadline = null),
+                        ),
+                  onTap: _pickDeadline,
+                ),
+                const SizedBox(height: InputStyles.fieldSpacing),
+                FilledButton.icon(
+                  onPressed: _submit,
+                  icon: Icon(
+                    widget.existingGoal == null
+                        ? Icons.add_rounded
+                        : Icons.edit_rounded,
+                  ),
+                  label: Text(
+                    widget.existingGoal == null
+                        ? l10n.savingsSaveGoal
+                        : l10n.savingsUpdateGoal,
+                  ),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1174,7 +1629,3 @@ class _ContributionDialogState extends State<_ContributionDialog> {
     );
   }
 }
-
-
-
-

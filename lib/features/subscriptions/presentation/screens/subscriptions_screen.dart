@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
@@ -144,13 +145,15 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: l10n.navSubscriptions),
         ),
-        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -166,7 +169,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withOpacity(0.08),
+                          color: colorScheme.surface.withValues(alpha: 0.08),
                         ),
                       ),
                     )
@@ -178,12 +181,17 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
         ),
         actions: [
           NotificationBellButton(
-            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
             onPressed: () => context.push('/notifications'),
           ),
           const SizedBox(width: 8),
         ],
+      ),
+      floatingActionButton: AppFloatingActionButton(
+        onPressed: () => context.push('/subscriptions/add'),
+        icon: Icons.add_rounded,
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
@@ -306,7 +314,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                         color: Theme.of(context)
                             .colorScheme
                             .errorContainer
-                            .withOpacity(0.72),
+                            .withValues(alpha: 0.72),
                         opacity: 0.06,
                       ),
                       child: Column(
@@ -521,10 +529,6 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/subscriptions/add'),
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
@@ -691,11 +695,11 @@ class _SubscriptionSummaryChip extends StatelessWidget {
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: tone.withOpacity(backgroundAlpha),
+              color: tone.withValues(alpha: backgroundAlpha),
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: tone.withOpacity(borderAlpha),
+                  color: tone.withValues(alpha: borderAlpha),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -830,7 +834,7 @@ class SubscriptionCard extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .secondaryContainer
-                          .withOpacity(0.8),
+                          .withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
@@ -849,7 +853,7 @@ class SubscriptionCard extends StatelessWidget {
                           color: Theme.of(context)
                               .colorScheme
                               .shadow
-                              .withOpacity(0.2),
+                              .withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -951,7 +955,3 @@ class SubscriptionCard extends StatelessWidget {
     }
   }
 }
-
-
-
-

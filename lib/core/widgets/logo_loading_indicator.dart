@@ -41,7 +41,7 @@ class _LogoLoadingIndicatorState extends State<LogoLoadingIndicator>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final ringColor = theme.colorScheme.primary;
-    final mutedRingColor = theme.colorScheme.primary.withOpacity(0.14);
+    final mutedRingColor = theme.colorScheme.primary.withValues(alpha: 0.14);
 
     return Column(
       mainAxisSize: MainAxisSize.min,

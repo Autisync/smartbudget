@@ -294,7 +294,8 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -304,7 +305,8 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                 : l10n.subscriptionsAddSubscription,
           ),
         ),
-        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -320,7 +322,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withOpacity(0.08),
+                          color: colorScheme.surface.withValues(alpha: 0.08),
                         ),
                       ),
                     )
@@ -391,10 +393,27 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
 
                       final categoryField = DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _category,
+                        initialValue: _category,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.category,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color:
+                                  Theme.of(context).colorScheme.outlineVariant,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
                         ),
                         items: _defaultCategories
                             .map((c) => DropdownMenuItem(
@@ -458,10 +477,27 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
 
                       final cycleField = DropdownButtonFormField<BillingCycle>(
                         isExpanded: true,
-                        value: _billingCycle,
+                        initialValue: _billingCycle,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.subscriptionsBillingCycle,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color:
+                                  Theme.of(context).colorScheme.outlineVariant,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
                         ),
                         items: BillingCycle.values
                             .map((c) => DropdownMenuItem(
@@ -479,7 +515,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       final importanceField =
                           DropdownButtonFormField<SubscriptionImportance>(
                         isExpanded: true,
-                        value: _importance,
+                        initialValue: _importance,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.subscriptionsImportance,
@@ -779,7 +815,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: colorScheme.shadow.withOpacity(0.08),
+                          color: colorScheme.shadow.withValues(alpha: 0.08),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -869,7 +905,3 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     );
   }
 }
-
-
-
-

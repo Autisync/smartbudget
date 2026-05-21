@@ -173,13 +173,13 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: document.title),
         ),
-        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -195,7 +195,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withOpacity(0.08),
+                          color: colorScheme.surface.withValues(alpha: 0.08),
                         ),
                       ),
                     )
@@ -278,7 +278,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.72),
+                                  .withValues(alpha: 0.72),
                             ),
                       ),
                     ),

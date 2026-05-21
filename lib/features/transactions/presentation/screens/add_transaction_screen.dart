@@ -85,7 +85,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final appCurrency = ref.watch(appCurrencyControllerProvider);
     final budgetCategories = ref.watch(budgetListProvider).maybeWhen(
           data: (budgets) => budgets
@@ -114,6 +115,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       addCategory(_category.trim());
     }
 
+    final amount = double.tryParse(_amountController.text.trim()) ?? 0;
+    final amountFormat = CurrencyUtils.getFormat(appCurrency);
+    final recurrenceLabel = _recurrenceLabel(l10n, _recurrence);
+    final typeColor = _type == TransactionType.expense
+        ? colorScheme.error
+        : colorScheme.primary;
+    final typeIcon = _type == TransactionType.expense
+        ? Icons.arrow_upward_rounded
+        : Icons.arrow_downward_rounded;
+
     return Scaffold(
       appBar: AppBar(
         title: AnimatedContainer(
@@ -121,7 +132,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -131,7 +143,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 : l10n.addTransaction,
           ),
         ),
-        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -147,7 +160,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withOpacity(0.08),
+                          color: colorScheme.surface.withValues(alpha: 0.08),
                         ),
                       ),
                     )
@@ -159,7 +172,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         ),
         leading: IconButton(
           style: IconButton.styleFrom(
-            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
           ),
           icon: const Icon(Icons.close),
@@ -180,6 +194,88 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: typeColor.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(typeIcon, color: typeColor, size: 20),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              amount > 0
+                                  ? amountFormat.format(amount)
+                                  : '${CurrencyUtils.symbol(appCurrency)} 0.00',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: typeColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              _type == TransactionType.expense
+                                  ? l10n.expense
+                                  : l10n.income,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: typeColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          Chip(
+                            label: Text(_category),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          Chip(
+                            label: Text(recurrenceLabel),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          Chip(
+                            label: Text(
+                              MaterialLocalizations.of(context)
+                                  .formatMediumDate(_date),
+                            ),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 // Type Selector
                 SegmentedButton<TransactionType>(
                   segments: [
@@ -227,11 +323,27 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
                 // Category
                 DropdownButtonFormField<String>(
-                  value: _category,
+                  initialValue: _category,
                   icon: InputStyles.dropdownIcon(context),
                   decoration: InputDecoration(
                     labelText: l10n.category,
                     prefixIcon: const Icon(Icons.category),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
+                    ),
                   ),
                   items: categories.map((cat) {
                     return DropdownMenuItem(value: cat, child: Text(cat));
@@ -273,11 +385,27 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
                 // Recurrence
                 DropdownButtonFormField<TransactionRecurrence>(
-                  value: _recurrence,
+                  initialValue: _recurrence,
                   icon: InputStyles.dropdownIcon(context),
                   decoration: InputDecoration(
                     labelText: l10n.transactionsRecurrence,
                     prefixIcon: const Icon(Icons.repeat),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
+                    ),
                   ),
                   items: TransactionRecurrence.values
                       .map((r) => DropdownMenuItem(
@@ -307,20 +435,26 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 const SizedBox(height: InputStyles.fieldSpacing),
 
                 // Save Button
-                FilledButton(
+                FilledButton.icon(
                   onPressed: _saveTransaction,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  icon: Icon(
+                    widget.existingTransaction != null
+                        ? Icons.check_rounded
+                        : Icons.add_rounded,
                   ),
-                  child: Text(
+                  label: Text(
                     widget.existingTransaction != null
                         ? l10n.transactionsUpdateTransaction
                         : l10n.transactionsSaveTransaction,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                 ),
               ],
@@ -371,8 +505,17 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     _noteController.dispose();
     super.dispose();
   }
+
+  String _recurrenceLabel(
+    AppLocalizations l10n,
+    TransactionRecurrence recurrence,
+  ) {
+    return switch (recurrence) {
+      TransactionRecurrence.none => l10n.transactionsRecurrenceNone,
+      TransactionRecurrence.daily => l10n.transactionsRecurrenceDaily,
+      TransactionRecurrence.weekly => l10n.transactionsRecurrenceWeekly,
+      TransactionRecurrence.monthly => l10n.transactionsRecurrenceMonthly,
+      TransactionRecurrence.yearly => l10n.transactionsRecurrenceYearly,
+    };
+  }
 }
-
-
-
-

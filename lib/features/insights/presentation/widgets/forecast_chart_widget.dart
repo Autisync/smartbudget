@@ -85,7 +85,7 @@ class ForecastChartWidget extends StatelessWidget {
                     drawVerticalLine: false,
                     horizontalInterval: safeHorizontalInterval,
                     getDrawingHorizontalLine: (value) => FlLine(
-                      color: Theme.of(context).dividerColor.withOpacity(0.65,
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.65,
                           ),
                       strokeWidth: 1,
                     ),
@@ -157,8 +157,8 @@ class ForecastChartWidget extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            colorScheme.primary.withOpacity(0.18),
-                            colorScheme.primary.withOpacity(0.01),
+                            colorScheme.primary.withValues(alpha: 0.18),
+                            colorScheme.primary.withValues(alpha: 0.01),
                           ],
                         ),
                       ),

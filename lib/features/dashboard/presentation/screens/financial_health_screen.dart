@@ -43,13 +43,15 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: l10n.financialHealthTitle),
         ),
-        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -65,7 +67,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withOpacity(0.08),
+                          color: colorScheme.surface.withValues(alpha: 0.08),
                         ),
                       ),
                     )
@@ -179,7 +181,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                         color: toneColor,
                         backgroundColor: Theme.of(context)
                             .dividerColor
-                            .withOpacity(0.4),
+                            .withValues(alpha: 0.4),
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -220,23 +222,40 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(width: 10),
-                    DropdownButton<int>(
-                      value: _selectedWeeks,
-                      items: [
-                        DropdownMenuItem(
-                            value: 4,
-                            child: Text(l10n.financialHealthWeeks(4))),
-                        DropdownMenuItem(
-                            value: 8,
-                            child: Text(l10n.financialHealthWeeks(8))),
-                        DropdownMenuItem(
-                            value: 12,
-                            child: Text(l10n.financialHealthWeeks(12))),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _selectedWeeks = value);
-                      },
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: DropdownButton<int>(
+                        value: _selectedWeeks,
+                        underline: const SizedBox(),
+                        items: [
+                          DropdownMenuItem(
+                              value: 4,
+                              child: Text(l10n.financialHealthWeeks(4))),
+                          DropdownMenuItem(
+                              value: 8,
+                              child: Text(l10n.financialHealthWeeks(8))),
+                          DropdownMenuItem(
+                              value: 12,
+                              child: Text(l10n.financialHealthWeeks(12))),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setState(() => _selectedWeeks = value);
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -336,7 +355,7 @@ class _FactorTile extends StatelessWidget {
               minHeight: 7,
               color: color,
               backgroundColor:
-                  Theme.of(context).dividerColor.withOpacity(0.35),
+                  Theme.of(context).dividerColor.withValues(alpha: 0.35),
             ),
             const SizedBox(height: 8),
             Text(
@@ -391,7 +410,7 @@ class _HealthPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.16),
+        color: color.withValues(alpha: 0.16),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -542,7 +561,3 @@ class _HealthTrendCard extends StatelessWidget {
     );
   }
 }
-
-
-
-

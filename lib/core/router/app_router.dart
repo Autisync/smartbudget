@@ -1,10 +1,10 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/theme/app_icons.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:smartbudget/features/dashboard/presentation/screens/financial_health_screen.dart';
 import 'package:smartbudget/features/transactions/presentation/screens/add_transaction_screen.dart';
@@ -35,6 +35,7 @@ import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/widgets/logo_loading_indicator.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 part 'app_router.g.dart';
 
@@ -273,488 +274,337 @@ GoRouter router(RouterRef ref) {
   );
 }
 
-class ScaffoldWithNavBar extends StatelessWidget {
-  final Widget child;
+class ScaffoldWithNavBar extends StatefulWidget {
   const ScaffoldWithNavBar({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<ScaffoldWithNavBar> createState() => _ScaffoldWithNavBarState();
+}
+
+class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
+  bool _isMoreSheetOpen = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.sizeOf(context).width;
     final useRail = width >= 900;
-    final useCompactNav = !useRail && width < 780;
 
-    return Scaffold(
-      body: useRail
-          ? Row(
-              children: [
-                NavigationRail(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  indicatorColor:
-                      Theme.of(context).colorScheme.primaryContainer,
-                  selectedIndex: _calculateSelectedIndex(context),
-                  onDestinationSelected: (index) =>
-                      _onItemTapped(index, context),
-                  labelType: NavigationRailLabelType.all,
-                  destinations: [
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.home_outlined),
-                      selectedIcon: const Icon(Icons.home),
-                      label: Text(l10n.navHome),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.receipt_long_outlined),
-                      selectedIcon: const Icon(Icons.receipt_long),
-                      label: Text(l10n.transactionsTitle),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.account_balance_wallet_outlined),
-                      selectedIcon: const Icon(Icons.account_balance_wallet),
-                      label: Text(l10n.navBudgets),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.savings_outlined),
-                      selectedIcon: const Icon(Icons.savings),
-                      label: Text(l10n.navSavings),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.subscriptions_outlined),
-                      selectedIcon: const Icon(Icons.subscriptions),
-                      label: Text(l10n.navSubscriptions),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.description_outlined),
-                      selectedIcon: const Icon(Icons.description),
-                      label: Text(l10n.reportsTitle),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.insights_outlined),
-                      selectedIcon: const Icon(Icons.insights),
-                      label: Text(l10n.navInsights),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.settings_outlined),
-                      selectedIcon: const Icon(Icons.settings),
-                      label: Text(l10n.settings),
-                    ),
-                  ],
+    if (useRail) {
+      return Scaffold(
+        body: Row(
+          children: [
+            NavigationRail(
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              indicatorColor: Theme.of(context).colorScheme.primaryContainer,
+              selectedIndex: _calculateRailSelectedIndex(context),
+              onDestinationSelected: (index) => _onRailItemTapped(index),
+              labelType: NavigationRailLabelType.all,
+              destinations: [
+                NavigationRailDestination(
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  selectedIcon: const Icon(Icons.receipt_long_rounded),
+                  label: Text(l10n.transactionsTitle),
                 ),
-                const VerticalDivider(width: 1),
-                Expanded(child: child),
+                NavigationRailDestination(
+                  icon: const Icon(Icons.account_balance_wallet_outlined),
+                  selectedIcon:
+                      const Icon(Icons.account_balance_wallet_rounded),
+                  label: Text(l10n.navBudgets),
+                ),
+                NavigationRailDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home_rounded),
+                  label: Text(l10n.navHome),
+                ),
+                NavigationRailDestination(
+                  icon: const Icon(Icons.savings_outlined),
+                  selectedIcon: const Icon(Icons.savings_rounded),
+                  label: Text(l10n.navSavings),
+                ),
+                const NavigationRailDestination(
+                  icon: Icon(AppIcons.moreGrid),
+                  selectedIcon: Icon(AppIcons.moreGridFilled),
+                  label: Text('More'),
+                ),
               ],
-            )
-          : child,
-      extendBody: !useRail,
-      bottomNavigationBar: useRail
-          ? null
-          : useCompactNav
-              ? _buildCompactNavBar(
-                  context,
-                  _calculateSelectedIndex(context, compact: true),
-                )
-              : Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    0,
-                    20,
-                    16 + MediaQuery.paddingOf(context).bottom,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(UiTokens.radius2xl),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                      child: NavigationBar(
-                        selectedIndex: _calculateSelectedIndex(context),
-                        onDestinationSelected: (index) =>
-                            _onItemTapped(index, context),
-                        destinations: [
-                          NavigationDestination(
-                            icon: const Icon(Icons.home_outlined),
-                            selectedIcon: const Icon(Icons.home),
-                            label: l10n.navHome,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(Icons.receipt_long_outlined),
-                            selectedIcon: const Icon(Icons.receipt_long),
-                            label: l10n.transactionsTitle,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(
-                                Icons.account_balance_wallet_outlined),
-                            selectedIcon:
-                                const Icon(Icons.account_balance_wallet),
-                            label: l10n.navBudgets,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(Icons.savings_outlined),
-                            selectedIcon: const Icon(Icons.savings),
-                            label: l10n.navSavings,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(Icons.subscriptions_outlined),
-                            selectedIcon: const Icon(Icons.subscriptions),
-                            label: l10n.navSubscriptions,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(Icons.description_outlined),
-                            selectedIcon: const Icon(Icons.description),
-                            label: l10n.reportsTitle,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(Icons.insights_outlined),
-                            selectedIcon: const Icon(Icons.insights),
-                            label: l10n.navInsights,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(Icons.settings_outlined),
-                            selectedIcon: const Icon(Icons.settings),
-                            label: l10n.settings,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-    );
-  }
-
-  // Compact bar layout:
-  //  0=Txns | 1=Budgets | 2=Home(center) | 3=Savings | 4=More
-  int _calculateSelectedIndex(BuildContext context, {bool compact = false}) {
-    final location = GoRouterState.of(context).matchedLocation;
-    if (compact) {
-      if (location == '/') return 2;
-      if (location.startsWith('/transactions')) return 0;
-      if (location.startsWith('/budgets')) return 1;
-      if (location.startsWith('/savings')) return 3;
-      // everything else falls under More
-      return 4;
-    }
-
-    if (location.startsWith('/transactions')) return 1;
-    if (location.startsWith('/budgets')) return 2;
-    if (location.startsWith('/savings')) return 3;
-    if (location.startsWith('/subscriptions')) return 4;
-    if (location.startsWith('/reports')) return 5;
-    if (location.startsWith('/insights')) return 6;
-    if (location.startsWith('/balance-sheet')) return 6;
-    if (location.startsWith('/settings')) return 7;
-    if (location.startsWith('/exchange-rates')) return 7;
-    if (location.startsWith('/health')) return 0;
-    if (location.startsWith('/security')) return 7;
-    return 0;
-  }
-
-  void _onItemTapped(int index, BuildContext context) {
-    switch (index) {
-      case 0:
-        GoRouter.of(context).go('/');
-        break;
-      case 1:
-        GoRouter.of(context).go('/transactions');
-        break;
-      case 2:
-        GoRouter.of(context).go('/budgets');
-        break;
-      case 3:
-        GoRouter.of(context).go('/savings');
-        break;
-      case 4:
-        GoRouter.of(context).go('/subscriptions');
-        break;
-      case 5:
-        GoRouter.of(context).go('/reports');
-        break;
-      case 6:
-        GoRouter.of(context).go('/insights');
-        break;
-      case 7:
-        GoRouter.of(context).go('/settings');
-        break;
-    }
-  }
-
-  Future<void> _onCompactItemTapped(int index, BuildContext context) async {
-    switch (index) {
-      case 0:
-        GoRouter.of(context).go('/transactions');
-        break;
-      case 1:
-        GoRouter.of(context).go('/budgets');
-        break;
-      case 2:
-        GoRouter.of(context).go('/');
-        break;
-      case 3:
-        GoRouter.of(context).go('/savings');
-        break;
-      case 4:
-        await _showMoreSheet(context);
-        break;
-    }
-  }
-
-  Widget _buildCompactNavBar(BuildContext context, int selectedIndex) {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    Widget navItem({
-      required IconData icon,
-      required IconData selectedIcon,
-      required String label,
-      required int index,
-    }) {
-      final selected = selectedIndex == index;
-      return Expanded(
-        child: Semantics(
-          button: true,
-          selected: selected,
-          label: label,
-          child: InkWell(
-            onTap: () => _onCompactItemTapped(index, context),
-            borderRadius: BorderRadius.circular(18),
-            child: AnimatedContainer(
-              duration: UiTokens.motionFast,
-              curve: UiTokens.motionCurve,
-              margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
-              padding: const EdgeInsets.symmetric(vertical: 7),
-              decoration: BoxDecoration(
-                color: selected
-                    ? colorScheme.primary.withOpacity(0.10)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedScale(
-                    duration: UiTokens.motionFast,
-                    curve: UiTokens.motionCurve,
-                    scale: selected ? 1.06 : 1,
-                    child: Icon(
-                      selected ? selectedIcon : icon,
-                      size: 23,
-                      color: selected
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    label,
-                    style: textTheme.labelSmall?.copyWith(
-                      color: selected
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
             ),
-          ),
+            const VerticalDivider(width: 1),
+            Expanded(child: widget.child),
+          ],
         ),
       );
     }
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        0,
-        16,
-        14 + MediaQuery.paddingOf(context).bottom,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(UiTokens.radius2xl),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-          child: Container(
-            height: 72,
-            decoration: AppSurfaces.elevated(
-              context,
-              radius: UiTokens.radius2xl,
-              color: colorScheme.surface.withOpacity(0.90),
-              blur: 34,
-              offsetY: 16,
-              opacity: 0.14,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                navItem(
-                  icon: Icons.receipt_long_outlined,
-                  selectedIcon: Icons.receipt_long,
-                  label: l10n.navTxns,
-                  index: 0,
-                ),
-                navItem(
-                  icon: Icons.account_balance_wallet_outlined,
-                  selectedIcon: Icons.account_balance_wallet,
-                  label: l10n.navBudgets,
-                  index: 1,
-                ),
-                // Center Home button
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _onCompactItemTapped(2, context),
-                    behavior: HitTestBehavior.opaque,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedContainer(
-                          duration: UiTokens.motionFast,
-                          curve: UiTokens.motionCurve,
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            gradient: selectedIndex == 2
-                                ? const LinearGradient(
-                                    colors: [
-                                      Color(0xFF6D5DF6),
-                                      Color(0xFF9B5CFF),
-                                    ],
-                                  )
-                                : null,
-                            color: selectedIndex == 2
-                                ? null
-                                : colorScheme.primaryContainer,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    colorScheme.primary.withOpacity(0.35),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.home,
-                            size: 26,
-                            color: selectedIndex == 2
-                                ? colorScheme.onPrimary
-                                : colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                navItem(
-                  icon: Icons.savings_outlined,
-                  selectedIcon: Icons.savings,
-                  label: l10n.navSavings,
-                  index: 3,
-                ),
-                navItem(
-                  icon: Icons.grid_view_outlined,
-                  selectedIcon: Icons.grid_view,
-                  label: l10n.navMore,
-                  index: 4,
-                ),
-              ],
-            ),
-          ),
-        ),
+    return Scaffold(
+      body: widget.child,
+      bottomNavigationBar: AppBottomNavigation(
+        currentIndex: _calculateBottomIndex(context),
+        moreTemporarilyActive: _isMoreSheetOpen,
+        onTabSelected: _onBottomTabSelected,
       ),
     );
   }
 
-  Future<void> _showMoreSheet(BuildContext context) async {
+  int _calculateBottomIndex(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    if (location.startsWith('/transactions')) return 0;
+    if (location.startsWith('/budgets')) return 1;
+    if (location == '/' || location.startsWith('/health')) return 2;
+    if (location.startsWith('/savings')) return 3;
+    if (location.startsWith('/reports') ||
+        location.startsWith('/subscriptions') ||
+        location.startsWith('/settings') ||
+        location.startsWith('/security') ||
+        location.startsWith('/legal') ||
+        location.startsWith('/insights') ||
+        location.startsWith('/notifications') ||
+        location.startsWith('/exchange-rates') ||
+        location.startsWith('/balance-sheet')) {
+      return 4;
+    }
+    return 2;
+  }
+
+  int _calculateRailSelectedIndex(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    if (location.startsWith('/transactions')) return 0;
+    if (location.startsWith('/budgets')) return 1;
+    if (location == '/' || location.startsWith('/health')) return 2;
+    if (location.startsWith('/savings')) return 3;
+    return 4;
+  }
+
+  void _onRailItemTapped(int index) {
+    switch (index) {
+      case 0:
+        GoRouter.of(context).go('/transactions');
+        break;
+      case 1:
+        GoRouter.of(context).go('/budgets');
+        break;
+      case 2:
+        GoRouter.of(context).go('/');
+        break;
+      case 3:
+        GoRouter.of(context).go('/savings');
+        break;
+      case 4:
+        _onBottomTabSelected(4);
+        break;
+    }
+  }
+
+  Future<void> _onBottomTabSelected(int index) async {
+    switch (index) {
+      case 0:
+        GoRouter.of(context).go('/transactions');
+        break;
+      case 1:
+        GoRouter.of(context).go('/budgets');
+        break;
+      case 2:
+        GoRouter.of(context).go('/');
+        break;
+      case 3:
+        GoRouter.of(context).go('/savings');
+        break;
+      case 4:
+        if (mounted) {
+          setState(() => _isMoreSheetOpen = true);
+        }
+        await _showMoreSheet();
+        if (mounted) {
+          setState(() => _isMoreSheetOpen = false);
+        }
+        break;
+    }
+  }
+
+  Future<void> _showMoreSheet() async {
     final l10n = AppLocalizations.of(context)!;
     final router = GoRouter.of(context);
+
     await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        final colorScheme = Theme.of(context).colorScheme;
-        final entries = [
-          _MoreSheetEntry(
-            icon: Icons.subscriptions_outlined,
-            label: l10n.navSubscriptions,
-            route: '/subscriptions',
-            color: colorScheme.primary,
-          ),
-          _MoreSheetEntry(
-            icon: Icons.description_outlined,
-            label: l10n.reportsTitle,
-            route: '/reports',
-            color: const Color(0xFF14B8A6),
-          ),
-          _MoreSheetEntry(
-            icon: Icons.insights_outlined,
-            label: l10n.navInsights,
-            route: '/insights',
-            color: const Color(0xFFF59E0B),
-          ),
-          _MoreSheetEntry(
-            icon: Icons.account_balance_rounded,
-            label: l10n.navBalanceSheet,
-            route: '/balance-sheet',
-            color: const Color(0xFF22C55E),
-          ),
-          _MoreSheetEntry(
-            icon: Icons.currency_exchange_rounded,
-            label: l10n.navExchangeRates,
-            route: '/exchange-rates',
-            color: const Color(0xFF8B5CF6),
-          ),
-          _MoreSheetEntry(
-            icon: Icons.settings_outlined,
-            label: l10n.settings,
-            route: '/settings',
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ];
+      builder: (sheetContext) {
+        final colorScheme = Theme.of(sheetContext).colorScheme;
+        final textTheme = Theme.of(sheetContext).textTheme;
+        final container = ProviderScope.containerOf(sheetContext);
+        var isDarkMode =
+            container.read(themeModeControllerProvider) == ThemeMode.dark;
 
-        return SafeArea(
+        void goTo(String route) {
+          Navigator.of(sheetContext).pop();
+          router.go(route);
+        }
+
+        void pushTo(String route) {
+          Navigator.of(sheetContext).pop();
+          router.push(route);
+        }
+
+        Future<void> openHelpWebsite() async {
+          final websiteUri = Uri.parse('https://www.smaartspend.com');
+          final launched = await launchUrl(
+            websiteUri,
+            mode: LaunchMode.externalApplication,
+          );
+          if (!launched && sheetContext.mounted) {
+            ScaffoldMessenger.of(sheetContext).showSnackBar(
+              const SnackBar(
+                content: Text('Unable to open website right now.'),
+              ),
+            );
+          }
+        }
+
+        return AnimatedPadding(
+          duration: UiTokens.motionFast,
+          curve: UiTokens.motionCurve,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+          ),
           child: Container(
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colorScheme.onSurface.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(UiTokens.radius2xl),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withValues(alpha: 0.14),
+                  blurRadius: 24,
+                  offset: const Offset(0, -8),
                 ),
-                const SizedBox(height: 24),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.9,
-                  ),
-                  itemCount: entries.length,
-                  itemBuilder: (context, index) {
-                    final entry = entries[index];
-                    return _MoreGridTile(
-                      icon: entry.icon,
-                      label: entry.label,
-                      color: entry.color,
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        router.go(entry.route);
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
               ],
+            ),
+            child: SafeArea(
+              top: false,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.86,
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 38,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: colorScheme.outline.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: UiTokens.space12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'More',
+                              style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            icon: const Icon(Icons.close_rounded),
+                            tooltip: MaterialLocalizations.of(sheetContext)
+                                .closeButtonTooltip,
+                          ),
+                        ],
+                      ),
+                      const _MoreSectionHeader(title: 'Account'),
+                      AppSettingsTile(
+                        icon: AppIcons.settingsFilled,
+                        title: l10n.settings,
+                        onTap: () => goTo('/settings'),
+                      ),
+                      const SizedBox(height: UiTokens.space8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _MoreQuickAction(
+                              icon: AppIcons.subscriptionsFilled,
+                              label: l10n.navSubscriptions,
+                              onTap: () => goTo('/subscriptions'),
+                            ),
+                          ),
+                          const SizedBox(width: UiTokens.space8),
+                          Expanded(
+                            child: _MoreQuickAction(
+                              icon: AppIcons.reportsFilled,
+                              label: l10n.reportsTitle,
+                              onTap: () => goTo('/reports'),
+                            ),
+                          ),
+                          const SizedBox(width: UiTokens.space8),
+                          Expanded(
+                            child: _MoreQuickAction(
+                              icon: AppIcons.exchangeRates,
+                              label: l10n.navExchangeRates,
+                              onTap: () => goTo('/exchange-rates'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: UiTokens.space16),
+                      AppSettingsTile(
+                        icon: Icons.lock_outline_rounded,
+                        title: 'Authentication settings',
+                        onTap: () => goTo('/security'),
+                      ),
+                      const SizedBox(height: UiTokens.space12),
+                      const _MoreSectionHeader(title: 'Support'),
+                      StatefulBuilder(
+                        builder: (context, setTileState) {
+                          Future<void> updateTheme(bool value) async {
+                            setTileState(() => isDarkMode = value);
+                            await container
+                                .read(themeModeControllerProvider.notifier)
+                                .setThemeMode(
+                                  value ? ThemeMode.dark : ThemeMode.light,
+                                );
+                          }
+
+                          return AppSettingsTile(
+                            icon: Icons.dark_mode_rounded,
+                            title: 'Dark Mode Settings',
+                            subtitle: isDarkMode ? 'Night mode' : 'Light mode',
+                            trailing: Switch.adaptive(
+                              value: isDarkMode,
+                              onChanged: updateTheme,
+                            ),
+                            onTap: () => updateTheme(!isDarkMode),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: UiTokens.space8),
+                      AppSettingsTile(
+                        icon: Icons.help_outline_rounded,
+                        title: 'Help / Feedback',
+                        onTap: openHelpWebsite,
+                      ),
+                      const SizedBox(height: UiTokens.space8),
+                      AppSettingsTile(
+                        icon: Icons.gavel_rounded,
+                        title: l10n.legalCenterTitle,
+                        onTap: () => pushTo('/legal'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         );
@@ -763,80 +613,74 @@ class ScaffoldWithNavBar extends StatelessWidget {
   }
 }
 
-class _MoreSheetEntry {
-  const _MoreSheetEntry({
-    required this.icon,
-    required this.label,
-    required this.route,
-    required this.color,
-  });
-  final IconData icon;
-  final String label;
-  final String route;
-  final Color color;
-}
+class _MoreSectionHeader extends StatelessWidget {
+  const _MoreSectionHeader({required this.title});
 
-class _MoreGridTile extends StatelessWidget {
-  const _MoreGridTile({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: color, size: 24),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                        height: 1.2,
-                      ),
-                ),
-              ),
-            ],
-          ),
-        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withValues(alpha: 0.9),
+            ),
       ),
     );
   }
 }
 
+class _MoreQuickAction extends StatelessWidget {
+  const _MoreQuickAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
 
+    return InkWell(
+      borderRadius: BorderRadius.circular(UiTokens.radiusLg),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: UiTokens.space8,
+          vertical: UiTokens.space12,
+        ),
+        decoration: BoxDecoration(
+          color: colorScheme.primary.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(UiTokens.radiusLg),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: colorScheme.primary, size: 20),
+            const SizedBox(height: UiTokens.space4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

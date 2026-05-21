@@ -43,13 +43,15 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: l10n.securitySettingsTitle),
         ),
-        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -65,7 +67,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withOpacity(0.08),
+                          color: colorScheme.surface.withValues(alpha: 0.08),
                         ),
                       ),
                     )
@@ -163,26 +165,47 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                 (settings.sessionTimeout / 60).round(),
                               ),
                             ),
-                            trailing: DropdownButton<int>(
-                              value: settings.sessionTimeout,
-                              items: const [300, 600, 900, 1800]
-                                  .map(
-                                    (seconds) => DropdownMenuItem(
-                                      value: seconds,
-                                      child: Text(
-                                        l10n.securityMinutesShort(
-                                            seconds ~/ 60),
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                )
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .outlineVariant,
+                                ),
+                              ),
+                              child: DropdownButton<int>(
+                                value: settings.sessionTimeout,
+                                underline: const SizedBox(),
+                                items: const [300, 600, 900, 1800]
+                                    .map(
+                                      (seconds) => DropdownMenuItem(
+                                        value: seconds,
+                                        child: Text(
+                                          l10n.securityMinutesShort(
+                                              seconds ~/ 60),
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) async {
-                                if (value == null) return;
-                                await ref
-                                    .read(securityServiceProvider)
-                                    .updateSessionTimeout(value);
-                                ref.invalidate(securitySettingProvider);
-                              },
+                                    )
+                                    .toList(),
+                                onChanged: (value) async {
+                                  if (value == null) return;
+                                  await ref
+                                      .read(securityServiceProvider)
+                                      .updateSessionTimeout(value);
+                                  ref.invalidate(securitySettingProvider);
+                                },
+                              ),
                             ),
                           ),
                           Divider(
@@ -200,23 +223,44 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                 settings.maxFailedAttempts,
                               ),
                             ),
-                            trailing: DropdownButton<int>(
-                              value: settings.maxFailedAttempts,
-                              items: const [3, 5, 7, 10]
-                                  .map(
-                                    (attempts) => DropdownMenuItem(
-                                      value: attempts,
-                                      child: Text('$attempts'),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) async {
-                                if (value == null) return;
-                                await ref
-                                    .read(securityServiceProvider)
-                                    .updateMaxFailedAttempts(value);
-                                ref.invalidate(securitySettingProvider);
-                              },
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                )
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .outlineVariant,
+                                ),
+                              ),
+                              child: DropdownButton<int>(
+                                value: settings.maxFailedAttempts,
+                                underline: const SizedBox(),
+                                items: const [3, 5, 7, 10]
+                                    .map(
+                                      (attempts) => DropdownMenuItem(
+                                        value: attempts,
+                                        child: Text('$attempts'),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) async {
+                                  if (value == null) return;
+                                  await ref
+                                      .read(securityServiceProvider)
+                                      .updateMaxFailedAttempts(value);
+                                  ref.invalidate(securitySettingProvider);
+                                },
+                              ),
                             ),
                           ),
                         ],
@@ -313,7 +357,3 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
     );
   }
 }
-
-
-
-

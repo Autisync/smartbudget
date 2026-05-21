@@ -56,7 +56,7 @@ class InsightCard extends StatelessWidget {
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.72),
+                            .withValues(alpha: 0.72),
                       ),
                 ),
               ],

@@ -370,11 +370,11 @@ class _InsightMetricChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.08),
+        color: colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.12),
+            color: colorScheme.primary.withValues(alpha: 0.12),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),

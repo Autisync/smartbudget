@@ -65,13 +65,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            color: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0.0,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: BrandedTitle(label: l10n.reportsTitle),
         ),
-        backgroundColor: colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0.0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -87,7 +89,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
-                          color: colorScheme.surface.withOpacity(0.08),
+                          color: colorScheme.surface.withValues(alpha: 0.08),
                         ),
                       ),
                     )
@@ -97,13 +99,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         ),
         actions: [
           NotificationBellButton(
-            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0.0,
             ),
             onPressed: () => context.push('/notifications'),
           ),
           IconButton(
             style: IconButton.styleFrom(
-              backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(_isAppBarScrolled ? 0.9 : 0,
+              backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+                alpha: _isAppBarScrolled ? 0.9 : 0.0,
               ),
             ),
             icon: const Icon(Icons.ios_share_rounded),
@@ -131,7 +135,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   color: Theme.of(context)
                       .colorScheme
                       .surfaceContainerHighest
-                      .withOpacity(0.7),
+                      .withValues(alpha: 0.7),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -340,8 +344,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final iconBadgeColor =
-        isDark ? colorScheme.primary.withOpacity(0.85) : colorScheme.primary;
+    final iconBadgeColor = isDark
+        ? colorScheme.primary.withValues(alpha: 0.85)
+        : colorScheme.primary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -357,7 +362,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.12),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.12),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -449,14 +454,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     color: Theme.of(context)
                         .colorScheme
                         .surfaceContainerHighest
-                        .withOpacity(0.5),
+                        .withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
                         color: Theme.of(context)
                             .colorScheme
                             .shadow
-                            .withOpacity(0.06),
+                            .withValues(alpha: 0.06),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -1135,11 +1140,12 @@ class _ReportMetricChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.14),
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1199,5 +1205,3 @@ class _GeneratedReportEntry {
   final DateTime generatedAt;
   final IconData icon;
 }
-
-

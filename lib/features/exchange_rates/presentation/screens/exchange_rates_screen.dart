@@ -149,10 +149,27 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         key: ValueKey('base-$_baseCurrency'),
-                        value: _baseCurrency,
+                        initialValue: _baseCurrency,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.exchangeRatesFrom,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color:
+                                  Theme.of(context).colorScheme.outlineVariant,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
                         ),
                         items: _currencies
                             .map(
@@ -178,10 +195,27 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         key: ValueKey('target-$_targetCurrency'),
-                        value: _targetCurrency,
+                        initialValue: _targetCurrency,
                         icon: InputStyles.dropdownIcon(context),
                         decoration: InputDecoration(
                           labelText: l10n.exchangeRatesTo,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color:
+                                  Theme.of(context).colorScheme.outlineVariant,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
                         ),
                         items: _currencies
                             .map(
@@ -339,7 +373,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                                         color: Theme.of(context)
                                             .colorScheme
                                             .primary
-                                            .withOpacity(0.12),
+                                            .withValues(alpha: 0.12),
                                       ),
                                     ),
                                   ],
@@ -355,7 +389,3 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
     );
   }
 }
-
-
-
-
