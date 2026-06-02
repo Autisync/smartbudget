@@ -1,15 +1,15 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/locale_service.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/balance_sheet/presentation/screens/recurring_balance_sheet_screen.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
@@ -49,27 +49,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
 
       if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open email app on this device.'),
-          ),
+        AppFeedbackService.showWarning(
+          context,
+          'Could not open email app on this device.',
         );
       }
     } on MissingPluginException {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Email plugin not ready yet. Please fully restart the app and try again.',
-          ),
-        ),
+      AppFeedbackService.showWarning(
+        context,
+        'Email plugin not ready yet. Please fully restart the app and try again.',
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to open email app right now.'),
-        ),
+      AppFeedbackService.showError(
+        context,
+        'Unable to open email app right now.',
       );
     }
   }
@@ -87,6 +82,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final normalizedNextCurrency = nextCurrency.toUpperCase();
     if (currentCurrency == normalizedNextCurrency) return;
 
+    AppFeedbackService.showLoading(
+      context,
+      'Syncing data and converting currency...',
+    );
     try {
       await ref.read(currencyMigrationServiceProvider).migrateAllData(
             fromCurrency: currentCurrency,
@@ -116,16 +115,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ref.invalidate(recurringBalanceSheetProvider);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Currency updated to $normalizedNextCurrency.')),
+        AppFeedbackService.showSuccess(
+          context,
+          'Currency updated to $normalizedNextCurrency.',
         );
       }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to convert currency: $error')),
+      AppFeedbackService.showError(
+        context,
+        'Unable to convert currency: $error',
       );
+    } finally {
+      AppFeedbackService.dismissLoading();
     }
   }
 
@@ -142,17 +144,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }) async {
     final colorScheme = Theme.of(context).colorScheme;
 
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+    await AppFormSheet.show<void>(
+      context,
       builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+        return AppFormSheet(
+          maxHeightFactor: 0.86,
+          bodyPadding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+          body: SafeArea(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,6 +309,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     await ref
                         .read(themeModeControllerProvider.notifier)
                         .setThemeMode(selected);
+                    if (!mounted) return;
+                    AppFeedbackService.showSuccess(
+                      context,
+                      'Appearance updated.',
+                    );
                   },
                 ),
                 _MoreActionTile(
@@ -350,6 +353,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     await ref
                         .read(appLocaleControllerProvider.notifier)
                         .setLanguageCode(selected);
+                    if (!mounted) return;
+                    AppFeedbackService.showSuccess(
+                      context,
+                      'Language updated.',
+                    );
                   },
                 ),
                 _MoreActionTile(
@@ -457,87 +465,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLowest,
       appBar: AppBar(
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          padding: EdgeInsets.zero,
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.0),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            'Settings',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontSize: 38,
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
+        title: buildFrostedAppBarTitle(
+          context: context,
+          title: l10n.settings,
+          isScrolled: _isAppBarScrolled,
         ),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              final selected = await showDialog<ThemeMode>(
-                context: context,
-                builder: (context) {
-                  return SimpleDialog(
-                    title: Text(l10n.settingsAppearance),
-                    children: [
-                      RadioGroup<ThemeMode>(
-                        groupValue: themeMode,
-                        onChanged: (value) => Navigator.of(context).pop(value),
-                        child: Column(
-                          children: [
-                            RadioListTile<ThemeMode>(
-                              value: ThemeMode.system,
-                              title: Text(l10n.themeSystem),
-                            ),
-                            RadioListTile<ThemeMode>(
-                              value: ThemeMode.light,
-                              title: Text(l10n.themeLight),
-                            ),
-                            RadioListTile<ThemeMode>(
-                              value: ThemeMode.dark,
-                              title: Text(l10n.themeDark),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              );
-              if (selected == null) return;
-              await ref
-                  .read(themeModeControllerProvider.notifier)
-                  .setThemeMode(selected);
-            },
-            icon: const Icon(Icons.settings_rounded),
-            tooltip: l10n.settings,
-          ),
-        ],
+        actions: buildPageHeaderActions(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+        ),
         backgroundColor: colorScheme.surface
             .withValues(alpha: _isAppBarScrolled ? 0.88 : 0.0),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        flexibleSpace: Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _isAppBarScrolled
-                  ? ClipRect(
-                      key: const ValueKey('settings-appbar-blur-on'),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(key: ValueKey('settings-appbar-blur-off')),
-            ),
-          ],
+        flexibleSpace: buildFrostedFlexibleSpace(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+          onKey: 'settings-appbar-blur-on',
+          offKey: 'settings-appbar-blur-off',
         ),
       ),
       body: NotificationListener<ScrollNotification>(
@@ -765,10 +711,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: 'Tell a friend',
                     tileVerticalPadding: 12,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Referral sharing coming soon.'),
-                        ),
+                      AppFeedbackService.showInfo(
+                        context,
+                        'Referral sharing coming soon.',
                       );
                     },
                   ),
@@ -938,6 +883,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         .read(
                             notificationPreferencesControllerProvider.notifier)
                         .setEnabled(!notificationPrefs.enabled);
+                    if (!mounted) return;
+                    AppFeedbackService.showSuccess(
+                      this.context,
+                      notificationPrefs.enabled
+                          ? 'Notifications disabled.'
+                          : 'Notifications enabled.',
+                    );
                   },
                 ),
               ],
@@ -975,6 +927,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     await ref.read(onboardingServiceProvider).resetOnboarding();
                     ref.invalidate(onboardingStatusProvider);
                     if (!mounted) return;
+                    AppFeedbackService.showSuccess(
+                      this.context,
+                      'Onboarding restarted.',
+                    );
                     router.go('/onboarding');
                   },
                 ),

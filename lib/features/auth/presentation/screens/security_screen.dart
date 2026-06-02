@@ -1,14 +1,13 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/widgets/app_feedback.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/security_provider.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class SecurityScreen extends ConsumerStatefulWidget {
@@ -20,6 +19,7 @@ class SecurityScreen extends ConsumerStatefulWidget {
 
 class _SecurityScreenState extends ConsumerState<SecurityScreen> {
   bool _isAppBarScrolled = false;
+  bool _isTogglingBiometric = false;
 
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
@@ -36,19 +36,12 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
     final logsAsync = ref.watch(authLogsProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: BrandedTitle(label: l10n.securitySettingsTitle),
+        title: buildFrostedAppBarTitle(
+          context: context,
+          title: l10n.securitySettingsTitle,
+          isScrolled: _isAppBarScrolled,
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -56,24 +49,15 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        flexibleSpace: Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _isAppBarScrolled
-                  ? ClipRect(
-                      key: const ValueKey('security-appbar-blur-on'),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(key: ValueKey('security-appbar-blur-off')),
-            ),
-          ],
+        flexibleSpace: buildFrostedFlexibleSpace(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+          onKey: 'security-appbar-blur-on',
+          offKey: 'security-appbar-blur-off',
+        ),
+        actions: buildPageHeaderActions(
+          context: context,
+          isScrolled: _isAppBarScrolled,
         ),
       ),
       body: NotificationListener<ScrollNotification>(
@@ -113,42 +97,51 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                             title: Text(l10n.securityBiometricAuth),
                             subtitle: Text(l10n.securityBiometricAuthSubtitle),
                             value: settings.biometricEnabled,
-                            onChanged: (value) async {
-                              final result = await ref
-                                  .read(authControllerProvider.notifier)
-                                  .enableBiometric(value);
+                            onChanged: _isTogglingBiometric
+                                ? null
+                                : (value) async {
+                                    setState(() => _isTogglingBiometric = true);
+                                    try {
+                                      final result = await ref
+                                          .read(authControllerProvider.notifier)
+                                          .enableBiometric(value);
 
-                              if (!context.mounted) return;
+                                      if (!context.mounted) return;
 
-                              if (value &&
-                                  result != bio.AuthStatus.authenticated) {
-                                final message = switch (result) {
-                                  bio.AuthStatus.notAvailable =>
-                                    'Biometric authentication is not available on this device.',
-                                  bio.AuthStatus.noBiometricsEnrolled =>
-                                    'No biometrics are enrolled on this device.',
-                                  bio.AuthStatus.lockedOut =>
-                                    'Biometric authentication is temporarily locked.',
-                                  bio.AuthStatus.permanentlyLockedOut =>
-                                    'Biometric authentication is locked. Unlock with device passcode first.',
-                                  bio.AuthStatus.denied =>
-                                    'Biometric setup was not confirmed.',
-                                  bio.AuthStatus.error =>
-                                    'Could not enable biometric authentication.',
-                                  bio.AuthStatus.authenticated =>
-                                    'Biometric authentication enabled.',
-                                };
-                                AppFeedback.show(
-                                  context,
-                                  message: message,
-                                  type: result == bio.AuthStatus.authenticated
-                                      ? AppFeedbackType.success
-                                      : AppFeedbackType.warning,
-                                );
-                              }
+                                      if (value &&
+                                          result != bio.AuthStatus.authenticated) {
+                                        final message = switch (result) {
+                                          bio.AuthStatus.notAvailable =>
+                                            'Biometric authentication is not available on this device.',
+                                          bio.AuthStatus.noBiometricsEnrolled =>
+                                            'No biometrics are enrolled on this device.',
+                                          bio.AuthStatus.lockedOut =>
+                                            'Biometric authentication is temporarily locked.',
+                                          bio.AuthStatus.permanentlyLockedOut =>
+                                            'Biometric authentication is locked. Unlock with device passcode first.',
+                                          bio.AuthStatus.denied =>
+                                            'Biometric setup was not confirmed.',
+                                          bio.AuthStatus.error =>
+                                            'Could not enable biometric authentication.',
+                                          bio.AuthStatus.authenticated =>
+                                            'Biometric authentication enabled.',
+                                        };
+                                        AppFeedback.show(
+                                          context,
+                                          message: message,
+                                          type: result == bio.AuthStatus.authenticated
+                                              ? AppFeedbackType.success
+                                              : AppFeedbackType.warning,
+                                        );
+                                      }
 
-                              ref.invalidate(securitySettingProvider);
-                            },
+                                      ref.invalidate(securitySettingProvider);
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() => _isTogglingBiometric = false);
+                                      }
+                                    }
+                                  },
                           ),
                           Divider(
                             height: 1,
@@ -165,35 +158,17 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                 (settings.sessionTimeout / 60).round(),
                               ),
                             ),
-                            trailing: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                )
-                                    .colorScheme
-                                    .surfaceContainerHighest
-                                    .withValues(alpha: 0.5),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .outlineVariant,
-                                ),
-                              ),
-                              child: DropdownButton<int>(
+                            trailing: SizedBox(
+                              width: 148,
+                              child: AppDropdown<int>(
                                 value: settings.sessionTimeout,
-                                underline: const SizedBox(),
+                                label: 'Timeout',
                                 items: const [300, 600, 900, 1800]
                                     .map(
                                       (seconds) => DropdownMenuItem(
                                         value: seconds,
                                         child: Text(
-                                          l10n.securityMinutesShort(
-                                              seconds ~/ 60),
+                                          l10n.securityMinutesShort(seconds ~/ 60),
                                         ),
                                       ),
                                     )
@@ -223,28 +198,11 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                 settings.maxFailedAttempts,
                               ),
                             ),
-                            trailing: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                )
-                                    .colorScheme
-                                    .surfaceContainerHighest
-                                    .withValues(alpha: 0.5),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .outlineVariant,
-                                ),
-                              ),
-                              child: DropdownButton<int>(
+                            trailing: SizedBox(
+                              width: 110,
+                              child: AppDropdown<int>(
                                 value: settings.maxFailedAttempts,
-                                underline: const SizedBox(),
+                                label: 'Attempts',
                                 items: const [3, 5, 7, 10]
                                     .map(
                                       (attempts) => DropdownMenuItem(

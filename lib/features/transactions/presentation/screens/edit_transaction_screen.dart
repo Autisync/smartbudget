@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
-import 'package:smartbudget/features/transactions/presentation/screens/add_transaction_screen.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/features/transactions/presentation/widgets/transaction_form_sheet.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class EditTransactionScreen extends ConsumerWidget {
@@ -26,17 +26,36 @@ class EditTransactionScreen extends ConsumerWidget {
         if (snapshot.hasError || snapshot.data == null) {
           return Scaffold(
             appBar: AppBar(
-                title: BrandedTitle(label: l10n.transactionsEditTransaction)),
+              title: buildFrostedAppBarTitle(
+                context: context,
+                title: l10n.transactionsEditTransaction,
+                isScrolled: false,
+              ),
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              flexibleSpace: buildFrostedFlexibleSpace(
+                context: context,
+                isScrolled: false,
+                onKey: 'edit-tx-appbar-blur-on',
+                offKey: 'edit-tx-appbar-blur-off',
+              ),
+              actions: buildPageHeaderActions(
+                context: context,
+                isScrolled: false,
+              ),
+            ),
             body: Center(child: Text(l10n.transactionsNotFound)),
           );
         }
 
-        return AddTransactionScreen(existingTransaction: snapshot.data);
+        return TransactionFormSheet(
+          mode: TransactionFormMode.update,
+          initialData: snapshot.data,
+          asModal: true,
+        );
       },
     );
   }
 }
-
-
-
-

@@ -1,15 +1,21 @@
-import 'dart:ui';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
+import 'package:smartbudget/components/dialogs/confirm_action_dialog.dart';
+import 'package:smartbudget/components/forms/form_components.dart';
+import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
+import 'package:smartbudget/components/sheets/app_bottom_action_sheet.dart';
+import 'package:smartbudget/components/sheets/keyboard_aware_form_sheet.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/core/widgets/app_feedback.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
-import 'package:smartbudget/core/widgets/form_date_field.dart';
-import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/savings/presentation/providers/savings_provider.dart';
 import 'package:smartbudget/domain/entities/savings_goal.dart';
 import 'package:smartbudget/data/models/tables.dart' show GoalPriority;
@@ -28,9 +34,31 @@ class SavingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SavingsScreenState extends ConsumerState<SavingsScreen> {
+  static const _surplusDismissedUntilKey =
+      'savings.monthlySurplus.dismissedUntil';
+  static const _surplusDismissedSignatureKey =
+      'savings.monthlySurplus.dismissedSignature';
+  static const _surplusShownAtKey = 'savings.monthlySurplus.shownAt';
+  static const _surplusShownSignatureKey =
+      'savings.monthlySurplus.shownSignature';
+  static const _pausedGoalIdsKey = 'savings.goalStatus.pausedIds';
+  static const _archivedGoalIdsKey = 'savings.goalStatus.archivedIds';
+  static const _goalMilestonesKey = 'savings.goalMilestones.v1';
+
   ProviderSubscription<AsyncValue<List<SavingsNudge>>>? _nudgeSubscription;
   final Set<String> _notifiedNudgeKeys = <String>{};
   bool _isAppBarScrolled = false;
+  DateTime? _surplusDismissedUntil;
+  String? _surplusDismissedSignature;
+  DateTime? _surplusShownAt;
+  String? _surplusShownSignature;
+  Set<String> _pausedGoalIds = <String>{};
+  Set<String> _archivedGoalIds = <String>{};
+  Map<String, int> _goalMilestones = <String, int>{};
+  final List<_MilestonePopupEvent> _milestoneQueue = <_MilestonePopupEvent>[];
+  bool _isShowingMilestonePopup = false;
+  bool _goalMilestonesLoaded = false;
+  bool _surplusStateLoaded = false;
 
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
@@ -43,6 +71,9 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSurplusDismissState();
+    _loadGoalLifecycleState();
+    _loadGoalMilestones();
     _nudgeSubscription = ref.listenManual<AsyncValue<List<SavingsNudge>>>(
       savingsNudgesProvider,
       (previous, next) {
@@ -76,6 +107,290 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     super.dispose();
   }
 
+  Future<void> _loadSurplusDismissState() async {
+    final storage = ref.read(secureStorageProvider);
+    final rawUntil = await storage.read(key: _surplusDismissedUntilKey);
+    final rawSignature = await storage.read(key: _surplusDismissedSignatureKey);
+    final rawShownAt = await storage.read(key: _surplusShownAtKey);
+    final rawShownSignature =
+        await storage.read(key: _surplusShownSignatureKey);
+    if (!mounted) return;
+    setState(() {
+      _surplusDismissedUntil =
+          rawUntil == null ? null : DateTime.tryParse(rawUntil);
+      _surplusDismissedSignature = rawSignature;
+      _surplusShownAt =
+          rawShownAt == null ? null : DateTime.tryParse(rawShownAt);
+      _surplusShownSignature = rawShownSignature;
+      _surplusStateLoaded = true;
+    });
+  }
+
+  Set<String> _decodeIdSet(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return <String>{};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) {
+        return decoded.map((item) => item.toString()).toSet();
+      }
+    } catch (_) {
+      return <String>{};
+    }
+    return <String>{};
+  }
+
+  Future<void> _loadGoalLifecycleState() async {
+    final storage = ref.read(secureStorageProvider);
+    final pausedRaw = await storage.read(key: _pausedGoalIdsKey);
+    final archivedRaw = await storage.read(key: _archivedGoalIdsKey);
+    if (!mounted) return;
+    setState(() {
+      _pausedGoalIds = _decodeIdSet(pausedRaw);
+      _archivedGoalIds = _decodeIdSet(archivedRaw);
+    });
+  }
+
+  Map<String, int> _decodeMilestoneMap(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return <String, int>{};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) {
+        return decoded.map(
+          (key, value) => MapEntry(key, int.tryParse('$value') ?? 0),
+        );
+      }
+    } catch (_) {
+      return <String, int>{};
+    }
+    return <String, int>{};
+  }
+
+  Future<void> _loadGoalMilestones() async {
+    final storage = ref.read(secureStorageProvider);
+    final raw = await storage.read(key: _goalMilestonesKey);
+    if (!mounted) return;
+    setState(() {
+      _goalMilestones = _decodeMilestoneMap(raw);
+      _goalMilestonesLoaded = true;
+    });
+  }
+
+  Future<void> _persistGoalMilestones() async {
+    final storage = ref.read(secureStorageProvider);
+    await storage.write(
+      key: _goalMilestonesKey,
+      value: jsonEncode(_goalMilestones),
+    );
+  }
+
+  int _milestoneForProgress(double progress) {
+    if (progress >= 1.0) return 100;
+    if (progress >= 0.75) return 75;
+    if (progress >= 0.50) return 50;
+    if (progress >= 0.25) return 25;
+    return 0;
+  }
+
+  void _trackGoalMilestone(SavingsGoal goal, double progress) {
+    if (!_goalMilestonesLoaded) return;
+    final reachedMilestone = _milestoneForProgress(progress);
+    if (reachedMilestone <= 0) return;
+
+    final previousMilestone = _goalMilestones[goal.id] ?? 0;
+    if (reachedMilestone <= previousMilestone) return;
+
+    _goalMilestones = {
+      ..._goalMilestones,
+      goal.id: reachedMilestone,
+    };
+    _persistGoalMilestones();
+
+    _enqueueMilestonePopup(
+      _MilestonePopupEvent(
+        title: 'Savings milestone reached',
+        headline: '${goal.title}: $reachedMilestone% complete',
+        message: _savingsMilestoneMessage(reachedMilestone),
+      ),
+    );
+  }
+
+  String _savingsMilestoneMessage(int milestone) {
+    switch (milestone) {
+      case 25:
+        return 'Great start. You are building momentum one step at a time.';
+      case 50:
+        return 'Halfway there. Your consistency is paying off.';
+      case 75:
+        return 'Amazing progress. The finish line is close.';
+      case 100:
+        return 'Goal achieved. Excellent discipline and focus.';
+      default:
+        return 'Nice progress. Keep going.';
+    }
+  }
+
+  void _enqueueMilestonePopup(_MilestonePopupEvent event) {
+    _milestoneQueue.add(event);
+    _drainMilestoneQueue();
+  }
+
+  Future<void> _drainMilestoneQueue() async {
+    if (_isShowingMilestonePopup || !mounted) return;
+    _isShowingMilestonePopup = true;
+    while (_milestoneQueue.isNotEmpty && mounted) {
+      final event = _milestoneQueue.removeAt(0);
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.celebration_outlined, color: Color(0xFF16A34A)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(event.title)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                event.headline,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(event.message),
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Keep going'),
+            ),
+          ],
+        ),
+      );
+    }
+    _isShowingMilestonePopup = false;
+  }
+
+  Future<void> _persistGoalLifecycleState() async {
+    final storage = ref.read(secureStorageProvider);
+    await storage.write(
+      key: _pausedGoalIdsKey,
+      value: jsonEncode(_pausedGoalIds.toList(growable: false)),
+    );
+    await storage.write(
+      key: _archivedGoalIdsKey,
+      value: jsonEncode(_archivedGoalIds.toList(growable: false)),
+    );
+  }
+
+  Future<void> _setGoalLifecycleState(
+    String goalId, {
+    bool? paused,
+    bool? archived,
+  }) async {
+    final nextPaused = <String>{..._pausedGoalIds};
+    final nextArchived = <String>{..._archivedGoalIds};
+
+    if (paused != null) {
+      if (paused) {
+        nextPaused.add(goalId);
+      } else {
+        nextPaused.remove(goalId);
+      }
+    }
+    if (archived != null) {
+      if (archived) {
+        nextArchived.add(goalId);
+      } else {
+        nextArchived.remove(goalId);
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _pausedGoalIds = nextPaused;
+      _archivedGoalIds = nextArchived;
+    });
+    await _persistGoalLifecycleState();
+  }
+
+  Future<void> _cleanupGoalLifecycleState(List<SavingsGoal> goals) async {
+    final goalIds = goals.map((goal) => goal.id).toSet();
+    final nextPaused = _pausedGoalIds.intersection(goalIds);
+    final nextArchived = _archivedGoalIds.intersection(goalIds);
+    final changed = nextPaused.length != _pausedGoalIds.length ||
+        nextArchived.length != _archivedGoalIds.length;
+    if (!changed) return;
+    if (!mounted) return;
+    setState(() {
+      _pausedGoalIds = nextPaused;
+      _archivedGoalIds = nextArchived;
+    });
+    await _persistGoalLifecycleState();
+  }
+
+  String _surplusSignature(double monthlySurplus, List<SavingsGoal> goals) {
+    final totalRemaining = goals.fold<double>(
+      0,
+      (sum, goal) =>
+          sum +
+          (goal.targetAmount - goal.savedAmount).clamp(0, double.infinity),
+    );
+    return '${monthlySurplus.toStringAsFixed(2)}:${goals.length}:${totalRemaining.toStringAsFixed(2)}';
+  }
+
+  bool _isSurplusCardVisible(double monthlySurplus, List<SavingsGoal> goals) {
+    if (!_surplusStateLoaded) return false;
+    if (monthlySurplus <= 0) return false;
+    final signature = _surplusSignature(monthlySurplus, goals);
+
+    final isNewSignature = _surplusShownSignature != signature;
+    if (isNewSignature || _surplusShownAt == null) {
+      return true;
+    }
+
+    final shownWithin24Hours =
+        DateTime.now().difference(_surplusShownAt!).inHours < 24;
+    if (!shownWithin24Hours) {
+      return false;
+    }
+
+    final isDismissedForSignature = _surplusDismissedSignature == signature &&
+        _surplusDismissedUntil != null;
+    if (isDismissedForSignature &&
+        DateTime.now().isBefore(_surplusDismissedUntil!)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> _markSurplusCardShownIfNeeded(
+    double monthlySurplus,
+    List<SavingsGoal> goals,
+  ) async {
+    if (!_surplusStateLoaded) return;
+    final signature = _surplusSignature(monthlySurplus, goals);
+    final alreadyMarkedForSignature =
+        _surplusShownSignature == signature && _surplusShownAt != null;
+    if (alreadyMarkedForSignature) return;
+
+    final now = DateTime.now();
+    final storage = ref.read(secureStorageProvider);
+    await storage.write(key: _surplusShownAtKey, value: now.toIso8601String());
+    await storage.write(key: _surplusShownSignatureKey, value: signature);
+
+    if (!mounted) return;
+    setState(() {
+      _surplusShownAt = now;
+      _surplusShownSignature = signature;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -91,17 +406,10 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           ? null
           : const Color(0xFFF8F8FA),
       appBar: AppBar(
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: BrandedTitle(label: l10n.savingsGoalsTitle),
+        title: buildFrostedAppBarTitle(
+          context: context,
+          title: l10n.savingsGoalsTitle,
+          isScrolled: _isAppBarScrolled,
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -109,37 +417,19 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        flexibleSpace: Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _isAppBarScrolled
-                  ? ClipRect(
-                      key: const ValueKey('savings-appbar-blur-on'),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(key: ValueKey('savings-appbar-blur-off')),
-            ),
-          ],
+        flexibleSpace: buildFrostedFlexibleSpace(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+          onKey: 'savings-appbar-blur-on',
+          offKey: 'savings-appbar-blur-off',
         ),
-        actions: [
-          NotificationBellButton(
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
-            ),
-            onPressed: () => context.push('/notifications'),
-          ),
-          const SizedBox(width: 8),
-        ],
+        actions: buildPageHeaderActions(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+        ),
       ),
       floatingActionButton: AppFloatingActionButton(
-        onPressed: () => _openGoalForm(context, ref),
+        onPressed: () => _openGoalForm(ref),
         icon: Icons.add_rounded,
       ),
       body: NotificationListener<ScrollNotification>(
@@ -151,6 +441,28 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         },
         child: savingsAsync.when(
           data: (goals) {
+            final goalIds = goals.map((goal) => goal.id).toSet();
+            if (_pausedGoalIds.difference(goalIds).isNotEmpty ||
+                _archivedGoalIds.difference(goalIds).isNotEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _cleanupGoalLifecycleState(goals);
+              });
+            }
+
+            final archivedGoals = goals
+                .where((goal) => _archivedGoalIds.contains(goal.id))
+                .toList(growable: false);
+            final pausedGoals = goals
+                .where((goal) =>
+                    !_archivedGoalIds.contains(goal.id) &&
+                    _pausedGoalIds.contains(goal.id))
+                .toList(growable: false);
+            final activeGoals = goals
+                .where((goal) =>
+                    !_archivedGoalIds.contains(goal.id) &&
+                    !_pausedGoalIds.contains(goal.id))
+                .toList(growable: false);
+
             final now = DateTime.now();
             final monthlySurplus = monthlyTransactionsAsync.maybeWhen(
               data: (transactions) {
@@ -164,15 +476,15 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               },
               orElse: () => 0.0,
             );
-            final totalTarget = goals.fold<double>(
+            final totalTarget = activeGoals.fold<double>(
               0.0,
               (sum, goal) => sum + goal.targetAmount,
             );
-            final totalSaved = goals.fold<double>(
+            final totalSaved = activeGoals.fold<double>(
               0.0,
               (sum, goal) => sum + goal.savedAmount,
             );
-            final atRiskGoals = goals.where((goal) {
+            final atRiskGoals = activeGoals.where((goal) {
               if (goal.deadline == null || goal.targetAmount <= 0) return false;
               final createdAt = goal.createdAt ?? now;
               final totalDays = goal.deadline!.difference(createdAt).inDays;
@@ -185,17 +497,20 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               return actualProgress + 0.05 < expectedProgress;
             }).length;
 
-            if (goals.isEmpty) {
+            if (activeGoals.isEmpty &&
+                pausedGoals.isEmpty &&
+                archivedGoals.isEmpty) {
               return AppEmptyState(
                 icon: Icons.savings_outlined,
                 title: l10n.savingsEmptyTitle,
                 message: l10n.savingsEmptySubtitle,
+                lottieAsset: 'assets/animations/empty_savings.json',
                 action: SizedBox(
                   width: (MediaQuery.sizeOf(context).width - 48)
                       .clamp(220.0, 320.0)
                       .toDouble(),
                   child: FilledButton.icon(
-                    onPressed: () => _openGoalForm(context, ref),
+                    onPressed: () => _openGoalForm(ref),
                     icon: const Icon(Icons.add),
                     label: Text(l10n.savingsCreateGoal),
                   ),
@@ -215,14 +530,14 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
               children: [
                 // Savings Portfolio Card
-                _SavingsPortfolioCard(
+                SavingsPortfolioCard(
                   totalTarget: totalTarget,
                   totalSaved: totalSaved,
                   atRiskGoals: atRiskGoals,
-                  goalsCount: goals.length,
+                  goalsCount: activeGoals.length,
                   decisionMessage: decisionMessage,
-                  colorScheme: colorScheme,
                   currencyFormat: currencyFormat,
+                  monthlySurplus: monthlySurplus,
                 ),
                 const SizedBox(height: 16),
 
@@ -242,26 +557,54 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                 ),
 
                 // Surplus Allocation Section
-                if (monthlySurplus > 0)
+                if (_isSurplusCardVisible(monthlySurplus, activeGoals))
                   Column(
                     children: [
+                      Builder(
+                        builder: (context) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (!mounted) return;
+                            _markSurplusCardShownIfNeeded(
+                              monthlySurplus,
+                              activeGoals,
+                            );
+                          });
+                          return const SizedBox.shrink();
+                        },
+                      ),
                       _SavingsSurplusCard(
                         monthlySurplus: monthlySurplus,
                         currencyFormat: currencyFormat,
-                        onAllocate50: () =>
-                            _allocateSurplusToTopGoal(ref, goals, 50),
-                        onAllocate100: () =>
-                            _allocateSurplusToTopGoal(ref, goals, 100),
+                        onOpenAllocator: () => _openSurplusSimulationSheet(
+                          goals: activeGoals,
+                          monthlySurplus: monthlySurplus,
+                          currencyFormat: currencyFormat,
+                        ),
                       ),
                       const SizedBox(height: 16),
                     ],
                   ),
 
                 // Savings Goals
-                ...goals.map((goal) {
+                if (activeGoals.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 16),
+                    child: SmartEmptyState(
+                      icon: Icons.pause_circle_outline,
+                      title: 'No active savings goals',
+                      message:
+                          'All savings plans are paused or archived. Resume one below to continue.',
+                      lottieAsset: 'assets/animations/empty_savings.json',
+                    ),
+                  ),
+                ...activeGoals.map((goal) {
                   final progress = goal.targetAmount > 0
                       ? (goal.savedAmount / goal.targetAmount).clamp(0.0, 1.0)
                       : 0.0;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    _trackGoalMilestone(goal, progress);
+                  });
                   final remaining =
                       (goal.targetAmount - goal.savedAmount).clamp(
                     0.0,
@@ -285,35 +628,133 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: _SavingsGoalCard(
-                      goal: goal,
-                      progress: progress,
-                      remaining: remaining,
-                      statusColor: statusColor,
-                      statusLabel:
-                          _goalStatusLabel(l10n, progress, projectedLate),
-                      suggestedMonthly: suggestedMonthly,
-                      projectedLate: projectedLate,
-                      monthsRemaining: monthsRemaining,
-                      hasDeadline: hasDeadline,
-                      currencyFormat: currencyFormat,
-                      l10n: l10n,
-                      onEdit: () =>
-                          _openGoalForm(context, ref, existingGoal: goal),
-                      onDelete: () => ref
-                          .read(savingsGoalListProvider.notifier)
-                          .deleteSavingsGoal(goal.id),
-                      onAddFunds: () =>
-                          _openContributionDialog(context, ref, goal),
-                      onSimulate: () => _showSimulation(
-                        context,
-                        goal,
-                        50,
-                        currencyFormat,
+                    child: Slidable(
+                      key: ValueKey('savings-goal-${goal.id}'),
+                      startActionPane: ActionPane(
+                        motion: const BehindMotion(),
+                        extentRatio: 0.30,
+                        children: [
+                          SlidableAction(
+                            onPressed: (_) => _handleGoalAction(
+                              action: 'pause',
+                              goal: goal,
+                              currencyFormat: currencyFormat,
+                            ),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
+                            foregroundColor: Colors.white,
+                            icon: Icons.pause_circle_outline_rounded,
+                            label: 'Pause',
+                            borderRadius:
+                                BorderRadius.circular(UiTokens.radiusXl),
+                          ),
+                        ],
+                      ),
+                      endActionPane: ActionPane(
+                        motion: const BehindMotion(),
+                        extentRatio: 0.30,
+                        children: [
+                          SlidableAction(
+                            onPressed: (_) => _handleGoalAction(
+                              action: 'archive',
+                              goal: goal,
+                              currencyFormat: currencyFormat,
+                            ),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.tertiary,
+                            foregroundColor: Colors.white,
+                            icon: Icons.archive_outlined,
+                            label: 'Archive',
+                            borderRadius:
+                                BorderRadius.circular(UiTokens.radiusXl),
+                          ),
+                        ],
+                      ),
+                      child: SwipeableCard(
+                        radius: UiTokens.radiusXl,
+                        child: _SavingsGoalCard(
+                          goal: goal,
+                          progress: progress,
+                          remaining: remaining,
+                          statusColor: statusColor,
+                          statusLabel:
+                              _goalStatusLabel(l10n, progress, projectedLate),
+                          suggestedMonthly: suggestedMonthly,
+                          projectedLate: projectedLate,
+                          monthsRemaining: monthsRemaining,
+                          hasDeadline: hasDeadline,
+                          currencyFormat: currencyFormat,
+                          l10n: l10n,
+                          onActionSelected: (action) => _handleGoalAction(
+                            action: action,
+                            goal: goal,
+                            currencyFormat: currencyFormat,
+                          ),
+                        ),
                       ),
                     ),
                   );
                 }),
+                if (pausedGoals.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Paused plans',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...pausedGoals.map(
+                    (goal) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _SavingsDormantGoalCard(
+                        goal: goal,
+                        currencyFormat: currencyFormat,
+                        statusLabel: 'Paused',
+                        onRestore: () => _handleGoalAction(
+                          action: 'resume',
+                          goal: goal,
+                          currencyFormat: currencyFormat,
+                        ),
+                        onDelete: () => _handleGoalAction(
+                          action: 'delete',
+                          goal: goal,
+                          currencyFormat: currencyFormat,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                if (archivedGoals.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Archived plans',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...archivedGoals.map(
+                    (goal) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _SavingsDormantGoalCard(
+                        goal: goal,
+                        currencyFormat: currencyFormat,
+                        statusLabel: 'Archived',
+                        onRestore: () => _handleGoalAction(
+                          action: 'unarchive',
+                          goal: goal,
+                          currencyFormat: currencyFormat,
+                        ),
+                        onDelete: () => _handleGoalAction(
+                          action: 'delete',
+                          goal: goal,
+                          currencyFormat: currencyFormat,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             );
           },
@@ -351,7 +792,6 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
   }
 
   Future<void> _allocateSurplusToTopGoal(
-    WidgetRef ref,
     List<SavingsGoal> goals,
     double amount,
   ) async {
@@ -369,36 +809,238 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     await ref.read(savingsGoalListProvider.notifier).updateSavingsGoal(updated);
   }
 
+  Future<void> _openSurplusSimulationSheet({
+    required List<SavingsGoal> goals,
+    required double monthlySurplus,
+    required NumberFormat currencyFormat,
+  }) async {
+    if (goals.isEmpty) return;
+    final result = await AppFormSheet.show<_SurplusSimulationResult>(
+      context,
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: _SurplusSimulationSheet(
+          goals: goals,
+          monthlySurplus: monthlySurplus,
+          currencyFormat: currencyFormat,
+        ),
+      ),
+    );
+    if (!mounted) return;
+
+    if (result == null) {
+      AppFeedback.show(
+        context,
+        message: 'Surplus allocation cancelled.',
+        type: AppFeedbackType.info,
+      );
+      return;
+    }
+
+    if (!result.confirmed) {
+      AppFeedback.show(
+        context,
+        message: 'Simulation saved without applying changes.',
+        type: AppFeedbackType.info,
+      );
+      return;
+    }
+
+    if (result.amount <= 0) {
+      AppFeedback.show(
+        context,
+        message: 'Enter an amount above 0 to allocate.',
+        type: AppFeedbackType.error,
+      );
+      return;
+    }
+
+    await _allocateSurplusToTopGoal(goals, result.amount);
+    if (!mounted) return;
+    AppFeedback.show(
+      context,
+      message:
+          'Applied ${currencyFormat.format(result.amount)} to your top-priority goal.',
+      type: AppFeedbackType.success,
+    );
+  }
+
+  Future<void> _handleGoalAction({
+    required String action,
+    required SavingsGoal goal,
+    required NumberFormat currencyFormat,
+  }) async {
+    switch (action) {
+      case 'addFunds':
+        await _openContributionDialog(context, ref, goal);
+        return;
+      case 'simulate':
+        _showSimulation(context, goal, 50, currencyFormat);
+        return;
+      case 'setPriority':
+        await _pickGoalPriority(goal);
+        return;
+      case 'edit':
+        await _openGoalForm(ref, existingGoal: goal);
+        return;
+      case 'pause':
+        await _setGoalLifecycleState(
+          goal.id,
+          paused: true,
+          archived: false,
+        );
+        await ref.read(savingsGoalListProvider.notifier).updateSavingsGoal(
+              goal.copyWith(autoAllocate: false),
+            );
+        break;
+      case 'resume':
+        await _setGoalLifecycleState(
+          goal.id,
+          paused: false,
+          archived: false,
+        );
+        break;
+      case 'complete':
+        await ref.read(savingsGoalListProvider.notifier).updateSavingsGoal(
+              goal.copyWith(savedAmount: goal.targetAmount),
+            );
+        break;
+      case 'archive':
+        final confirm = await showDialog<bool>(
+              context: context,
+              builder: (context) => const ConfirmActionDialog(
+                title: 'Archive goal?',
+                message:
+                    'This goal will move to Archived plans until you restore it.',
+                confirmLabel: 'Archive',
+              ),
+            ) ??
+            false;
+        if (!confirm) return;
+        await _setGoalLifecycleState(
+          goal.id,
+          paused: false,
+          archived: true,
+        );
+        await ref.read(savingsGoalListProvider.notifier).updateSavingsGoal(
+              goal.copyWith(autoAllocate: false),
+            );
+        break;
+      case 'unarchive':
+        await _setGoalLifecycleState(
+          goal.id,
+          archived: false,
+          paused: false,
+        );
+        break;
+      case 'delete':
+        final deleteConfirm = await showDialog<bool>(
+              context: context,
+              builder: (context) => const ConfirmActionDialog(
+                title: 'Delete goal?',
+                message:
+                    'This permanently removes the goal and cannot be undone.',
+                confirmLabel: 'Delete',
+              ),
+            ) ??
+            false;
+        if (!deleteConfirm) return;
+        await _setGoalLifecycleState(
+          goal.id,
+          paused: false,
+          archived: false,
+        );
+        await ref
+            .read(savingsGoalListProvider.notifier)
+            .deleteSavingsGoal(goal.id);
+        break;
+      default:
+        return;
+    }
+
+    if (!mounted) return;
+    AppFeedback.show(
+      context,
+      message: 'Savings goal updated.',
+      type: AppFeedbackType.success,
+    );
+  }
+
+  Future<void> _pickGoalPriority(SavingsGoal goal) async {
+    final selected = await AppBottomActionSheet.show(
+      context,
+      title: 'Set goal priority',
+      actions: const [
+        AppBottomAction(
+          value: 'high',
+          label: 'High priority',
+          icon: Icons.priority_high,
+        ),
+        AppBottomAction(
+          value: 'medium',
+          label: 'Medium priority',
+          icon: Icons.drag_indicator,
+        ),
+        AppBottomAction(
+          value: 'low',
+          label: 'Low priority',
+          icon: Icons.south,
+        ),
+      ],
+    );
+
+    if (selected == null) return;
+    final priority = switch (selected) {
+      'high' => GoalPriority.high,
+      'medium' => GoalPriority.medium,
+      _ => GoalPriority.low,
+    };
+    await ref.read(savingsGoalListProvider.notifier).updateSavingsGoal(
+          goal.copyWith(priority: priority),
+        );
+    if (!mounted) return;
+    AppFeedback.show(
+      context,
+      message: 'Goal priority updated.',
+      type: AppFeedbackType.success,
+    );
+  }
+
   Future<void> _openGoalForm(
-    BuildContext context,
     WidgetRef ref, {
     SavingsGoal? existingGoal,
   }) async {
     final appCurrency = ref.read(appCurrencyControllerProvider);
-    final result = await showModalBottomSheet<_SavingsGoalFormResult>(
-      context: context,
-      isScrollControlled: true,
-      useRootNavigator: true,
-      backgroundColor: Colors.transparent,
+    final result = await AppFormSheet.show<_SavingsGoalFormResult>(
+      context,
       builder: (_) => _SavingsGoalFormSheet(
         existingGoal: existingGoal,
         currencySymbol: CurrencyUtils.symbol(appCurrency),
       ),
     );
 
-    if (result != null) {
-      final goal = SavingsGoal(
-        id: existingGoal?.id ?? const Uuid().v4(),
-        title: result.title,
-        targetAmount: result.targetAmount,
-        savedAmount: result.savedAmount,
-        deadline: result.deadline,
-        priority: result.priority,
-        color: existingGoal?.color,
-        autoAllocate: result.autoAllocate,
-        createdAt: existingGoal?.createdAt ?? DateTime.now(),
-      );
+    if (result == null) return;
+    if (!mounted) return;
 
+    final goal = SavingsGoal(
+      id: existingGoal?.id ?? const Uuid().v4(),
+      title: result.title,
+      targetAmount: result.targetAmount,
+      savedAmount: result.savedAmount,
+      deadline: result.deadline,
+      priority: result.priority,
+      color: existingGoal?.color,
+      autoAllocate: result.autoAllocate,
+      createdAt: existingGoal?.createdAt ?? DateTime.now(),
+    );
+
+    AppFeedbackService.showLoading(
+      context,
+      existingGoal == null ? 'Saving goal...' : 'Updating goal...',
+    );
+    try {
       if (existingGoal == null) {
         await ref.read(savingsGoalListProvider.notifier).addSavingsGoal(goal);
       } else {
@@ -406,6 +1048,21 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             .read(savingsGoalListProvider.notifier)
             .updateSavingsGoal(goal);
       }
+      if (!mounted) return;
+      AppFeedbackService.showSuccess(
+        context,
+        existingGoal == null
+            ? 'Savings goal saved successfully.'
+            : 'Savings goal updated successfully.',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      AppFeedbackService.showError(
+        context,
+        'Unable to save savings goal. Please try again.',
+      );
+    } finally {
+      AppFeedbackService.dismissLoading();
     }
   }
 
@@ -509,190 +1166,6 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     if (projectedLate > 0) return Colors.red;
     if (progress >= 0.6) return Colors.orange;
     return Colors.blue;
-  }
-}
-
-// ============================================================================
-// NEW MODERN SAVINGS COMPONENTS
-// ============================================================================
-
-/// Redesigned Savings Portfolio Card with gradient background and 2x2 grid
-class _SavingsPortfolioCard extends StatelessWidget {
-  const _SavingsPortfolioCard({
-    required this.totalTarget,
-    required this.totalSaved,
-    required this.atRiskGoals,
-    required this.goalsCount,
-    required this.decisionMessage,
-    required this.colorScheme,
-    required this.currencyFormat,
-  });
-
-  final double totalTarget;
-  final double totalSaved;
-  final int atRiskGoals;
-  final int goalsCount;
-  final String decisionMessage;
-  final ColorScheme colorScheme;
-  final NumberFormat currencyFormat;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            isDark ? const Color(0xFF1E1A40) : const Color(0xFFECDDFF),
-            isDark ? const Color(0xFF221540) : const Color(0xFFF1EEFF),
-            isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF7F9FF),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            spreadRadius: 1,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with icon and title
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.savings_outlined,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Savings Portfolio',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Description
-          Text(
-            decisionMessage,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 16),
-
-          // 2x2 Metric Grid
-          Row(
-            children: [
-              // Left column (smaller metrics)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _PortfolioMetric(
-                      label: 'Goals',
-                      value: goalsCount.toString(),
-                      isLarge: false,
-                    ),
-                    const SizedBox(height: 12),
-                    _PortfolioMetric(
-                      label: 'At Risk',
-                      value: atRiskGoals.toString(),
-                      isLarge: false,
-                      tone: atRiskGoals > 0 ? Colors.orange : null,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Right column (larger metrics)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _PortfolioMetric(
-                      label: 'Saved',
-                      value: currencyFormat.format(totalSaved),
-                      isLarge: true,
-                    ),
-                    const SizedBox(height: 12),
-                    _PortfolioMetric(
-                      label: 'Target',
-                      value: currencyFormat.format(totalTarget),
-                      isLarge: true,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Portfolio metric display widget
-class _PortfolioMetric extends StatelessWidget {
-  const _PortfolioMetric({
-    required this.label,
-    required this.value,
-    required this.isLarge,
-    this.tone,
-  });
-
-  final String label;
-  final String value;
-  final bool isLarge;
-  final Color? tone;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                fontSize: isLarge ? 24 : 18,
-                color: tone,
-              ),
-        ),
-      ],
-    );
   }
 }
 
@@ -800,14 +1273,12 @@ class _SavingsSurplusCard extends StatelessWidget {
   const _SavingsSurplusCard({
     required this.monthlySurplus,
     required this.currencyFormat,
-    required this.onAllocate50,
-    required this.onAllocate100,
+    required this.onOpenAllocator,
   });
 
   final double monthlySurplus;
   final NumberFormat currencyFormat;
-  final VoidCallback onAllocate50;
-  final VoidCallback onAllocate100;
+  final VoidCallback onOpenAllocator;
 
   @override
   Widget build(BuildContext context) {
@@ -850,48 +1321,15 @@ class _SavingsSurplusCard extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onAllocate50,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                    side: const BorderSide(color: Colors.green, width: 1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Text(
-                    'Allocate 50',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onAllocate100,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                    side: const BorderSide(color: Colors.green, width: 1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Text(
-                    'Allocate 100',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ),
-              ),
-            ],
+          FilledButton.icon(
+            onPressed: onOpenAllocator,
+            icon: const Icon(Icons.auto_graph),
+            label: const Text('Simulate custom allocation'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),
@@ -913,10 +1351,7 @@ class _SavingsGoalCard extends StatelessWidget {
     required this.hasDeadline,
     required this.currencyFormat,
     required this.l10n,
-    required this.onEdit,
-    required this.onDelete,
-    required this.onAddFunds,
-    required this.onSimulate,
+    required this.onActionSelected,
   });
 
   final SavingsGoal goal;
@@ -930,10 +1365,13 @@ class _SavingsGoalCard extends StatelessWidget {
   final bool hasDeadline;
   final NumberFormat currencyFormat;
   final AppLocalizations l10n;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-  final VoidCallback onAddFunds;
-  final VoidCallback onSimulate;
+  final ValueChanged<String> onActionSelected;
+
+  Color _milestoneProgressColor(double progress) {
+    if (progress >= 0.75) return const Color(0xFF16A34A);
+    if (progress >= 0.50) return const Color(0xFFF59E0B);
+    return const Color(0xFFDC2626);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1004,75 +1442,51 @@ class _SavingsGoalCard extends StatelessWidget {
                   ],
                 ),
               ),
-              PopupMenuButton<String>(
-                tooltip: l10n.savingsEditGoal,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 10,
-                color: Theme.of(context).colorScheme.surface,
-                shadowColor: Colors.black.withValues(alpha: 0.12),
-                surfaceTintColor: Colors.transparent,
-                position: PopupMenuPosition.under,
-                icon: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    )
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(10),
+              AppActionMenu(
+                title: goal.title,
+                tooltip: 'Savings goal actions',
+                onSelected: onActionSelected,
+                items: [
+                  AppActionItem(
+                    value: 'addFunds',
+                    label: l10n.savingsAddFunds,
+                    icon: Icons.add_circle_outline,
                   ),
-                  child: Icon(
-                    Icons.more_horiz,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  const AppActionItem(
+                    value: 'simulate',
+                    label: 'Simulate contribution',
+                    icon: Icons.auto_graph,
                   ),
-                ),
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    onEdit();
-                  } else if (value == 'delete') {
-                    onDelete();
-                  }
-                },
-                itemBuilder: (_) => [
-                  PopupMenuItem(
+                  const AppActionItem(
+                    value: 'setPriority',
+                    label: 'Set priority',
+                    icon: Icons.flag_outlined,
+                  ),
+                  AppActionItem(
                     value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(l10n.savingsEditGoal),
-                      ],
-                    ),
+                    label: l10n.savingsEditGoal,
+                    icon: Icons.edit_outlined,
                   ),
-                  PopupMenuItem(
+                  const AppActionItem(
+                    value: 'pause',
+                    label: 'Pause auto-allocation',
+                    icon: Icons.pause_circle_outline,
+                  ),
+                  const AppActionItem(
+                    value: 'complete',
+                    label: 'Mark complete',
+                    icon: Icons.check_circle_outline,
+                  ),
+                  const AppActionItem(
+                    value: 'archive',
+                    label: 'Archive',
+                    icon: Icons.archive_outlined,
+                  ),
+                  AppActionItem(
                     value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.delete_outline,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          l10n.savingsDeleteGoal,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                    label: l10n.savingsDeleteGoal,
+                    icon: Icons.delete_outline,
+                    destructive: true,
                   ),
                 ],
               ),
@@ -1097,7 +1511,9 @@ class _SavingsGoalCard extends StatelessWidget {
               value: progress,
               minHeight: 6,
               backgroundColor: Colors.grey.withValues(alpha: 0.15),
-              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                _milestoneProgressColor(progress),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -1123,17 +1539,6 @@ class _SavingsGoalCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Quick percentage chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: ['25%', '50%', '75%', '100%']
-                .map((percent) => _SavingsQuickPercentageChip(label: percent))
-                .toList(),
-          ),
-
-          const SizedBox(height: 12),
-
           // Suggestion text
           Text(
             'Suggested: ${currencyFormat.format(suggestedMonthly)}/month',
@@ -1151,53 +1556,12 @@ class _SavingsGoalCard extends StatelessWidget {
                   ),
             ),
 
-          const SizedBox(height: 16),
-
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onAddFunds,
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    side: BorderSide(
-                      color: statusColor.withValues(alpha: 0.4),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Text(
-                    l10n.savingsAddFunds,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
+          const SizedBox(height: 10),
+          Text(
+            'Use the overflow menu to add funds, simulate scenarios, or update this goal.',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onSimulate,
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    side: BorderSide(
-                      color: statusColor.withValues(alpha: 0.4),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Text(
-                    'Simulate',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ),
-              ),
-            ],
           ),
 
           // Achieved badge
@@ -1236,31 +1600,346 @@ class _SavingsGoalCard extends StatelessWidget {
   }
 }
 
-/// Quick percentage chip
-class _SavingsQuickPercentageChip extends StatelessWidget {
-  const _SavingsQuickPercentageChip({required this.label});
+class _MilestonePopupEvent {
+  const _MilestonePopupEvent({
+    required this.title,
+    required this.headline,
+    required this.message,
+  });
 
-  final String label;
+  final String title;
+  final String headline;
+  final String message;
+}
+
+class _SavingsDormantGoalCard extends StatelessWidget {
+  const _SavingsDormantGoalCard({
+    required this.goal,
+    required this.currencyFormat,
+    required this.statusLabel,
+    required this.onRestore,
+    required this.onDelete,
+  });
+
+  final SavingsGoal goal;
+  final NumberFormat currencyFormat;
+  final String statusLabel;
+  final VoidCallback onRestore;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.15),
+          color: Theme.of(context).colorScheme.outlineVariant,
         ),
       ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+      child: Row(
+        children: [
+          const Icon(Icons.inventory_2_outlined),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  goal.title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$statusLabel • ${currencyFormat.format(goal.savedAmount)} / ${currencyFormat.format(goal.targetAmount)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
             ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: onRestore,
+            child: const Text('Resume'),
+          ),
+          IconButton(
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline),
+          ),
+        ],
       ),
     );
+  }
+}
+
+// ============================================================================
+// SURPLUS SIMULATION FLOW
+// ============================================================================
+
+class _SurplusSimulationResult {
+  const _SurplusSimulationResult({
+    required this.amount,
+    required this.confirmed,
+  });
+
+  final double amount;
+  final bool confirmed;
+}
+
+enum _SimulationState {
+  idle,
+  simulated,
+  confirmed,
+  cancelled,
+  error,
+}
+
+class _SurplusSimulationSheet extends StatefulWidget {
+  const _SurplusSimulationSheet({
+    required this.goals,
+    required this.monthlySurplus,
+    required this.currencyFormat,
+  });
+
+  final List<SavingsGoal> goals;
+  final double monthlySurplus;
+  final NumberFormat currencyFormat;
+
+  @override
+  State<_SurplusSimulationSheet> createState() =>
+      _SurplusSimulationSheetState();
+}
+
+class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
+  final _controller = TextEditingController();
+  _SimulationState _state = _SimulationState.idle;
+  double? _simulatedAmount;
+  String? _errorMessage;
+
+  SavingsGoal get _topGoal {
+    final sorted = [...widget.goals]..sort((a, b) {
+        final aRemaining =
+            (a.targetAmount - a.savedAmount).clamp(0, double.infinity);
+        final bRemaining =
+            (b.targetAmount - b.savedAmount).clamp(0, double.infinity);
+        return aRemaining.compareTo(bRemaining);
+      });
+    return sorted.first;
+  }
+
+  void _setQuickAmount(double amount) {
+    _controller.text = amount.toStringAsFixed(0);
+  }
+
+  Future<void> _simulate() async {
+    final parsed = FormValidation.parseDecimal(_controller.text);
+    if (parsed == null || parsed <= 0) {
+      setState(() {
+        _state = _SimulationState.error;
+        _errorMessage = 'Enter an amount greater than zero.';
+      });
+      return;
+    }
+
+    if (parsed > widget.monthlySurplus) {
+      final confirmOver = await showDialog<bool>(
+            context: context,
+            builder: (context) => const ConfirmActionDialog(
+              title: 'Use more than monthly surplus?',
+              message:
+                  'This amount is above the available monthly surplus. Continue with simulation?',
+              confirmLabel: 'Continue',
+            ),
+          ) ??
+          false;
+      if (!confirmOver) return;
+    }
+
+    setState(() {
+      _simulatedAmount = parsed;
+      _state = _SimulationState.simulated;
+      _errorMessage = null;
+    });
+  }
+
+  void _apply() {
+    final amount = _simulatedAmount;
+    if (amount == null || amount <= 0) {
+      setState(() {
+        _state = _SimulationState.error;
+        _errorMessage = 'Run a simulation before applying.';
+      });
+      return;
+    }
+    setState(() => _state = _SimulationState.confirmed);
+    Navigator.of(context).pop(
+      _SurplusSimulationResult(amount: amount, confirmed: true),
+    );
+  }
+
+  void _cancel() {
+    setState(() => _state = _SimulationState.cancelled);
+    final amount = _simulatedAmount ?? 0;
+    Navigator.of(context).pop(
+      _SurplusSimulationResult(amount: amount, confirmed: false),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final topGoal = _topGoal;
+    final amount = _simulatedAmount ?? 0;
+    final remainingToGoal =
+        (topGoal.targetAmount - topGoal.savedAmount).clamp(0, double.infinity);
+    final projectedRemaining =
+        (remainingToGoal - amount).clamp(0, double.infinity);
+    final now = DateTime.now();
+    final elapsedMonths =
+        (((now.difference(topGoal.createdAt ?? now).inDays) / 30).clamp(1, 120))
+            .toDouble();
+    final currentMonthlyRate =
+        topGoal.savedAmount <= 0 ? 0 : topGoal.savedAmount / elapsedMonths;
+    final improvedRate = currentMonthlyRate + amount;
+    final currentMonthsToComplete = currentMonthlyRate <= 0
+        ? null
+        : (remainingToGoal / currentMonthlyRate).ceil();
+    final projectedMonthsToComplete =
+        improvedRate <= 0 ? null : (remainingToGoal / improvedRate).ceil();
+    final monthsSaved = currentMonthsToComplete == null ||
+            projectedMonthsToComplete == null
+        ? null
+        : (currentMonthsToComplete - projectedMonthsToComplete).clamp(0, 240);
+
+    final projectedCompletionDate = projectedMonthsToComplete == null
+        ? null
+        : DateTime(now.year, now.month + projectedMonthsToComplete, now.day);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Monthly surplus simulation',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Target goal: ${topGoal.title}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            CurrencyInput(
+              controller: _controller,
+              label: 'Custom monthly allocation',
+              currencySymbol: widget.currencyFormat.currencySymbol,
+              helperText:
+                  'Available surplus: ${widget.currencyFormat.format(widget.monthlySurplus)}',
+              validator: null,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ActionChip(
+                  label: const Text('25%'),
+                  onPressed: () =>
+                      _setQuickAmount(widget.monthlySurplus * 0.25),
+                ),
+                ActionChip(
+                  label: const Text('50%'),
+                  onPressed: () => _setQuickAmount(widget.monthlySurplus * 0.5),
+                ),
+                ActionChip(
+                  label: const Text('100%'),
+                  onPressed: () => _setQuickAmount(widget.monthlySurplus),
+                ),
+              ],
+            ),
+            if (_state == _SimulationState.error && _errorMessage != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                _errorMessage!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+            if (_state == _SimulationState.simulated ||
+                _state == _SimulationState.confirmed ||
+                _state == _SimulationState.cancelled) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Simulation output',
+                        style: Theme.of(context).textTheme.labelLarge),
+                    const SizedBox(height: 8),
+                    Text(
+                        'Monthly impact: ${widget.currencyFormat.format(amount)}'),
+                    Text(
+                        'Remaining after allocation: ${widget.currencyFormat.format((widget.monthlySurplus - amount).clamp(-double.infinity, double.infinity))}'),
+                    Text(
+                        'Goal remaining after allocation: ${widget.currencyFormat.format(projectedRemaining)}'),
+                    Text(
+                      projectedCompletionDate == null
+                          ? 'Projected completion date: unavailable'
+                          : 'Projected completion date: ${MaterialLocalizations.of(context).formatMediumDate(projectedCompletionDate)}',
+                    ),
+                    Text(
+                      monthsSaved == null
+                          ? 'Months saved: unavailable'
+                          : 'Months saved: $monthsSaved',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 14),
+            FilledButton(
+              onPressed: _simulate,
+              child: const Text('Simulate'),
+            ),
+            const SizedBox(height: 8),
+            FilledButton.tonal(
+              onPressed: _state == _SimulationState.simulated ? _apply : null,
+              child: const Text('Confirm and apply'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _cancel,
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
 
@@ -1345,10 +2024,25 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
   }
 
   void _submit() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    final targetAmount = double.parse(_targetController.text.trim());
-    final savedAmount =
-        double.parse(_savedController.text.trim()).clamp(0.0, targetAmount);
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      AppFeedbackService.showWarning(
+        context,
+        'Complete required savings goal fields to continue.',
+      );
+      return;
+    }
+    final targetAmount =
+        FormValidation.parseDecimal(_targetController.text.trim()) ?? 0;
+    if (targetAmount <= 0) {
+      AppFeedbackService.showWarning(
+        context,
+        'Enter a valid target amount greater than zero.',
+      );
+      return;
+    }
+    final savedRaw =
+        FormValidation.parseDecimal(_savedController.text.trim()) ?? 0;
+    final savedAmount = savedRaw.clamp(0.0, targetAmount);
     Navigator.of(context).pop(
       _SavingsGoalFormResult(
         title: _titleController.text.trim(),
@@ -1365,203 +2059,132 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final baseTheme = Theme.of(context);
-    final modalBackgroundColor = baseTheme.brightness == Brightness.dark
-        ? baseTheme.colorScheme.surfaceContainerHigh
-        : baseTheme.colorScheme.surface;
-
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+    final formFields = Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.flag_rounded,
+                color: baseTheme.colorScheme.primary,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  widget.existingGoal == null
+                      ? l10n.savingsCreateGoal
+                      : l10n.savingsEditGoal,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ModernInput(
+            controller: _titleController,
+            label: l10n.savingsGoalName,
+            helperText: 'Choose a specific target such as Emergency Fund',
+            validator: (value) =>
+                FormValidation.requiredText(value, l10n.savingsEnterGoalName),
+          ),
+          const SizedBox(height: 16),
+          CurrencyInput(
+            controller: _targetController,
+            label: l10n.savingsTargetAmount,
+            currencySymbol: widget.currencySymbol,
+            validator: (value) => FormValidation.positiveAmount(
+              value,
+              l10n.savingsEnterValidTargetAmount,
+              l10n.savingsEnterValidTargetAmount,
+            ),
+          ),
+          const SizedBox(height: 16),
+          CurrencyInput(
+            controller: _savedController,
+            label: l10n.savingsCurrentSavedAmount,
+            currencySymbol: widget.currencySymbol,
+            validator: (value) => FormValidation.nonNegativeAmount(
+              value,
+              l10n.savingsEnterValidSavedAmount,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ModernSelect<GoalPriority>(
+            value: _priority,
+            label: l10n.savingsPriority,
+            prefixIcon: Icons.flag_rounded,
+            items: GoalPriority.values
+                .map(
+                  (p) => DropdownMenuItem(
+                    value: p,
+                    child: Text(
+                      switch (p) {
+                        GoalPriority.low => l10n.subscriptionsFilterLowPriority,
+                        GoalPriority.medium =>
+                          l10n.subscriptionsImportanceMedium,
+                        GoalPriority.high =>
+                          l10n.subscriptionsFilterHighPriority,
+                        GoalPriority.critical =>
+                          l10n.subscriptionsFilterCritical,
+                      },
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _priority = value);
+            },
+          ),
+          const SizedBox(height: 16),
+          SwitchListTile.adaptive(
+            value: _autoAllocate,
+            title: Text(l10n.savingsEnableAutoAllocation),
+            contentPadding: EdgeInsets.zero,
+            onChanged: (value) => setState(() => _autoAllocate = value),
+          ),
+          const SizedBox(height: 16),
+          ModernDatePicker(
+            label: l10n.savingsDeadlineOptional,
+            value: _deadline == null
+                ? l10n.savingsNoDeadline
+                : MaterialLocalizations.of(context)
+                    .formatMediumDate(_deadline!),
+            trailing: _deadline == null
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => setState(() => _deadline = null),
+                  ),
+            onTap: _pickDeadline,
+          ),
+          const SizedBox(height: InputStyles.fieldSpacing),
+        ],
       ),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: modalBackgroundColor,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(32),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: baseTheme.colorScheme.shadow.withValues(alpha: 0.15),
-              blurRadius: 24,
-              offset: const Offset(0, -4),
-            ),
-          ],
+    );
+
+    return KeyboardAwareFormSheet(
+      onClose: () => Navigator.of(context).pop(),
+      maxHeightFactor: 0.78,
+      body: formFields,
+      actions: FilledButton.icon(
+        onPressed: _submit,
+        icon: Icon(
+          widget.existingGoal == null ? Icons.add_rounded : Icons.edit_rounded,
         ),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.flag_rounded,
-                      color: baseTheme.colorScheme.primary,
-                      size: 28,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.existingGoal == null
-                                ? l10n.savingsCreateGoal
-                                : l10n.savingsEditGoal,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _titleController,
-                  style: InputStyles.inputTextStyle(baseTheme),
-                  decoration: InputDecoration(labelText: l10n.savingsGoalName),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return l10n.savingsEnterGoalName;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                TextFormField(
-                  controller: _targetController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  style: InputStyles.inputTextStyle(baseTheme),
-                  decoration: InputDecoration(
-                    labelText: l10n.savingsTargetAmount,
-                    prefixText: '${widget.currencySymbol} ',
-                  ),
-                  validator: (value) {
-                    final parsed = double.tryParse(value ?? '');
-                    if (parsed == null || parsed <= 0) {
-                      return l10n.savingsEnterValidTargetAmount;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                TextFormField(
-                  controller: _savedController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  style: InputStyles.inputTextStyle(baseTheme),
-                  decoration: InputDecoration(
-                    labelText: l10n.savingsCurrentSavedAmount,
-                    prefixText: '${widget.currencySymbol} ',
-                  ),
-                  validator: (value) {
-                    final parsed = double.tryParse(value ?? '');
-                    if (parsed == null || parsed < 0) {
-                      return l10n.savingsEnterValidSavedAmount;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                DropdownButtonFormField<GoalPriority>(
-                  initialValue: _priority,
-                  icon: InputStyles.dropdownIcon(context),
-                  decoration: InputDecoration(
-                    labelText: l10n.savingsPriority,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.outlineVariant,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  items: GoalPriority.values
-                      .map(
-                        (p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(
-                            switch (p) {
-                              GoalPriority.low =>
-                                l10n.subscriptionsFilterLowPriority,
-                              GoalPriority.medium =>
-                                l10n.subscriptionsImportanceMedium,
-                              GoalPriority.high =>
-                                l10n.subscriptionsFilterHighPriority,
-                              GoalPriority.critical =>
-                                l10n.subscriptionsFilterCritical,
-                            },
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() => _priority = value);
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                SwitchListTile.adaptive(
-                  value: _autoAllocate,
-                  title: Text(l10n.savingsEnableAutoAllocation),
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (value) => setState(() => _autoAllocate = value),
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                FormDateField(
-                  label: l10n.savingsDeadlineOptional,
-                  value: _deadline == null
-                      ? l10n.savingsNoDeadline
-                      : MaterialLocalizations.of(context)
-                          .formatMediumDate(_deadline!),
-                  trailing: _deadline == null
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => setState(() => _deadline = null),
-                        ),
-                  onTap: _pickDeadline,
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                FilledButton.icon(
-                  onPressed: _submit,
-                  icon: Icon(
-                    widget.existingGoal == null
-                        ? Icons.add_rounded
-                        : Icons.edit_rounded,
-                  ),
-                  label: Text(
-                    widget.existingGoal == null
-                        ? l10n.savingsSaveGoal
-                        : l10n.savingsUpdateGoal,
-                  ),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                ),
-              ],
-            ),
-          ),
+        label: Text(
+          widget.existingGoal == null
+              ? l10n.savingsSaveGoal
+              : l10n.savingsUpdateGoal,
+        ),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(48),
         ),
       ),
     );

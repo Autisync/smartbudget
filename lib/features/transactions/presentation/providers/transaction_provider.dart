@@ -5,6 +5,7 @@ import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/domain/repositories/transaction_repository.dart';
 import 'package:smartbudget/intelligence/analyzers/spending_analyzer.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/intelligence/engines/financial_insight_engines.dart';
 
 part 'transaction_provider.g.dart';
 
@@ -90,6 +91,24 @@ Future<SpendingProfile> spendingProfile(SpendingProfileRef ref) async {
   final analyzer = SpendingAnalyzer();
   final now = DateTime.now();
   return analyzer.analyze(transactions, now);
+}
+
+@riverpod
+Future<BurnRateInsight> burnRateInsight(BurnRateInsightRef ref) async {
+  final transactions = await ref.watch(transactionListProvider().future);
+  return const BurnRateEngine().calculate(
+    transactions: transactions,
+  );
+}
+
+@riverpod
+Future<TransactionDecisionSnapshotData> transactionDecisionSnapshot(
+  TransactionDecisionSnapshotRef ref,
+) async {
+  final transactions = await ref.watch(transactionListProvider().future);
+  return const TransactionInsightEngine().build(
+    transactions: transactions,
+  );
 }
 
 @riverpod

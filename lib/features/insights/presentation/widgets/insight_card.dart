@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/intelligence/models/insight.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
@@ -11,75 +11,35 @@ class InsightCard extends StatelessWidget {
   Color get _severityColor {
     switch (insight.severity) {
       case InsightSeverity.high:
-        return Colors.red.shade700;
+        return const Color(0xFFF57C00);
       case InsightSeverity.medium:
-        return Colors.orange.shade700;
+        return const Color(0xFF4B8BFF);
       case InsightSeverity.low:
-        return Colors.green.shade700;
+        return const Color(0xFF2E7D32);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: AppSurfaces.elevated(context),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: _severityColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    insight.title,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ),
-                Text(
-                  '${(insight.confidence * 100).toStringAsFixed(0)}%',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.72),
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(insight.explanation,
-                style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 8),
-            Text('${l10n.insightsImpact}: ${insight.impact}',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            Text('${l10n.insightsAction}: ${insight.action}',
-                style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
+    final tone = _severityColor;
+    final icon = switch (insight.severity) {
+      InsightSeverity.high => Icons.auto_awesome_rounded,
+      InsightSeverity.medium => Icons.psychology_alt_rounded,
+      InsightSeverity.low => Icons.tips_and_updates_rounded,
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: SmartInsightCard(
+        title: insight.title,
+        explanation: insight.explanation,
+        impact: '${l10n.insightsImpact}: ${insight.impact}',
+        action: '${l10n.insightsAction}: ${insight.action}',
+        badge: '${(insight.confidence * 100).toStringAsFixed(0)}%',
+        tone: tone,
+        icon: icon,
       ),
     );
   }
 }
-
-
-
-

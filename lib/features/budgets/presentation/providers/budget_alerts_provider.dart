@@ -7,7 +7,7 @@ part 'budget_alerts_provider.g.dart';
 
 @riverpod
 Future<List<BudgetAlert>> budgetAlerts(BudgetAlertsRef ref) async {
-  final budgets = await ref.watch(budgetListProvider.future);
+  final budgets = await ref.watch(activeBudgetsProvider.future);
   final alerts = <BudgetAlert>[];
 
   for (final budget in budgets) {
@@ -41,7 +41,3 @@ Future<List<BudgetAlert>> budgetAlerts(BudgetAlertsRef ref) async {
 
   return alerts;
 }
-
-
-
-

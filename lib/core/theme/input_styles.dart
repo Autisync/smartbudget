@@ -11,7 +11,7 @@ class InputStyles {
   static Color inputFill(Brightness brightness) {
     return brightness == Brightness.dark
         ? const Color(0xFF232838)
-        : const Color(0xFFF5F5F5);
+        : const Color(0xFFFFFFFF);
   }
 
   static Color labelColor(Brightness brightness) {
@@ -55,13 +55,17 @@ class InputStyles {
     required Color errorColor,
   }) {
     final neutral = labelColor(brightness);
+    final borderColor = brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.14)
+        : Colors.black.withValues(alpha: 0.14);
+
     return InputDecorationTheme(
       filled: true,
       fillColor: inputFill(brightness),
       floatingLabelBehavior: FloatingLabelBehavior.auto,
-      border: _border(color: Colors.transparent),
-      enabledBorder: _border(color: Colors.transparent),
-      disabledBorder: _border(color: Colors.transparent),
+      border: _border(color: borderColor, width: 1),
+      enabledBorder: _border(color: borderColor, width: 1),
+      disabledBorder: _border(color: borderColor.withValues(alpha: 0.55)),
       focusedBorder: _border(color: primaryColor, width: 2),
       errorBorder: _border(color: errorColor, width: 2),
       focusedErrorBorder: _border(color: errorColor, width: 2),
@@ -114,9 +118,15 @@ class InputStyles {
 
   static BoxDecoration dateFieldDecoration(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return BoxDecoration(
       color: inputFill(theme.brightness),
       borderRadius: BorderRadius.circular(fieldRadius),
+      border: Border.all(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.14)
+            : Colors.black.withValues(alpha: 0.14),
+      ),
     );
   }
 

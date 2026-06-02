@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartbudget/components/feedback/app_feedback_service.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/signup_form_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
@@ -322,6 +323,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
     final hasInvalidFields = !form.isValid;
     if (hasInvalidFields || !_acceptedLegal) {
+      AppFeedbackService.showWarning(
+        context,
+        hasInvalidFields && !_acceptedLegal
+            ? 'Complete required fields and accept legal terms to continue.'
+            : hasInvalidFields
+                ? 'Complete the highlighted fields to create your account.'
+                : l10n.onboardingAcceptLegalError,
+      );
       formController.setError(
         hasInvalidFields && !_acceptedLegal
             ? 'Complete the required fields and accept the legal terms.'
@@ -346,11 +355,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
     final session = ref.read(sessionControllerProvider);
     if (!ok) {
-      formController.setError(
-        session.errorMessage ?? 'Unable to create account.',
-      );
+      final errorMessage = session.errorMessage ?? 'Unable to create account.';
+      AppFeedbackService.showError(this.context, errorMessage);
+      formController.setError(errorMessage);
       return;
     }
+    AppFeedbackService.showSuccess(
+      this.context,
+      'Account created successfully.',
+    );
     if (!context.mounted) return;
     context.go('/');
   }

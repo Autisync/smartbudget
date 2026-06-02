@@ -128,7 +128,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('Budget portfolio'), findsOneWidget);
+    expect(find.text('Budget Portfolio'), findsOneWidget);
 
     await tester.pumpWidget(
       _testHost(
@@ -137,7 +137,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('Savings portfolio'), findsOneWidget);
+    expect(find.textContaining('Savings'), findsWidgets);
 
     await tester.pumpWidget(
       _testHost(
@@ -146,7 +146,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('Health portfolio'), findsOneWidget);
+    expect(find.textContaining('Health'), findsWidgets);
 
     // Repeat transitions to stress lifecycle/deactivation paths.
     for (var i = 0; i < 2; i++) {

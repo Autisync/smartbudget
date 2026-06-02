@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:smartbudget/core/widgets/app_feedback.dart';
+import 'package:smartbudget/components/feedback/app_feedback_service.dart';
+import 'package:smartbudget/components/feedback/app_lottie_view.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
+import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/features/auth/presentation/providers/auth_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/login_form_provider.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
@@ -26,12 +28,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(sessionControllerProvider);
+    final biometricUi = ref.watch(biometricAuthUiProvider);
 
     if (session.authenticated && session.localUnlockRequired) {
       return _BiometricUnlockView(
+        state: biometricUi,
         onUnlock: () async {
-          final result =
-              await ref.read(authControllerProvider.notifier).authenticate();
+          final result = await ref
+              .read(biometricAuthUiProvider.notifier)
+              .authenticateForUnlock();
           if (result == bio.AuthStatus.authenticated) {
             ref.read(sessionControllerProvider.notifier).markUnlockedLocally();
             if (context.mounted) {
@@ -39,29 +44,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             }
             return;
           }
-
-          if (!context.mounted) return;
-          final message = switch (result) {
-            bio.AuthStatus.notAvailable =>
-              'Biometric authentication unavailable on this device.',
-            bio.AuthStatus.noBiometricsEnrolled =>
-              'No biometrics enrolled. Configure it in device settings.',
-            bio.AuthStatus.lockedOut =>
-              'Biometric authentication is temporarily locked out.',
-            bio.AuthStatus.permanentlyLockedOut =>
-              'Biometric authentication is permanently locked.',
-            bio.AuthStatus.denied => 'Authentication denied.',
-            bio.AuthStatus.error =>
-              'Authentication failed due to a system error.',
-            bio.AuthStatus.authenticated => 'Authenticated',
-          };
-          AppFeedback.show(
-            context,
-            message: message,
-            type: AppFeedbackType.error,
-          );
         },
         onUseDifferentAccount: () async {
+          ref.read(biometricAuthUiProvider.notifier).switchToPasswordFallback();
           await ref.read(sessionControllerProvider.notifier).logout();
           if (context.mounted) {
             context.go('/login');
@@ -311,6 +296,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
 
       if (ok && context.mounted) {
+        AppFeedbackService.showSuccess(context, 'Signed in successfully.');
         context.go('/');
         return;
       }
@@ -359,6 +345,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
 
       if (ok && context.mounted) {
+        AppFeedbackService.showSuccess(context, 'Signed in successfully.');
         context.go('/');
         return;
       }
@@ -393,6 +380,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     if (!form.isValid) {
+      AppFeedbackService.showWarning(
+        context,
+        'Enter a valid email and password to continue.',
+      );
       formController.setError(
         'Enter a valid email and password to sign in.',
       );
@@ -411,10 +402,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final sessionAfter = ref.read(sessionControllerProvider);
     if (!ok) {
-      formController.setError(sessionAfter.errorMessage ?? 'Login failed.');
+      final message = sessionAfter.errorMessage ?? 'Login failed.';
+      if (message.toLowerCase().contains('sign in again')) {
+        AppFeedbackService.showWarning(
+          this.context,
+          'Your session has expired. Please sign in again.',
+        );
+      } else {
+        AppFeedbackService.showError(this.context, message);
+      }
+      formController.setError(message);
       return;
     }
 
+    AppFeedbackService.showSuccess(this.context, 'Signed in successfully.');
     if (!context.mounted) return;
     context.go('/');
   }
@@ -422,10 +423,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
 class _BiometricUnlockView extends StatelessWidget {
   const _BiometricUnlockView({
+    required this.state,
     required this.onUnlock,
     required this.onUseDifferentAccount,
   });
 
+  final BiometricAuthUiState state;
   final Future<void> Function() onUnlock;
   final Future<void> Function() onUseDifferentAccount;
 
@@ -464,10 +467,14 @@ class _BiometricUnlockView extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Icon(
-                  Icons.fingerprint_rounded,
-                  size: 56,
-                  color: colorScheme.primary,
+                AppLottieView(
+                  assetPath: 'assets/animations/biometric_auth.json',
+                  width: 108,
+                  height: 108,
+                  repeat: state.isBusy,
+                  animate: true,
+                  semanticLabel: 'Biometric authentication animation',
+                  fallbackIcon: Icons.fingerprint_rounded,
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -479,22 +486,93 @@ class _BiometricUnlockView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          if (state.message != null) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: _messageTone(colorScheme).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _messageTone(colorScheme).withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _messageIcon(),
+                    size: 16,
+                    color: _messageTone(colorScheme),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      state.message!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: _messageTone(colorScheme),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           AuthButton(
-            label: 'Unlock with biometrics',
-            leading: const Icon(Icons.lock_open_rounded, size: 18),
-            onPressed: () => onUnlock(),
+            label: state.isBusy ? 'Verifying...' : 'Unlock with biometrics',
+            leading: state.isBusy
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.lock_open_rounded, size: 18),
+            onPressed: state.isBusy ? null : () => onUnlock(),
           ),
           const SizedBox(height: 8),
           OutlinedButton(
-            onPressed: () => onUseDifferentAccount(),
-            child: const Text('Use a different account'),
+            onPressed: state.isBusy ? null : () => onUseDifferentAccount(),
+            child: Text(
+              state.phase == BiometricUiPhase.fallback
+                  ? 'Use password instead'
+                  : 'Use a different account',
+            ),
           ),
         ],
       ),
     );
   }
+
+  Color _messageTone(ColorScheme scheme) {
+    switch (state.phase) {
+      case BiometricUiPhase.success:
+        return const Color(0xFF2E7D32);
+      case BiometricUiPhase.failed:
+      case BiometricUiPhase.cancelled:
+      case BiometricUiPhase.fallback:
+        return scheme.error;
+      case BiometricUiPhase.openingPrompt:
+      case BiometricUiPhase.authenticating:
+      case BiometricUiPhase.idle:
+        return scheme.primary;
+    }
+  }
+
+  IconData _messageIcon() {
+    switch (state.phase) {
+      case BiometricUiPhase.success:
+        return Icons.verified_rounded;
+      case BiometricUiPhase.failed:
+      case BiometricUiPhase.fallback:
+        return Icons.error_outline_rounded;
+      case BiometricUiPhase.cancelled:
+        return Icons.info_outline_rounded;
+      case BiometricUiPhase.openingPrompt:
+      case BiometricUiPhase.authenticating:
+        return Icons.fingerprint_rounded;
+      case BiometricUiPhase.idle:
+        return Icons.lock_outline_rounded;
+    }
+  }
 }
-
-
-
-

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:smartbudget/core/theme/app_icons.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
@@ -16,6 +17,7 @@ import 'package:smartbudget/features/insights/presentation/screens/insights_scre
 import 'package:smartbudget/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:smartbudget/features/exchange_rates/presentation/screens/exchange_rates_screen.dart';
 import 'package:smartbudget/features/balance_sheet/presentation/screens/recurring_balance_sheet_screen.dart';
+import 'package:smartbudget/features/scenario_lab/presentation/screens/scenario_lab_screen.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/subscriptions_screen.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/add_subscription_screen.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/edit_subscription_screen.dart';
@@ -236,6 +238,10 @@ GoRouter router(RouterRef ref) {
             builder: (context, state) => const RecurringBalanceSheetScreen(),
           ),
           GoRoute(
+            path: '/scenario-lab',
+            builder: (context, state) => const ScenarioLabScreen(),
+          ),
+          GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),
           ),
@@ -427,10 +433,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     final l10n = AppLocalizations.of(context)!;
     final router = GoRouter.of(context);
 
-    await showModalBottomSheet<void>(
+    await showCupertinoModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
+      expand: false,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         final colorScheme = Theme.of(sheetContext).colorScheme;
@@ -464,37 +469,39 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
           }
         }
 
-        return AnimatedPadding(
-          duration: UiTokens.motionFast,
-          curve: UiTokens.motionCurve,
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(UiTokens.radius2xl),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: colorScheme.shadow.withValues(alpha: 0.14),
-                  blurRadius: 24,
-                  offset: const Offset(0, -8),
-                ),
-              ],
+        return Material(
+          color: Colors.transparent,
+          child: AnimatedPadding(
+            duration: UiTokens.motionFast,
+            curve: UiTokens.motionCurve,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
             ),
-            child: SafeArea(
-              top: false,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.86,
+            child: Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(UiTokens.radius2xl),
                 ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.shadow.withValues(alpha: 0.14),
+                    blurRadius: 24,
+                    offset: const Offset(0, -8),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.86,
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                       Center(
                         child: Container(
                           width: 38,
@@ -558,6 +565,34 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: UiTokens.space8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _MoreQuickAction(
+                              icon: AppIcons.insightsFilled,
+                              label: l10n.insightsFinancialCopilot,
+                              onTap: () => goTo('/insights'),
+                            ),
+                          ),
+                          const SizedBox(width: UiTokens.space8),
+                          Expanded(
+                            child: _MoreQuickAction(
+                              icon: Icons.ios_share_rounded,
+                              label: 'Export',
+                              onTap: () => goTo('/reports'),
+                            ),
+                          ),
+                          const SizedBox(width: UiTokens.space8),
+                          Expanded(
+                            child: _MoreQuickAction(
+                              icon: Icons.science_rounded,
+                              label: 'Scenario Lab',
+                              onTap: () => goTo('/scenario-lab'),
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: UiTokens.space16),
                       AppSettingsTile(
                         icon: Icons.lock_outline_rounded,
@@ -601,7 +636,8 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                         title: l10n.legalCenterTitle,
                         onTap: () => pushTo('/legal'),
                       ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

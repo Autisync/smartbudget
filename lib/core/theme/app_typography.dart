@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTypography {
   const AppTypography._();
 
   static TextTheme textTheme(TextTheme base, Color body, Color muted) {
-    return base.copyWith(
+    final inter = GoogleFonts.interTextTheme(base);
+    return inter.copyWith(
       displayLarge: TextStyle(
         fontSize: 32,
         height: 1.1,

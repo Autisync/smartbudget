@@ -61,6 +61,44 @@ final spendingProfileProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SpendingProfileRef = AutoDisposeFutureProviderRef<SpendingProfile>;
+String _$burnRateInsightHash() => r'7ed95f89e915fa2bc5da02d0dc481994513e712f';
+
+/// See also [burnRateInsight].
+@ProviderFor(burnRateInsight)
+final burnRateInsightProvider =
+    AutoDisposeFutureProvider<BurnRateInsight>.internal(
+  burnRateInsight,
+  name: r'burnRateInsightProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$burnRateInsightHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef BurnRateInsightRef = AutoDisposeFutureProviderRef<BurnRateInsight>;
+String _$transactionDecisionSnapshotHash() =>
+    r'075e9cd7d0268ddb49c9dd2421710a3944f1bfc7';
+
+/// See also [transactionDecisionSnapshot].
+@ProviderFor(transactionDecisionSnapshot)
+final transactionDecisionSnapshotProvider =
+    AutoDisposeFutureProvider<TransactionDecisionSnapshotData>.internal(
+  transactionDecisionSnapshot,
+  name: r'transactionDecisionSnapshotProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$transactionDecisionSnapshotHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TransactionDecisionSnapshotRef
+    = AutoDisposeFutureProviderRef<TransactionDecisionSnapshotData>;
 String _$cashflowPredictionHash() =>
     r'a05b1af74d7c3f347456101954f2e1c0e82d41f8';
 
@@ -311,7 +349,3 @@ class _TransactionListProviderElement
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
-
-
-
-

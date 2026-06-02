@@ -7,6 +7,11 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 
 part 'budget_provider.g.dart';
 
+final activeBudgetsProvider = FutureProvider<List<Budget>>((ref) async {
+  final budgets = await ref.watch(budgetListProvider.future);
+  return budgets.where((budget) => budget.isActive).toList(growable: false);
+});
+
 @Riverpod(keepAlive: true)
 BudgetRepository budgetRepository(BudgetRepositoryRef ref) {
   final database = ref.watch(databaseProvider);
@@ -133,7 +138,3 @@ Future<double> budgetSpending(BudgetSpendingRef ref,
   final repo = ref.watch(budgetRepositoryProvider);
   return repo.getBudgetSpending(category, start, end);
 }
-
-
-
-

@@ -259,7 +259,3 @@ abstract class _CashflowPrediction implements CashflowPrediction {
   _$$CashflowPredictionImplCopyWith<_$CashflowPredictionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
-
-
-
-

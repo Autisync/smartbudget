@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartbudget/components/feedback/app_feedback_service.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
 
@@ -149,11 +150,23 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     });
     await ref.read(sessionControllerProvider.notifier).forgotPassword(email);
     final session = ref.read(sessionControllerProvider);
+    final hasError = session.errorMessage != null;
     setState(() {
       _submitting = false;
       _message = session.errorMessage ??
           'If this account exists, reset instructions were sent.';
     });
+
+    if (!mounted) return;
+
+    if (hasError) {
+      AppFeedbackService.showError(context, session.errorMessage!);
+      return;
+    }
+    AppFeedbackService.showSuccess(
+      context,
+      'Password reset email sent. Check your inbox.',
+    );
   }
 
   String? _emailValidation(String email) {

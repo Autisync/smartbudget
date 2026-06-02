@@ -498,7 +498,3 @@ abstract class _Subscription extends Subscription {
   _$$SubscriptionImplCopyWith<_$SubscriptionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
-
-
-
-

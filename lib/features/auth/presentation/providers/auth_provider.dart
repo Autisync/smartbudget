@@ -1,9 +1,157 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/data/models/tables.dart' as tables;
 
 part 'auth_provider.g.dart';
+
+typedef BiometricAuthenticateAction = Future<AuthStatus> Function();
+
+final biometricAuthenticateActionProvider =
+    Provider<BiometricAuthenticateAction>((ref) {
+  return () => ref.read(authControllerProvider.notifier).authenticate();
+});
+
+enum BiometricUiPhase {
+  idle,
+  openingPrompt,
+  authenticating,
+  success,
+  failed,
+  cancelled,
+  fallback,
+}
+
+class BiometricAuthUiState {
+  const BiometricAuthUiState({
+    this.phase = BiometricUiPhase.idle,
+    this.message,
+    this.lastResult,
+  });
+
+  final BiometricUiPhase phase;
+  final String? message;
+  final AuthStatus? lastResult;
+
+  bool get isBusy =>
+      phase == BiometricUiPhase.openingPrompt ||
+      phase == BiometricUiPhase.authenticating;
+
+  BiometricAuthUiState copyWith({
+    BiometricUiPhase? phase,
+    String? message,
+    AuthStatus? lastResult,
+  }) {
+    return BiometricAuthUiState(
+      phase: phase ?? this.phase,
+      message: message ?? this.message,
+      lastResult: lastResult ?? this.lastResult,
+    );
+  }
+}
+
+final biometricAuthUiProvider =
+    StateNotifierProvider<BiometricAuthUiController, BiometricAuthUiState>(
+        (ref) {
+  return BiometricAuthUiController(ref);
+});
+
+class BiometricAuthUiController extends StateNotifier<BiometricAuthUiState> {
+  BiometricAuthUiController(this._ref) : super(const BiometricAuthUiState());
+
+  final Ref _ref;
+  bool _inFlight = false;
+
+  Future<AuthStatus> authenticateForUnlock() async {
+    if (_inFlight) {
+      return state.lastResult ?? AuthStatus.denied;
+    }
+
+    _inFlight = true;
+    state = const BiometricAuthUiState(
+      phase: BiometricUiPhase.openingPrompt,
+      message: 'Opening biometric prompt...',
+    );
+
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    state = const BiometricAuthUiState(
+      phase: BiometricUiPhase.authenticating,
+      message: 'Waiting for biometric verification...',
+    );
+
+    try {
+      final result = await _ref
+          .read(biometricAuthenticateActionProvider)()
+          .timeout(const Duration(seconds: 14), onTimeout: () {
+        return AuthStatus.error;
+      });
+      _applyResult(result);
+      return result;
+    } finally {
+      _inFlight = false;
+    }
+  }
+
+  void switchToPasswordFallback() {
+    state = const BiometricAuthUiState(
+      phase: BiometricUiPhase.fallback,
+      message: 'Use your password to continue.',
+    );
+  }
+
+  void reset() {
+    state = const BiometricAuthUiState();
+  }
+
+  void _applyResult(AuthStatus result) {
+    switch (result) {
+      case AuthStatus.authenticated:
+        state = const BiometricAuthUiState(
+          phase: BiometricUiPhase.success,
+          message: 'Verified. Unlocking your session...',
+          lastResult: AuthStatus.authenticated,
+        );
+        return;
+      case AuthStatus.denied:
+        state = const BiometricAuthUiState(
+          phase: BiometricUiPhase.cancelled,
+          message: 'Biometric verification was cancelled or denied.',
+          lastResult: AuthStatus.denied,
+        );
+        return;
+      case AuthStatus.notAvailable:
+        state = const BiometricAuthUiState(
+          phase: BiometricUiPhase.fallback,
+          message: 'Biometrics are not available on this device.',
+          lastResult: AuthStatus.notAvailable,
+        );
+        return;
+      case AuthStatus.noBiometricsEnrolled:
+        state = const BiometricAuthUiState(
+          phase: BiometricUiPhase.fallback,
+          message: 'No biometrics are enrolled. Use password instead.',
+          lastResult: AuthStatus.noBiometricsEnrolled,
+        );
+        return;
+      case AuthStatus.lockedOut:
+      case AuthStatus.permanentlyLockedOut:
+        state = const BiometricAuthUiState(
+          phase: BiometricUiPhase.fallback,
+          message: 'Biometrics are locked. Unlock your device and try again.',
+          lastResult: AuthStatus.lockedOut,
+        );
+        return;
+      case AuthStatus.error:
+        state = const BiometricAuthUiState(
+          phase: BiometricUiPhase.failed,
+          message: 'Unable to verify biometrics right now. Try again.',
+          lastResult: AuthStatus.error,
+        );
+        return;
+    }
+  }
+}
 
 @riverpod
 class AuthController extends _$AuthController {

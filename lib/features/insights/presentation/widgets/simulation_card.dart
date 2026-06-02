@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:go_router/go_router.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/intelligence/analyzers/spending_analyzer.dart';
 import 'package:smartbudget/intelligence/predictors/cashflow_predictor.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
@@ -40,39 +41,45 @@ class _SimulationCardState extends State<SimulationCard> {
         ? widget.forecast.projectedMonthlySpend - scenarioSpend
         : 0.0;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: AppSurfaces.elevated(context),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.simulationSpendReductionTitle,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
+    return SmartCard(
+      radius: 28,
+      color: const Color(0xFF7A6CF6).withValues(alpha: 0.08),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SmartSpendHeader(
+            title: 'Scenario Lab',
+            subtitle: l10n.simulationSpendReductionSubtitle,
+            trailing: AppBadge(
+              label: '${(_reduction * 100).round()}% cut',
+              color: Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.simulationSpendReductionSubtitle,
-              style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: presets.map((preset) {
+              return ChoiceChip(
+                label: Text('${(preset * 100).round()}%'),
+                selected: _reduction == preset,
+                onSelected: (_) => setState(() => _reduction = preset),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 14),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 4,
+              activeTrackColor: Theme.of(context).colorScheme.primary,
+              inactiveTrackColor: Theme.of(context)
+                  .colorScheme
+                  .outlineVariant
+                  .withValues(alpha: 0.35),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
             ),
-            const SizedBox(height: 18),
-            Wrap(
-              spacing: 8,
-              children: presets.map((preset) {
-                return ChoiceChip(
-                  label: Text('${(preset * 100).round()}%'),
-                  selected: _reduction == preset,
-                  onSelected: (_) => setState(() => _reduction = preset),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            Slider(
+            child: Slider(
               value: _reduction,
               min: 0,
               max: 0.4,
@@ -80,31 +87,35 @@ class _SimulationCardState extends State<SimulationCard> {
               label: '${(_reduction * 100).round()}%',
               onChanged: (value) => setState(() => _reduction = value),
             ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.simulationProjectedMonthlySpend(
-                currencyFormat.format(scenarioSpend),
-              ),
-              style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 12),
+          _ScenarioMetricRow(
+            label: 'Projected Monthly Spend',
+            value: currencyFormat.format(scenarioSpend),
+          ),
+          const SizedBox(height: 8),
+          _ScenarioMetricRow(
+            label: 'Projected End Balance',
+            value: currencyFormat.format(scenarioEndBalance),
+          ),
+          const SizedBox(height: 8),
+          _ScenarioMetricRow(
+            label: 'Potential Savings',
+            value: currencyFormat.format(improvement),
+            tone: Theme.of(context).colorScheme.tertiary,
+          ),
+          const SizedBox(height: 14),
+          _buildRecommendation(context, scenarioEndBalance),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => context.push('/scenario-lab'),
+              icon: const Icon(Icons.open_in_new_rounded, size: 16),
+              label: const Text('Open full Scenario Lab'),
             ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.simulationProjectedEndBalance(
-                currencyFormat.format(scenarioEndBalance),
-              ),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.simulationPotentialSavings(
-                currencyFormat.format(improvement),
-              ),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            _buildRecommendation(context, scenarioEndBalance),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -116,11 +127,42 @@ class _SimulationCardState extends State<SimulationCard> {
         : l10n.simulationRecommendationNegative;
     return Text(
       message,
-      style: Theme.of(context).textTheme.bodyMedium,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
     );
   }
 }
 
+class _ScenarioMetricRow extends StatelessWidget {
+  const _ScenarioMetricRow({
+    required this.label,
+    required this.value,
+    this.tone,
+  });
 
+  final String label;
+  final String value;
+  final Color? tone;
 
-
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: tone,
+              ),
+        ),
+      ],
+    );
+  }
+}

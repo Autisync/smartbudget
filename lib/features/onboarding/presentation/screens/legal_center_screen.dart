@@ -1,10 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/features/onboarding/presentation/screens/legal_document_screen.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class LegalCenterScreen extends StatefulWidget {
@@ -43,42 +41,27 @@ class _LegalCenterScreenState extends State<LegalCenterScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: _isAppBarScrolled ? 0.9 : 0,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: BrandedTitle(label: l10n.legalCenterTitle),
+        title: buildFrostedAppBarTitle(
+          context: context,
+          title: l10n.legalCenterTitle,
+          isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        flexibleSpace: Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _isAppBarScrolled
-                  ? ClipRect(
-                      key: const ValueKey('legal-center-appbar-blur-on'),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(
-                      key: ValueKey('legal-center-appbar-blur-off'),
-                    ),
-            ),
-          ],
+        flexibleSpace: buildFrostedFlexibleSpace(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+          onKey: 'legal-center-appbar-blur-on',
+          offKey: 'legal-center-appbar-blur-off',
+        ),
+        actions: buildPageHeaderActions(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+          useProviderNotificationBell: false,
         ),
       ),
       body: LayoutBuilder(
@@ -173,7 +156,3 @@ class _LegalCenterTile extends StatelessWidget {
     );
   }
 }
-
-
-
-

@@ -564,7 +564,3 @@ abstract class _BudgetProgress implements BudgetProgress {
   _$$BudgetProgressImplCopyWith<_$BudgetProgressImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
-
-
-
-

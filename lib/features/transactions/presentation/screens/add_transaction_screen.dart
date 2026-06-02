@@ -1,25 +1,29 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/components/forms/form_components.dart';
+import 'package:smartbudget/components/sheets/app_sheet_container.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/data/models/tables.dart'
     show TransactionType, TransactionRecurrence;
-import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
-import 'package:smartbudget/core/widgets/form_date_field.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:uuid/uuid.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final Transaction? existingTransaction;
+  final bool asModal;
 
-  const AddTransactionScreen({super.key, this.existingTransaction});
+  const AddTransactionScreen({
+    super.key,
+    this.existingTransaction,
+    this.asModal = false,
+  });
 
   @override
   ConsumerState<AddTransactionScreen> createState() =>
@@ -31,11 +35,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   bool _isAppBarScrolled = false;
+  bool _saving = false;
 
   TransactionType _type = TransactionType.expense;
   String _category = 'Food';
   DateTime _date = DateTime.now();
   TransactionRecurrence _recurrence = TransactionRecurrence.none;
+  String _paymentMethod = 'Card';
 
   @override
   void initState() {
@@ -72,6 +78,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   }
 
   void _closeScreen() {
+    if (widget.asModal) {
+      Navigator.of(context).pop();
+      return;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (GoRouter.of(context).canPop()) {
@@ -88,7 +99,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final appCurrency = ref.watch(appCurrencyControllerProvider);
-    final budgetCategories = ref.watch(budgetListProvider).maybeWhen(
+    final budgetCategories = ref.watch(activeBudgetsProvider).maybeWhen(
           data: (budgets) => budgets
               .map((budget) => budget.category.trim())
               .where((category) => category.isNotEmpty)
@@ -117,7 +128,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
     final amountFormat = CurrencyUtils.getFormat(appCurrency);
-    final recurrenceLabel = _recurrenceLabel(l10n, _recurrence);
     final typeColor = _type == TransactionType.expense
         ? colorScheme.error
         : colorScheme.primary;
@@ -125,61 +135,259 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         ? Icons.arrow_upward_rounded
         : Icons.arrow_downward_rounded;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+    final formFields = Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.brightness == Brightness.dark
+                  ? colorScheme.surfaceContainerHigh
+                  : colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.10),
+              ),
             ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: BrandedTitle(
-            label: widget.existingTransaction != null
-                ? l10n.transactionsUpdateTransaction
-                : l10n.addTransaction,
-          ),
-        ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
-        ),
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        flexibleSpace: Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _isAppBarScrolled
-                  ? ClipRect(
-                      key: const ValueKey('tx-form-appbar-blur-on'),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: typeColor.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(typeIcon, color: typeColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.existingTransaction != null
+                            ? l10n.transactionsUpdateTransaction
+                            : l10n.addTransaction,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                    )
-                  : const SizedBox(
-                      key: ValueKey('tx-form-appbar-blur-off'),
-                    ),
-            ),
-          ],
-        ),
-        leading: IconButton(
-          style: IconButton.styleFrom(
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
+                      const SizedBox(height: 4),
+                      Text(
+                        amount > 0
+                            ? amountFormat.format(amount)
+                            : '${CurrencyUtils.symbol(appCurrency)} 0.00',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          icon: const Icon(Icons.close),
-          onPressed: _closeScreen,
-        ),
+          const SizedBox(height: 20),
+          SegmentedButton<TransactionType>(
+            segments: [
+              ButtonSegment(
+                value: TransactionType.expense,
+                label: Text(l10n.expense),
+                icon: const Icon(Icons.arrow_upward),
+              ),
+              ButtonSegment(
+                value: TransactionType.income,
+                label: Text(l10n.income),
+                icon: const Icon(Icons.arrow_downward),
+              ),
+            ],
+            selected: {_type},
+            onSelectionChanged: (set) {
+              setState(() => _type = set.first);
+            },
+          ),
+          const SizedBox(height: 16),
+          CurrencyInput(
+            controller: _amountController,
+            label: l10n.amount,
+            currencySymbol: CurrencyUtils.symbol(appCurrency),
+            helperText: 'Use amount with decimals, e.g. 1,250.75',
+            validator: (value) => FormValidation.positiveAmount(
+              value,
+              l10n.transactionsEnterAmount,
+              l10n.transactionsInvalidNumber,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ModernSelect<String>(
+            value: _category,
+            label: l10n.category,
+            helperText: 'Assign the transaction to a budget category',
+            prefixIcon: Icons.category_rounded,
+            items: categories.map((cat) {
+              return DropdownMenuItem(value: cat, child: Text(cat));
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) setState(() => _category = value);
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernDatePicker(
+            label: l10n.date,
+            value: MaterialLocalizations.of(context).formatFullDate(_date),
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _date,
+                firstDate: DateTime(2020),
+                lastDate: DateTime.now().add(const Duration(days: 1)),
+              );
+              if (picked != null) setState(() => _date = picked);
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernSelect<TransactionRecurrence>(
+            value: _recurrence,
+            label: l10n.transactionsRecurrence,
+            prefixIcon: Icons.repeat_rounded,
+            items: TransactionRecurrence.values
+                .map((r) => DropdownMenuItem(
+                      value: r,
+                      child: Text(
+                        switch (r) {
+                          TransactionRecurrence.none =>
+                            l10n.transactionsRecurrenceNone,
+                          TransactionRecurrence.daily =>
+                            l10n.transactionsRecurrenceDaily,
+                          TransactionRecurrence.weekly =>
+                            l10n.transactionsRecurrenceWeekly,
+                          TransactionRecurrence.monthly =>
+                            l10n.transactionsRecurrenceMonthly,
+                          TransactionRecurrence.yearly =>
+                            l10n.transactionsRecurrenceYearly,
+                        },
+                      ),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _recurrence = value);
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernSelect<String>(
+            value: _paymentMethod,
+            label: 'Payment Method',
+            prefixIcon: Icons.credit_card_rounded,
+            items: const [
+              DropdownMenuItem(value: 'Card', child: Text('Card')),
+              DropdownMenuItem(value: 'Cash', child: Text('Cash')),
+              DropdownMenuItem(value: 'Bank', child: Text('Bank')),
+              DropdownMenuItem(value: 'Wallet', child: Text('Wallet')),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _paymentMethod = value);
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernInput(
+            controller: _noteController,
+            label: l10n.transactionsNoteOptional,
+            helperText: 'Optional context for categorization and insights',
+            prefixIcon: Icons.edit_note_rounded,
+            maxLines: 2,
+            textInputAction: TextInputAction.done,
+          ),
+        ],
       ),
+    );
+
+    final formBody = AppSheetContainer(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.only(bottom: 108),
+        child: formFields,
+      ),
+    );
+
+    if (widget.asModal) {
+      return AppFormSheet(
+        onClose: _closeScreen,
+        maxHeightFactor: 0.78,
+        body: formFields,
+        actions: FilledButton.icon(
+          onPressed: _saving ? null : _saveTransaction,
+          icon: _saving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(
+                  widget.existingTransaction != null
+                      ? Icons.edit_rounded
+                      : Icons.add_rounded,
+                ),
+          label: Text(
+            widget.existingTransaction != null
+                ? l10n.transactionsUpdateTransaction
+                : l10n.transactionsSaveTransaction,
+          ),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(52),
+          ),
+        ),
+      );
+    }
+
+    return AppScaffold(
+      appBar: widget.asModal
+          ? null
+          : AppBar(
+              title: buildFrostedAppBarTitle(
+                context: context,
+                title: widget.existingTransaction != null
+                    ? l10n.transactionsUpdateTransaction
+                    : l10n.addTransaction,
+                isScrolled: _isAppBarScrolled,
+              ),
+              backgroundColor: colorScheme.surface.withValues(
+                alpha: _isAppBarScrolled ? 0.88 : 0,
+              ),
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              flexibleSpace: buildFrostedFlexibleSpace(
+                context: context,
+                isScrolled: _isAppBarScrolled,
+                onKey: 'tx-form-appbar-blur-on',
+                offKey: 'tx-form-appbar-blur-off',
+              ),
+              leading: IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor:
+                      colorScheme.surfaceContainerHighest.withValues(
+                    alpha: _isAppBarScrolled ? 0.9 : 0,
+                  ),
+                ),
+                icon: const Icon(Icons.close),
+                onPressed: _closeScreen,
+              ),
+              actions: buildPageHeaderActions(
+                context: context,
+                isScrolled: _isAppBarScrolled,
+              ),
+            ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           if (notification.metrics.axis == Axis.vertical) {
@@ -187,288 +395,69 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           }
           return false;
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.45),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: typeColor.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(typeIcon, color: typeColor, size: 20),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              amount > 0
-                                  ? amountFormat.format(amount)
-                                  : '${CurrencyUtils.symbol(appCurrency)} 0.00',
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: typeColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              _type == TransactionType.expense
-                                  ? l10n.expense
-                                  : l10n.income,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: typeColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          Chip(
-                            label: Text(_category),
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          Chip(
-                            label: Text(recurrenceLabel),
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          Chip(
-                            label: Text(
-                              MaterialLocalizations.of(context)
-                                  .formatMediumDate(_date),
-                            ),
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Type Selector
-                SegmentedButton<TransactionType>(
-                  segments: [
-                    ButtonSegment(
-                      value: TransactionType.expense,
-                      label: Text(l10n.expense),
-                      icon: const Icon(Icons.arrow_upward),
-                    ),
-                    ButtonSegment(
-                      value: TransactionType.income,
-                      label: Text(l10n.income),
-                      icon: const Icon(Icons.arrow_downward),
-                    ),
-                  ],
-                  selected: {_type},
-                  onSelectionChanged: (set) {
-                    setState(() => _type = set.first);
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-
-                // Amount
-                TextFormField(
-                  controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  style: InputStyles.inputTextStyle(Theme.of(context)),
-                  decoration: InputDecoration(
-                    labelText: l10n.amount,
-                    prefixText: '${CurrencyUtils.symbol(appCurrency)} ',
-                    hintText: '0.00',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.transactionsEnterAmount;
-                    }
-                    if (double.tryParse(value) == null) {
-                      return l10n.transactionsInvalidNumber;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-
-                // Category
-                DropdownButtonFormField<String>(
-                  initialValue: _category,
-                  icon: InputStyles.dropdownIcon(context),
-                  decoration: InputDecoration(
-                    labelText: l10n.category,
-                    prefixIcon: const Icon(Icons.category),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.outlineVariant,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  items: categories.map((cat) {
-                    return DropdownMenuItem(value: cat, child: Text(cat));
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) setState(() => _category = value);
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-
-                // Date
-                FormDateField(
-                  label: l10n.date,
-                  value:
-                      MaterialLocalizations.of(context).formatFullDate(_date),
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _date,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now().add(const Duration(days: 1)),
-                    );
-                    if (picked != null) setState(() => _date = picked);
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-
-                // Note
-                TextFormField(
-                  controller: _noteController,
-                  style: InputStyles.inputTextStyle(Theme.of(context)),
-                  decoration: InputDecoration(
-                    labelText: l10n.transactionsNoteOptional,
-                    prefixIcon: const Icon(Icons.edit),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-
-                // Recurrence
-                DropdownButtonFormField<TransactionRecurrence>(
-                  initialValue: _recurrence,
-                  icon: InputStyles.dropdownIcon(context),
-                  decoration: InputDecoration(
-                    labelText: l10n.transactionsRecurrence,
-                    prefixIcon: const Icon(Icons.repeat),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.outlineVariant,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  items: TransactionRecurrence.values
-                      .map((r) => DropdownMenuItem(
-                            value: r,
-                            child: Text(
-                              switch (r) {
-                                TransactionRecurrence.none =>
-                                  l10n.transactionsRecurrenceNone,
-                                TransactionRecurrence.daily =>
-                                  l10n.transactionsRecurrenceDaily,
-                                TransactionRecurrence.weekly =>
-                                  l10n.transactionsRecurrenceWeekly,
-                                TransactionRecurrence.monthly =>
-                                  l10n.transactionsRecurrenceMonthly,
-                                TransactionRecurrence.yearly =>
-                                  l10n.transactionsRecurrenceYearly,
-                              },
-                            ),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _recurrence = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-
-                // Save Button
-                FilledButton.icon(
-                  onPressed: _saveTransaction,
-                  icon: Icon(
-                    widget.existingTransaction != null
-                        ? Icons.check_rounded
-                        : Icons.add_rounded,
-                  ),
-                  label: Text(
-                    widget.existingTransaction != null
-                        ? l10n.transactionsUpdateTransaction
-                        : l10n.transactionsSaveTransaction,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        child: formBody,
       ),
+      bottomNavigationBar: widget.asModal
+          ? null
+          : AnimatedPadding(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+                  child: FilledButton.icon(
+                    onPressed: _saving ? null : _saveTransaction,
+                    icon: _saving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            widget.existingTransaction != null
+                                ? Icons.edit_rounded
+                                : Icons.add_rounded,
+                          ),
+                    label: Text(
+                      widget.existingTransaction != null
+                          ? l10n.transactionsUpdateTransaction
+                          : l10n.transactionsSaveTransaction,
+                    ),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                  ),
+                ),
+              ),
+            ),
     );
   }
 
   Future<void> _saveTransaction() async {
+    if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
 
-    final amount = double.parse(_amountController.text);
+    final amount = FormValidation.parseDecimal(_amountController.text) ?? 0;
+    if (amount <= 0) {
+      AppFeedbackService.showWarning(
+        context,
+        'Please enter a valid amount.',
+      );
+      return;
+    }
+
+    setState(() => _saving = true);
+    AppFeedbackService.showLoading(
+      context,
+      widget.existingTransaction != null
+          ? 'Updating transaction...'
+          : 'Saving transaction...',
+    );
+
     final appCurrency = ref.read(appCurrencyControllerProvider);
     final transaction = Transaction(
       id: widget.existingTransaction?.id ?? const Uuid().v4(),
@@ -483,19 +472,34 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       isSynced: widget.existingTransaction?.isSynced ?? false,
     );
 
-    final repo = ref.read(transactionListProvider().notifier);
-    if (widget.existingTransaction != null) {
-      await repo.updateTransaction(transaction);
-    } else {
-      await repo.addTransaction(transaction);
-    }
+    try {
+      final repo = ref.read(transactionListProvider().notifier);
+      if (widget.existingTransaction != null) {
+        await repo.updateTransaction(transaction);
+      } else {
+        await repo.addTransaction(transaction);
+      }
 
-    if (mounted) {
-      _closeScreen();
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.transactionsSaved)),
+      if (!mounted) return;
+      AppFeedbackService.dismissLoading();
+      AppFeedbackService.showSuccess(
+        context,
+        widget.existingTransaction != null
+            ? 'Transaction updated successfully.'
+            : 'Transaction added successfully.',
       );
+      _closeScreen();
+    } catch (_) {
+      if (!mounted) return;
+      AppFeedbackService.dismissLoading();
+      AppFeedbackService.showError(
+        context,
+        'Failed to save transaction. Please try again.',
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
     }
   }
 
@@ -504,18 +508,5 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
-  }
-
-  String _recurrenceLabel(
-    AppLocalizations l10n,
-    TransactionRecurrence recurrence,
-  ) {
-    return switch (recurrence) {
-      TransactionRecurrence.none => l10n.transactionsRecurrenceNone,
-      TransactionRecurrence.daily => l10n.transactionsRecurrenceDaily,
-      TransactionRecurrence.weekly => l10n.transactionsRecurrenceWeekly,
-      TransactionRecurrence.monthly => l10n.transactionsRecurrenceMonthly,
-      TransactionRecurrence.yearly => l10n.transactionsRecurrenceYearly,
-    };
   }
 }

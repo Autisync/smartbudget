@@ -1,145 +1,628 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/components/forms/form_components.dart';
+import 'package:smartbudget/components/sheets/app_sheet_container.dart';
+import 'package:smartbudget/components/sheets/keyboard_aware_form_sheet.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
-import 'package:smartbudget/core/theme/input_styles.dart';
-import 'package:smartbudget/core/widgets/form_date_field.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
+import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
-import 'package:smartbudget/data/models/tables.dart'
-    show BillingCycle, SubscriptionImportance;
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
-class AddSubscriptionScreen extends ConsumerStatefulWidget {
-  final Subscription? existingSubscription;
+enum SubscriptionFormMode { create, update }
 
-  const AddSubscriptionScreen({super.key, this.existingSubscription});
+class AddSubscriptionScreen extends StatelessWidget {
+  const AddSubscriptionScreen({
+    super.key,
+    this.asModal = false,
+  });
+
+  final bool asModal;
 
   @override
-  ConsumerState<AddSubscriptionScreen> createState() =>
-      _AddSubscriptionScreenState();
+  Widget build(BuildContext context) {
+    return SubscriptionFormSheet(
+      mode: SubscriptionFormMode.create,
+      asModal: asModal,
+    );
+  }
 }
 
-class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
+class SubscriptionFormSheet extends ConsumerStatefulWidget {
+  const SubscriptionFormSheet({
+    super.key,
+    required this.mode,
+    this.initialData,
+    this.asModal = false,
+  });
+
+  final SubscriptionFormMode mode;
+  final Subscription? initialData;
+  final bool asModal;
+
+  @override
+  ConsumerState<SubscriptionFormSheet> createState() =>
+      _SubscriptionFormSheetState();
+}
+
+class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController();
   final _paymentMethodController = TextEditingController();
   final _websiteController = TextEditingController();
+  final _notesController = TextEditingController();
 
+  bool _saving = false;
   bool _isAppBarScrolled = false;
-  bool _isSaving = false;
 
-  late String _category;
-  late BillingCycle _billingCycle;
-  late SubscriptionImportance _importance;
-  late DateTime _startDate;
-  late DateTime _nextBillingDate;
+  BillingCycle _billingCycle = BillingCycle.monthly;
+  SubscriptionImportance _importance = SubscriptionImportance.medium;
+  String _category = 'Streaming';
+  DateTime _startDate = DateTime.now();
+  DateTime _nextBillingDate = DateTime.now();
+  bool _isActive = true;
 
-  static const List<String> _defaultCategories = [
-    'Streaming',
-    'Software',
-    'Cloud Storage',
-    'Fitness',
-    'Music',
-    'News',
-    'Communication',
-    'Productivity',
-    'Entertainment',
-    'Insurance',
-    'Utilities',
-    'Transport',
-    'Health',
-    'Other',
-  ];
-
-  String _getCategoryLabel(AppLocalizations l10n, String category) {
-    switch (category) {
-      case 'Streaming':
-        return l10n.subscriptionsCategoryStreaming;
-      case 'Software':
-        return l10n.subscriptionsCategorySoftware;
-      case 'Cloud Storage':
-        return l10n.subscriptionsCategoryCloudStorage;
-      case 'Fitness':
-        return l10n.subscriptionsCategoryFitness;
-      case 'Music':
-        return l10n.subscriptionsCategoryMusic;
-      case 'News':
-        return l10n.subscriptionsCategoryNews;
-      case 'Communication':
-        return l10n.subscriptionsCategoryCommunication;
-      case 'Productivity':
-        return l10n.subscriptionsCategoryProductivity;
-      case 'Entertainment':
-        return l10n.subscriptionsCategoryEntertainment;
-      case 'Insurance':
-        return l10n.subscriptionsCategoryInsurance;
-      case 'Utilities':
-        return l10n.subscriptionsCategoryUtilities;
-      case 'Transport':
-        return l10n.subscriptionsCategoryTransport;
-      case 'Health':
-        return l10n.subscriptionsCategoryHealth;
-      case 'Other':
-        return l10n.subscriptionsCategoryOther;
-      default:
-        return category;
-    }
-  }
+  bool get _isUpdate => widget.mode == SubscriptionFormMode.update;
 
   @override
   void initState() {
     super.initState();
-    final sub = widget.existingSubscription;
-    if (sub != null) {
-      _nameController.text = sub.name;
-      _amountController.text = sub.amount.toString();
-      _descriptionController.text = sub.description ?? '';
-      _paymentMethodController.text = sub.paymentMethod ?? '';
-      _websiteController.text = sub.website ?? '';
-      _category = sub.category;
-      _billingCycle = sub.billingCycle;
-      _importance = sub.importance;
-      _startDate = sub.startDate;
-      _nextBillingDate = sub.nextBillingDate;
-    } else {
-      _category = 'Streaming';
-      _billingCycle = BillingCycle.monthly;
-      _importance = SubscriptionImportance.medium;
-      _startDate = DateTime.now();
-      _nextBillingDate = DateTime.now().add(const Duration(days: 30));
+    final initial = widget.initialData;
+    if (initial == null) {
+      return;
     }
+
+    _nameController.text = initial.name;
+    _amountController.text = initial.amount.toStringAsFixed(2);
+    _paymentMethodController.text = initial.paymentMethod ?? '';
+    _websiteController.text = initial.website ?? '';
+    _notesController.text = initial.description ?? '';
+    _billingCycle = initial.billingCycle;
+    _importance = initial.importance;
+    _category = initial.category;
+    _startDate = initial.startDate;
+    _nextBillingDate = initial.nextBillingDate;
+    _isActive = initial.isActive;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _amountController.dispose();
-    _descriptionController.dispose();
     _paymentMethodController.dispose();
     _websiteController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
     final shouldShowFill = offset > threshold;
-    if (shouldShowFill == _isAppBarScrolled) return;
-    if (!mounted) return;
+    if (shouldShowFill == _isAppBarScrolled) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
     setState(() => _isAppBarScrolled = shouldShowFill);
   }
 
-  double get _monthlyCost {
-    final amount = double.tryParse(_amountController.text) ?? 0.0;
-    switch (_billingCycle) {
+  Future<void> _pickDate({required bool startDate}) async {
+    final current = startDate ? _startDate : _nextBillingDate;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+    if (picked == null) {
+      return;
+    }
+
+    setState(() {
+      if (startDate) {
+        _startDate = picked;
+        if (_nextBillingDate.isBefore(_startDate)) {
+          _nextBillingDate = _startDate;
+        }
+      } else {
+        _nextBillingDate = picked;
+      }
+    });
+  }
+
+  void _closeScreen() {
+    if (widget.asModal) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      if (GoRouter.of(context).canPop()) {
+        context.pop();
+        return;
+      }
+      context.go('/subscriptions');
+    });
+  }
+
+  Future<void> _save() async {
+    final l10n = AppLocalizations.of(context);
+    if (!_formKey.currentState!.validate()) {
+      AppFeedbackService.showWarning(
+        context,
+        'Complete required subscription fields to continue.',
+      );
+      return;
+    }
+
+    final parsedAmount = FormValidation.parseDecimal(_amountController.text);
+    if (parsedAmount == null || parsedAmount <= 0) {
+      AppFeedbackService.showWarning(
+        context,
+        'Enter a valid subscription amount greater than zero.',
+      );
+      return;
+    }
+
+    setState(() => _saving = true);
+    AppFeedbackService.showLoading(
+      context,
+      _isUpdate ? 'Updating subscription...' : 'Saving subscription...',
+    );
+
+    try {
+      final now = DateTime.now();
+      final appCurrency = ref.read(appCurrencyControllerProvider);
+      final initial = widget.initialData;
+      final subscription = Subscription(
+        id: initial?.id ?? const Uuid().v4(),
+        name: _nameController.text.trim(),
+        description: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
+        amount: parsedAmount,
+        currency: (initial?.currency ?? appCurrency).toUpperCase(),
+        billingCycle: _billingCycle,
+        startDate: _startDate,
+        nextBillingDate: _nextBillingDate,
+        category: _category,
+        importance: _importance,
+        isActive: _isActive,
+        paymentMethod: _paymentMethodController.text.trim().isEmpty
+            ? null
+            : _paymentMethodController.text.trim(),
+        website: _websiteController.text.trim().isEmpty
+            ? null
+            : _websiteController.text.trim(),
+        createdAt: initial?.createdAt ?? now,
+        updatedAt: now,
+      );
+
+      final notifier = ref.read(subscriptionListProvider.notifier);
+      if (_isUpdate) {
+        await notifier.updateSubscription(subscription);
+      } else {
+        await notifier.addSubscription(subscription);
+      }
+
+      if (!mounted) {
+        return;
+      }
+      AppFeedbackService.showSuccess(
+        context,
+        _isUpdate
+            ? 'Subscription updated successfully.'
+            : 'Subscription added successfully.',
+      );
+      _closeScreen();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      final fallbackError = 'Error saving subscription: $error';
+      final message =
+          l10n?.subscriptionsSaveError(error.toString()) ?? fallbackError;
+      AppFeedbackService.showError(context, message);
+    } finally {
+      AppFeedbackService.dismissLoading();
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final appCurrency = ref.watch(appCurrencyControllerProvider);
+    final amount = FormValidation.parseDecimal(_amountController.text) ?? 0;
+    final monthlyCost = _monthlyCostFor(
+      amount: amount,
+      cycle: _billingCycle,
+    );
+
+    final title = _isUpdate
+        ? (l10n?.subscriptionsEditSubscription ?? 'Edit Subscription')
+        : (l10n?.subscriptionsAddSubscription ?? 'Add Subscription');
+
+    final categories = _categories(l10n);
+
+    final formFields = Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.brightness == Brightness.dark
+                  ? colorScheme.surfaceContainerHigh
+                  : colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.10),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.subscriptions_rounded,
+                    color: colorScheme.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        CurrencyUtils.getFormat(appCurrency)
+                            .format(monthlyCost),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_importance == SubscriptionImportance.critical) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF2CC),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: colorScheme.outlineVariant,
+                ),
+              ),
+              child: Text(
+                'Essential Subscription',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 18),
+          ModernInput(
+            controller: _nameController,
+            label: l10n?.subscriptionsName ?? 'Subscription Name',
+            hintText: l10n?.subscriptionsNameHint ?? 'e.g., Netflix, Spotify',
+            prefixIcon: Icons.label_rounded,
+            textInputAction: TextInputAction.next,
+            validator: (value) => FormValidation.requiredText(
+              value,
+              l10n?.subscriptionsEnterName ??
+                  'Please enter a subscription name',
+            ),
+          ),
+          const SizedBox(height: 16),
+          CurrencyInput(
+            controller: _amountController,
+            label: l10n?.amount ?? 'Amount',
+            currencySymbol: CurrencyUtils.symbol(appCurrency),
+            helperText: l10n?.subscriptionsPerMonth ?? 'per month',
+            validator: (value) => FormValidation.positiveAmount(
+              value,
+              l10n?.subscriptionsRequired ?? 'Required',
+              l10n?.subscriptionsInvalidAmount ?? 'Invalid amount',
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 16),
+          ModernDropdown<BillingCycle>(
+            value: _billingCycle,
+            label: l10n?.subscriptionsBillingCycle ?? 'Billing Cycle',
+            prefixIcon: Icons.sync_rounded,
+            items: BillingCycle.values
+                .map(
+                  (cycle) => DropdownMenuItem(
+                    value: cycle,
+                    child: Text(_cycleLabel(cycle, l10n)),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _billingCycle = value);
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernDropdown<String>(
+            value: _category,
+            label: l10n?.category ?? 'Category',
+            prefixIcon: Icons.category_rounded,
+            searchable: true,
+            items: categories
+                .map(
+                  (category) => DropdownMenuItem(
+                    value: category,
+                    child: Text(category),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _category = value);
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernDropdown<SubscriptionImportance>(
+            value: _importance,
+            label: l10n?.subscriptionsImportance ?? 'Importance',
+            prefixIcon: Icons.priority_high_rounded,
+            items: SubscriptionImportance.values
+                .map(
+                  (importance) => DropdownMenuItem(
+                    value: importance,
+                    child: Text(_importanceLabel(importance, l10n)),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _importance = value);
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernDatePicker(
+            label: l10n?.subscriptionsStartDate ?? 'Start Date',
+            value: MaterialLocalizations.of(context).formatFullDate(_startDate),
+            onTap: () => _pickDate(startDate: true),
+          ),
+          const SizedBox(height: 16),
+          ModernDatePicker(
+            label: l10n?.subscriptionsNextBillingLabel ?? 'Next Billing',
+            value: MaterialLocalizations.of(context)
+                .formatFullDate(_nextBillingDate),
+            onTap: () => _pickDate(startDate: false),
+          ),
+          const SizedBox(height: 16),
+          SwitchListTile.adaptive(
+            value: _isActive,
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              'Status',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            subtitle: Text(_isActive ? 'Active' : 'Paused'),
+            onChanged: (value) => setState(() => _isActive = value),
+          ),
+          const SizedBox(height: 12),
+          ModernInput(
+            controller: _paymentMethodController,
+            label: l10n?.subscriptionsPaymentMethod ?? 'Payment Method',
+            hintText: l10n?.subscriptionsPaymentMethodHint ??
+                'e.g., Credit Card, PayPal',
+            prefixIcon: Icons.credit_card_rounded,
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: 16),
+          ModernInput(
+            controller: _websiteController,
+            label: l10n?.subscriptionsWebsite ?? 'Website',
+            hintText: l10n?.subscriptionsWebsiteHint ?? 'e.g., netflix.com',
+            prefixIcon: Icons.public_rounded,
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: 16),
+          ModernInput(
+            controller: _notesController,
+            label: l10n?.subscriptionsNotes ?? 'Notes',
+            hintText: l10n?.subscriptionsNotesHint ??
+                'Add any notes about this subscription',
+            prefixIcon: Icons.notes_rounded,
+            maxLines: 3,
+            textInputAction: TextInputAction.done,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n?.subscriptionsCostSummary ?? 'Cost Summary',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${l10n?.subscriptionsMonthlyCost ?? 'Monthly Cost'}: '
+                  '${CurrencyUtils.getFormat(appCurrency).format(monthlyCost)}',
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${l10n?.subscriptionsAnnualCost ?? 'Annual Cost'}: '
+                  '${CurrencyUtils.getFormat(appCurrency).format(monthlyCost * 12)}',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final formBody = AppSheetContainer(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.only(bottom: 108),
+        child: formFields,
+      ),
+    );
+
+    if (widget.asModal) {
+      return KeyboardAwareFormSheet(
+        onClose: _closeScreen,
+        maxHeightFactor: 0.78,
+        body: formFields,
+        actions: FilledButton.icon(
+          onPressed: _saving ? null : _save,
+          icon: _saving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(_isUpdate ? Icons.check_rounded : Icons.add_rounded),
+          label: Text(
+            _isUpdate
+                ? (l10n?.save ?? 'Save')
+                : (l10n?.subscriptionsAdd ?? 'Add Subscription'),
+          ),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(52),
+          ),
+        ),
+      );
+    }
+
+    return AppScaffold(
+      appBar: AppBar(
+        title: buildFrostedAppBarTitle(
+          context: context,
+          title: title,
+          isScrolled: _isAppBarScrolled,
+        ),
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
+        ),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        flexibleSpace: buildFrostedFlexibleSpace(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+          onKey: 'subscription-form-appbar-blur-on',
+          offKey: 'subscription-form-appbar-blur-off',
+        ),
+        leading: IconButton(
+          style: IconButton.styleFrom(
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: _isAppBarScrolled ? 0.9 : 0,
+            ),
+          ),
+          icon: const Icon(Icons.close),
+          onPressed: _closeScreen,
+        ),
+        actions: buildPageHeaderActions(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+        ),
+      ),
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification.metrics.axis == Axis.vertical) {
+            _updateAppBarScrollState(notification.metrics.pixels);
+          }
+          return false;
+        },
+        child: formBody,
+      ),
+      bottomNavigationBar: AnimatedPadding(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+            child: FilledButton.icon(
+              onPressed: _saving ? null : _save,
+              icon: _saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(_isUpdate ? Icons.check_rounded : Icons.add_rounded),
+              label: Text(
+                _isUpdate
+                    ? (l10n?.save ?? 'Save')
+                    : (l10n?.subscriptionsAdd ?? 'Add Subscription'),
+              ),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  double _monthlyCostFor({
+    required double amount,
+    required BillingCycle cycle,
+  }) {
+    switch (cycle) {
       case BillingCycle.weekly:
         return amount * 4.33;
       case BillingCycle.monthly:
@@ -151,757 +634,57 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     }
   }
 
-  double get _annualCost {
-    final amount = double.tryParse(_amountController.text) ?? 0.0;
-    switch (_billingCycle) {
-      case BillingCycle.weekly:
-        return amount * 52;
-      case BillingCycle.monthly:
-        return amount * 12;
-      case BillingCycle.quarterly:
-        return amount * 4;
-      case BillingCycle.yearly:
-        return amount;
-    }
-  }
-
-  String _getImportanceLabel(
-      AppLocalizations l10n, SubscriptionImportance importance) {
-    switch (importance) {
-      case SubscriptionImportance.low:
-        return l10n.subscriptionsImportanceLow;
-      case SubscriptionImportance.medium:
-        return l10n.subscriptionsImportanceMedium;
-      case SubscriptionImportance.high:
-        return l10n.subscriptionsImportanceHigh;
-      case SubscriptionImportance.critical:
-        return l10n.subscriptionsImportanceCritical;
-    }
-  }
-
-  Color _getImportanceColor(SubscriptionImportance importance) {
-    switch (importance) {
-      case SubscriptionImportance.low:
-        return Colors.blue;
-      case SubscriptionImportance.medium:
-        return Colors.orange;
-      case SubscriptionImportance.high:
-        return Colors.deepOrange;
-      case SubscriptionImportance.critical:
-        return Colors.red;
-    }
-  }
-
-  String _getBillingCycleLabel(AppLocalizations l10n, BillingCycle cycle) {
+  String _cycleLabel(BillingCycle cycle, AppLocalizations? l10n) {
     switch (cycle) {
       case BillingCycle.weekly:
-        return l10n.subscriptionsBillingWeekly;
+        return l10n?.subscriptionsBillingWeekly ?? 'Weekly';
       case BillingCycle.monthly:
-        return l10n.subscriptionsBillingMonthly;
+        return l10n?.subscriptionsBillingMonthly ?? 'Monthly';
       case BillingCycle.quarterly:
-        return l10n.subscriptionsBillingQuarterly;
+        return l10n?.subscriptionsBillingQuarterly ?? 'Quarterly';
       case BillingCycle.yearly:
-        return l10n.subscriptionsBillingYearly;
+        return l10n?.subscriptionsBillingYearly ?? 'Yearly';
     }
   }
 
-  void _closeScreen() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (GoRouter.of(context).canPop()) {
-        context.pop();
-        return;
-      }
-      context.go('/subscriptions');
-    });
-  }
-
-  Future<void> _handleSave() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isSaving = true);
-      final appCurrency = ref.read(appCurrencyControllerProvider);
-
-      final subscription = Subscription(
-        id: widget.existingSubscription?.id ?? const Uuid().v4(),
-        name: _nameController.text.trim(),
-        description: _descriptionController.text.trim().isEmpty
-            ? null
-            : _descriptionController.text.trim(),
-        amount: double.parse(_amountController.text),
-        currency: appCurrency,
-        billingCycle: _billingCycle,
-        startDate: _startDate,
-        nextBillingDate: _nextBillingDate,
-        category: _category,
-        importance: _importance,
-        paymentMethod: _paymentMethodController.text.trim().isEmpty
-            ? null
-            : _paymentMethodController.text.trim(),
-        website: _websiteController.text.trim().isEmpty
-            ? null
-            : _websiteController.text.trim(),
-        isActive: true,
-        createdAt: widget.existingSubscription?.createdAt ?? DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-      try {
-        if (widget.existingSubscription == null) {
-          await ref
-              .read(subscriptionListProvider.notifier)
-              .addSubscription(subscription);
-        } else {
-          await ref
-              .read(subscriptionListProvider.notifier)
-              .updateSubscription(subscription);
-        }
-
-        if (mounted) {
-          _closeScreen();
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() => _isSaving = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.subscriptionsSaveError(
-                  e.toString(),
-                ),
-              ),
-            ),
-          );
-        }
-      }
+  String _importanceLabel(
+    SubscriptionImportance importance,
+    AppLocalizations? l10n,
+  ) {
+    switch (importance) {
+      case SubscriptionImportance.low:
+        return l10n?.subscriptionsImportanceLow ?? 'Low - Optional';
+      case SubscriptionImportance.medium:
+        return l10n?.subscriptionsImportanceMedium ?? 'Medium - Regular use';
+      case SubscriptionImportance.high:
+        return l10n?.subscriptionsImportanceHigh ?? 'High - Important';
+      case SubscriptionImportance.critical:
+        return l10n?.subscriptionsImportanceCritical ?? 'Critical - Essential';
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final isEditing = widget.existingSubscription != null;
-    final appCurrency = ref.watch(appCurrencyControllerProvider);
-    final currencyFormat = NumberFormat.currency(symbol: '');
+  List<String> _categories(AppLocalizations? l10n) {
+    final values = [
+      l10n?.subscriptionsCategoryStreaming ?? 'Streaming',
+      l10n?.subscriptionsCategorySoftware ?? 'Software',
+      l10n?.subscriptionsCategoryCloudStorage ?? 'Cloud Storage',
+      l10n?.subscriptionsCategoryFitness ?? 'Fitness',
+      l10n?.subscriptionsCategoryMusic ?? 'Music',
+      l10n?.subscriptionsCategoryNews ?? 'News',
+      l10n?.subscriptionsCategoryCommunication ?? 'Communication',
+      l10n?.subscriptionsCategoryProductivity ?? 'Productivity',
+      l10n?.subscriptionsCategoryEntertainment ?? 'Entertainment',
+      l10n?.subscriptionsCategoryInsurance ?? 'Insurance',
+      l10n?.subscriptionsCategoryUtilities ?? 'Utilities',
+      l10n?.subscriptionsCategoryTransport ?? 'Transport',
+      l10n?.subscriptionsCategoryHealth ?? 'Health',
+      l10n?.subscriptionsCategoryOther ?? 'Other',
+    ];
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? null
-          : colorScheme.surface,
-      appBar: AppBar(
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: BrandedTitle(
-            label: isEditing
-                ? l10n.subscriptionsEditSubscription
-                : l10n.subscriptionsAddSubscription,
-          ),
-        ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
-        ),
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        flexibleSpace: Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _isAppBarScrolled
-                  ? ClipRect(
-                      key: const ValueKey('subscription-appbar-blur-on'),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(
-                      key: ValueKey('subscription-appbar-blur-off'),
-                    ),
-            ),
-          ],
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: _isSaving ? null : _closeScreen,
-        ),
-        actions: [
-          if (_isSaving)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else
-            TextButton(
-              onPressed: _handleSave,
-              child: Text(l10n.transactionsSaveTransaction),
-            ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          if (notification.metrics.axis == Axis.vertical) {
-            _updateAppBarScrollState(notification.metrics.pixels);
-          }
-          return false;
-        },
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Subscription name
-                  TextFormField(
-                    controller: _nameController,
-                    style: InputStyles.inputTextStyle(Theme.of(context)),
-                    decoration: InputDecoration(
-                      labelText: l10n.subscriptionsName,
-                      hintText: l10n.subscriptionsNameHint,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return l10n.subscriptionsEnterName;
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Category and Amount row
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isNarrow = constraints.maxWidth < 420;
-
-                      final categoryField = DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        initialValue: _category,
-                        icon: InputStyles.dropdownIcon(context),
-                        decoration: InputDecoration(
-                          labelText: l10n.category,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color:
-                                  Theme.of(context).colorScheme.outlineVariant,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                        items: _defaultCategories
-                            .map((c) => DropdownMenuItem(
-                                  value: c,
-                                  child: Text(_getCategoryLabel(l10n, c)),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _category = value);
-                          }
-                        },
-                      );
-
-                      final amountField = TextFormField(
-                        controller: _amountController,
-                        style: InputStyles.inputTextStyle(Theme.of(context)),
-                        decoration: InputDecoration(
-                          labelText: l10n.amount,
-                          prefixText: '${CurrencyUtils.symbol(appCurrency)} ',
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return l10n.subscriptionsRequired;
-                          }
-                          if (double.tryParse(value) == null) {
-                            return l10n.subscriptionsInvalidAmount;
-                          }
-                          return null;
-                        },
-                        onChanged: (value) => setState(() {}),
-                      );
-
-                      if (isNarrow) {
-                        return Column(
-                          children: [
-                            categoryField,
-                            const SizedBox(height: 12),
-                            amountField,
-                          ],
-                        );
-                      }
-
-                      return Row(
-                        children: [
-                          Expanded(child: categoryField),
-                          const SizedBox(width: 12),
-                          Expanded(child: amountField),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Billing cycle and importance
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isNarrow = constraints.maxWidth < 420;
-
-                      final cycleField = DropdownButtonFormField<BillingCycle>(
-                        isExpanded: true,
-                        initialValue: _billingCycle,
-                        icon: InputStyles.dropdownIcon(context),
-                        decoration: InputDecoration(
-                          labelText: l10n.subscriptionsBillingCycle,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color:
-                                  Theme.of(context).colorScheme.outlineVariant,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                        items: BillingCycle.values
-                            .map((c) => DropdownMenuItem(
-                                  value: c,
-                                  child: Text(_getBillingCycleLabel(l10n, c)),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _billingCycle = value);
-                          }
-                        },
-                      );
-
-                      final importanceField =
-                          DropdownButtonFormField<SubscriptionImportance>(
-                        isExpanded: true,
-                        initialValue: _importance,
-                        icon: InputStyles.dropdownIcon(context),
-                        decoration: InputDecoration(
-                          labelText: l10n.subscriptionsImportance,
-                        ),
-                        items: SubscriptionImportance.values
-                            .map((imp) => DropdownMenuItem(
-                                  value: imp,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration: BoxDecoration(
-                                          color: _getImportanceColor(imp),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(_getImportanceLabel(l10n, imp)),
-                                    ],
-                                  ),
-                                ))
-                            .toList(),
-                        selectedItemBuilder: (_) =>
-                            SubscriptionImportance.values
-                                .map((imp) => Text(
-                                      _getImportanceLabel(l10n, imp),
-                                      overflow: TextOverflow.ellipsis,
-                                    ))
-                                .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _importance = value);
-                          }
-                        },
-                      );
-
-                      if (isNarrow) {
-                        return Column(
-                          children: [
-                            cycleField,
-                            const SizedBox(height: 12),
-                            importanceField,
-                          ],
-                        );
-                      }
-
-                      return Row(
-                        children: [
-                          Expanded(child: cycleField),
-                          const SizedBox(width: 12),
-                          Expanded(child: importanceField),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Cost summary card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: InputStyles.costSummaryDecoration(context),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.subscriptionsCostSummary,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.subscriptionsMonthlyCost,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: colorScheme.outline,
-                                        ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    currencyFormat.format(_monthlyCost),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.primary,
-                                        ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.subscriptionsAnnualCost,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: colorScheme.outline,
-                                        ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    currencyFormat.format(_annualCost),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.secondary,
-                                        ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Importance info card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: InputStyles.importanceBannerDecoration(
-                      _getImportanceColor(_importance),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: _getImportanceColor(_importance),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _getImportanceLabel(l10n, _importance),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: _getImportanceColor(_importance),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Start date and next billing date
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isCompact = constraints.maxWidth < 560;
-
-                      Widget buildDateButton({
-                        required VoidCallback onPressed,
-                        required String label,
-                        required String value,
-                      }) {
-                        return FormDateField(
-                          label: label,
-                          value: value,
-                          onTap: onPressed,
-                        );
-                      }
-
-                      final startButton = buildDateButton(
-                        onPressed: () async {
-                          final pick = await showDatePicker(
-                            context: context,
-                            initialDate: _startDate,
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime.now(),
-                          );
-                          if (pick != null) {
-                            setState(() => _startDate = pick);
-                          }
-                        },
-                        label: l10n.subscriptionsStartDate,
-                        value: DateFormat('MMM dd, yyyy').format(_startDate),
-                      );
-
-                      final nextButton = buildDateButton(
-                        onPressed: () async {
-                          final pick = await showDatePicker(
-                            context: context,
-                            initialDate: _nextBillingDate,
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime(2050),
-                          );
-                          if (pick != null) {
-                            setState(() => _nextBillingDate = pick);
-                          }
-                        },
-                        label: l10n.subscriptionsNextBillingLabel,
-                        value:
-                            DateFormat('MMM dd, yyyy').format(_nextBillingDate),
-                      );
-
-                      if (isCompact) {
-                        return Column(
-                          children: [
-                            SizedBox(
-                                width: double.infinity, child: startButton),
-                            const SizedBox(height: 12),
-                            SizedBox(width: double.infinity, child: nextButton),
-                          ],
-                        );
-                      }
-
-                      return Row(
-                        children: [
-                          Expanded(child: startButton),
-                          const SizedBox(width: 12),
-                          Expanded(child: nextButton),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Optional fields section
-                  Text(
-                    l10n.subscriptionsOptionalDetails,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Payment method
-                  TextFormField(
-                    controller: _paymentMethodController,
-                    style: InputStyles.inputTextStyle(Theme.of(context)),
-                    decoration: InputDecoration(
-                      labelText: l10n.subscriptionsPaymentMethod,
-                      hintText: l10n.subscriptionsPaymentMethodHint,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Website
-                  TextFormField(
-                    controller: _websiteController,
-                    style: InputStyles.inputTextStyle(Theme.of(context)),
-                    decoration: InputDecoration(
-                      labelText: l10n.subscriptionsWebsite,
-                      hintText: l10n.subscriptionsWebsiteHint,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Description
-                  TextFormField(
-                    controller: _descriptionController,
-                    style: InputStyles.inputTextStyle(Theme.of(context)),
-                    decoration: InputDecoration(
-                      labelText: l10n.subscriptionsNotes,
-                      hintText: l10n.subscriptionsNotesHint,
-                    ),
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Decision helper section
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerLowest,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colorScheme.shadow.withValues(alpha: 0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.lightbulb_outline,
-                              size: 20,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                l10n.subscriptionsDecisionHelp,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
-                                    ?.copyWith(
-                                      color: colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        _buildDecisionHelper(context, colorScheme),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDecisionHelper(BuildContext context, ColorScheme colorScheme) {
-    final l10n = AppLocalizations.of(context)!;
-    final annualCost = _annualCost;
-    String suggestion = '';
-    IconData icon = Icons.info;
-    Color color = colorScheme.outline;
-
-    if (annualCost == 0) {
-      suggestion = l10n.subscriptionsDecisionEnterAmount;
-    } else if (annualCost > 500) {
-      suggestion = l10n.subscriptionsDecisionHighAnnualCost(
-        annualCost.toStringAsFixed(0),
-      );
-      color = Colors.red;
-      icon = Icons.warning;
-    } else if (annualCost > 200) {
-      suggestion = l10n.subscriptionsDecisionModerateAnnualCost(
-        annualCost.toStringAsFixed(0),
-      );
-      color = Colors.orange;
-      icon = Icons.info_outline;
-    } else {
-      suggestion = l10n.subscriptionsDecisionTrackRegularly;
-      icon = Icons.check_circle_outline;
-      color = Colors.green;
+    if (_category.trim().isNotEmpty && !values.contains(_category)) {
+      values.add(_category);
     }
 
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 18),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            suggestion,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
-        ),
-      ],
-    );
+    return values;
   }
 }

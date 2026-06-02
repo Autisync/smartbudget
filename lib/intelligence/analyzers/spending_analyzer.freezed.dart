@@ -486,7 +486,3 @@ abstract class _SpendingAnomaly implements SpendingAnomaly {
   _$$SpendingAnomalyImplCopyWith<_$SpendingAnomalyImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
-
-
-
-

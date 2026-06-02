@@ -1,25 +1,28 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
+import 'package:smartbudget/components/dialogs/confirm_action_dialog.dart';
+import 'package:smartbudget/components/forms/form_components.dart';
+import 'package:smartbudget/components/sheets/keyboard_aware_form_sheet.dart';
+import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
-import 'package:smartbudget/core/theme/input_styles.dart';
+import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/app_feedback.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
-import 'package:smartbudget/core/widgets/form_date_field.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
+import 'package:smartbudget/domain/entities/budget_alert.dart';
 import 'package:smartbudget/domain/entities/budget.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
-import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
-import 'package:go_router/go_router.dart';
 
 class BudgetScreen extends ConsumerStatefulWidget {
   const BudgetScreen({super.key});
@@ -30,6 +33,7 @@ class BudgetScreen extends ConsumerStatefulWidget {
 
 class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   bool _isAppBarScrolled = false;
+  bool _hasShownBudgetExceededWarning = false;
 
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
@@ -52,6 +56,50 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     });
   }
 
+  Future<void> _runManualRollover() async {
+    final policy = await ref.read(rolloverPolicyServiceProvider).loadPolicy();
+    await ref.read(budgetListProvider.notifier).rolloverExpiredBudgets(
+          rolloverDay: policy.rolloverDay,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    AppFeedback.show(
+      context,
+      message: 'Budget rollover completed.',
+      type: AppFeedbackType.success,
+    );
+  }
+
+  int _milestoneForProgress(double progress) {
+    if (progress >= 1.0) return 100;
+    if (progress >= 0.90) return 90;
+    if (progress >= 0.75) return 75;
+    if (progress >= 0.50) return 50;
+    return 0;
+  }
+
+  Color _budgetMilestoneColor(double progress) {
+    if (progress >= 0.90) return const Color(0xFFB91C1C);
+    if (progress >= 0.75) return const Color(0xFFDC2626);
+    if (progress >= 0.50) return const Color(0xFFF59E0B);
+    return const Color(0xFF16A34A);
+  }
+
+  void _trackBudgetMilestone(
+    Budget budget,
+    double progress, {
+    required int recentCategoryUsageCount,
+    required double remaining,
+    required NumberFormat currencyFormat,
+  }) {
+    final reachedMilestone = _milestoneForProgress(progress);
+    if (reachedMilestone <= 0) return;
+    if (recentCategoryUsageCount <= 3) return;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -62,18 +110,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? null
+          : const Color(0xFFF8F8FA),
       appBar: AppBar(
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: BrandedTitle(label: l10n.navBudgets),
+        title: buildFrostedAppBarTitle(
+          context: context,
+          title: l10n.navBudgets,
+          isScrolled: _isAppBarScrolled,
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0,
@@ -81,37 +125,19 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        flexibleSpace: Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _isAppBarScrolled
-                  ? ClipRect(
-                      key: const ValueKey('budget-appbar-blur-on'),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(key: ValueKey('budget-appbar-blur-off')),
-            ),
-          ],
+        flexibleSpace: buildFrostedFlexibleSpace(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+          onKey: 'budget-appbar-blur-on',
+          offKey: 'budget-appbar-blur-off',
         ),
-        actions: [
-          NotificationBellButton(
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0,
-            ),
-            onPressed: () => context.push('/notifications'),
-          ),
-          const SizedBox(width: 8),
-        ],
+        actions: buildPageHeaderActions(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+        ),
       ),
       floatingActionButton: AppFloatingActionButton(
-        onPressed: () => _openBudgetForm(context, ref),
+        onPressed: () => _openBudgetForm(ref),
         icon: Icons.add_rounded,
       ),
       body: NotificationListener<ScrollNotification>(
@@ -128,12 +154,13 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                 icon: Icons.pie_chart_outline_rounded,
                 title: l10n.budgetEmptyTitle,
                 message: l10n.budgetEmptySubtitle,
+                lottieAsset: 'assets/animations/empty_budgets.json',
                 action: SizedBox(
                   width: (MediaQuery.sizeOf(context).width - 48)
                       .clamp(220.0, 320.0)
                       .toDouble(),
                   child: FilledButton.icon(
-                    onPressed: () => _openBudgetForm(context, ref),
+                    onPressed: () => _openBudgetForm(ref),
                     icon: const Icon(Icons.add),
                     label: Text(l10n.budgetCreateButton),
                   ),
@@ -141,336 +168,276 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               );
             }
 
-            final totalLimit = budgets.fold<double>(
+            final activeBudgets = budgets
+                .where((budget) => budget.isActive)
+                .toList(growable: false);
+            final inactiveBudgets = budgets
+                .where((budget) => !budget.isActive)
+                .toList(growable: false);
+
+            final alerts = alertsAsync.maybeWhen(
+              data: (items) => items,
+              orElse: () => const <BudgetAlert>[],
+            );
+            final exceededCount =
+                alerts.where((alert) => alert.overLimit).length;
+            if (exceededCount > 0 && !_hasShownBudgetExceededWarning) {
+              _hasShownBudgetExceededWarning = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                AppFeedbackService.showWarning(
+                  context,
+                  '$exceededCount budget(s) exceeded their current limit.',
+                );
+              });
+            }
+            final totalLimit = activeBudgets.fold<double>(
               0.0,
               (sum, budget) => sum + budget.limitAmount,
             );
-            final averageAlertThreshold = budgets.isEmpty
+            final averageAlertThreshold = activeBudgets.isEmpty
                 ? 0
-                : (budgets.fold<int>(
+                : (activeBudgets.fold<int>(
                           0,
                           (sum, budget) => sum + budget.alertThreshold,
                         ) /
-                        budgets.length)
+                        activeBudgets.length)
                     .round();
             final riskCount = alertsAsync.maybeWhen(
               data: (alerts) => alerts.length,
               orElse: () => 0,
             );
-            final decisionMessage = riskCount > 0
-                ? l10n.budgetDecisionNeedsAttention(riskCount)
-                : l10n.budgetDecisionStable;
+            final spendingStates = activeBudgets
+                .map(
+                  (budget) => ref.watch(
+                    budgetSpendingProvider(
+                      category: budget.category,
+                      start: budget.startDate,
+                      end: budget.endDate ?? DateTime.now(),
+                    ),
+                  ),
+                )
+                .toList(growable: false);
+            final spendingValues = spendingStates
+                .where((state) => state.hasValue)
+                .map((state) => state.requireValue)
+                .toList(growable: false);
+            final hasAggregateSpending = activeBudgets.isNotEmpty &&
+                spendingValues.length == activeBudgets.length;
+            final totalSpent = spendingValues.fold<double>(
+              0.0,
+              (sum, amount) => sum + amount,
+            );
+            final totalRemaining = totalLimit - totalSpent;
+            final nextBudgetBoundary = activeBudgets.isEmpty
+                ? null
+                : activeBudgets.reduce(
+                    (current, candidate) {
+                      final currentEnd = current.endDate ?? DateTime.now();
+                      final candidateEnd = candidate.endDate ?? DateTime.now();
+                      return candidateEnd.isBefore(currentEnd)
+                          ? candidate
+                          : current;
+                    },
+                  );
+            final nextBoundaryDate =
+                nextBudgetBoundary?.endDate ?? DateTime.now();
+            final daysLeft = nextBoundaryDate
+                .difference(
+                  DateTime(
+                    DateTime.now().year,
+                    DateTime.now().month,
+                    DateTime.now().day,
+                  ),
+                )
+                .inDays
+                .clamp(0, 365);
+            final atRiskCategories = hasAggregateSpending
+                ? _countAtRiskBudgets(activeBudgets, spendingValues)
+                : riskCount;
+            final projectedOverspend = hasAggregateSpending
+                ? _calculateProjectedOverspend(activeBudgets, spendingValues)
+                : 0.0;
+            final portfolioStatus = hasAggregateSpending
+                ? getBudgetPortfolioStatus(
+                    budgets: activeBudgets,
+                    spendingValues: spendingValues,
+                    totalLimit: totalLimit,
+                    totalSpent: totalSpent,
+                  )
+                : BudgetPortfolioStatus.watch;
+            final decisionMessage = _buildBudgetPortfolioMessage(
+              status: portfolioStatus,
+              totalRemaining: totalRemaining,
+              projectedOverspend: projectedOverspend,
+              currencyFormat: currencyFormat,
+            );
 
-            return ListView(
-              padding: const EdgeInsets.only(bottom: 24),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-                  child: PremiumCard(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.tips_and_updates_outlined,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                l10n.budgetPortfolioTitle,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          decisionMessage,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _CompactBudgetChip(
-                              label: l10n.budgetCategories,
-                              value: '${budgets.length}',
-                            ),
-                            _CompactBudgetChip(
-                              label: l10n.budgetTotalLimit,
-                              value: currencyFormat.format(totalLimit),
-                            ),
-                            _CompactBudgetChip(
-                              label: l10n.budgetAtRisk,
-                              value: '$riskCount',
-                              valueColor: riskCount > 0
-                                  ? Theme.of(context).colorScheme.error
-                                  : Theme.of(context).colorScheme.primary,
-                            ),
-                            _CompactBudgetChip(
-                              label: l10n.budgetAverageAlert,
-                              value: '$averageAlertThreshold%',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: OutlinedButton.icon(
-                            onPressed: _runManualRollover,
-                            icon: const Icon(Icons.refresh),
-                            label: Text(l10n.budgetRolloverNow),
-                          ),
-                        ),
-                      ],
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: BudgetPortfolioCard(
+                      categoriesCount: activeBudgets.length,
+                      atRiskCount: atRiskCategories,
+                      totalLimit: totalLimit,
+                      totalSpent: totalSpent,
+                      totalRemaining: totalRemaining,
+                      averageAlertThreshold: averageAlertThreshold,
+                      projectedOverspend: projectedOverspend,
+                      currencyFormat: currencyFormat,
+                      description: decisionMessage,
+                      daysLeftLabel: l10n.budgetDaysLeft(daysLeft),
+                      rolloverLabel: l10n.budgetRolloverNow,
+                      onRollover: _runManualRollover,
                     ),
                   ),
                 ),
-                ...budgets.map((budget) {
-                  final endDate = budget.endDate ?? DateTime.now();
-                  final now = DateTime.now();
-                  final spentAsync = ref.watch(budgetSpendingProvider(
-                    category: budget.category,
-                    start: budget.startDate,
-                    end: endDate,
-                  ));
-                  final categoryTxAsync = ref.watch(transactionListProvider(
-                    startDate: budget.startDate,
-                    endDate: endDate,
-                    category: budget.category,
-                  ));
+                if (alerts.isNotEmpty) ...[
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    sliver: SliverToBoxAdapter(
+                      child:
+                          _BudgetInsightCards(alerts: alerts.take(4).toList()),
+                    ),
+                  ),
+                ],
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                if (activeBudgets.isEmpty)
+                  const SliverPadding(
+                    padding: EdgeInsets.fromLTRB(12, 0, 12, 16),
+                    sliver: SliverToBoxAdapter(
+                      child: SmartEmptyState(
+                        icon: Icons.pause_circle_outline,
+                        title: 'No active budgets',
+                        message:
+                            'All budgets are paused or archived. Resume one below to continue tracking.',
+                        lottieAsset: 'assets/animations/empty_budgets.json',
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final budget = activeBudgets[index];
+                          final endDate = budget.endDate ?? DateTime.now();
+                          final now = DateTime.now();
+                          final spentAsync = ref.watch(budgetSpendingProvider(
+                            category: budget.category,
+                            start: budget.startDate,
+                            end: endDate,
+                          ));
+                          final categoryTxAsync = ref.watch(
+                            transactionListProvider(
+                              startDate: budget.startDate,
+                              endDate: endDate,
+                              category: budget.category,
+                            ),
+                          );
 
-                  return Dismissible(
-                    key: ValueKey('budget-${budget.id}'),
-                    direction: DismissDirection.horizontal,
-                    background: Container(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.swipe_right_alt,
-                              color: Colors.green),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              l10n.budgetSwipeRightHint,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    secondaryBackground: Container(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              l10n.budgetSwipeLeftHint,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.right,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.swipe_left_alt,
-                              color: Colors.orange),
-                        ],
-                      ),
-                    ),
-                    confirmDismiss: (direction) async {
-                      final increase = direction == DismissDirection.startToEnd;
-                      await _quickAdjustBudget(
-                          ref, budget, increase ? 1.1 : 0.9);
-                      if (context.mounted) {
-                        AppFeedback.show(
-                          context,
-                          message: increase
-                              ? l10n.budgetIncreasedSnack(budget.category)
-                              : l10n.budgetReducedSnack(budget.category),
-                          type: AppFeedbackType.success,
-                        );
-                      }
-                      return false;
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      child: PremiumCard(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        budget.category,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        l10n.budgetCycleAlert(
-                                          _periodLabel(l10n, budget.period),
-                                          '${budget.alertThreshold}',
-                                        ),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuButton<String>(
-                                  tooltip: l10n.budgetEdit,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 10,
-                                  color: Theme.of(context).colorScheme.surface,
-                                  shadowColor:
-                                      Colors.black.withValues(alpha: 0.12),
-                                  surfaceTintColor: Colors.transparent,
-                                  position: PopupMenuPosition.under,
-                                  icon: Container(
-                                    width: 34,
-                                    height: 34,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      )
-                                          .colorScheme
-                                          .surfaceContainerHighest
-                                          .withValues(alpha: 0.6),
-                                      borderRadius: BorderRadius.circular(10),
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Slidable(
+                              key: ValueKey('budget-${budget.id}'),
+                              startActionPane: ActionPane(
+                                motion: const BehindMotion(),
+                                extentRatio: 0.30,
+                                children: [
+                                  SlidableAction(
+                                    onPressed: (_) => _handleBudgetAction(
+                                      action: 'increase10',
+                                      budget: budget,
+                                      transactions:
+                                          categoryTxAsync.valueOrNull ??
+                                              const [],
+                                      currencyFormat: currencyFormat,
                                     ),
-                                    child: Icon(
-                                      Icons.more_horiz,
-                                      size: 18,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.secondary,
+                                    foregroundColor: Colors.white,
+                                    icon: Icons.swipe_right_alt,
+                                    label: 'Increase',
+                                    borderRadius: BorderRadius.circular(
+                                      UiTokens.radiusXl,
                                     ),
                                   ),
-                                  onSelected: (value) async {
-                                    if (value == 'edit') {
-                                      await _openBudgetForm(
-                                        context,
-                                        ref,
-                                        existingBudget: budget,
-                                      );
-                                    } else if (value == 'delete') {
-                                      await ref
-                                          .read(budgetListProvider.notifier)
-                                          .deleteBudget(budget.id);
-                                    }
-                                  },
-                                  itemBuilder: (_) => [
-                                    PopupMenuItem(
-                                      value: 'edit',
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.edit_outlined,
-                                            size: 18,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Text(l10n.budgetEdit),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'delete',
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.delete_outline,
-                                            size: 18,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .error,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            l10n.budgetDelete,
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .error,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.budgetLimitLabel(
-                                currencyFormat.format(budget.limitAmount),
+                                ],
                               ),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
+                              endActionPane: ActionPane(
+                                motion: const BehindMotion(),
+                                extentRatio: 0.30,
+                                children: [
+                                  SlidableAction(
+                                    onPressed: (_) => _handleBudgetAction(
+                                      action: 'decrease10',
+                                      budget: budget,
+                                      transactions:
+                                          categoryTxAsync.valueOrNull ??
+                                              const [],
+                                      currencyFormat: currencyFormat,
+                                    ),
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.tertiary,
+                                    foregroundColor: Colors.white,
+                                    icon: Icons.swipe_left_alt,
+                                    label: 'Decrease',
+                                    borderRadius: BorderRadius.circular(
+                                      UiTokens.radiusXl,
+                                    ),
                                   ),
-                            ),
-                            const SizedBox(height: 8),
-                            spentAsync.when(
-                              data: (spent) {
-                                final usage = budget.limitAmount > 0
-                                    ? (spent / budget.limitAmount)
-                                    : 0.0;
-                                final progress = usage.clamp(0.0, 1.0);
-                                final remaining = budget.limitAmount - spent;
-                                final usagePercentage = usage * 100;
-                                final daysLeft = endDate
-                                    .difference(
-                                        DateTime(now.year, now.month, now.day))
-                                    .inDays;
-                                final paceDailySpend =
-                                    now.difference(budget.startDate).inDays <= 0
+                                ],
+                              ),
+                              child: SwipeableCard(
+                                radius: UiTokens.radiusXl,
+                                child: spentAsync.when(
+                                  data: (spent) {
+                                    final usage = budget.limitAmount > 0
+                                        ? (spent / budget.limitAmount)
+                                        : 0.0;
+                                    final progress = usage.clamp(0.0, 1.0);
+                                    final categoryTransactions =
+                                        categoryTxAsync.valueOrNull ??
+                                            const <Transaction>[];
+                                    final recentWindowStart = DateTime.now()
+                                        .subtract(const Duration(hours: 35));
+                                    final recentCategoryUsageCount =
+                                        categoryTransactions
+                                            .where(
+                                              (tx) =>
+                                                  tx.type ==
+                                                      TransactionType.expense &&
+                                                  tx.date.isAfter(
+                                                      recentWindowStart),
+                                            )
+                                            .length;
+                                    final remaining =
+                                        budget.limitAmount - spent;
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      if (!mounted) return;
+                                      _trackBudgetMilestone(
+                                        budget,
+                                        progress,
+                                        recentCategoryUsageCount:
+                                            recentCategoryUsageCount,
+                                        remaining: remaining,
+                                        currencyFormat: currencyFormat,
+                                      );
+                                    });
+                                    final usagePercentage = usage * 100;
+                                    final daysLeft = endDate
+                                        .difference(DateTime(
+                                            now.year, now.month, now.day))
+                                        .inDays;
+                                    final paceDailySpend = now
+                                                .difference(budget.startDate)
+                                                .inDays <=
+                                            0
                                         ? spent
                                         : spent /
                                             now
@@ -480,148 +447,143 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                                   budget.startDate.day,
                                                 ))
                                                 .inDays;
-                                final projectedSpend = spent +
-                                    (paceDailySpend * daysLeft.clamp(0, 365));
-                                final projectedOverrun =
-                                    projectedSpend - budget.limitAmount;
+                                    final projectedSpend = spent +
+                                        (paceDailySpend *
+                                            daysLeft.clamp(0, 365));
+                                    final projectedOverrun =
+                                        projectedSpend - budget.limitAmount;
 
-                                final statusColor = usagePercentage < 70
-                                    ? Colors.green
-                                    : usagePercentage < 90
-                                        ? Colors.orange
-                                        : Colors.red;
+                                    final statusColor = usagePercentage < 70
+                                        ? Colors.green
+                                        : usagePercentage < 90
+                                            ? Colors.orange
+                                            : Colors.red;
 
-                                final status = usagePercentage < 70
-                                    ? l10n.budgetStatusOnTrack
-                                    : usagePercentage < 90
-                                        ? l10n.budgetStatusSoftWarning
-                                        : usagePercentage < 100
-                                            ? l10n.budgetStatusHighAlert
-                                            : l10n.budgetStatusExceeded;
+                                    final status = usagePercentage < 70
+                                        ? l10n.budgetStatusOnTrack
+                                        : usagePercentage < 90
+                                            ? l10n.budgetStatusSoftWarning
+                                            : usagePercentage < 100
+                                                ? l10n.budgetStatusHighAlert
+                                                : l10n.budgetStatusExceeded;
 
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        StatusPill(
-                                          label: status,
-                                          color: statusColor,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          daysLeft < 0
-                                              ? l10n.budgetPeriodEnded
-                                              : l10n.budgetDaysLeft(daysLeft),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    InkWell(
-                                      onTap: () {
-                                        _showOverspendTransactions(
-                                          context,
-                                          budget,
-                                          categoryTxAsync.valueOrNull ??
-                                              const [],
-                                          currencyFormat,
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          AnimatedFinanceProgressBar(
-                                            value: progress,
-                                            color: statusColor,
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            l10n.budgetSpendingProgress(
-                                              currencyFormat.format(spent),
-                                              currencyFormat.format(remaining),
-                                              usagePercentage
-                                                  .toStringAsFixed(1),
-                                            ),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall,
-                                          ),
-                                          Text(
-                                            l10n.budgetTapBarHint,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  fontSize: 11,
-                                                ),
-                                          ),
-                                        ],
+                                    return _BudgetCategoryCard(
+                                      iconColor: statusColor,
+                                      budget: budget,
+                                      status: status,
+                                      statusColor: statusColor,
+                                      progressColor:
+                                          _budgetMilestoneColor(progress),
+                                      progress: progress,
+                                      spent: spent,
+                                      daysLeft: daysLeft,
+                                      currencyFormat: currencyFormat,
+                                      cycleLabel: l10n.budgetCycleAlert(
+                                        _periodLabel(l10n, budget.period),
+                                        '${budget.alertThreshold}',
                                       ),
-                                    ),
-                                    if (projectedOverrun > 0 && daysLeft > 0)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 8),
-                                        child: Text(
-                                          l10n.budgetProjectedOverrun(
-                                            currencyFormat
-                                                .format(projectedOverrun),
-                                          ),
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .error,
-                                          ),
-                                        ),
+                                      progressLabel:
+                                          l10n.budgetSpendingProgress(
+                                        currencyFormat.format(spent),
+                                        currencyFormat.format(remaining),
+                                        usagePercentage.toStringAsFixed(1),
                                       ),
-                                    const SizedBox(height: 8),
-                                    Wrap(
-                                      spacing: 8,
-                                      children: [
-                                        ActionChip(
-                                          label: const Text('+10%'),
-                                          onPressed: () => _quickAdjustBudget(
-                                            ref,
-                                            budget,
-                                            1.1,
-                                          ),
-                                        ),
-                                        ActionChip(
-                                          label: const Text('-10%'),
-                                          onPressed: () => _quickAdjustBudget(
-                                            ref,
-                                            budget,
-                                            0.9,
-                                          ),
-                                        ),
-                                        ActionChip(
-                                          label: Text(l10n.budgetAdjustAmount),
-                                          onPressed: () => _openBudgetForm(
-                                            context,
-                                            ref,
-                                            existingBudget: budget,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                );
-                              },
-                              loading: () => const AppSkeleton(height: 92),
-                              error: (err, st) =>
-                                  Text(l10n.budgetErrorLoadingProgress),
+                                      projectedOverrunLabel:
+                                          projectedOverrun > 0 && daysLeft > 0
+                                              ? l10n.budgetProjectedOverrun(
+                                                  currencyFormat.format(
+                                                    projectedOverrun,
+                                                  ),
+                                                )
+                                              : null,
+                                      l10n: l10n,
+                                      onActionSelected: (action) =>
+                                          _handleBudgetAction(
+                                        action: action,
+                                        budget: budget,
+                                        transactions:
+                                            categoryTxAsync.valueOrNull ??
+                                                const [],
+                                        currencyFormat: currencyFormat,
+                                      ),
+                                    );
+                                  },
+                                  loading: () => const AppSkeleton(height: 180),
+                                  error: (err, st) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8),
+                                    child:
+                                        Text(l10n.budgetErrorLoadingProgress),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
+                          );
+                        },
+                        childCount: activeBudgets.length,
                       ),
                     ),
-                  );
-                }),
+                  ),
+                if (inactiveBudgets.isNotEmpty) ...[
+                  const SliverToBoxAdapter(child: SizedBox(height: 4)),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        'Paused or archived budgets',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        'Resume a budget to bring it back into active planning.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final budget = inactiveBudgets[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _BudgetDormantCard(
+                              budget: budget,
+                              currencyFormat: currencyFormat,
+                              onResume: () => _handleBudgetAction(
+                                action: 'toggleActive',
+                                budget: budget,
+                                transactions: const [],
+                                currencyFormat: currencyFormat,
+                              ),
+                              onDelete: () => _handleBudgetAction(
+                                action: 'delete',
+                                budget: budget,
+                                transactions: const [],
+                                currencyFormat: currencyFormat,
+                              ),
+                            ),
+                          );
+                        },
+                        childCount: inactiveBudgets.length,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             );
           },
@@ -641,6 +603,84 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     );
   }
 
+  Future<void> _handleBudgetAction({
+    required String action,
+    required Budget budget,
+    required List<Transaction> transactions,
+    required NumberFormat currencyFormat,
+  }) async {
+    switch (action) {
+      case 'viewTransactions':
+        _showOverspendTransactions(
+            context, budget, transactions, currencyFormat);
+        return;
+      case 'edit':
+        await _openBudgetForm(ref, existingBudget: budget);
+        return;
+      case 'increase10':
+        await _quickAdjustBudget(ref, budget, 1.1);
+        break;
+      case 'decrease10':
+        await _quickAdjustBudget(ref, budget, 0.9);
+        break;
+      case 'duplicate':
+        final duplicate = budget.copyWith(
+          id: const Uuid().v4(),
+          startDate: DateTime.now(),
+          endDate: _calculateEndDate(DateTime.now(), budget.period),
+        );
+        await ref.read(budgetListProvider.notifier).addBudget(duplicate);
+        break;
+      case 'toggleActive':
+        await ref.read(budgetListProvider.notifier).updateBudget(
+              budget.copyWith(isActive: !budget.isActive),
+            );
+        break;
+      case 'rollover':
+        await _runManualRollover();
+        return;
+      case 'archive':
+        final shouldArchive = await showDialog<bool>(
+              context: context,
+              builder: (context) => const ConfirmActionDialog(
+                title: 'Archive budget?',
+                message:
+                    'This budget will be paused and hidden from active planning until you re-enable it.',
+                confirmLabel: 'Archive',
+              ),
+            ) ??
+            false;
+        if (!shouldArchive) return;
+        await ref.read(budgetListProvider.notifier).updateBudget(
+              budget.copyWith(isActive: false),
+            );
+        break;
+      case 'delete':
+        final shouldDelete = await showDialog<bool>(
+              context: context,
+              builder: (context) => const ConfirmActionDialog(
+                title: 'Delete budget?',
+                message:
+                    'This permanently removes the budget. Transactions are not deleted.',
+                confirmLabel: 'Delete',
+              ),
+            ) ??
+            false;
+        if (!shouldDelete) return;
+        await ref.read(budgetListProvider.notifier).deleteBudget(budget.id);
+        break;
+      default:
+        return;
+    }
+
+    if (!mounted) return;
+    AppFeedback.show(
+      context,
+      message: 'Budget action completed.',
+      type: AppFeedbackType.success,
+    );
+  }
+
   Future<void> _quickAdjustBudget(
     WidgetRef ref,
     Budget budget,
@@ -652,57 +692,116 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     await ref.read(budgetListProvider.notifier).updateBudget(updated);
   }
 
-  Future<void> _runManualRollover() async {
-    final l10n = AppLocalizations.of(context)!;
-    final policy = await ref.read(rolloverPolicyServiceProvider).loadPolicy();
-    await ref.read(budgetListProvider.notifier).rolloverExpiredBudgets(
-          rolloverDay: policy.rolloverDay,
-        );
+  int _countAtRiskBudgets(List<Budget> budgets, List<double> spendingValues) {
+    var count = 0;
+    for (var index = 0; index < budgets.length; index++) {
+      final budget = budgets[index];
+      final spending = spendingValues[index];
+      if (budget.limitAmount <= 0) continue;
+      final usagePercent = (spending / budget.limitAmount) * 100;
+      if (usagePercent >= budget.alertThreshold) {
+        count += 1;
+      }
+    }
+    return count;
+  }
 
-    if (!mounted) return;
-    AppFeedback.show(
-      context,
-      message: l10n.budgetRolloverComplete,
-      type: AppFeedbackType.success,
-    );
+  double _calculateProjectedOverspend(
+    List<Budget> budgets,
+    List<double> spendingValues,
+  ) {
+    final now = DateTime.now();
+    var projectedTotal = 0.0;
+    for (var index = 0; index < budgets.length; index++) {
+      final budget = budgets[index];
+      final spending = spendingValues[index];
+      final endDate = budget.endDate ?? now;
+      final daysLeft =
+          endDate.difference(DateTime(now.year, now.month, now.day)).inDays;
+      final elapsedDays = now.difference(budget.startDate).inDays;
+      final paceDailySpend =
+          elapsedDays <= 0 ? spending : spending / elapsedDays;
+      final projectedSpend =
+          spending + (paceDailySpend * daysLeft.clamp(0, 365));
+      if (projectedSpend > budget.limitAmount) {
+        projectedTotal += projectedSpend - budget.limitAmount;
+      }
+    }
+    return projectedTotal;
+  }
+
+  String _buildBudgetPortfolioMessage({
+    required BudgetPortfolioStatus status,
+    required double totalRemaining,
+    required double projectedOverspend,
+    required NumberFormat currencyFormat,
+  }) {
+    switch (status) {
+      case BudgetPortfolioStatus.exceeded:
+        return 'You are projected to exceed your budget by ${currencyFormat.format(projectedOverspend > 0 ? projectedOverspend : totalRemaining.abs())} if current spending continues.';
+      case BudgetPortfolioStatus.atRisk:
+        return '${currencyFormat.format(totalRemaining)} remains available this month. Keep your highest-risk category under control.';
+      case BudgetPortfolioStatus.watch:
+        return 'Your budget setup needs attention. ${currencyFormat.format(totalRemaining)} is still available across active categories.';
+      case BudgetPortfolioStatus.stable:
+        return 'Your budget setup is stable. You still have ${currencyFormat.format(totalRemaining)} available across active categories.';
+    }
   }
 
   Future<void> _openBudgetForm(
-    BuildContext context,
     WidgetRef ref, {
     Budget? existingBudget,
   }) async {
     final appCurrency = ref.read(appCurrencyControllerProvider);
-    final result = await showModalBottomSheet<_BudgetFormResult>(
-      context: context,
-      isScrollControlled: true,
-      useRootNavigator: true,
-      backgroundColor: Colors.transparent,
+    final result = await AppFormSheet.show<_BudgetFormResult>(
+      context,
       builder: (_) => _BudgetFormSheet(
         existingBudget: existingBudget,
         currencySymbol: CurrencyUtils.symbol(appCurrency),
       ),
     );
 
-    if (result != null) {
-      final endDate = _calculateEndDate(result.startDate, result.period);
-      final budget = Budget(
-        id: existingBudget?.id ?? const Uuid().v4(),
-        category: result.category,
-        limitAmount: result.limitAmount,
-        currency: appCurrency,
-        period: result.period,
-        startDate: result.startDate,
-        endDate: endDate,
-        alertThreshold: result.alertThreshold,
-        isActive: existingBudget?.isActive ?? true,
-      );
+    if (result == null) return;
+    if (!mounted) return;
 
+    final endDate = _calculateEndDate(result.startDate, result.period);
+    final budget = Budget(
+      id: existingBudget?.id ?? const Uuid().v4(),
+      category: result.category,
+      limitAmount: result.limitAmount,
+      currency: appCurrency,
+      period: result.period,
+      startDate: result.startDate,
+      endDate: endDate,
+      alertThreshold: result.alertThreshold,
+      isActive: existingBudget?.isActive ?? true,
+    );
+
+    AppFeedbackService.showLoading(
+      context,
+      existingBudget == null ? 'Saving budget...' : 'Updating budget...',
+    );
+    try {
       if (existingBudget == null) {
         await ref.read(budgetListProvider.notifier).addBudget(budget);
       } else {
         await ref.read(budgetListProvider.notifier).updateBudget(budget);
       }
+      if (!mounted) return;
+      AppFeedbackService.showSuccess(
+        context,
+        existingBudget == null
+            ? 'Budget saved successfully.'
+            : 'Budget updated successfully.',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      AppFeedbackService.showError(
+        context,
+        'Unable to save budget. Please try again.',
+      );
+    } finally {
+      AppFeedbackService.dismissLoading();
     }
   }
 
@@ -735,37 +834,44 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     NumberFormat currencyFormat,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet<void>(
-      context: context,
+    AppFormSheet.show<void>(
+      context,
       builder: (context) {
         if (transactions.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(20),
-            child: Text(l10n.budgetNoTransactionsForCategory),
+          return AppFormSheet(
+            maxHeightFactor: 0.28,
+            body: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(l10n.budgetNoTransactionsForCategory),
+            ),
           );
         }
 
-        return SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(12),
-            children: [
-              Text(
-                l10n.budgetCategoryTransactions(budget.category),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              ...transactions.map(
-                (tx) => ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(tx.note ?? tx.category),
-                  subtitle: Text(
-                    MaterialLocalizations.of(context).formatMediumDate(tx.date),
-                  ),
-                  trailing: Text(currencyFormat.format(tx.amount)),
+        return AppFormSheet(
+          maxHeightFactor: 0.72,
+          body: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(12),
+              children: [
+                Text(
+                  l10n.budgetCategoryTransactions(budget.category),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                ...transactions.map(
+                  (tx) => ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(tx.note ?? tx.category),
+                    subtitle: Text(
+                      MaterialLocalizations.of(context)
+                          .formatMediumDate(tx.date),
+                    ),
+                    trailing: Text(currencyFormat.format(tx.amount)),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -773,43 +879,526 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   }
 }
 
-class _CompactBudgetChip extends StatelessWidget {
-  const _CompactBudgetChip({
+enum BudgetPortfolioStatus { stable, watch, atRisk, exceeded }
+
+BudgetPortfolioStatus getBudgetPortfolioStatus({
+  required List<Budget> budgets,
+  required List<double> spendingValues,
+  required double totalLimit,
+  required double totalSpent,
+}) {
+  for (var index = 0; index < budgets.length; index++) {
+    final budget = budgets[index];
+    final spending = spendingValues[index];
+    if (budget.limitAmount <= 0) continue;
+    final usageRatio = spending / budget.limitAmount;
+    final usagePercent = usageRatio * 100;
+    if (usageRatio > 1.0) {
+      return BudgetPortfolioStatus.exceeded;
+    }
+    if (usagePercent >= budget.alertThreshold) {
+      return BudgetPortfolioStatus.atRisk;
+    }
+  }
+  if (totalLimit > 0 && (totalSpent / totalLimit) > 0.7) {
+    return BudgetPortfolioStatus.watch;
+  }
+  return BudgetPortfolioStatus.stable;
+}
+
+class _BudgetInsightCards extends StatelessWidget {
+  const _BudgetInsightCards({required this.alerts});
+
+  final List<BudgetAlert> alerts;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final twoColumns = constraints.maxWidth >= 760;
+        final cardWidth = twoColumns
+            ? ((constraints.maxWidth - 12) / 2).clamp(280.0, 520.0)
+            : constraints.maxWidth;
+
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: alerts
+              .map(
+                (alert) => SizedBox(
+                  width: cardWidth,
+                  child: _BudgetInsightCard(alert: alert),
+                ),
+              )
+              .toList(growable: false),
+        );
+      },
+    );
+  }
+}
+
+class _BudgetInsightCard extends StatelessWidget {
+  const _BudgetInsightCard({required this.alert});
+
+  final BudgetAlert alert;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final progressPercent = (alert.progress * 100).toStringAsFixed(0);
+    final isCritical = alert.overLimit;
+    final isWarning = !isCritical && alert.nearLimit;
+    final tone = isCritical
+        ? scheme.error
+        : isWarning
+            ? Colors.orange
+            : scheme.primary;
+
+    final statusLabel = isCritical
+        ? 'Exceeded'
+        : isWarning
+            ? 'Near Limit'
+            : 'On Track';
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isCritical
+              ? (isDark
+                  ? const [
+                      Color(0xFF3B1A24),
+                      Color(0xFF35141F),
+                      Color(0xFF281016),
+                    ]
+                  : const [
+                      Color(0xFFFFE4EA),
+                      Color(0xFFFFEFF3),
+                      Color(0xFFFFF7F9),
+                    ])
+              : isWarning
+                  ? (isDark
+                      ? const [
+                          Color(0xFF3A2A18),
+                          Color(0xFF332514),
+                          Color(0xFF241A10),
+                        ]
+                      : const [
+                          Color(0xFFFFEFD8),
+                          Color(0xFFFFF5E8),
+                          Color(0xFFFFFBF3),
+                        ])
+                  : (isDark
+                      ? const [
+                          Color(0xFF1E1A40),
+                          Color(0xFF221540),
+                          Color(0xFF1A1A2E),
+                        ]
+                      : const [
+                          Color(0xFFECDDFF),
+                          Color(0xFFF1EEFF),
+                          Color(0xFFF7F9FF),
+                        ]),
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: tone.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isCritical
+                      ? Icons.error_outline
+                      : isWarning
+                          ? Icons.warning_amber_outlined
+                          : Icons.insights_outlined,
+                  color: tone,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  alert.category,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Usage is at $progressPercent%. Current status: $statusLabel.',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: 12,
+                  color: scheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _InsightMetric(label: 'Used', value: '$progressPercent%'),
+                    const SizedBox(height: 12),
+                    _InsightMetric(label: 'Status', value: statusLabel),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _InsightMetric(
+                        label: 'Alert At', value: '${alert.threshold}%'),
+                    const SizedBox(height: 12),
+                    _InsightMetric(
+                      label: 'Delta',
+                      value:
+                          '${(alert.progress * 100 - alert.threshold).toStringAsFixed(0)}%',
+                      tone: tone,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InsightMetric extends StatelessWidget {
+  const _InsightMetric({
     required this.label,
     required this.value,
-    this.valueColor,
+    this.tone,
   });
 
   final String label;
   final String value;
-  final Color? valueColor;
+  final Color? tone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: tone,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BudgetDormantCard extends StatelessWidget {
+  const _BudgetDormantCard({
+    required this.budget,
+    required this.currencyFormat,
+    required this.onResume,
+    required this.onDelete,
+  });
+
+  final Budget budget;
+  final NumberFormat currencyFormat;
+  final VoidCallback onResume;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.archive_outlined),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  budget.category,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Limit ${currencyFormat.format(budget.limitAmount)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: onResume,
+            child: const Text('Resume'),
+          ),
+          IconButton(
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BudgetCategoryCard extends StatelessWidget {
+  const _BudgetCategoryCard({
+    required this.iconColor,
+    required this.budget,
+    required this.status,
+    required this.statusColor,
+    required this.progressColor,
+    required this.progress,
+    required this.spent,
+    required this.daysLeft,
+    required this.currencyFormat,
+    required this.cycleLabel,
+    required this.progressLabel,
+    required this.projectedOverrunLabel,
+    required this.l10n,
+    required this.onActionSelected,
+  });
+
+  final Color iconColor;
+  final Budget budget;
+  final String status;
+  final Color statusColor;
+  final Color progressColor;
+  final double progress;
+  final double spent;
+  final int daysLeft;
+  final NumberFormat currencyFormat;
+  final String cycleLabel;
+  final String progressLabel;
+  final String? projectedOverrunLabel;
+  final AppLocalizations l10n;
+  final ValueChanged<String> onActionSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.04),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child:
+                    Icon(Icons.pie_chart_rounded, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      budget.category,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        status,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              AppActionMenu(
+                title: budget.category,
+                tooltip: 'Budget actions',
+                onSelected: onActionSelected,
+                items: [
+                  const AppActionItem(
+                    value: 'viewTransactions',
+                    label: 'View transactions',
+                    icon: Icons.receipt_long_outlined,
+                  ),
+                  AppActionItem(
+                    value: 'edit',
+                    label: l10n.budgetEdit,
+                    icon: Icons.edit_outlined,
+                  ),
+                  const AppActionItem(
+                    value: 'increase10',
+                    label: 'Increase 10%',
+                    icon: Icons.trending_up,
+                  ),
+                  const AppActionItem(
+                    value: 'decrease10',
+                    label: 'Reduce 10%',
+                    icon: Icons.trending_down,
+                  ),
+                  AppActionItem(
+                    value: 'toggleActive',
+                    label: budget.isActive ? 'Pause budget' : 'Resume budget',
+                    icon: budget.isActive
+                        ? Icons.pause_circle_outline
+                        : Icons.play_circle_outline,
+                  ),
+                  AppActionItem(
+                    value: 'rollover',
+                    label: l10n.budgetRolloverNow,
+                    icon: Icons.autorenew,
+                  ),
+                  const AppActionItem(
+                    value: 'duplicate',
+                    label: 'Duplicate',
+                    icon: Icons.copy_outlined,
+                  ),
+                  const AppActionItem(
+                    value: 'archive',
+                    label: 'Archive',
+                    icon: Icons.archive_outlined,
+                  ),
+                  AppActionItem(
+                    value: 'delete',
+                    label: l10n.budgetDelete,
+                    icon: Icons.delete_outline,
+                    destructive: true,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            '${currencyFormat.format(spent)} / ${currencyFormat.format(budget.limitAmount)}',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            cycleLabel,
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 10),
+          InkWell(
+            onTap: () => onActionSelected('viewTransactions'),
+            borderRadius: BorderRadius.circular(8),
+            child: AnimatedFinanceProgressBar(
+              value: progress,
+              color: progressColor,
+              height: 7,
+            ),
+          ),
+          const SizedBox(height: 8),
           Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: valueColor,
+            progressLabel,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          Text(
+            daysLeft < 0
+                ? l10n.budgetPeriodEnded
+                : l10n.budgetDaysLeft(daysLeft),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (projectedOverrunLabel != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              projectedOverrunLabel!,
+              style: TextStyle(
+                fontSize: 12,
+                color: scheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          Text(
+            'Tap the progress bar to review related transactions.',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
                 ),
           ),
         ],
@@ -888,8 +1477,22 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
   }
 
   void _submit() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    final parsedAmount = double.parse(_amountController.text.trim());
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      AppFeedbackService.showWarning(
+        context,
+        'Complete required budget fields to continue.',
+      );
+      return;
+    }
+    final parsedAmount =
+        FormValidation.parseDecimal(_amountController.text.trim()) ?? 0;
+    if (parsedAmount <= 0) {
+      AppFeedbackService.showWarning(
+        context,
+        'Enter a valid budget amount greater than zero.',
+      );
+      return;
+    }
     Navigator.of(context).pop(
       _BudgetFormResult(
         category: _categoryController.text.trim(),
@@ -905,179 +1508,114 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final baseTheme = Theme.of(context);
-    final modalBackgroundColor = baseTheme.brightness == Brightness.dark
-        ? baseTheme.colorScheme.surfaceContainerHigh
-        : baseTheme.colorScheme.surface;
-
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+    final formFields = Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.pie_chart_rounded,
+                color: baseTheme.colorScheme.primary,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  widget.existingBudget == null
+                      ? l10n.budgetCreate
+                      : l10n.budgetEdit,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ModernInput(
+            controller: _categoryController,
+            label: l10n.category,
+            hintText: l10n.budgetCategoryHint,
+            helperText: 'Used for insights and category-based controls',
+            validator: (value) =>
+                FormValidation.requiredText(value, l10n.budgetEnterCategory),
+          ),
+          const SizedBox(height: 16),
+          CurrencyInput(
+            controller: _amountController,
+            label: l10n.budgetAmount,
+            currencySymbol: widget.currencySymbol,
+            validator: (value) => FormValidation.positiveAmount(
+              value,
+              l10n.budgetEnterValidAmount,
+              l10n.budgetEnterValidAmount,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ModernSelect<BudgetPeriod>(
+            value: _period,
+            label: l10n.budgetPeriod,
+            prefixIcon: Icons.event_repeat_rounded,
+            items: BudgetPeriod.values
+                .map(
+                  (p) => DropdownMenuItem(
+                    value: p,
+                    child: Text(
+                      switch (p) {
+                        BudgetPeriod.weekly => l10n.reportsBillingWeekly,
+                        BudgetPeriod.monthly => l10n.reportsBillingMonthly,
+                        BudgetPeriod.yearly => l10n.reportsBillingYearly,
+                      },
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _period = value);
+            },
+          ),
+          const SizedBox(height: 16),
+          AmountSlider(
+            value: _alertThreshold.toDouble(),
+            min: 60,
+            max: 95,
+            divisions: 7,
+            labelBuilder: (value) => l10n.budgetAlertPercent(value.round()),
+            onChanged: (value) {
+              setState(() => _alertThreshold = value.round());
+            },
+          ),
+          const SizedBox(height: 4),
+          ModernDatePicker(
+            label: l10n.budgetStartDate,
+            value:
+                MaterialLocalizations.of(context).formatMediumDate(_startDate),
+            onTap: _pickStartDate,
+          ),
+        ],
       ),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: modalBackgroundColor,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(32),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: baseTheme.colorScheme.shadow.withValues(alpha: 0.15),
-              blurRadius: 24,
-              offset: const Offset(0, -4),
-            ),
-          ],
+    );
+
+    return KeyboardAwareFormSheet(
+      onClose: () => Navigator.of(context).pop(),
+      maxHeightFactor: 0.78,
+      body: formFields,
+      actions: FilledButton.icon(
+        onPressed: _submit,
+        icon: Icon(
+          widget.existingBudget == null
+              ? Icons.add_rounded
+              : Icons.edit_rounded,
         ),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.pie_chart_rounded,
-                      color: baseTheme.colorScheme.primary,
-                      size: 28,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.existingBudget == null
-                                ? l10n.budgetCreate
-                                : l10n.budgetEdit,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _categoryController,
-                  style: InputStyles.inputTextStyle(baseTheme),
-                  decoration: InputDecoration(
-                    labelText: l10n.category,
-                    hintText: l10n.budgetCategoryHint,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return l10n.budgetEnterCategory;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                TextFormField(
-                  controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  style: InputStyles.inputTextStyle(baseTheme),
-                  decoration: InputDecoration(
-                    labelText: l10n.budgetAmount,
-                    prefixText: '${widget.currencySymbol} ',
-                  ),
-                  validator: (value) {
-                    final parsed = double.tryParse(value ?? '');
-                    if (parsed == null || parsed <= 0) {
-                      return l10n.budgetEnterValidAmount;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                DropdownButtonFormField<BudgetPeriod>(
-                  initialValue: _period,
-                  icon: InputStyles.dropdownIcon(context),
-                  decoration: InputDecoration(
-                    labelText: l10n.budgetPeriod,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.outlineVariant,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  items: BudgetPeriod.values
-                      .map(
-                        (p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(
-                            switch (p) {
-                              BudgetPeriod.weekly => l10n.reportsBillingWeekly,
-                              BudgetPeriod.monthly =>
-                                l10n.reportsBillingMonthly,
-                              BudgetPeriod.yearly => l10n.reportsBillingYearly,
-                            },
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() => _period = value);
-                  },
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                Slider(
-                  value: _alertThreshold.toDouble(),
-                  min: 60,
-                  max: 95,
-                  divisions: 7,
-                  label: l10n.budgetAlertPercent(_alertThreshold),
-                  onChanged: (value) {
-                    setState(() => _alertThreshold = value.round());
-                  },
-                ),
-                const SizedBox(height: 4),
-                FormDateField(
-                  label: l10n.budgetStartDate,
-                  value: MaterialLocalizations.of(context)
-                      .formatMediumDate(_startDate),
-                  onTap: _pickStartDate,
-                ),
-                const SizedBox(height: InputStyles.fieldSpacing),
-                FilledButton.icon(
-                  onPressed: _submit,
-                  icon: Icon(
-                    widget.existingBudget == null
-                        ? Icons.add_rounded
-                        : Icons.edit_rounded,
-                  ),
-                  label: Text(
-                    widget.existingBudget == null
-                        ? l10n.budgetSave
-                        : l10n.budgetUpdate,
-                  ),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                ),
-              ],
-            ),
-          ),
+        label: Text(
+          widget.existingBudget == null ? l10n.budgetSave : l10n.budgetUpdate,
+        ),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(48),
         ),
       ),
     );

@@ -49,7 +49,3 @@ const _$TransactionRecurrenceEnumMap = {
   TransactionRecurrence.monthly: 'monthly',
   TransactionRecurrence.yearly: 'yearly',
 };
-
-
-
-

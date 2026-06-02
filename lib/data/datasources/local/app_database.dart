@@ -135,7 +135,7 @@ class AppDatabase extends _$AppDatabase {
 
   // Budget Queries
   Future<List<Budget>> getBudgets() {
-    final query = select(budgets)..where((b) => b.isActive.equals(true));
+    final query = select(budgets);
     return query.get();
   }
 
@@ -282,7 +282,3 @@ class AppDatabase extends _$AppDatabase {
     return query.getSingleOrNull();
   }
 }
-
-
-
-

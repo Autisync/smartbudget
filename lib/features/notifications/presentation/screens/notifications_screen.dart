@@ -1,12 +1,10 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -44,44 +42,29 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: _isAppBarScrolled ? 0.9 : 0,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: BrandedTitle(label: l10n.notificationsTitle),
+        title: buildFrostedAppBarTitle(
+          context: context,
+          title: l10n.notificationsTitle,
+          isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        flexibleSpace: Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _isAppBarScrolled
-                  ? ClipRect(
-                      key: const ValueKey('notifications-appbar-blur-on'),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(
-                      key: ValueKey('notifications-appbar-blur-off'),
-                    ),
-            ),
-          ],
+        flexibleSpace: buildFrostedFlexibleSpace(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+          onKey: 'notifications-appbar-blur-on',
+          offKey: 'notifications-appbar-blur-off',
         ),
         actions: [
+          ...buildPageHeaderActions(
+            context: context,
+            isScrolled: _isAppBarScrolled,
+            includeTrailingSpace: false,
+          ),
           IconButton(
             icon: const Icon(Icons.delete_sweep_outlined),
             onPressed: () {
@@ -221,7 +204,3 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     }
   }
 }
-
-
-
-

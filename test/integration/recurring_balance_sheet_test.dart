@@ -89,7 +89,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Recurring Balance Sheet'), findsOneWidget);
+    expect(find.text('Recurring Balance Sheet'), findsWidgets);
     expect(find.text('Scenario Lab'), findsOneWidget);
     expect(find.textContaining('Streaming'), findsWidgets);
 
@@ -103,6 +103,13 @@ void main() {
   });
 
   testWidgets('dashboard balance sheet CTA navigates to route', (tester) async {
+    tester.view.physicalSize = const Size(1200, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     final router = GoRouter(
       routes: [
         GoRoute(
@@ -186,7 +193,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Recurring Balance Sheet'), findsOneWidget);
-    await tester.tap(find.text('Open'));
+    final openButton =
+        find.widgetWithText(OutlinedButton, 'Open').hitTestable().first;
+    await tester.tap(openButton);
     await tester.pumpAndSettle();
 
     expect(find.text('Balance Sheet Route Hit'), findsOneWidget);

@@ -89,23 +89,56 @@ class TransactionRepositoryImpl implements TransactionRepository {
     final dueTxs = await _db.getRecurringTransactionsDue(now);
 
     for (final tx in dueTxs) {
-      final nextDate = _nextOccurrence(tx.date, tx.recurrence);
-      if (nextDate.isAfter(now)) continue;
+      var nextDate = _nextOccurrence(tx.date, tx.recurrence);
+      var iterations = 0;
 
-      final newTransaction = Transaction(
-        id: const Uuid().v4(),
-        accountId: tx.accountId,
-        amount: tx.amount,
-        currency: tx.currency,
-        type: tx.type,
-        category: tx.category,
-        date: nextDate,
-        note: tx.note,
-        recurrence: tx.recurrence,
-        isSynced: false,
-      );
-      await addTransaction(newTransaction);
+      // Generate all past-due occurrences, but keep each (rule + datetime)
+      // idempotent so repeated scheduler runs can't duplicate same-day rows.
+      while (!nextDate.isAfter(now) && iterations < 4000) {
+        final exists = await _hasRecurringOccurrence(tx, nextDate);
+        if (!exists) {
+          final newTransaction = Transaction(
+            id: const Uuid().v4(),
+            accountId: tx.accountId,
+            amount: tx.amount,
+            currency: tx.currency,
+            type: tx.type,
+            category: tx.category,
+            date: nextDate,
+            note: tx.note,
+            recurrence: tx.recurrence,
+            isSynced: false,
+          );
+          await addTransaction(newTransaction);
+        }
+
+        nextDate = _nextOccurrence(nextDate, tx.recurrence);
+        iterations++;
+      }
     }
+  }
+
+  Future<bool> _hasRecurringOccurrence(
+    db.Transaction source,
+    DateTime occurrenceDate,
+  ) async {
+    final query = _db.select(_db.transactions)
+      ..where((t) => t.accountId.equals(source.accountId))
+      ..where((t) => t.amount.equals(source.amount))
+      ..where((t) => t.currency.equals(source.currency))
+      ..where((t) => t.type.equals(source.type.index))
+      ..where((t) => t.category.equals(source.category))
+      ..where((t) => t.recurrence.equals(source.recurrence.index))
+      ..where((t) => t.date.equals(occurrenceDate));
+
+    if (source.note == null || source.note!.isEmpty) {
+      query.where((t) => t.note.isNull());
+    } else {
+      query.where((t) => t.note.equals(source.note!));
+    }
+
+    final existing = await query.getSingleOrNull();
+    return existing != null;
   }
 
   DateTime _nextOccurrence(DateTime date, TransactionRecurrence recurrence) {
@@ -146,7 +179,3 @@ class TransactionRepositoryImpl implements TransactionRepository {
     );
   }
 }
-
-
-
-

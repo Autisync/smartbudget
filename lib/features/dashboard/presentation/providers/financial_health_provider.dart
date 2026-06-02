@@ -62,7 +62,7 @@ class FinancialHealthTrendSnapshot {
 @riverpod
 Future<FinancialHealthSnapshot> financialHealth(FinancialHealthRef ref) async {
   final l10n = lookupAppLocalizations(ref.watch(appLocaleControllerProvider));
-  final budgets = await ref.watch(budgetListProvider.future);
+  final budgets = await ref.watch(activeBudgetsProvider.future);
   final goals = await ref.watch(savingsGoalListProvider.future);
   final alerts = await ref.watch(budgetAlertsProvider.future);
 
@@ -318,7 +318,3 @@ Future<double> _computeBudgetUtilizationScore(
 
   return count == 0 ? 70 : (total / count).clamp(0, 100).toDouble();
 }
-
-
-
-

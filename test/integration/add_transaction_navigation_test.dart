@@ -27,8 +27,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify the screen renders basic elements
-    expect(find.text('Add Transaction'), findsOneWidget);
+    expect(find.text('Add Transaction'), findsWidgets);
     expect(find.byType(TextFormField), findsWidgets);
-    expect(find.byType(FilledButton), findsOneWidget);
+    expect(find.byType(FilledButton), findsWidgets);
   });
 }

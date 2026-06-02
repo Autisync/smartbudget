@@ -6,7 +6,7 @@ part of 'budget_alerts_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$budgetAlertsHash() => r'd98d58d39a6b6ec42c460c3d032eb2982c573621';
+String _$budgetAlertsHash() => r'3378804ffe1e4342544a9b701561e298955254ec';
 
 /// See also [budgetAlerts].
 @ProviderFor(budgetAlerts)
@@ -25,7 +25,3 @@ final budgetAlertsProvider =
 typedef BudgetAlertsRef = AutoDisposeFutureProviderRef<List<BudgetAlert>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
-
-
-
-

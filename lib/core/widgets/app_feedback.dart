@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartbudget/components/feedback/app_feedback_service.dart';
 
 enum AppFeedbackType { success, error, warning, info }
 
@@ -10,49 +11,60 @@ class AppFeedback {
     bool replaceCurrent = true,
     Duration duration = const Duration(seconds: 3),
   }) {
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null || message.trim().isEmpty) {
+    if (message.trim().isEmpty) {
+      return;
+    }
+    final shouldSuppress = !replaceCurrent &&
+        AppFeedbackToast.shouldSuppressDuplicate(
+          message,
+          window: duration,
+        );
+    if (shouldSuppress) {
       return;
     }
 
-    if (replaceCurrent) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..removeCurrentSnackBar();
+    switch (type) {
+      case AppFeedbackType.success:
+        AppFeedbackToast.show(
+          context,
+          message: message,
+          duration: duration,
+          replaceCurrent: replaceCurrent,
+          backgroundColor: _backgroundColor(type),
+          icon: _icon(type),
+        );
+        break;
+      case AppFeedbackType.error:
+        AppFeedbackToast.show(
+          context,
+          message: message,
+          duration: duration,
+          replaceCurrent: replaceCurrent,
+          backgroundColor: _backgroundColor(type),
+          icon: _icon(type),
+        );
+        break;
+      case AppFeedbackType.warning:
+        AppFeedbackToast.show(
+          context,
+          message: message,
+          duration: duration,
+          replaceCurrent: replaceCurrent,
+          backgroundColor: _backgroundColor(type),
+          icon: _icon(type),
+        );
+        break;
+      case AppFeedbackType.info:
+        AppFeedbackToast.show(
+          context,
+          message: message,
+          duration: duration,
+          replaceCurrent: replaceCurrent,
+          backgroundColor: _backgroundColor(type),
+          icon: _icon(type),
+        );
+        break;
     }
-
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        duration: duration,
-        margin: EdgeInsets.fromLTRB(
-          16,
-          0,
-          16,
-          16 + MediaQuery.paddingOf(context).bottom,
-        ),
-        backgroundColor: _backgroundColor(type),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
-        content: Row(
-          children: [
-            Icon(_icon(type), color: Colors.white, size: 18),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   static Color _backgroundColor(AppFeedbackType type) {
@@ -73,7 +85,3 @@ class AppFeedback {
     };
   }
 }
-
-
-
-

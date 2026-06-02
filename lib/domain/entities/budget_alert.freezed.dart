@@ -273,7 +273,3 @@ abstract class _BudgetAlert implements BudgetAlert {
   _$$BudgetAlertImplCopyWith<_$BudgetAlertImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
-
-
-
-

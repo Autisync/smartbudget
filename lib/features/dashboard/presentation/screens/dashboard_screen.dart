@@ -1,20 +1,24 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/exchange_rate_service.dart';
-import 'package:smartbudget/core/theme/ui_tokens.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/domain/entities/budget_alert.dart';
+import 'package:smartbudget/domain/entities/transaction.dart';
+import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/features/transactions/presentation/widgets/transaction_form_sheet.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
+import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
-import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/data/models/tables.dart' show TransactionType;
+import 'package:smartbudget/data/models/tables.dart' show TransactionRecurrence;
+import 'package:smartbudget/intelligence/engines/financial_insight_engines.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
@@ -28,6 +32,19 @@ final _dashboardLiveRateQuoteProvider =
   return exchangeRateService.fetchRate(
     base: parts.first,
     target: parts.last,
+  );
+});
+
+final _dashboardBurnRateProvider = FutureProvider<BurnRateInsight>((ref) async {
+  final transactions = await ref.watch(transactionListProvider().future);
+  final budgets = await ref.watch(activeBudgetsProvider.future);
+  final totalBudget = budgets
+      .where((budget) => budget.isActive)
+      .fold<double>(0.0, (sum, budget) => sum + budget.limitAmount);
+
+  return const BurnRateEngine().calculate(
+    transactions: transactions,
+    monthlyBudgetLimit: totalBudget > 0 ? totalBudget : null,
   );
 });
 
@@ -54,12 +71,49 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   bool _healthInsightSent = false;
   bool _isAppBarScrolled = false;
 
+  Future<void> _openAddTransactionModal() async {
+    await AppFormSheet.show<void>(
+      context,
+      builder: (_) => const TransactionFormSheet(
+        mode: TransactionFormMode.create,
+        asModal: true,
+      ),
+    );
+  }
+
+  Future<void> _openEditTransactionModal(Transaction transaction) async {
+    await AppFormSheet.show<void>(
+      context,
+      builder: (_) => TransactionFormSheet(
+        mode: TransactionFormMode.update,
+        initialData: transaction,
+        asModal: true,
+      ),
+    );
+  }
+
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
     final shouldShowFill = offset > threshold;
     if (shouldShowFill == _isAppBarScrolled) return;
     if (!mounted) return;
     setState(() => _isAppBarScrolled = shouldShowFill);
+  }
+
+  String _buildGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  String _buildDisplayName() {
+    final session = ref.read(sessionControllerProvider);
+    final name = [
+      session.user?.firstName ?? '',
+      session.user?.lastName ?? '',
+    ].where((part) => part.trim().isNotEmpty).join(' ').trim();
+    return name.isEmpty ? 'SmartSpend User' : name;
   }
 
   @override
@@ -141,7 +195,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final alertsAsync = ref.watch(budgetAlertsProvider);
     final healthAsync = ref.watch(financialHealthProvider);
     ref.watch(recurringTransactionsProvider);
-    final spendingAsync = ref.watch(spendingProfileProvider);
+    final burnRateAsync = ref.watch(_dashboardBurnRateProvider);
     final recentAsync = ref.watch(recentTransactionsProvider);
 
     final income = allTxAsync.maybeWhen(
@@ -156,12 +210,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           .fold(0.0, (sum, t) => sum + t.amount),
       orElse: () => 0.0,
     );
+    final greeting = _buildGreeting();
+    final displayName = _buildDisplayName();
 
     final isDashboardDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
+    return AppScaffold(
       backgroundColor: isDashboardDark ? null : const Color(0xFFF8F8FA),
       floatingActionButton: AppFloatingActionButton(
-        onPressed: () => context.push('/transactions/add'),
+        onPressed: _openAddTransactionModal,
         icon: Icons.add_rounded,
       ),
       body: NotificationListener<ScrollNotification>(
@@ -181,55 +237,43 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               scrolledUnderElevation: 0,
-              flexibleSpace: AnimatedContainer(
-                duration: UiTokens.motionFast,
-                curve: Curves.easeOut,
-                decoration: BoxDecoration(
-                  color: _isAppBarScrolled
-                      ? Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withValues(alpha: 0.92)
-                      : Colors.transparent,
-                  border: _isAppBarScrolled
-                      ? Border(
-                          bottom: BorderSide(
+              flexibleSpace: buildFrostedFlexibleSpace(
+                context: context,
+                isScrolled: _isAppBarScrolled,
+                onKey: 'dashboard-appbar-blur-on',
+                offKey: 'dashboard-appbar-blur-off',
+              ),
+              title: buildFrostedAppBarTitle(
+                context: context,
+                title: l10n.navHome,
+                isScrolled: _isAppBarScrolled,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      greeting,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
                             color: Theme.of(context)
                                 .colorScheme
-                                .outlineVariant
-                                .withValues(alpha: 0.5),
-                            width: 1,
+                                .onSurfaceVariant
+                                .withValues(alpha: 0.78),
                           ),
-                        )
-                      : null,
-                ),
-                child: _isAppBarScrolled
-                    ? ClipRect(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: const SizedBox.expand(),
-                        ),
-                      )
-                    : const SizedBox.expand(),
-              ),
-              title: BrandedTitle(
-                label: l10n.appTitle,
-                logoSize: 26,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
                     ),
+                    Text(
+                      displayName,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
+                ),
               ),
-              actions: [
-                NotificationBellButton(
-                  onPressed: () => context.push('/notifications'),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.settings_outlined),
-                  onPressed: () => context.push('/settings'),
-                ),
-                const SizedBox(width: 8),
-              ],
+              actions: buildPageHeaderActions(
+                context: context,
+                isScrolled: _isAppBarScrolled,
+              ),
             ),
             SliverToBoxAdapter(
               child: Padding(
@@ -305,17 +349,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       onOpen: () => context.push('/balance-sheet'),
                     ),
                     const SizedBox(height: 24),
-                    spendingAsync.when(
-                      data: (profile) => _HomeSpendingCard(
+                    burnRateAsync.when(
+                      data: (burnRate) => _HomeSpendingCard(
                         l10n: l10n,
-                        profile: profile,
+                        burnRate: burnRate,
                         currencyFormat: currencyFormat,
                         currencyCode: appCurrency,
                       ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
+                      loading: () => const _LoadingCard(),
+                      error: (_, __) => AppErrorState(
+                        title: 'Unable to load burn rate',
+                        message:
+                            'Try again in a moment to view spending pace insights.',
+                        actionLabel: 'Retry',
+                        onAction: () =>
+                            ref.invalidate(_dashboardBurnRateProvider),
+                      ),
                     ),
-                    if (spendingAsync.hasValue) const SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -351,14 +402,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   return SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 32),
-                      child: Center(
-                        child: Text(
-                          l10n.dashboardErrorLoadingTransactions,
-                          style: const TextStyle(
-                            color: Color(0xFFAAAAAA),
-                            fontSize: 14,
-                          ),
+                          horizontal: 24, vertical: 12),
+                      child: AppEmptyState(
+                        icon: Icons.receipt_long_outlined,
+                        title: l10n.noTransactions,
+                        message: l10n.noTransactionsSubtitle,
+                        lottieAsset:
+                            'assets/animations/empty_transactions.json',
+                        action: FilledButton.icon(
+                          onPressed: _openAddTransactionModal,
+                          icon: const Icon(Icons.add_rounded),
+                          label: Text(l10n.addTransaction),
                         ),
                       ),
                     ),
@@ -368,25 +422,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      if (index == items.length) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Center(
-                            child: Text(
-                              'No more transactions',
-                              style: TextStyle(
-                                color: Color(0xFFAAAAAA),
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        );
-                      }
                       final tx = items[index];
                       final isExpense = tx.type == TransactionType.expense;
                       final amountColor = isExpense
                           ? const Color(0xFFE53935)
                           : const Color(0xFF2E7D32);
+                      final recurrenceLabel =
+                          tx.recurrence == TransactionRecurrence.none
+                              ? null
+                              : tx.recurrence.name.toUpperCase();
+                      final subtitle = tx.note?.trim().isNotEmpty == true
+                          ? tx.note!
+                          : l10n.transactionsNoNote;
                       return Padding(
                         padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
                         child: AppTransactionTile(
@@ -394,29 +441,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               ? Icons.arrow_outward_rounded
                               : Icons.arrow_downward_rounded,
                           title: tx.category,
-                          subtitle: tx.note ?? l10n.transactionsNoNote,
+                          subtitle: recurrenceLabel == null
+                              ? subtitle
+                              : '$subtitle • $recurrenceLabel',
                           amount:
                               '${isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
                           amountColor: amountColor,
-                          onTap: () =>
-                              context.push('/transactions/edit/${tx.id}'),
+                          onTap: () => _openEditTransactionModal(tx),
                         ),
                       );
                     },
-                    childCount: items.length + 1,
+                    childCount: items.length,
                   ),
                 );
               },
               loading: () => const SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: _LoadingCard(),
                 ),
               ),
               error: (_, __) => SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(l10n.dashboardErrorLoadingTransactions),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: AppErrorState(
+                    title: 'Could not load recent transactions',
+                    message: l10n.dashboardErrorLoadingTransactions,
+                    actionLabel: 'Retry',
+                    onAction: () => ref.invalidate(recentTransactionsProvider),
+                  ),
                 ),
               ),
             ),
@@ -525,6 +579,12 @@ class HomeBalanceCard extends StatelessWidget {
               color: isDark ? Colors.white : const Color(0xFF1A1A2E),
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
+          ),
+          const SizedBox(height: 10),
+          AppLineSparkChart(
+            values: [income, expenses, balance],
+            color: const Color(0xFF5C6BFF),
+            height: 64,
           ),
           const SizedBox(height: 24),
           Row(
@@ -961,19 +1021,19 @@ class HomeRecurringBalanceCard extends StatelessWidget {
 class _HomeSpendingCard extends StatelessWidget {
   const _HomeSpendingCard({
     required this.l10n,
-    required this.profile,
+    required this.burnRate,
     required this.currencyFormat,
     required this.currencyCode,
   });
 
   final AppLocalizations l10n;
-  final dynamic profile;
+  final BurnRateInsight burnRate;
   final NumberFormat currencyFormat;
   final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
-    final trendColor = _getTrendColor(profile.trend);
+    final statusColor = _getStatusColor(burnRate.status);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -999,13 +1059,13 @@ class _HomeSpendingCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: trendColor.withValues(alpha: 0.12),
+                  color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  _getTrendText(profile.trend),
+                  _statusLabel(burnRate.status),
                   style: TextStyle(
-                    color: trendColor,
+                    color: statusColor,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                   ),
@@ -1018,7 +1078,7 @@ class _HomeSpendingCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  currencyFormat.format(profile.monthlyBurnRate),
+                  currencyFormat.format(burnRate.monthlySpend),
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
@@ -1048,63 +1108,56 @@ class _HomeSpendingCard extends StatelessWidget {
               ),
             ],
           ),
-          if ((profile.anomalies as List).isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF57C00).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Color(0xFFF57C00),
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.dashboardUnusualTransactionsDetected(
-                        (profile.anomalies as List).length,
-                      ),
-                      style: const TextStyle(
-                        color: Color(0xFFF57C00),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          const SizedBox(height: 10),
+          Text(
+            _burnRateMessage(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
         ],
       ),
     );
   }
 
-  Color _getTrendColor(dynamic trend) {
-    switch (trend.toString()) {
-      case 'TrendDirection.increasing':
-        return const Color(0xFFE53935);
-      case 'TrendDirection.decreasing':
+  Color _getStatusColor(BurnRateStatus status) {
+    switch (status) {
+      case BurnRateStatus.critical:
+        return const Color(0xFFC62828);
+      case BurnRateStatus.high:
+        return const Color(0xFFEF6C00);
+      case BurnRateStatus.watch:
+        return const Color(0xFFB28704);
+      case BurnRateStatus.healthy:
         return const Color(0xFF2E7D32);
-      default:
-        return const Color(0xFF9090A8);
     }
   }
 
-  String _getTrendText(dynamic trend) {
-    switch (trend.toString()) {
-      case 'TrendDirection.increasing':
-        return l10n.dashboardTrendRising;
-      case 'TrendDirection.decreasing':
-        return l10n.dashboardTrendFalling;
-      default:
-        return l10n.dashboardTrendStable;
+  String _statusLabel(BurnRateStatus status) {
+    switch (status) {
+      case BurnRateStatus.critical:
+        return 'Critical';
+      case BurnRateStatus.high:
+        return 'High';
+      case BurnRateStatus.watch:
+        return 'Watch';
+      case BurnRateStatus.healthy:
+        return 'Healthy';
     }
+  }
+
+  String _burnRateMessage() {
+    if (!burnRate.hasData) {
+      return 'No spending activity this month yet. Add transactions to track your burn pace.';
+    }
+    final projected = currencyFormat.format(burnRate.projectedMonthEndSpend);
+    final perDay = currencyFormat.format(burnRate.averageDailySpend);
+    if (burnRate.safeDailySpend > 0) {
+      final safe = currencyFormat.format(burnRate.safeDailySpend);
+      return 'Avg/day $perDay. Projected month-end: $projected. Keep daily spending near $safe for a safer runway.';
+    }
+    return 'Avg/day $perDay. Projected month-end: $projected.';
   }
 }
 
@@ -1119,9 +1172,9 @@ class _ThinProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final clamped = value.clamp(0.0, 1.0);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final clamped = value.clamp(0.0, 1.0);
         return ClipRRect(
           borderRadius: BorderRadius.circular(999),
           child: Stack(
@@ -1237,7 +1290,17 @@ class _DashboardLiveRateCard extends ConsumerWidget {
             ),
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(
+                child: AppLottieView(
+                  assetPath: 'assets/animations/loading.json',
+                  width: 52,
+                  height: 52,
+                  repeat: false,
+                  animate: true,
+                  semanticLabel: 'Loading exchange rate',
+                  fallbackIcon: Icons.sync,
+                ),
+              ),
             ),
             error: (_, __) => Row(
               children: [
@@ -1334,7 +1397,36 @@ class _LoadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AppSkeleton(height: 180);
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      height: 92,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Row(
+        children: [
+          AppLottieView(
+            assetPath: 'assets/animations/loading.json',
+            width: 44,
+            height: 44,
+            repeat: false,
+            animate: true,
+            semanticLabel: 'Loading dashboard',
+            fallbackIcon: Icons.sync,
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Syncing dashboard data...',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

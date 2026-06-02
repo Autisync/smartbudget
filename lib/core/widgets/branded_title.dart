@@ -7,17 +7,28 @@ class BrandedTitle extends StatelessWidget {
     this.logoSize = 20,
     this.spacing = 8,
     this.style,
+    this.showLogo = false,
   });
 
   final String label;
   final double logoSize;
   final double spacing;
   final TextStyle? style;
+  final bool showLogo;
 
   static const _logoAssetPath = 'assets/images/logo/app_logo.png';
 
   @override
   Widget build(BuildContext context) {
+    if (!showLogo) {
+      return Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      );
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -50,7 +61,3 @@ class BrandedTitle extends StatelessWidget {
     );
   }
 }
-
-
-
-

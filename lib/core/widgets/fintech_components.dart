@@ -1,9 +1,436 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:smartbudget/components/feedback/app_lottie_view.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/app_icons.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
+
+const BoxShadow _smartShadow = BoxShadow(
+  color: Color.fromRGBO(0, 0, 0, 0.04),
+  blurRadius: 18,
+  offset: Offset(0, 6),
+);
+
+class SmartSpendScaffold extends StatelessWidget {
+  const SmartSpendScaffold({
+    super.key,
+    required this.body,
+    this.appBar,
+    this.bottomNavigationBar,
+    this.floatingActionButton,
+    this.backgroundColor,
+    this.resizeToAvoidBottomInset,
+  });
+
+  final Widget body;
+  final PreferredSizeWidget? appBar;
+  final Widget? bottomNavigationBar;
+  final Widget? floatingActionButton;
+  final Color? backgroundColor;
+  final bool? resizeToAvoidBottomInset;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      backgroundColor:
+          backgroundColor ?? (isDark ? null : const Color(0xFFF8F8FA)),
+      appBar: appBar,
+      body: body,
+      bottomNavigationBar: bottomNavigationBar,
+      floatingActionButton: floatingActionButton,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+    );
+  }
+}
+
+class SmartCard extends StatelessWidget {
+  const SmartCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+    this.radius = 28,
+    this.color,
+    this.onTap,
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double radius;
+  final Color? color;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final card = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: color ?? Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: const [_smartShadow],
+      ),
+      child: child,
+    );
+    if (onTap == null) return card;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(radius),
+        onTap: onTap,
+        child: card,
+      ),
+    );
+  }
+}
+
+class SmartMetricTile extends StatelessWidget {
+  const SmartMetricTile({
+    super.key,
+    required this.label,
+    required this.value,
+    this.icon,
+    this.tone,
+  });
+
+  final String label;
+  final String value;
+  final IconData? icon;
+  final Color? tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final resolvedTone = tone ?? Theme.of(context).colorScheme.primary;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: const [_smartShadow],
+      ),
+      child: Row(
+        children: [
+          if (icon != null) ...[
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: resolvedTone.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: resolvedTone, size: 18),
+            ),
+            const SizedBox(width: 10),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: Theme.of(context).textTheme.labelSmall),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SmartInsightCard extends StatelessWidget {
+  const SmartInsightCard({
+    super.key,
+    required this.title,
+    required this.explanation,
+    required this.impact,
+    required this.action,
+    required this.badge,
+    required this.tone,
+    this.icon = Icons.insights_rounded,
+  });
+
+  final String title;
+  final String explanation;
+  final String impact;
+  final String action;
+  final String badge;
+  final Color tone;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return SmartCard(
+      radius: 28,
+      color: tone.withValues(alpha: 0.08),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: tone.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: tone, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+              AppBadge(label: badge, color: tone),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(explanation, style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: 8),
+          Text(impact, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 4),
+          Text(action, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
+class SmartGradientButton extends StatelessWidget {
+  const SmartGradientButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.brandDeep, AppColors.brand],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [_smartShadow],
+      ),
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: icon == null ? const SizedBox.shrink() : Icon(icon),
+        label: Text(label),
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size.fromHeight(50),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SmartOutlinedButton extends StatelessWidget {
+  const SmartOutlinedButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: icon == null ? const SizedBox.shrink() : Icon(icon, size: 18),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+    );
+  }
+}
+
+class SmartInputField extends StatelessWidget {
+  const SmartInputField({
+    super.key,
+    required this.child,
+  });
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: child,
+    );
+  }
+}
+
+class SmartProgressBar extends StatelessWidget {
+  const SmartProgressBar({
+    super.key,
+    required this.value,
+    required this.color,
+  });
+
+  final double value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedFinanceProgressBar(
+      value: value,
+      color: color,
+      height: 7,
+      backgroundColor:
+          Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+    );
+  }
+}
+
+class SmartEmptyState extends StatelessWidget {
+  const SmartEmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.action,
+    this.lottieAsset,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final Widget? action;
+  final String? lottieAsset;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppEmptyState(
+      icon: icon,
+      title: title,
+      message: message,
+      action: action,
+      lottieAsset: lottieAsset,
+    );
+  }
+}
+
+class SmartActionSheet extends StatelessWidget {
+  const SmartActionSheet({
+    super.key,
+    required this.title,
+    required this.children,
+  });
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppActionSheet(title: title, children: children);
+  }
+}
+
+class SmartBottomNav extends StatelessWidget {
+  const SmartBottomNav({
+    super.key,
+    required this.currentIndex,
+    required this.onTabSelected,
+    this.moreTemporarilyActive = false,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTabSelected;
+  final bool moreTemporarilyActive;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBottomNavigation(
+      currentIndex: currentIndex,
+      onTabSelected: onTabSelected,
+      moreTemporarilyActive: moreTemporarilyActive,
+    );
+  }
+}
+
+class SmartSpendHeader extends StatelessWidget {
+  const SmartSpendHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  subtitle!,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (trailing != null) ...[
+          const SizedBox(width: 12),
+          trailing!,
+        ],
+      ],
+    );
+  }
+}
 
 class AppCard extends StatelessWidget {
   const AppCard({
@@ -971,12 +1398,16 @@ class AppEmptyState extends StatelessWidget {
     required this.title,
     required this.message,
     this.action,
+    this.lottieAsset,
+    this.semanticLabel,
   });
 
   final IconData icon;
   final String title;
   final String message;
   final Widget? action;
+  final String? lottieAsset;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -987,15 +1418,26 @@ class AppEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(UiTokens.radiusXl),
+            if (lottieAsset != null)
+              AppLottieView(
+                assetPath: lottieAsset!,
+                width: 108,
+                height: 108,
+                animate: true,
+                repeat: false,
+                semanticLabel: semanticLabel ?? '$title animation',
+                fallbackIcon: icon,
+              )
+            else
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(UiTokens.radiusXl),
+                ),
+                child: Icon(icon, size: 34, color: colorScheme.primary),
               ),
-              child: Icon(icon, size: 34, color: colorScheme.primary),
-            ),
             const SizedBox(height: UiTokens.space16),
             Text(
               title,

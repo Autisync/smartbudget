@@ -1,21 +1,20 @@
-import 'dart:ui';
-
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart' show Share, XFile;
+import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
-import 'package:smartbudget/core/widgets/branded_title.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart';
+import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/core/widgets/form_date_field.dart';
-import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
@@ -58,19 +57,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final appCurrency = ref.watch(appCurrencyControllerProvider);
     final appCurrencyLabel = appCurrency.toUpperCase();
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0.0,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: BrandedTitle(label: l10n.reportsTitle),
+        title: buildFrostedAppBarTitle(
+          context: context,
+          title: l10n.reportsTitle,
+          isScrolled: _isAppBarScrolled,
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: _isAppBarScrolled ? 0.88 : 0.0,
@@ -78,31 +70,17 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        flexibleSpace: Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: _isAppBarScrolled
-                  ? ClipRect(
-                      key: const ValueKey('reports-appbar-blur-on'),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.08),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(key: ValueKey('reports-appbar-blur-off')),
-            ),
-          ],
+        flexibleSpace: buildFrostedFlexibleSpace(
+          context: context,
+          isScrolled: _isAppBarScrolled,
+          onKey: 'reports-appbar-blur-on',
+          offKey: 'reports-appbar-blur-off',
         ),
         actions: [
-          NotificationBellButton(
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isAppBarScrolled ? 0.9 : 0.0,
-            ),
-            onPressed: () => context.push('/notifications'),
+          ...buildPageHeaderActions(
+            context: context,
+            isScrolled: _isAppBarScrolled,
+            includeTrailingSpace: false,
           ),
           IconButton(
             style: IconButton.styleFrom(
@@ -128,48 +106,49 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Date Range Selector
-              Container(
-                decoration: AppSurfaces.elevated(
-                  context,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.7),
+              SmartSpendHeader(
+                title: 'Reports & Export',
+                subtitle:
+                    'Generate polished financial reports with flexible date ranges and quick exports.',
+                trailing: AppBadge(
+                  label: appCurrencyLabel,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.reportsPeriod,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDateField(
-                              label: l10n.reportsFrom,
-                              date: _startDate,
-                              onTap: () => _selectDate(context, true),
-                            ),
+              ),
+              const SizedBox(height: 24),
+              // Date Range Selector
+              SmartCard(
+                radius: 28,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.reportsPeriod,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildDateField(
-                              label: l10n.reportsTo,
-                              date: _endDate,
-                              onTap: () => _selectDate(context, false),
-                            ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDateField(
+                            label: l10n.reportsFrom,
+                            date: _startDate,
+                            onTap: () => _selectDate(context, true),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildDateField(
+                            label: l10n.reportsTo,
+                            date: _endDate,
+                            onTap: () => _selectDate(context, false),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
 
@@ -248,6 +227,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Widget _buildReportMetricsSection() {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final generatedToday = _generatedReports.where((entry) {
       final now = DateTime.now();
       return entry.generatedAt.year == now.year &&
@@ -263,17 +243,48 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.insights_rounded,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                l10n.reportsActivity,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.insights_rounded,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
+                    const SizedBox(width: 10),
+                    Text(
+                      l10n.reportsActivity,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              AppDonutChart(
+                segments: [
+                  AppDonutSegment(
+                    value: _totalReportsGenerated
+                        .toDouble()
+                        .clamp(1, 9999)
+                        .toDouble(),
+                    color: colorScheme.primary,
+                  ),
+                  AppDonutSegment(
+                    value: generatedToday.toDouble().clamp(1, 9999).toDouble(),
+                    color: colorScheme.tertiary,
+                  ),
+                  AppDonutSegment(
+                    value: _reportCounts.length
+                        .toDouble()
+                        .clamp(1, 9999)
+                        .toDouble(),
+                    color: colorScheme.secondary,
+                  ),
+                ],
+                radius: 22,
+                centerSpaceRadius: 16,
               ),
             ],
           ),
@@ -312,10 +323,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildPeriodButton(String label, VoidCallback onPressed) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         minimumSize: const Size(0, 44),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
       onPressed: onPressed,
       child: Text(label),
@@ -348,64 +360,72 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         ? colorScheme.primary.withValues(alpha: 0.85)
         : colorScheme.primary;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: AppSurfaces.elevated(context),
-      child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: iconBadgeColor,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.12),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: SmartCard(
+        radius: 24,
+        padding: const EdgeInsets.all(16),
+        onTap: _isGenerating ? null : onPressed,
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: iconBadgeColor,
+                borderRadius: BorderRadius.circular(16),
               ),
-            ],
-          ),
-          child: Icon(
-            icon,
-            size: 25,
-            color: Colors.white,
-          ),
-        ),
-        title: Text(
-          title,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(description),
-        ),
-        trailing: _isGenerating
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
+              child: Icon(
+                icon,
+                size: 25,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-                  const SizedBox(height: 6),
                   Text(
-                    l10n.reportsRuns(runCount),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                    title,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
+                  const SizedBox(height: 4),
+                  Text(description),
                 ],
               ),
-        onTap: _isGenerating ? null : onPressed,
+            ),
+            const SizedBox(width: 8),
+            _isGenerating
+                ? const AppLottieView(
+                    assetPath: 'assets/animations/report_generation.json',
+                    width: 36,
+                    height: 36,
+                    repeat: true,
+                    animate: true,
+                    semanticLabel: 'Generating report',
+                    fallbackIcon: Icons.sync,
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Icon(Icons.chevron_right_rounded, size: 18),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.reportsRuns(runCount),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+          ],
+        ),
       ),
     );
   }
@@ -436,14 +456,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
           const SizedBox(height: 12),
           if (_generatedReports.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                l10n.reportsNoGeneratedReports,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
+            const SmartEmptyState(
+              icon: Icons.description_outlined,
+              title: 'No Reports Generated',
+              message:
+                  'Run a report to see your latest exports and generated files here.',
+              lottieAsset: 'assets/animations/empty_reports.json',
             )
           else
             ..._generatedReports.map(
@@ -587,28 +605,31 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   void _showExportOptions() {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.picture_as_pdf),
-            title: Text(l10n.reportsExportAsPdf),
-            onTap: () {
-              Navigator.pop(context);
-              _generateFinancialSummary();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.table_chart),
-            title: Text(l10n.reportsExportAsCsv),
-            onTap: () {
-              Navigator.pop(context);
-              _exportAsCSV();
-            },
-          ),
-        ],
+    AppFormSheet.show(
+      context,
+      builder: (sheetContext) => AppFormSheet(
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: Text(l10n.reportsExportAsPdf),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _generateFinancialSummary();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: Text(l10n.reportsExportAsCsv),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _exportAsCSV();
+              },
+            ),
+          ],
+        ),
+        maxHeightFactor: 0.42,
       ),
     );
   }
@@ -649,8 +670,20 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     }
   }
 
-  Future<void> _generateFinancialSummary() async {
+  void _beginReportGeneration(String message) {
     setState(() => _isGenerating = true);
+    AppFeedbackService.showLoading(context, message);
+  }
+
+  void _finishReportGeneration() {
+    if (mounted) {
+      setState(() => _isGenerating = false);
+    }
+    AppFeedbackService.dismissLoading();
+  }
+
+  Future<void> _generateFinancialSummary() async {
+    _beginReportGeneration('Generating financial summary...');
     final l10n = AppLocalizations.of(context)!;
 
     try {
@@ -662,7 +695,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       // Get data
       final transactions = await ref.read(transactionListProvider().future);
       final subscriptions = await ref.read(subscriptionListProvider.future);
-      final budgets = await ref.read(budgetListProvider.future);
+      final budgets = await ref.read(activeBudgetsProvider.future);
 
       final filteredTransactions = transactions
           .where((t) =>
@@ -755,23 +788,22 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsPdfGeneratedShared)),
-        );
+        AppFeedbackService.showSuccess(context, l10n.reportsPdfGeneratedShared);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsErrorGenerating(e.toString()))),
+        AppFeedbackService.showError(
+          context,
+          l10n.reportsErrorGenerating(e.toString()),
         );
       }
     } finally {
-      setState(() => _isGenerating = false);
+      _finishReportGeneration();
     }
   }
 
   Future<void> _generateTransactionHistory() async {
-    setState(() => _isGenerating = true);
+    _beginReportGeneration('Exporting transaction history...');
     final l10n = AppLocalizations.of(context)!;
 
     try {
@@ -817,27 +849,29 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsTransactionHistoryExported)),
+        AppFeedbackService.showSuccess(
+          context,
+          l10n.reportsTransactionHistoryExported,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsErrorExportingData(e.toString()))),
+        AppFeedbackService.showError(
+          context,
+          l10n.reportsErrorExportingData(e.toString()),
         );
       }
     } finally {
-      setState(() => _isGenerating = false);
+      _finishReportGeneration();
     }
   }
 
   Future<void> _generateBudgetAnalysis() async {
-    setState(() => _isGenerating = true);
+    _beginReportGeneration('Generating budget analysis...');
     final l10n = AppLocalizations.of(context)!;
 
     try {
-      final budgets = await ref.read(budgetListProvider.future);
+      final budgets = await ref.read(activeBudgetsProvider.future);
       final pdfTheme = await _buildPdfTheme();
       final pdf = pw.Document();
       final appCurrency = ref.read(appCurrencyControllerProvider);
@@ -939,23 +973,25 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsBudgetAnalysisGenerated)),
+        AppFeedbackService.showSuccess(
+          context,
+          l10n.reportsBudgetAnalysisGenerated,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsErrorGenerating(e.toString()))),
+        AppFeedbackService.showError(
+          context,
+          l10n.reportsErrorGenerating(e.toString()),
         );
       }
     } finally {
-      setState(() => _isGenerating = false);
+      _finishReportGeneration();
     }
   }
 
   Future<void> _generateSubscriptionReport() async {
-    setState(() => _isGenerating = true);
+    _beginReportGeneration('Generating subscription report...');
     final l10n = AppLocalizations.of(context)!;
 
     try {
@@ -1034,23 +1070,25 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsSubscriptionReportGenerated)),
+        AppFeedbackService.showSuccess(
+          context,
+          l10n.reportsSubscriptionReportGenerated,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsErrorGenerating(e.toString()))),
+        AppFeedbackService.showError(
+          context,
+          l10n.reportsErrorGenerating(e.toString()),
         );
       }
     } finally {
-      setState(() => _isGenerating = false);
+      _finishReportGeneration();
     }
   }
 
   Future<void> _exportAsCSV() async {
-    setState(() => _isGenerating = true);
+    _beginReportGeneration('Exporting complete data...');
     final l10n = AppLocalizations.of(context)!;
 
     try {
@@ -1099,18 +1137,20 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsCompleteDataExportCreated)),
+        AppFeedbackService.showSuccess(
+          context,
+          l10n.reportsCompleteDataExportCreated,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reportsErrorExportingData(e.toString()))),
+        AppFeedbackService.showError(
+          context,
+          l10n.reportsErrorExportingData(e.toString()),
         );
       }
     } finally {
-      setState(() => _isGenerating = false);
+      _finishReportGeneration();
     }
   }
 

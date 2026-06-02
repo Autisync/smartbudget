@@ -313,7 +313,3 @@ abstract class _SavingsGoal implements SavingsGoal {
   _$$SavingsGoalImplCopyWith<_$SavingsGoalImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
-
-
-
-
