@@ -55,9 +55,10 @@ class InputStyles {
     required Color errorColor,
   }) {
     final neutral = labelColor(brightness);
+    // Softer hairline at rest; the 2px primary focus border carries the accent.
     final borderColor = brightness == Brightness.dark
-        ? Colors.white.withValues(alpha: 0.14)
-        : Colors.black.withValues(alpha: 0.14);
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.black.withValues(alpha: 0.08);
 
     return InputDecorationTheme(
       filled: true,

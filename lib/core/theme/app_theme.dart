@@ -51,14 +51,14 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.xl),
           side: BorderSide(
-            color: scheme.outline.withValues(alpha: isDark ? 0.30 : 0.5),
-            width: 0.6,
+            color: scheme.outline.withValues(alpha: isDark ? 0.55 : 0.9),
+            width: 1,
           ),
         ),
       ),
       dividerTheme: DividerThemeData(
-        color: scheme.outline.withValues(alpha: 0.55),
-        thickness: 0.8,
+        color: scheme.outline.withValues(alpha: isDark ? 0.5 : 0.8),
+        thickness: 1,
         space: AppSpacing.lg,
       ),
       navigationBarTheme: NavigationBarThemeData(

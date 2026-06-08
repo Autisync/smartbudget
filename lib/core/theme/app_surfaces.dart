@@ -8,24 +8,27 @@ class AppSurfaces {
     BuildContext context, {
     double radius = AppRadius.xl,
     Color? color,
-    double blur = 12,
-    double offsetY = 4,
-    double opacity = 0.06,
+    double blur = 18,
+    double offsetY = 8,
+    double opacity = 0.04,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
     return BoxDecoration(
       color: color ?? colorScheme.surface,
       borderRadius: BorderRadius.circular(radius),
+      // Crisp 1px hairline. In light mode the border carries the structure so
+      // the shadow can stay almost invisible (flat, minimal look); in dark mode
+      // the border is a touch stronger since shadows barely register.
       border: Border.all(
         color: isDark
-            ? colorScheme.outline.withValues(alpha: 0.28)
-            : colorScheme.outline.withValues(alpha: 0.5),
-        width: 0.6,
+            ? colorScheme.outline.withValues(alpha: 0.55)
+            : colorScheme.outline.withValues(alpha: 0.9),
+        width: 1,
       ),
       boxShadow: AppShadows.card(
         colorScheme.shadow,
-        opacity: isDark ? opacity : opacity * 0.95,
+        opacity: isDark ? opacity * 0.8 : opacity,
       ).map((shadow) {
         return shadow.copyWith(
           blurRadius: blur,

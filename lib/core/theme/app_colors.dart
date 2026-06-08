@@ -10,21 +10,23 @@ class AppColors {
   static const Color warning = Color(0xFFF29B38);
   static const Color danger = Color(0xFFE05A68);
 
-  static const Color lightBackground = Color(0xFFF5F7FB);
+  // Minimalist neutrals — a near-white canvas, pure-white surfaces, and soft
+  // hairline borders. Warmer-neutral grays read calmer than blue-tinted ones.
+  static const Color lightBackground = Color(0xFFF7F8FA);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceHigh = Color(0xFFF8F9FD);
-  static const Color lightSurfaceHighest = Color(0xFFEEF1F7);
-  static const Color lightText = Color(0xFF171B2D);
-  static const Color lightMuted = Color(0xFF6C7288);
-  static const Color lightBorder = Color(0xFFE8EBF3);
+  static const Color lightSurfaceHigh = Color(0xFFF9FAFB);
+  static const Color lightSurfaceHighest = Color(0xFFF1F3F5);
+  static const Color lightText = Color(0xFF14161D);
+  static const Color lightMuted = Color(0xFF6B7280);
+  static const Color lightBorder = Color(0xFFEDEFF2);
 
-  static const Color darkBackground = Color(0xFF0E1220);
-  static const Color darkSurface = Color(0xFF151A2D);
-  static const Color darkSurfaceHigh = Color(0xFF1B2138);
-  static const Color darkSurfaceHighest = Color(0xFF262D46);
-  static const Color darkText = Color(0xFFF5F7FF);
-  static const Color darkMuted = Color(0xFFA2A9C1);
-  static const Color darkBorder = Color(0xFF2A324C);
+  static const Color darkBackground = Color(0xFF0B0D13);
+  static const Color darkSurface = Color(0xFF14161F);
+  static const Color darkSurfaceHigh = Color(0xFF191C27);
+  static const Color darkSurfaceHighest = Color(0xFF222632);
+  static const Color darkText = Color(0xFFF4F5F8);
+  static const Color darkMuted = Color(0xFF9AA0AE);
+  static const Color darkBorder = Color(0xFF262A36);
 
   static const ColorScheme lightScheme = ColorScheme.light(
     primary: brand,
