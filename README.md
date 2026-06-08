@@ -73,7 +73,7 @@ SmartSpend is a privacy-first, local-first personal finance app built in Flutter
 
 - **Settings + personalization**
   - Theme mode (system, light, dark)
-  - Language selection (English, Portuguese, Spanish)
+  - Language selection (English, Portuguese, Spanish, German, French)
   - App currency selection with data migration support
   - Notification preferences and rollover policy controls
 
@@ -103,7 +103,7 @@ SmartSpend is a privacy-first, local-first personal finance app built in Flutter
 - Recurring balance sheet and financial health scoring are available for recurring-cashflow analysis
 - Reports support PDF/CSV generation with sharing
 - Security uses biometric-gated access with secure local storage integration
-- App-level localization (EN/PT/ES), theming, and currency controls are available in settings
+- App-level localization (EN/PT/ES/DE/FR), theming, and currency controls are available in settings
 - Responsive navigation is implemented for compact and large-screen layouts
 
 ---

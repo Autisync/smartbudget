@@ -22,19 +22,11 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>com.smartbudget.app</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>smartbudget</string>
-			</array>
-		</dict>
-	</array>
+	<!-- Custom smartbudget:// URL scheme removed — any app can register an
+	     arbitrary scheme, giving no ownership guarantee. Deep links now use
+	     Universal Links (https://smaartspend.com/app/...) which are
+	     cryptographically bound to the domain via apple-app-site-association.
+	     See RELEASE_BUILD.md for the AASA hosting checklist. -->
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>

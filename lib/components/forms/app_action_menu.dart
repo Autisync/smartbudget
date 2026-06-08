@@ -112,14 +112,20 @@ class AppActionMenu extends StatelessWidget {
                           : theme.colorScheme.onSurface,
                     ),
                   if (item.icon != null) const SizedBox(width: 10),
-                  Text(
-                    item.label,
-                    style: TextStyle(
-                      color: item.destructive
-                          ? theme.colorScheme.error
-                          : theme.colorScheme.onSurface,
-                      fontWeight:
-                          item.destructive ? FontWeight.w600 : FontWeight.w500,
+                  // Flexible + ellipsis prevents a horizontal overflow when a
+                  // label is longer than the popup menu's constrained width.
+                  Flexible(
+                    child: Text(
+                      item.label,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: item.destructive
+                            ? theme.colorScheme.error
+                            : theme.colorScheme.onSurface,
+                        fontWeight: item.destructive
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],

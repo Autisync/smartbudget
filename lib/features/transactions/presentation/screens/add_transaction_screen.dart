@@ -5,9 +5,11 @@ import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/components/sheets/app_sheet_container.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
+import 'package:smartbudget/domain/entities/account.dart';
 import 'package:smartbudget/data/models/tables.dart'
     show TransactionType, TransactionRecurrence;
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/features/accounts/presentation/providers/account_provider.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
@@ -41,7 +43,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   String _category = 'Food';
   DateTime _date = DateTime.now();
   TransactionRecurrence _recurrence = TransactionRecurrence.none;
-  String _paymentMethod = 'Card';
+  // Selected money source (account id). Defaults to Cash; preselected from the
+  // existing transaction when editing. Resolved against the accounts list.
+  String? _accountId;
 
   @override
   void initState() {
@@ -54,6 +58,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       _recurrence = tx.recurrence;
       _amountController.text = tx.amount.toString();
       _noteController.text = tx.note ?? '';
+      _accountId = tx.accountId;
     }
   }
 
@@ -91,6 +96,49 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       }
       context.go('/transactions');
     });
+  }
+
+  /// Real money-source picker backed by the accounts table. Lets the user
+  /// choose how money came in / went out (Cash, Bank Transfer, Credit Card, or
+  /// any custom account). Persisted to the transaction's accountId.
+  Widget _buildAccountPicker() {
+    final accountsAsync = ref.watch(accountsListProvider);
+    return accountsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (accounts) {
+        if (accounts.isEmpty) return const SizedBox.shrink();
+        // Default to Cash (or the first account) when nothing is selected, and
+        // recover gracefully if a previously-selected account was removed.
+        final ids = accounts.map((a) => a.id).toSet();
+        final selected = (_accountId != null && ids.contains(_accountId))
+            ? _accountId
+            : (ids.contains(DefaultAccountIds.cash)
+                ? DefaultAccountIds.cash
+                : accounts.first.id);
+        if (selected != _accountId) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _accountId = selected);
+          });
+        }
+        return ModernSelect<String>(
+          value: selected!,
+          label: 'Account',
+          prefixIcon: Icons.account_balance_wallet_rounded,
+          items: accounts
+              .map(
+                (a) => DropdownMenuItem(
+                  value: a.id,
+                  child: Text(a.name),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value != null) setState(() => _accountId = value);
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -282,22 +330,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             },
           ),
           const SizedBox(height: 16),
-          ModernSelect<String>(
-            value: _paymentMethod,
-            label: 'Payment Method',
-            prefixIcon: Icons.credit_card_rounded,
-            items: const [
-              DropdownMenuItem(value: 'Card', child: Text('Card')),
-              DropdownMenuItem(value: 'Cash', child: Text('Cash')),
-              DropdownMenuItem(value: 'Bank', child: Text('Bank')),
-              DropdownMenuItem(value: 'Wallet', child: Text('Wallet')),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => _paymentMethod = value);
-              }
-            },
-          ),
+          _buildAccountPicker(),
           const SizedBox(height: 16),
           ModernInput(
             controller: _noteController,
@@ -461,7 +494,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final appCurrency = ref.read(appCurrencyControllerProvider);
     final transaction = Transaction(
       id: widget.existingTransaction?.id ?? const Uuid().v4(),
-      accountId: widget.existingTransaction?.accountId ?? 'default',
+      accountId: _accountId ??
+          widget.existingTransaction?.accountId ??
+          DefaultAccountIds.cash,
       amount: amount,
       currency: appCurrency,
       type: _type,

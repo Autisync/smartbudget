@@ -28,22 +28,54 @@ jobs:
       - name: Test
         run: flutter test
 
-      # 🔐 SECURE: API key injected via GitHub Secret, never in code
-      - name: Build with dart-define
+      # --obfuscate + --split-debug-info are REQUIRED for every release build.
+      # Without them the compiled binary exposes class names, method names, and
+      # internal string literals to anyone who reverse-engineers the APK/IPA.
+      # The debug-info directory is uploaded as a separate artifact so stack
+      # traces can still be de-obfuscated internally using `flutter symbolize`.
+      - name: Build Android APK (obfuscated)
         env:
           EXCHANGE_RATE_API_KEY: ${{ secrets.EXCHANGE_RATE_API_KEY }}
         run: |
           flutter build apk \
             --dart-define=EXCHANGE_RATE_API_KEY="$EXCHANGE_RATE_API_KEY" \
-            --release
+            --release \
+            --obfuscate \
+            --split-debug-info=build/debug-info/android
 
-          # For iOS
-          # flutter build ios \
-          #   --dart-define=EXCHANGE_RATE_API_KEY="$EXCHANGE_RATE_API_KEY" \
-          #   --release --no-codesign
+      - name: Build Android App Bundle (obfuscated)
+        env:
+          EXCHANGE_RATE_API_KEY: ${{ secrets.EXCHANGE_RATE_API_KEY }}
+        run: |
+          flutter build appbundle \
+            --dart-define=EXCHANGE_RATE_API_KEY="$EXCHANGE_RATE_API_KEY" \
+            --release \
+            --obfuscate \
+            --split-debug-info=build/debug-info/android
 
-      - name: Upload artifacts
+      # iOS requires a macOS runner and signing certificates.
+      # Enable this job when the iOS signing workflow is set up:
+      # flutter build ipa \
+      #   --dart-define=EXCHANGE_RATE_API_KEY="$EXCHANGE_RATE_API_KEY" \
+      #   --release \
+      #   --obfuscate \
+      #   --split-debug-info=build/debug-info/ios \
+      #   --no-codesign
+
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload debug symbols (for flutter symbolize)
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-info-android
+          path: build/debug-info/android

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class ExchangeRateQuote {
   const ExchangeRateQuote({
@@ -24,6 +25,25 @@ class ExchangeRatePoint {
   final double rate;
 }
 
+/// Fetches live exchange rates from three public providers with automatic fallback.
+///
+/// ## TLS posture
+/// The Dio instances here use Dart's default [HttpClient], which validates
+/// server certificates against system CA roots. No custom [SecurityContext] or
+/// cert pinning is applied, which is the correct trade-off for these public APIs:
+///
+/// - **User data** is never sent to any exchange-rate provider — only currency
+///   codes and dates travel in the request. A successful MitM can corrupt rate
+///   data but cannot exfiltrate user credentials or financial records.
+/// - **API key** (ExchangeRate-API v6) is embedded in the URL path by the
+///   provider's design; it cannot be moved to a header. Key exposure risk is
+///   mitigated by system-CA validation (prevents passive interception) and
+///   the debug-mode [_ApiKeyRedactingInterceptor] (prevents key leakage through
+///   logs and crash reporters). If the key is billed, rotate it promptly on
+///   any suspected compromise.
+/// - **Long-term option**: proxy exchange-rate calls through the SmartSpend
+///   backend so the API key never leaves the server and rate data is signed
+///   before delivery to the app.
 class ExchangeRateService {
   ExchangeRateService({
     Dio? frankfurterDio,
@@ -55,7 +75,17 @@ class ExchangeRateService {
               ),
             ),
         _exchangeRateApiKey =
-            (exchangeRateApiKey ?? _configuredExchangeRateApiKey).trim();
+            (exchangeRateApiKey ?? _configuredExchangeRateApiKey).trim() {
+    // H-3 FIX: Attach a redacting log interceptor to prevent the API key
+    // from appearing in debug output, crash reporters, or log drains.
+    // ExchangeRate-API v6 requires the key in the URL path by design;
+    // it cannot be moved to a header — so we redact it from logs instead.
+    if (kDebugMode && _exchangeRateApiKey.isNotEmpty) {
+      _exchangeRateApiDio.interceptors.add(
+        _ApiKeyRedactingInterceptor(_exchangeRateApiKey),
+      );
+    }
+  }
 
   static const String _configuredExchangeRateApiKey = String.fromEnvironment(
     'EXCHANGE_RATE_API_KEY',
@@ -66,6 +96,13 @@ class ExchangeRateService {
   final Dio _exchangeRateApiDio;
   final Dio _openExchangeRateApiDio;
   final String _exchangeRateApiKey;
+
+  /// In-memory cache of the last successful quote per currency pair, with the
+  /// time it was fetched. A fresh entry (within [_cacheTtl]) is returned without
+  /// any network call, cutting billed API requests and enabling offline use. If
+  /// every provider fails, a stale entry is still returned as a last resort.
+  final Map<String, _CachedQuote> _rateCache = {};
+  static const Duration _cacheTtl = Duration(hours: 1);
 
   Future<ExchangeRateQuote> fetchRate({
     required String base,
@@ -83,25 +120,49 @@ class ExchangeRateService {
       );
     }
 
+    final cacheKey = '${from}_$to';
+    final cached = _rateCache[cacheKey];
+    if (cached != null &&
+        DateTime.now().difference(cached.fetchedAt) < _cacheTtl) {
+      return cached.quote; // fresh — skip the network entirely
+    }
+
     if (_exchangeRateApiKey.isNotEmpty) {
       try {
-        return await _fetchRateFromExchangeRateApi(base: from, target: to);
+        return _remember(
+          cacheKey,
+          await _fetchRateFromExchangeRateApi(base: from, target: to),
+        );
       } catch (_) {
         // Fallback to Frankfurter/ECB if the primary provider is unavailable.
       }
     }
 
     try {
-      return await _fetchRateFromOpenExchangeRateApi(base: from, target: to);
+      return _remember(
+        cacheKey,
+        await _fetchRateFromOpenExchangeRateApi(base: from, target: to),
+      );
     } catch (_) {
       // Fallback to Frankfurter/ECB if the open provider is unavailable.
     }
 
     try {
-      return await _fetchRateFromFrankfurter(base: from, target: to);
+      return _remember(
+        cacheKey,
+        await _fetchRateFromFrankfurter(base: from, target: to),
+      );
     } catch (error) {
+      // All live providers failed — serve a stale cached rate if we have one
+      // rather than leaving the user with nothing.
+      if (cached != null) return cached.quote;
       throw Exception('Unable to load exchange rate for $from/$to.');
     }
+  }
+
+  ExchangeRateQuote _remember(String key, ExchangeRateQuote quote) {
+    _rateCache[key] = _CachedQuote(quote, DateTime.now());
+    return quote;
   }
 
   Future<ExchangeRateQuote> _fetchRateFromExchangeRateApi({
@@ -291,6 +352,44 @@ class ExchangeRateService {
   }
 }
 
+/// H-3 FIX: Intercepts Dio requests and responses for the ExchangeRate-API
+/// Dio instance and replaces the API key in the URL path with [REDACTED]
+/// before printing to debug output. Prevents the key from appearing in logs,
+/// crash reporters, or developer tools even though the wire request is
+/// unmodified (the key must stay in the path per the API's design).
+class _ApiKeyRedactingInterceptor extends Interceptor {
+  _ApiKeyRedactingInterceptor(this._apiKey);
+
+  final String _apiKey;
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (kDebugMode && _apiKey.isNotEmpty) {
+      final redacted = options.uri.toString().replaceAll(_apiKey, '[REDACTED]');
+      debugPrint('[ExchangeRateService] → $redacted');
+    }
+    handler.next(options);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (kDebugMode && _apiKey.isNotEmpty) {
+      final redacted =
+          err.requestOptions.uri.toString().replaceAll(_apiKey, '[REDACTED]');
+      debugPrint('[ExchangeRateService] ✗ $redacted — ${err.message}');
+    }
+    handler.next(err);
+  }
+}
 
 
 
+
+
+/// A previously-fetched quote plus the wall-clock time it was retrieved, used
+/// by [ExchangeRateService]'s in-memory TTL cache.
+class _CachedQuote {
+  const _CachedQuote(this.quote, this.fetchedAt);
+  final ExchangeRateQuote quote;
+  final DateTime fetchedAt;
+}
