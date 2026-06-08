@@ -6,10 +6,15 @@ class LocaleService {
   const LocaleService(this._secureStorage);
 
   static const String defaultLanguageCode = 'en';
+  // Must stay in sync with the generated AppLocalizations.supportedLocales and
+  // the language picker in settings. German and French ship complete ARB
+  // translations, so they are exposed for selection here.
   static const List<String> supportedLanguageCodes = [
     'en',
     'pt',
     'es',
+    'de',
+    'fr',
   ];
   static const _keyLanguageCode = 'app_language_code';
 

@@ -432,6 +432,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ('en', 'English'),
       ('pt', 'Português'),
       ('es', 'Español'),
+      ('de', 'Deutsch'),
+      ('fr', 'Français'),
     ];
     final activeThemeLabel = switch (themeMode) {
       ThemeMode.system => l10n.themeSystem,

@@ -45,6 +45,15 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (Migrator m, int from, int to) async {
+          // Downgrades are unsupported: a newer DB may contain tables/columns
+          // this build cannot understand, and silently opening it risks data
+          // loss. Fail loudly instead so the issue is caught immediately.
+          if (from > to) {
+            throw StateError(
+              'Cannot open SmartSpend database: stored schema v$from is newer '
+              'than this app build (v$to). Update the app to continue.',
+            );
+          }
           if (from < 2) {
             await m.addColumn(transactions, transactions.recurrence);
           }
