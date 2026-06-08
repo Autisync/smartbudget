@@ -101,9 +101,18 @@ class SessionController extends StateNotifier<SessionState> {
   final SecurityService _securityService;
 
   Future<bool> _shouldRequireLocalUnlock() async {
+    // L-1 FIX: Use BiometricAuthService (Keychain/secure storage) as the
+    // authoritative source for whether biometric is enabled, not the DB row
+    // which could be stale after an uninstall/reinstall cycle.
+    final biometricEnabled = await _biometricAuthService.isBiometricEnabled();
+    if (!biometricEnabled) return false;
+
+    // H-4 FIX: Pass the user-configured session timeout from SecuritySettings
+    // instead of using a hardcoded 5-minute constant.
     final settings = await _securityService.loadSecuritySettings();
-    if (!settings.biometricEnabled) return false;
-    return _biometricAuthService.shouldRequireAuth();
+    return _biometricAuthService.shouldRequireAuth(
+      timeoutSeconds: settings.sessionTimeout,
+    );
   }
 
   Future<void> initialize() async {

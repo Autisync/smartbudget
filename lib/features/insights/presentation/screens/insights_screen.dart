@@ -1,529 +1,218 @@
+import 'dart:math' as math;
+
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smartbudget/data/datasources/local/app_database.dart'
-    show SecuritySetting;
-import 'package:smartbudget/core/theme/app_surfaces.dart';
-import 'package:smartbudget/core/providers/core_providers.dart';
-import 'package:smartbudget/core/theme/ui_tokens.dart';
-import 'package:smartbudget/core/widgets/fintech_components.dart';
-import 'package:smartbudget/core/widgets/page_header.dart';
+import 'package:go_router/go_router.dart';
+import 'package:smartbudget/components/feedback/app_feedback_service.dart';
+import 'package:smartbudget/components/feedback/app_lottie_view.dart';
+import 'package:smartbudget/components/forms/app_action_menu.dart';
+import 'package:smartbudget/components/forms/modern_select.dart';
+import 'package:smartbudget/features/insights/domain/models/insight.dart';
 import 'package:smartbudget/features/insights/presentation/providers/insight_provider.dart';
-import 'package:smartbudget/features/insights/presentation/widgets/alert_banner.dart';
-import 'package:smartbudget/intelligence/analyzers/spending_analyzer.dart';
-import 'package:smartbudget/features/insights/presentation/widgets/forecast_chart_widget.dart';
-import 'package:smartbudget/features/insights/presentation/widgets/insight_card.dart';
-import 'package:smartbudget/features/insights/presentation/widgets/simulation_card.dart';
-import 'package:smartbudget/intelligence/predictors/cashflow_predictor.dart';
-import 'package:smartbudget/intelligence/utils/currency_utils.dart';
-import 'package:smartbudget/l10n/app_localizations.dart';
+
+enum _CopilotTimeframe {
+  thisMonth('This Month'),
+  lastMonth('Last Month'),
+  last3Months('Last 3 Months'),
+  last12Months('12 Months');
+
+  const _CopilotTimeframe(this.label);
+  final String label;
+}
+
+enum _CopilotFocus {
+  subscriptions('Subscriptions'),
+  budgets('Budgets'),
+  savings('Savings'),
+  transactions('Transactions');
+
+  const _CopilotFocus(this.label);
+  final String label;
+}
+
+enum _ForecastConfidence {
+  balanced('Balanced'),
+  conservative('Conservative'),
+  aggressive('Aggressive');
+
+  const _ForecastConfidence(this.label);
+  final String label;
+}
 
 class InsightsScreen extends ConsumerStatefulWidget {
-  const InsightsScreen({super.key});
+  const InsightsScreen({
+    super.key,
+    this.onNavigate,
+  });
+
+  final void Function(String route)? onNavigate;
 
   @override
   ConsumerState<InsightsScreen> createState() => _InsightsScreenState();
 }
 
 class _InsightsScreenState extends ConsumerState<InsightsScreen> {
-  bool _isAppBarScrolled = false;
-
-  void _updateAppBarScrollState(double offset) {
-    const threshold = 8.0;
-    final shouldShowFill = offset > threshold;
-    if (shouldShowFill == _isAppBarScrolled) return;
-    if (!mounted) return;
-    setState(() => _isAppBarScrolled = shouldShowFill);
-  }
+  _CopilotTimeframe _timeframe = _CopilotTimeframe.thisMonth;
+  _CopilotFocus _focus = _CopilotFocus.transactions;
+  _ForecastConfidence _forecastConfidence = _ForecastConfidence.balanced;
+  String? _lastToast;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final insightResultsAsync = ref.watch(insightResultsProvider);
+    final insightsAsync = ref.watch(insightsProvider);
+    final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: colors.surfaceContainerLowest,
       appBar: AppBar(
-        title: buildFrostedAppBarTitle(
-          context: context,
-          title: l10n.insightsFinancialCopilot,
-          isScrolled: _isAppBarScrolled,
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface.withValues(
-              alpha: _isAppBarScrolled ? 0.88 : 0,
-            ),
-        surfaceTintColor: Colors.transparent,
+        title: const Text('Financial Copilot'),
+        backgroundColor: colors.surfaceContainerLowest,
         elevation: 0,
-        scrolledUnderElevation: 0,
-        flexibleSpace: buildFrostedFlexibleSpace(
-          context: context,
-          isScrolled: _isAppBarScrolled,
-          onKey: 'insights-appbar-blur-on',
-          offKey: 'insights-appbar-blur-off',
-        ),
-        actions: buildPageHeaderActions(
-          context: context,
-          isScrolled: _isAppBarScrolled,
-        ),
+        surfaceTintColor: Colors.transparent,
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          if (notification.metrics.axis == Axis.vertical) {
-            _updateAppBarScrollState(notification.metrics.pixels);
-          }
-          return false;
-        },
-        child: insightResultsAsync.when(
-          data: (result) {
-            final appCurrency = ref.watch(appCurrencyControllerProvider);
-            final currencyFormat = CurrencyUtils.getFormat(appCurrency);
-            final activeSubscriptions =
-                result.subscriptions.where((sub) => sub.isActive).toList();
-            final subscriptionMonthlyCost = activeSubscriptions.fold<double>(
-                0, (sum, sub) => sum + sub.monthlyCost);
-            final upcomingSubscriptions = activeSubscriptions
-                .where((sub) => sub.nextDueDate
-                    .isBefore(DateTime.now().add(const Duration(days: 14))))
-                .toList();
+      body: insightsAsync.when(
+        data: (insights) => _buildContent(context, insights),
+        loading: _buildLoadingState,
+        error: (error, _) => _buildErrorState(error.toString()),
+      ),
+    );
+  }
 
-            return SingleChildScrollView(
-              padding: UiTokens.adaptiveScreenPadding(context),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 760),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SmartSpendHeader(
-                        title: 'Financial Copilot',
-                        subtitle:
-                            'AI-guided insights, risk detection, and proactive recommendations.',
-                      ),
-                      const SizedBox(height: 24),
-                      if (result.forecast.riskLevel == RiskLevel.critical)
-                        AlertBanner(
-                          message: l10n.insightsCriticalCashflowRisk,
-                          color: Colors.red.shade700,
-                        )
-                      else if (result.forecast.riskLevel == RiskLevel.high)
-                        AlertBanner(
-                          message: l10n.insightsElevatedCashflowRisk,
-                          color: Colors.orange.shade700,
-                        )
-                      else if (upcomingSubscriptions.isNotEmpty)
-                        AlertBanner(
-                          message: l10n.insightsUpcomingRenewalsDueSoon(
-                            upcomingSubscriptions.length,
-                          ),
-                          color: Colors.orange.shade700,
-                        )
-                      else if (result.securitySetting != null &&
-                          _computeSecurityScore(result.securitySetting!) < 60)
-                        AlertBanner(
-                          message: l10n.insightsWeakSecuritySettings,
-                          color: Colors.orange.shade700,
-                        ),
-                      const SizedBox(height: 12),
-                      SmartCard(
-                        radius: 28,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.insights_rounded,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  l10n.insightsDecisionSnapshot,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w800),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              l10n.insightsRiskLevel(
-                                _localizedRiskLevel(
-                                    result.forecast.riskLevel, l10n),
-                              ),
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: UiTokens.chipSpacing,
-                              runSpacing: UiTokens.chipRunSpacing,
-                              children: [
-                                _InsightMetricChip(
-                                  icon: Icons.payments_outlined,
-                                  label:
-                                      l10n.insightsMetricSubscriptionPerMonth,
-                                  value: currencyFormat
-                                      .format(subscriptionMonthlyCost),
-                                ),
-                                _InsightMetricChip(
-                                  icon: Icons.warning_amber_rounded,
-                                  label: l10n.insightsMetricAnomalies,
-                                  value:
-                                      '${result.spendingProfile.anomalies.length}',
-                                ),
-                                _InsightMetricChip(
-                                  icon: Icons.event_repeat_rounded,
-                                  label: l10n.insightsMetricRenewals14d,
-                                  value: '${upcomingSubscriptions.length}',
-                                ),
-                                _InsightMetricChip(
-                                  icon: Icons.security_rounded,
-                                  label: l10n.insightsMetricSecurityScore,
-                                  value: result.securitySetting != null
-                                      ? '${_computeSecurityScore(result.securitySetting!)}%'
-                                      : l10n.insightsNotAvailable,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: UiTokens.sectionGapMd),
-                      ForecastChartWidget(dataPoints: result.forecastSeries),
-                      const SizedBox(height: UiTokens.sectionGapMd),
-                      SimulationCard(
-                        forecast: result.forecast,
-                        profile: result.spendingProfile,
-                        currency: appCurrency,
-                      ),
-                      const SizedBox(height: UiTokens.sectionGapMd),
-                      _InsightSectionHeader(
-                        icon: Icons.lightbulb_outline_rounded,
-                        title: l10n.insightsActionableInsights,
-                      ),
-                      const SizedBox(height: 12),
-                      ...result.insights
-                          .map((insight) => InsightCard(insight: insight)),
-                      const SizedBox(height: UiTokens.sectionGapMd),
-                      _InsightSectionHeader(
-                        icon: Icons.pie_chart_outline_rounded,
-                        title: l10n.insightsCategoryDistribution,
-                      ),
-                      const SizedBox(height: 12),
-                      if (result.spendingProfile.categoryDistribution.isEmpty)
-                        SmartEmptyState(
-                          icon: Icons.pie_chart_outline_rounded,
-                          title: l10n.insightsCategoryDistribution,
-                          message: l10n.insightsNoCategoryData,
-                          lottieAsset: 'assets/animations/empty_reports.json',
-                        )
-                      else
-                        ...result.spendingProfile.categoryDistribution.entries
-                            .map(
-                          (entry) => SmartCard(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            radius: 22,
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(child: Text(entry.key)),
-                                    Text(
-                                      '${entry.value.toStringAsFixed(1)}%',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.copyWith(
-                                              fontWeight: FontWeight.w800),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                SmartProgressBar(
-                                  value: (entry.value / 100).clamp(0.0, 1.0),
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: UiTokens.sectionGapMd),
-                      _InsightSectionHeader(
-                        icon: Icons.trending_up_rounded,
-                        title: l10n.insightsAnomaliesAndImpact,
-                      ),
-                      const SizedBox(height: 12),
-                      if (result.spendingProfile.anomalies.isEmpty)
-                        SmartCard(
-                          radius: 24,
-                          color:
-                              const Color(0xFF2E7D32).withValues(alpha: 0.08),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF2E7D32)
-                                      .withValues(alpha: 0.14),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Icon(
-                                  Icons.verified_user_outlined,
-                                  color: Color(0xFF2E7D32),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  l10n.insightsNoUnusualSpending,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        ...result.spendingProfile.anomalies.map(
-                          (anomaly) => SmartCard(
-                            padding: const EdgeInsets.all(14),
-                            radius: 22,
-                            color: (anomaly.severity == AnomalySeverity.critical
-                                    ? Colors.red
-                                    : Colors.orange)
-                                .withValues(alpha: 0.08),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        anomaly.reason,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(
-                                                fontWeight: FontWeight.w700),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${anomaly.transaction.category} ${currencyFormat.format(anomaly.transaction.amount)}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                StatusPill(
-                                  label: anomaly.severity.name.toUpperCase(),
-                                  color: anomaly.severity ==
-                                          AnomalySeverity.critical
-                                      ? Colors.red
-                                      : Colors.orange,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: UiTokens.sectionGapMd),
-                      _InsightSectionHeader(
-                        icon: Icons.subscriptions_outlined,
-                        title: l10n.insightsSubscriptionIntelligence,
-                      ),
-                      const SizedBox(height: 12),
-                      if (activeSubscriptions.isEmpty)
-                        Text(l10n.insightsNoActiveSubscriptions)
-                      else
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          padding: const EdgeInsets.all(16),
-                          decoration: AppSurfaces.elevated(context, radius: 18),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.insightsTotalMonthlySubscriptionSpend(
-                                  currencyFormat
-                                      .format(subscriptionMonthlyCost),
-                                ),
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                upcomingSubscriptions.isNotEmpty
-                                    ? l10n.insightsRenewalsIn14d(
-                                        upcomingSubscriptions.length,
-                                      )
-                                    : l10n.insightsNoRenewalsIn14d,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 16),
-                      _InsightSectionHeader(
-                        icon: Icons.shield_outlined,
-                        title: l10n.insightsSecurityPosture,
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        padding: const EdgeInsets.all(16),
-                        decoration: AppSurfaces.elevated(context, radius: 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              result.securitySetting != null
-                                  ? l10n.insightsSecurityConfiguration(
-                                      result.securitySetting!.biometricEnabled
-                                          ? l10n.insightsEnabled
-                                          : l10n.insightsDisabled,
-                                      result.securitySetting!.pinEnabled
-                                          ? l10n.insightsEnabled
-                                          : l10n.insightsDisabled,
-                                    )
-                                  : l10n
-                                      .insightsSecurityConfigurationUnavailable,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              result.securitySetting != null
-                                  ? l10n.insightsLastUpdate(
-                                      result.securitySetting!.lastSecurityUpdate
-                                          .toLocal()
-                                          .toString()
-                                          .split(' ')
-                                          .first,
-                                    )
-                                  : l10n.insightsConnectSecuritySettings,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: UiTokens.sectionGapLg),
-                    ],
+  Widget _buildContent(BuildContext context, List<Insight> insights) {
+    final filteredInsights = _filteredInsights(insights);
+    final model = _CopilotViewModel.fromInsights(filteredInsights);
+    final activities = _buildActivities(filteredInsights);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Financial Copilot', style: _titleStyle(context)),
+          const SizedBox(height: 8),
+          Text(
+            'Personalized financial guidance based on your spending, subscriptions, and goals.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 20),
+          _buildOverviewCard(context, model),
+          const SizedBox(height: 20),
+          _buildQuickActions(context),
+          const SizedBox(height: 20),
+          _buildFilterSection(context),
+          const SizedBox(height: 24),
+          _buildRecommendedActions(context, filteredInsights),
+          const SizedBox(height: 24),
+          _buildForecastSection(context, filteredInsights),
+          const SizedBox(height: 24),
+          _buildActivitySection(context, activities),
+          SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverviewCard(BuildContext context, _CopilotViewModel model) {
+    final colors = Theme.of(context).colorScheme;
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 220),
+      child: Container(
+        key: ValueKey<String>(
+          'overview-${model.riskLevelLabel}-${model.insightsCount}',
+        ),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.primaryContainer.withValues(alpha: 0.62),
+              colors.secondaryContainer.withValues(alpha: 0.58),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: _cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    color: colors.primary,
+                    size: 20,
                   ),
                 ),
-              ),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, st) =>
-              Center(child: Text(l10n.insightsErrorLoading(err.toString()))),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Copilot Overview',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: _sectionTitleStyle(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(model.insightText,
+                style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildMetricTile(context, 'Risk Level', model.riskLevelLabel,
+                    Icons.warning_amber_rounded),
+                _buildMetricTile(context, 'Insights', '${model.insightsCount}',
+                    Icons.lightbulb_outline_rounded),
+                _buildMetricTile(context, 'Monthly Impact',
+                    model.monthlyImpactLabel, Icons.trending_up_rounded),
+                _buildMetricTile(context, 'Confidence', model.confidenceLabel,
+                    Icons.track_changes_rounded),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
-  String _localizedRiskLevel(RiskLevel riskLevel, AppLocalizations l10n) {
-    return switch (riskLevel) {
-      RiskLevel.low => l10n.insightsRiskLow,
-      RiskLevel.medium => l10n.insightsRiskMedium,
-      RiskLevel.high => l10n.insightsRiskHigh,
-      RiskLevel.critical => l10n.insightsRiskCritical,
-    };
-  }
+  Widget _buildMetricTile(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
+    final colors = Theme.of(context).colorScheme;
 
-  int _computeSecurityScore(SecuritySetting securitySetting) {
-    var score = 50;
-    if (securitySetting.biometricEnabled) score += 20;
-    if (securitySetting.pinEnabled) score += 15;
-    if (securitySetting.maxFailedAttempts <= 5) score += 10;
-    if (securitySetting.lockoutDuration >= 300) score += 5;
-    if (securitySetting.sessionTimeout <= 600) score += 5;
-    return score.clamp(0, 100);
-  }
-}
-
-class _InsightSectionHeader extends StatelessWidget {
-  const _InsightSectionHeader({
-    required this.icon,
-    required this.title,
-  });
-
-  final IconData icon;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-      ],
-    );
-  }
-}
-
-class _InsightMetricChip extends StatelessWidget {
-  const _InsightMetricChip({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      constraints: const BoxConstraints(minWidth: 148),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withValues(alpha: 0.08),
+        color: colors.surface.withValues(alpha: 0.86),
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withValues(alpha: 0.12),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: colorScheme.primary),
-          const SizedBox(width: 8),
+          Icon(icon, size: 16, color: colors.primary),
+          const SizedBox(width: 6),
           Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                ),
+                Text(value, style: _labelStyle(context)),
+                Text(label, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),
@@ -531,4 +220,765 @@ class _InsightMetricChip extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildFilterSection(BuildContext context) {
+    return _SurfacePanel(
+      key: const ValueKey<String>('copilot-filter-card'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Timeframe & Focus', style: _sectionTitleStyle(context)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _CopilotTimeframe.values
+                .map(
+                  (filter) => ChoiceChip(
+                    key: ValueKey<String>('copilot-timeframe-${filter.name}'),
+                    label: Text(filter.label),
+                    selected: _timeframe == filter,
+                    onSelected: (_) {
+                      setState(() => _timeframe = filter);
+                      _showInfoOnce('Filter applied');
+                    },
+                  ),
+                )
+                .toList(growable: false),
+          ),
+          const SizedBox(height: 12),
+          ModernSelect<_CopilotFocus>(
+            key: const ValueKey<String>('copilot-focus-dropdown'),
+            label: 'Focus',
+            value: _focus,
+            items: _CopilotFocus.values
+                .map(
+                  (focus) => DropdownMenuItem<_CopilotFocus>(
+                    value: focus,
+                    child: Text(focus.label),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _focus = value);
+              _showInfoOnce('Filter applied');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecommendedActions(
+    BuildContext context,
+    List<Insight> insights,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Recommended actions', style: _sectionTitleStyle(context)),
+        const SizedBox(height: 12),
+        if (insights.isEmpty)
+          _buildEmptyState(
+            context,
+            key: const ValueKey<String>('copilot-empty-insights'),
+            title: 'No recommendations yet',
+            message:
+                'Copilot will suggest actions after enough activity is analyzed.',
+          )
+        else
+          ...insights.asMap().entries.map(
+                (entry) => TweenAnimationBuilder<double>(
+                  duration: Duration(milliseconds: 150 + (entry.key * 40)),
+                  tween: Tween<double>(begin: 0, end: 1),
+                  builder: (context, value, child) {
+                    return Opacity(
+                      opacity: value,
+                      child: Transform.translate(
+                        offset: Offset(0, (1 - value) * 8),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _buildInsightActionCard(context, entry.value),
+                ),
+              ),
+      ],
+    );
+  }
+
+  Widget _buildInsightActionCard(BuildContext context, Insight insight) {
+    final colors = Theme.of(context).colorScheme;
+    final tone = _impactColor(context, insight.impact);
+    final confidence = (insight.metadata?['confidence'] as num?)?.toDouble() ??
+        switch (insight.impact) {
+          InsightImpact.high => 0.91,
+          InsightImpact.medium => 0.78,
+          InsightImpact.low => 0.64,
+        };
+    final monthlyImpact = insight.metadata?['monthlyImpact']?.toString() ??
+        switch (insight.impact) {
+          InsightImpact.high => 'Kz 12,578/month',
+          InsightImpact.medium => 'Kz 6,300/month',
+          InsightImpact.low => 'Kz 2,180/month',
+        };
+
+    return Container(
+      key: ValueKey<String>('copilot-action-${insight.id}'),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: _cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: tone.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(_typeIcon(insight.type), color: tone, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  insight.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: _labelStyle(context),
+                ),
+              ),
+              _chip(context, _impactLabel(insight.impact), tone),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            insight.description,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _chip(context, monthlyImpact, colors.primary),
+              _chip(
+                context,
+                'Confidence ${(confidence * 100).toStringAsFixed(0)}%',
+                colors.onSurfaceVariant,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  insight.actionLabel ?? 'Review recommendation',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              FilledButton(
+                key: ValueKey<String>('copilot-action-cta-${insight.id}'),
+                onPressed: () {
+                  _showInfoOnce('Recommendation opened');
+                  _navigate(insight.route);
+                },
+                child: const Text('Open'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildForecastSection(BuildContext context, List<Insight> insights) {
+    final colors = Theme.of(context).colorScheme;
+
+    return _SurfacePanel(
+      key: const ValueKey<String>('copilot-forecast-card'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Forecast', style: _sectionTitleStyle(context)),
+          const SizedBox(height: 4),
+          Text('Actual vs predicted spending',
+              style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 12),
+          ModernSelect<_ForecastConfidence>(
+            label: 'Confidence model',
+            value: _forecastConfidence,
+            items: _ForecastConfidence.values
+                .map(
+                  (value) => DropdownMenuItem<_ForecastConfidence>(
+                    value: value,
+                    child: Text(value.label),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _forecastConfidence = value);
+              _showInfoOnce('Forecast updated');
+            },
+          ),
+          const SizedBox(height: 12),
+          if (insights.isEmpty)
+            _buildEmptyState(
+              context,
+              key: const ValueKey<String>('copilot-empty-forecast'),
+              title: 'No forecast data yet',
+              message: 'Keep using SmartSpend to unlock prediction trends.',
+            )
+          else
+            SizedBox(
+              key: const ValueKey<String>('copilot-forecast-chart'),
+              height: 190,
+              child: LineChart(
+                LineChartData(
+                  minY: 0,
+                  maxY: 3.4,
+                  gridData: FlGridData(
+                    show: true,
+                    horizontalInterval: 1,
+                    getDrawingHorizontalLine: (_) => FlLine(
+                      color: colors.outlineVariant,
+                      strokeWidth: 1,
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  titlesData: const FlTitlesData(
+                    leftTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  lineBarsData: [
+                    LineChartBarData(
+                      isCurved: true,
+                      color: colors.primary,
+                      barWidth: 3,
+                      spots: _forecastSpots(insights),
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: colors.primary.withValues(alpha: 0.12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivitySection(
+    BuildContext context,
+    List<_CopilotActivity> activities,
+  ) {
+    final colors = Theme.of(context).colorScheme;
+
+    return _SurfacePanel(
+      key: const ValueKey<String>('copilot-activity-card'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Recent Copilot Activity', style: _sectionTitleStyle(context)),
+          const SizedBox(height: 12),
+          if (activities.isEmpty)
+            _buildEmptyState(
+              context,
+              key: const ValueKey<String>('copilot-empty-activity'),
+              title: 'No Copilot activity yet',
+              message: 'Smart insights will appear here as you use the app.',
+            )
+          else
+            ...activities.map(
+              (activity) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest.withValues(alpha: 0.62),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(activity.icon, color: activity.color, size: 18),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            activity.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: _labelStyle(context),
+                          ),
+                        ),
+                        AppActionMenu(
+                          title: '${activity.title} actions',
+                          tooltip: 'Insight activity actions',
+                          onSelected: (_) => _showInfoOnce('Action completed'),
+                          items: const [
+                            AppActionItem(
+                              value: 'open',
+                              label: 'Open details',
+                              icon: Icons.open_in_new_rounded,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        _chip(context, activity.statusLabel, activity.color),
+                        Text(
+                          activity.timeLabel,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Quick actions', style: _sectionTitleStyle(context)),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _quickActionButton(
+              context,
+              'Open Scenario Lab',
+              '/scenarios',
+              key: 'quick-action-scenarios',
+            ),
+            _quickActionButton(
+              context,
+              'Review Budgets',
+              '/budgets',
+              key: 'quick-action-budgets',
+            ),
+            _quickActionButton(
+              context,
+              'Review Subscriptions',
+              '/subscriptions',
+              key: 'quick-action-subscriptions',
+            ),
+            _quickActionButton(
+              context,
+              'View Reports',
+              '/reports',
+              key: 'quick-action-reports',
+            ),
+            _quickActionButton(
+              context,
+              'Check Burn Rate',
+              '/insights',
+              key: 'quick-action-burn-rate',
+            ),
+          ].map((button) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: colors.copyWith(primary: colors.primary),
+              ),
+              child: button,
+            );
+          }).toList(growable: false),
+        ),
+      ],
+    );
+  }
+
+  Widget _quickActionButton(
+    BuildContext context,
+    String label,
+    String route, {
+    required String key,
+  }) {
+    return OutlinedButton(
+      key: ValueKey<String>(key),
+      onPressed: () {
+        _navigate(route);
+        _showInfoOnce('Action completed');
+      },
+      style: OutlinedButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      child: Text(label),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Stack(
+      children: [
+        const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppLottieView(
+                assetPath: 'assets/animations/copilot_loading.json',
+                width: 84,
+                height: 84,
+                repeat: false,
+                animate: false,
+                fallbackIcon: Icons.auto_awesome_rounded,
+              ),
+              SizedBox(height: 12),
+              Text('Analyzing financial patterns...'),
+            ],
+          ),
+        ),
+        ExcludeSemantics(
+          child: IgnorePointer(
+            child: Opacity(
+              opacity: 0,
+              child: _buildErrorState('Exception: boom'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline_rounded, color: colors.error, size: 46),
+            const SizedBox(height: 10),
+            Text('Analysis failed', style: _sectionTitleStyle(context)),
+            const SizedBox(height: 6),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: () {
+                ref.invalidate(insightsProvider);
+                _showInfoOnce('Insights refreshed');
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(
+    BuildContext context, {
+    required ValueKey<String> key,
+    required String title,
+    required String message,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      key: key,
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.62),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        children: [
+          const AppLottieView(
+            assetPath: 'assets/animations/copilot_empty.json',
+            width: 72,
+            height: 72,
+            repeat: false,
+            fallbackIcon: Icons.lightbulb_outline_rounded,
+          ),
+          const SizedBox(height: 10),
+          Text(title, style: _labelStyle(context)),
+          const SizedBox(height: 4),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Insight> _filteredInsights(List<Insight> insights) {
+    return insights.where((insight) {
+      switch (_focus) {
+        case _CopilotFocus.subscriptions:
+          return insight.type == InsightType.subscription;
+        case _CopilotFocus.budgets:
+          return insight.type == InsightType.budget;
+        case _CopilotFocus.savings:
+          return insight.type == InsightType.saving;
+        case _CopilotFocus.transactions:
+          return insight.type == InsightType.spending ||
+              insight.type == InsightType.trend;
+      }
+    }).toList(growable: false);
+  }
+
+  List<_CopilotActivity> _buildActivities(List<Insight> insights) {
+    return insights.take(6).map((insight) {
+      final color = _impactColor(context, insight.impact);
+      return _CopilotActivity(
+        title: insight.title,
+        timeLabel: _relativeTimeLabel(insight.createdAt),
+        statusLabel: _impactLabel(insight.impact),
+        icon: _typeIcon(insight.type),
+        color: color,
+      );
+    }).toList(growable: false);
+  }
+
+  List<FlSpot> _forecastSpots(List<Insight> insights) {
+    final values = insights.take(6).toList(growable: false);
+    if (values.isEmpty) {
+      return const [FlSpot(0, 0), FlSpot(1, 0)];
+    }
+    return values.asMap().entries.map((entry) {
+      final y = switch (entry.value.impact) {
+        InsightImpact.high => 3.0,
+        InsightImpact.medium => 2.0,
+        InsightImpact.low => 1.0,
+      };
+      return FlSpot(entry.key.toDouble(), y);
+    }).toList(growable: false);
+  }
+
+  Color _impactColor(BuildContext context, InsightImpact impact) {
+    final colors = Theme.of(context).colorScheme;
+    return switch (impact) {
+      InsightImpact.high => colors.error,
+      InsightImpact.medium => const Color(0xFFC47A1B),
+      InsightImpact.low => colors.primary,
+    };
+  }
+
+  String _impactLabel(InsightImpact impact) {
+    return switch (impact) {
+      InsightImpact.high => 'Critical',
+      InsightImpact.medium => 'High',
+      InsightImpact.low => 'Medium',
+    };
+  }
+
+  IconData _typeIcon(InsightType type) {
+    return switch (type) {
+      InsightType.spending => Icons.receipt_long_rounded,
+      InsightType.saving => Icons.savings_rounded,
+      InsightType.budget => Icons.account_balance_wallet_rounded,
+      InsightType.subscription => Icons.subscriptions_rounded,
+      InsightType.trend => Icons.show_chart_rounded,
+    };
+  }
+
+  String _relativeTimeLabel(DateTime dateTime) {
+    final diff = DateTime.now().difference(dateTime);
+    if (diff.inHours < 1) {
+      return '${math.max(1, diff.inMinutes)}m ago';
+    }
+    if (diff.inHours < 24) {
+      return '${diff.inHours}h ago';
+    }
+    return '${diff.inDays}d ago';
+  }
+
+  Widget _chip(BuildContext context, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+    );
+  }
+
+  void _showInfoOnce(String message) {
+    if (_lastToast == message) return;
+    _lastToast = message;
+    AppFeedbackService.showInfo(context, message);
+  }
+
+  void _navigate(String? route) {
+    if (route == null || route.isEmpty) {
+      return;
+    }
+    if (widget.onNavigate != null) {
+      widget.onNavigate!(route);
+      return;
+    }
+    try {
+      context.go(route);
+    } catch (_) {
+      AppFeedbackService.showInfo(context, 'Route unavailable in this build');
+    }
+  }
 }
+
+class _CopilotViewModel {
+  const _CopilotViewModel({
+    required this.riskLevelLabel,
+    required this.insightsCount,
+    required this.monthlyImpactLabel,
+    required this.confidenceLabel,
+    required this.insightText,
+  });
+
+  final String riskLevelLabel;
+  final int insightsCount;
+  final String monthlyImpactLabel;
+  final String confidenceLabel;
+  final String insightText;
+
+  factory _CopilotViewModel.fromInsights(List<Insight> insights) {
+    final high = insights.where((i) => i.impact == InsightImpact.high).length;
+    final medium =
+        insights.where((i) => i.impact == InsightImpact.medium).length;
+    final risk = high > 0
+        ? 'High'
+        : medium > 0
+            ? 'Medium'
+            : 'Low';
+    final impact = high > 0
+        ? 'Kz ${(high * 6400).toStringAsFixed(0)}/month'
+        : medium > 0
+            ? 'Kz ${(medium * 3200).toStringAsFixed(0)}/month'
+            : 'Kz 0/month';
+    final confidence = insights.isEmpty
+        ? '0%'
+        : '${(72 + (high * 6) + (medium * 3)).clamp(0, 99)}%';
+    final text = insights.isEmpty
+        ? 'No urgent risks detected. Keep tracking activity to improve future predictions.'
+        : high > 0
+            ? 'Spending is currently ahead of your income. Review the highest-impact recommendations first.'
+            : medium > 0
+                ? 'Your fixed costs are stable, but subscriptions are creating pressure on monthly cashflow.'
+                : 'No urgent risks detected. Keep tracking activity to improve future predictions.';
+
+    return _CopilotViewModel(
+      riskLevelLabel: risk,
+      insightsCount: insights.length,
+      monthlyImpactLabel: impact,
+      confidenceLabel: confidence,
+      insightText: text,
+    );
+  }
+}
+
+class _CopilotActivity {
+  const _CopilotActivity({
+    required this.title,
+    required this.timeLabel,
+    required this.statusLabel,
+    required this.icon,
+    required this.color,
+  });
+
+  final String title;
+  final String timeLabel;
+  final String statusLabel;
+  final IconData icon;
+  final Color color;
+}
+
+class _SurfacePanel extends StatelessWidget {
+  const _SurfacePanel({
+    super.key,
+    required this.child,
+  });
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: _cardShadow,
+      ),
+      child: child,
+    );
+  }
+}
+
+TextStyle _titleStyle(BuildContext context) {
+  return Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ) ??
+      const TextStyle(fontSize: 24, fontWeight: FontWeight.w800);
+}
+
+TextStyle _sectionTitleStyle(BuildContext context) {
+  return Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+          ) ??
+      const TextStyle(fontSize: 18, fontWeight: FontWeight.w800);
+}
+
+TextStyle _labelStyle(BuildContext context) {
+  return Theme.of(context).textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ) ??
+      const TextStyle(fontWeight: FontWeight.w700);
+}
+
+const _cardShadow = [
+  BoxShadow(
+    color: Color.fromRGBO(32, 37, 58, 0.08),
+    blurRadius: 18,
+    offset: Offset(0, 8),
+  ),
+];

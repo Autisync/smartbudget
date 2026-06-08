@@ -1,0 +1,33 @@
+# Standalone Traefik service — deploy once on the server, then start
+# the main docker-compose.yml for the application stack.
+#
+# Usage:
+#   docker compose -f docker-compose.traefik.yml up -d
+#
+# Requires:
+#   /opt/traefik/letsencrypt/acme.json  (chmod 600)
+#   ./traefik.yml  (this directory)
+#   External Docker network named "proxy":
+#     docker network create proxy
+
+name: traefik
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /opt/traefik/letsencrypt:/letsencrypt
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: proxy

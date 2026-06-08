@@ -101,6 +101,11 @@ void applyCertificatePinning(Dio dio, String baseUrl) {
   );
 }
 
+/// Thin wrapper for use in unit tests — calls [_computeSpkiPin] directly.
+@visibleForTesting
+String? computeSpkiPinForTest(List<int> certDer) =>
+    _computeSpkiPin(Uint8List.fromList(certDer));
+
 /// Returns base64(SHA-256(SubjectPublicKeyInfo DER)) from a DER-encoded X.509 cert,
 /// or null if the cert cannot be parsed.
 String? _computeSpkiPin(Uint8List certDer) {

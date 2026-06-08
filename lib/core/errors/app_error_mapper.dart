@@ -76,18 +76,67 @@ class AppErrorMapper {
     }
   }
 
+  /// M-2 FIX: Only surfaces server-provided error text when it passes a
+  /// "safe user message" check. Raw server detail fields can contain stack
+  /// traces, internal file paths, SQL fragments, or other implementation
+  /// details that expose server internals to users and aid attackers.
+  ///
+  /// A message is considered user-safe when it is:
+  ///   • Short (≤ 200 characters)
+  ///   • Free of common server-internal patterns (paths, tracebacks, SQL)
+  ///
+  /// This deliberately errs conservative: when in doubt, we fall back to
+  /// our own predefined message rather than leaking server internals.
   static String? _extractDetail(dynamic data) {
     if (data is Map<String, dynamic>) {
-      final detail = data['detail'];
-      if (detail is String && detail.trim().isNotEmpty) {
-        return detail.trim();
-      }
-      final message = data['message'];
-      if (message is String && message.trim().isNotEmpty) {
-        return message.trim();
+      final raw = _firstStringValue(data, const ['detail', 'message']);
+      if (raw != null && _isSafeUserMessage(raw)) {
+        return raw;
       }
     }
     return null;
+  }
+
+  static String? _firstStringValue(
+    Map<String, dynamic> map,
+    List<String> keys,
+  ) {
+    for (final key in keys) {
+      final value = map[key];
+      if (value is String && value.trim().isNotEmpty) {
+        return value.trim();
+      }
+    }
+    return null;
+  }
+
+  /// Returns true only for short, human-readable messages that don't look
+  /// like server internals. Add patterns here as new leak vectors are found.
+  static bool _isSafeUserMessage(String message) {
+    if (message.length > 200) return false;
+
+    // Reject messages that look like server-side implementation details.
+    final internalPatterns = <RegExp>[
+      RegExp(r'Traceback \(most recent call last\)', caseSensitive: false),
+      RegExp(r'Exception in thread', caseSensitive: false),
+      RegExp(r'File "[^"]*", line \d+', caseSensitive: false),
+      RegExp(r'at [a-zA-Z0-9_.]+\([^)]*\.java:\d+\)'),
+      RegExp(r'\bSQLAlchemy\b', caseSensitive: false),
+      RegExp(r'\bpsycopg\b', caseSensitive: false),
+      RegExp(r'\bSELECT\b.*\bFROM\b', caseSensitive: false),
+      RegExp(r'\bINSERT INTO\b', caseSensitive: false),
+      RegExp(r'\bUPDATE\b.*\bSET\b', caseSensitive: false),
+      RegExp(r'(\/[a-zA-Z0-9._-]+){3,}'),   // Unix-style deep file paths
+      RegExp(r'[A-Z]:\\[^\s]+'),             // Windows-style paths
+      RegExp(r'<html', caseSensitive: false), // HTML error pages
+      RegExp(r'Internal Server Error', caseSensitive: false),
+      RegExp(r'\bstacktrace\b', caseSensitive: false),
+    ];
+
+    for (final pattern in internalPatterns) {
+      if (pattern.hasMatch(message)) return false;
+    }
+    return true;
   }
 }
 

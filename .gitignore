@@ -51,3 +51,9 @@ app.*.map.json
 
 # Local Celery beat runtime state
 backend/celerybeat-schedule
+
+# Test run artifacts
+test_output.txt
+test_result.txt
+test_results.txt
+analysis_report.txt

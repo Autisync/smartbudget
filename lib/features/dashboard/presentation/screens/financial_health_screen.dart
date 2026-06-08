@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smartbudget/components/forms/modern_select.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
@@ -204,34 +205,24 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(width: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant,
-                        ),
-                      ),
-                      child: DropdownButton<int>(
+                    SizedBox(
+                      width: 142,
+                      child: ModernSelect<int>(
                         value: _selectedWeeks,
-                        underline: const SizedBox(),
+                        label: l10n.financialHealthTrendWindow,
                         items: [
-                          DropdownMenuItem(
-                              value: 4,
-                              child: Text(l10n.financialHealthWeeks(4))),
-                          DropdownMenuItem(
-                              value: 8,
-                              child: Text(l10n.financialHealthWeeks(8))),
-                          DropdownMenuItem(
-                              value: 12,
-                              child: Text(l10n.financialHealthWeeks(12))),
+                          DropdownMenuItem<int>(
+                            value: 4,
+                            child: Text(l10n.financialHealthWeeks(4)),
+                          ),
+                          DropdownMenuItem<int>(
+                            value: 8,
+                            child: Text(l10n.financialHealthWeeks(8)),
+                          ),
+                          DropdownMenuItem<int>(
+                            value: 12,
+                            child: Text(l10n.financialHealthWeeks(12)),
+                          ),
                         ],
                         onChanged: (value) {
                           if (value == null) return;

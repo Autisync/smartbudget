@@ -1,12 +1,15 @@
 import 'package:drift/drift.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart';
+import 'package:smartbudget/data/encryption/field_encryptor.dart';
 import 'package:smartbudget/domain/entities/subscription.dart' as entity;
 import 'package:smartbudget/domain/repositories/subscription_repository.dart';
 
 class SubscriptionRepositoryImpl implements SubscriptionRepository {
   final AppDatabase database;
+  final FieldEncryptor? encryptor;
 
-  SubscriptionRepositoryImpl(this.database);
+  // C-2: [encryptor] is optional for backwards-compat; always provide it in prod.
+  SubscriptionRepositoryImpl(this.database, {this.encryptor});
 
   @override
   Future<List<entity.Subscription>> getSubscriptions() async {
@@ -48,10 +51,11 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
   }
 
   entity.Subscription _mapToEntity(Subscription data) {
+    // C-2: decrypt sensitive free-text fields; plaintext fallback for legacy records.
     return entity.Subscription(
       id: data.id,
       name: data.name,
-      description: data.description,
+      description: encryptor?.decryptNullable(data.description) ?? data.description,
       amount: data.amount,
       currency: data.currency,
       billingCycle: data.billingCycle,
@@ -61,20 +65,21 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       category: data.category,
       importance: data.importance,
       isActive: data.isActive,
-      paymentMethod: data.paymentMethod,
-      website: data.website,
+      paymentMethod: encryptor?.decryptNullable(data.paymentMethod) ?? data.paymentMethod,
+      website: encryptor?.decryptNullable(data.website) ?? data.website,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     );
   }
 
   SubscriptionsCompanion _mapToCompanion(entity.Subscription subscription) {
+    // C-2: encrypt sensitive free-text fields before persisting to SQLite.
     return SubscriptionsCompanion(
       id: subscription.id.isEmpty
           ? const Value.absent()
           : Value(subscription.id),
       name: Value(subscription.name),
-      description: Value(subscription.description),
+      description: Value(encryptor?.encryptNullable(subscription.description) ?? subscription.description),
       amount: Value(subscription.amount),
       currency: Value(subscription.currency),
       billingCycle: Value(subscription.billingCycle),
@@ -84,8 +89,8 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       category: Value(subscription.category),
       importance: Value(subscription.importance),
       isActive: Value(subscription.isActive),
-      paymentMethod: Value(subscription.paymentMethod),
-      website: Value(subscription.website),
+      paymentMethod: Value(encryptor?.encryptNullable(subscription.paymentMethod) ?? subscription.paymentMethod),
+      website: Value(encryptor?.encryptNullable(subscription.website) ?? subscription.website),
       createdAt: Value(subscription.createdAt),
       updatedAt: Value(subscription.updatedAt),
     );

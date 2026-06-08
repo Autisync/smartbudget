@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H-1 FIX: Backup exclusion rules for Android Auto Backup.
+  Excludes the SQLite database and shared preferences from Google Drive backup.
+  flutter_secure_storage data (EncryptedSharedPreferences) is excluded by system
+  since it cannot be restored to a different device.
+-->
+<full-backup-content>
+    <!-- Exclude the Drift database file -->
+    <exclude domain="file" path="smartbudget_db.sqlite"/>
+    <exclude domain="file" path="smartbudget_db.sqlite-shm"/>
+    <exclude domain="file" path="smartbudget_db.sqlite-wal"/>
+    <!-- Exclude all databases directory -->
+    <exclude domain="database" path="."/>
+    <!-- Exclude shared preferences (fallback secure storage) -->
+    <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+</full-backup-content>

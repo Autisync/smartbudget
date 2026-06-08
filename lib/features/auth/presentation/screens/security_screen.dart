@@ -109,7 +109,8 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                       if (!context.mounted) return;
 
                                       if (value &&
-                                          result != bio.AuthStatus.authenticated) {
+                                          result !=
+                                              bio.AuthStatus.authenticated) {
                                         final message = switch (result) {
                                           bio.AuthStatus.notAvailable =>
                                             'Biometric authentication is not available on this device.',
@@ -129,7 +130,8 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                         AppFeedback.show(
                                           context,
                                           message: message,
-                                          type: result == bio.AuthStatus.authenticated
+                                          type: result ==
+                                                  bio.AuthStatus.authenticated
                                               ? AppFeedbackType.success
                                               : AppFeedbackType.warning,
                                         );
@@ -138,7 +140,8 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                       ref.invalidate(securitySettingProvider);
                                     } finally {
                                       if (mounted) {
-                                        setState(() => _isTogglingBiometric = false);
+                                        setState(
+                                            () => _isTogglingBiometric = false);
                                       }
                                     }
                                   },
@@ -168,7 +171,8 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                       (seconds) => DropdownMenuItem(
                                         value: seconds,
                                         child: Text(
-                                          l10n.securityMinutesShort(seconds ~/ 60),
+                                          l10n.securityMinutesShort(
+                                              seconds ~/ 60),
                                         ),
                                       ),
                                     )

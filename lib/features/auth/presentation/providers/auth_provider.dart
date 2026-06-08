@@ -173,6 +173,21 @@ class AuthController extends _$AuthController {
   Future<AuthStatus> authenticate() async {
     final bioService = ref.read(biometricAuthServiceProvider);
     final securityService = ref.read(securityServiceProvider);
+
+    // H-2 FIX: Enforce client-side lockout before attempting biometric.
+    // Prevents brute-force by checking recent failure count against the
+    // user-configured maxFailedAttempts / lockoutDuration from SecuritySettings.
+    final locked = await securityService.isLockedOut();
+    if (locked) {
+      await securityService.logAuthAttempt(
+        tables.AuthLogType.biometric,
+        tables.AuthStatus.failed,
+        deviceId: 'local_device',
+        failedAttempts: 0, // counted by isLockedOut, not incremented here
+      );
+      return AuthStatus.lockedOut;
+    }
+
     final result = await bioService.authenticate(
       reason: 'Authenticate to access your financial data',
     );
@@ -232,7 +247,3 @@ class AuthController extends _$AuthController {
     return AuthStatus.authenticated;
   }
 }
-
-
-
-

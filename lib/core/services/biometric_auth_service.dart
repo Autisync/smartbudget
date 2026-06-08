@@ -11,7 +11,8 @@ class BiometricAuthService {
 
   static const _keyBiometricEnabled = 'biometric_enabled';
   static const _keyLastAuth = 'last_authentication_time';
-  static const _authTimeout = Duration(minutes: 5);
+  // H-4: Default timeout used when no SecuritySettings value is available.
+  static const _defaultAuthTimeout = Duration(minutes: 5);
 
   BiometricAuthService(this._localAuth, this._secureStorage);
 
@@ -104,14 +105,20 @@ class BiometricAuthService {
     );
   }
 
-  Future<bool> shouldRequireAuth() async {
+  /// H-4 FIX: Accepts [timeoutSeconds] from SecuritySettings so the user-
+  /// configured session timeout is honoured instead of a hardcoded constant.
+  /// Falls back to [_defaultAuthTimeout] (5 min) when not supplied.
+  Future<bool> shouldRequireAuth({int? timeoutSeconds}) async {
     final lastAuthStr = await _secureStorage.read(key: _keyLastAuth);
     if (lastAuthStr == null) return true;
 
     final lastAuth = DateTime.fromMillisecondsSinceEpoch(
       int.parse(lastAuthStr),
     );
-    return DateTime.now().difference(lastAuth) > _authTimeout;
+    final timeout = timeoutSeconds != null
+        ? Duration(seconds: timeoutSeconds)
+        : _defaultAuthTimeout;
+    return DateTime.now().difference(lastAuth) > timeout;
   }
 
   Future<void> setBiometricEnabled(bool enabled) async {

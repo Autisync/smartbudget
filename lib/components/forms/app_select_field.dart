@@ -30,33 +30,10 @@ class AppDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<T>(
-      initialValue: value,
-      isExpanded: true,
-      menuMaxHeight: menuMaxHeight,
-      borderRadius: BorderRadius.circular(18),
-      icon: InputStyles.dropdownIcon(context),
-      items: options
-          .map(
-            (option) => DropdownMenuItem<T>(
-              value: option.value,
-              child: Row(
-                children: [
-                  if (option.leading != null) ...[
-                    option.leading!,
-                    const SizedBox(width: 8),
-                  ],
-                  Expanded(
-                    child: Text(
-                      option.label,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(growable: false),
+    return AppSelectField<T>(
+      value: value,
+      label: '',
+      options: options,
       onChanged: onChanged,
     );
   }
@@ -86,81 +63,8 @@ class AppSelectField<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (searchable) {
-      return _SearchableSelectField<T>(
-        value: value,
-        label: label,
-        options: options,
-        onChanged: onChanged,
-        helperText: helperText,
-        prefixIcon: prefixIcon,
-        searchHintText: searchHintText,
-      );
-    }
-
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: label,
-        helperText: helperText,
-        prefixIcon: prefixIcon == null ? null : Icon(prefixIcon),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          isExpanded: true,
-          borderRadius: BorderRadius.circular(18),
-          icon: InputStyles.dropdownIcon(context),
-          items: options
-              .map(
-                (option) => DropdownMenuItem<T>(
-                  value: option.value,
-                  child: Row(
-                    children: [
-                      if (option.leading != null) ...[
-                        option.leading!,
-                        const SizedBox(width: 8),
-                      ],
-                      Expanded(
-                        child: Text(
-                          option.label,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-              .toList(growable: false),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchableSelectField<T> extends StatelessWidget {
-  const _SearchableSelectField({
-    required this.value,
-    required this.label,
-    required this.options,
-    required this.onChanged,
-    this.helperText,
-    this.prefixIcon,
-    this.searchHintText,
-  });
-
-  final T value;
-  final String label;
-  final List<AppDropdownOption<T>> options;
-  final ValueChanged<T?> onChanged;
-  final String? helperText;
-  final IconData? prefixIcon;
-  final String? searchHintText;
-
-  @override
-  Widget build(BuildContext context) {
     final selected = options.where((option) => option.value == value);
-    final selectedLabel = selected.isEmpty ? '' : selected.first.label;
+    final selectedOption = selected.isEmpty ? null : selected.first;
 
     return InkWell(
       borderRadius: BorderRadius.circular(14),
@@ -168,10 +72,12 @@ class _SearchableSelectField<T> extends StatelessWidget {
         final picked = await showCupertinoModalBottomSheet<T>(
           context: context,
           expand: false,
-          builder: (sheetContext) => _SearchableSelectSheet<T>(
+          backgroundColor: Colors.transparent,
+          builder: (sheetContext) => _SelectSheet<T>(
             title: label,
             options: options,
             initialValue: value,
+            searchable: searchable,
             searchHintText: searchHintText,
           ),
         );
@@ -182,16 +88,20 @@ class _SearchableSelectField<T> extends StatelessWidget {
       },
       child: InputDecorator(
         decoration: InputDecoration(
-          labelText: label,
+          labelText: label.isEmpty ? null : label,
           helperText: helperText,
           prefixIcon: prefixIcon == null ? null : Icon(prefixIcon),
           suffixIcon: InputStyles.dropdownIcon(context),
         ),
         child: Row(
           children: [
+            if (selectedOption?.leading != null) ...[
+              selectedOption!.leading!,
+              const SizedBox(width: 8),
+            ],
             Expanded(
               child: Text(
-                selectedLabel,
+                selectedOption?.label ?? '',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -203,25 +113,26 @@ class _SearchableSelectField<T> extends StatelessWidget {
   }
 }
 
-class _SearchableSelectSheet<T> extends StatefulWidget {
-  const _SearchableSelectSheet({
+class _SelectSheet<T> extends StatefulWidget {
+  const _SelectSheet({
     required this.title,
     required this.options,
     required this.initialValue,
+    required this.searchable,
     this.searchHintText,
   });
 
   final String title;
   final List<AppDropdownOption<T>> options;
   final T initialValue;
+  final bool searchable;
   final String? searchHintText;
 
   @override
-  State<_SearchableSelectSheet<T>> createState() =>
-      _SearchableSelectSheetState<T>();
+  State<_SelectSheet<T>> createState() => _SelectSheetState<T>();
 }
 
-class _SearchableSelectSheetState<T> extends State<_SearchableSelectSheet<T>> {
+class _SelectSheetState<T> extends State<_SelectSheet<T>> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -241,60 +152,169 @@ class _SearchableSelectSheetState<T> extends State<_SearchableSelectSheet<T>> {
             )
             .toList(growable: false);
 
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Material(
-      color: Theme.of(context).colorScheme.surface,
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
-          ),
-          child: SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.72,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  widget.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+      color: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.18),
+              blurRadius: 28,
+              offset: const Offset(0, -8),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 10,
+              bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
+            ),
+            child: SizedBox(
+              height: widget.searchable
+                  ? MediaQuery.sizeOf(context).height * 0.72
+                  : null,
+              child: Column(
+                mainAxisSize:
+                    widget.searchable ? MainAxisSize.max : MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 38,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: colorScheme.outline.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: MaterialLocalizations.of(context)
+                            .closeButtonTooltip,
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  if (widget.searchable) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.searchHintText ?? 'Search options',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w700,
                       ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _searchController,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: widget.searchHintText ?? 'Search options',
-                    prefixIcon: const Icon(Icons.search_rounded),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: widget.searchHintText ?? 'Search options',
+                        prefixIcon: const Icon(Icons.search_rounded),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Flexible(
+                    fit: widget.searchable ? FlexFit.tight : FlexFit.loose,
+                    child: ListView.separated(
+                      shrinkWrap: !widget.searchable,
+                      physics: widget.searchable
+                          ? null
+                          : const NeverScrollableScrollPhysics(),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 6),
+                      itemBuilder: (context, index) {
+                        final option = filtered[index];
+                        final selected = option.value == widget.initialValue;
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => Navigator.of(context).pop(option.value),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? colorScheme.primaryContainer
+                                      .withValues(alpha: 0.55)
+                                  : colorScheme.surfaceContainerHighest
+                                      .withValues(alpha: 0.42),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: selected
+                                    ? colorScheme.primary
+                                        .withValues(alpha: 0.32)
+                                    : colorScheme.outlineVariant,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                if (option.leading != null) ...[
+                                  option.leading!,
+                                  const SizedBox(width: 10),
+                                ],
+                                Expanded(
+                                  child: Text(
+                                    option.label,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: selected
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                if (selected)
+                                  Icon(
+                                    Icons.check_circle_rounded,
+                                    color: colorScheme.primary,
+                                    size: 20,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      final option = filtered[index];
-                      final selected = option.value == widget.initialValue;
-                      return ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 4),
-                        leading: option.leading,
-                        title: Text(option.label),
-                        trailing: selected
-                            ? Icon(
-                                Icons.check_rounded,
-                                color: Theme.of(context).colorScheme.primary,
-                              )
-                            : null,
-                        onTap: () => Navigator.of(context).pop(option.value),
-                      );
-                    },
-                  ),
-                ),
-              ],
+                  if (filtered.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Text(
+                        'No options found',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 4),
+                ],
+              ),
             ),
           ),
         ),

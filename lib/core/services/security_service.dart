@@ -91,6 +91,35 @@ class SecurityService {
       ),
     );
   }
+
+  /// H-2 FIX: Returns true if the device has exceeded [maxFailedAttempts]
+  /// within the [lockoutDuration] window — enforcing client-side lockout.
+  Future<bool> isLockedOut({String deviceId = 'local_device'}) async {
+    final settings = await loadSecuritySettings();
+    final recentFailures = await _database.countRecentAuthFailures(
+      window: Duration(seconds: settings.lockoutDuration),
+      deviceId: deviceId,
+    );
+    return recentFailures >= settings.maxFailedAttempts;
+  }
+
+  /// H-2: Returns when the current lockout window expires, or null if not locked.
+  Future<DateTime?> lockoutExpiresAt({String deviceId = 'local_device'}) async {
+    final settings = await loadSecuritySettings();
+    final logs = await _database.getAuthLogs(limit: settings.maxFailedAttempts + 1);
+    final failures = logs
+        .where((l) => l.status == tables.AuthStatus.failed && l.deviceId == deviceId)
+        .toList();
+    if (failures.length < settings.maxFailedAttempts) return null;
+    // Lockout expires lockoutDuration seconds after the oldest relevant failure.
+    final oldest = failures.last.timestamp;
+    return oldest.add(Duration(seconds: settings.lockoutDuration));
+  }
+
+  /// M-4 FIX: Deletes auth logs older than [retentionDays]. Call on app startup.
+  Future<void> pruneAuthLogs({int retentionDays = 90}) async {
+    await _database.pruneAuthLogs(retentionDays: retentionDays);
+  }
 }
 
 

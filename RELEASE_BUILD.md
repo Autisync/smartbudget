@@ -85,21 +85,55 @@ Keep one archive of debug symbols per release build, tagged by version (`v2.0.0`
 
 ## Certificate Pinning (Pre-flight Checklist)
 
-Before shipping any production release, replace the placeholder pins in
-`lib/core/network/cert_pinning.dart` with real SPKI SHA-256 fingerprints:
+Certificate pinning uses **SPKI SHA-256** hashes (`base64(SHA-256(SubjectPublicKeyInfo DER))`).
+The implementation in `lib/core/network/cert_pinning.dart` uses
+`SecurityContext(withTrustedRoots: false)` so that `badCertificateCallback` fires for **every**
+certificate — including CA-signed ones — giving consistent SPKI verification regardless of cert type.
 
-```bash
-# Obtain current leaf certificate pin
-openssl s_client -connect api.smaartspend.com:443 < /dev/null \
-  | openssl x509 -pubkey -noout \
-  | openssl pkey -pubin -outform der \
-  | openssl dgst -sha256 -binary \
-  | base64
+### Current state
 
-# Repeat for the intermediate CA certificate to create a backup pin
-```
+| Pin | Value | Notes |
+|-----|-------|-------|
+| Leaf (self-signed Traefik default) | `NILeAobXrKJyjBkhewvvHgvQMwj3LdCAw2ayUrHku7E=` | Active, expires 2027-05-28 |
+| Intermediate backup | — | Add after switching to Let's Encrypt |
 
-Paste the resulting base64 strings into the `_productionPins` set in `cert_pinning.dart`.
+### Migrating to Let's Encrypt
+
+1. Deploy Traefik with ACME config (`backend/traefik.yml` + `backend/docker-compose.traefik.yml`).
+   Traefik auto-issues and renews the cert for `api.smaartspend.com`.
+
+2. Compute the new leaf SPKI pin:
+   ```bash
+   openssl s_client -connect api.smaartspend.com:443 -servername api.smaartspend.com \
+     </dev/null 2>/dev/null \
+     | openssl x509 -pubkey -noout \
+     | openssl pkey -pubin -outform DER \
+     | openssl dgst -sha256 -binary \
+     | base64
+   ```
+
+3. Compute the intermediate CA backup pin (Let's Encrypt E5/R10):
+   ```bash
+   openssl s_client -connect api.smaartspend.com:443 -servername api.smaartspend.com \
+     -showcerts </dev/null 2>/dev/null \
+     | awk '/-----BEGIN CERTIFICATE-----/{c++} c==2{print} /-----END CERTIFICATE-----/ && c==2{exit}' \
+     | openssl x509 -pubkey -noout \
+     | openssl pkey -pubin -outform DER \
+     | openssl dgst -sha256 -binary \
+     | base64
+   ```
+
+4. In `_productionPins` in `cert_pinning.dart`:
+   - **Add** the new LE leaf pin and the intermediate backup pin.
+   - **Keep** the old self-signed pin until all users have updated past the new release.
+   - Ship the app update.
+   - After the old self-signed cert expires (2027-05-28), remove that pin.
+
+### Ongoing renewal (every ~90 days)
+
+Traefik auto-renews the LE cert. The leaf SPKI pin changes on every renewal.
+The weekly `pin-drift` CI job (`.github/workflows/pin-drift.yml`) will fail when the pin drifts,
+giving advance notice. On drift: run steps 2–4 above, ship an update before the old cert expires.
 
 ---
 

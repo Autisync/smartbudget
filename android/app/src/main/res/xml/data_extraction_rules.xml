@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H-1 FIX: Data extraction rules for Android 12+ (API 31+).
+  Applies to both cloud backup and device-to-device transfer.
+  Required alongside backup_rules.xml for full coverage on Android 12+.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="smartbudget_db.sqlite"/>
+        <exclude domain="file" path="smartbudget_db.sqlite-shm"/>
+        <exclude domain="file" path="smartbudget_db.sqlite-wal"/>
+        <exclude domain="database" path="."/>
+        <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="smartbudget_db.sqlite"/>
+        <exclude domain="file" path="smartbudget_db.sqlite-shm"/>
+        <exclude domain="file" path="smartbudget_db.sqlite-wal"/>
+        <exclude domain="database" path="."/>
+        <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+    </device-transfer>
+</data-extraction-rules>

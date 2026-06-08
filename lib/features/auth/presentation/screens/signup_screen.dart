@@ -368,7 +368,3 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     context.go('/');
   }
 }
-
-
-
-

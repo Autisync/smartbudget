@@ -25,6 +25,8 @@ class NotificationDispatchStatus {
 class NotificationPreferences {
   const NotificationPreferences({
     required this.enabled,
+    required this.pushEnabled,
+    required this.localEnabled,
     required this.frequency,
     required this.quietHoursStart,
     required this.quietHoursEnd,
@@ -32,6 +34,8 @@ class NotificationPreferences {
   });
 
   final bool enabled;
+  final bool pushEnabled;
+  final bool localEnabled;
   final NotificationFrequency frequency;
   final int quietHoursStart;
   final int quietHoursEnd;
@@ -39,12 +43,18 @@ class NotificationPreferences {
 
   static const defaultCategories = <String, bool>{
     'budgetAlerts': true,
-    'savingsNudges': true,
+    'subscriptionReminders': true,
+    'savingsReminders': true,
+    'reportCompletion': true,
+    'securityAlerts': true,
+    'monthlySummaries': true,
     'healthInsights': true,
   };
 
   static const defaults = NotificationPreferences(
     enabled: true,
+    pushEnabled: true,
+    localEnabled: true,
     frequency: NotificationFrequency.immediate,
     quietHoursStart: 22,
     quietHoursEnd: 7,
@@ -53,6 +63,8 @@ class NotificationPreferences {
 
   NotificationPreferences copyWith({
     bool? enabled,
+    bool? pushEnabled,
+    bool? localEnabled,
     NotificationFrequency? frequency,
     int? quietHoursStart,
     int? quietHoursEnd,
@@ -60,6 +72,8 @@ class NotificationPreferences {
   }) {
     return NotificationPreferences(
       enabled: enabled ?? this.enabled,
+      pushEnabled: pushEnabled ?? this.pushEnabled,
+      localEnabled: localEnabled ?? this.localEnabled,
       frequency: frequency ?? this.frequency,
       quietHoursStart: quietHoursStart ?? this.quietHoursStart,
       quietHoursEnd: quietHoursEnd ?? this.quietHoursEnd,
@@ -70,6 +84,8 @@ class NotificationPreferences {
   Map<String, dynamic> toJson() {
     return {
       'enabled': enabled,
+      'pushEnabled': pushEnabled,
+      'localEnabled': localEnabled,
       'frequency': frequency.name,
       'quietHoursStart': quietHoursStart,
       'quietHoursEnd': quietHoursEnd,
@@ -84,6 +100,8 @@ class NotificationPreferences {
 
     return NotificationPreferences(
       enabled: json['enabled'] as bool? ?? true,
+      pushEnabled: json['pushEnabled'] as bool? ?? true,
+      localEnabled: json['localEnabled'] as bool? ?? true,
       frequency: _frequencyFromString(json['frequency'] as String?),
       quietHoursStart:
           ((json['quietHoursStart'] as num?)?.toInt() ?? 22).clamp(0, 23),
@@ -312,6 +330,16 @@ class NotificationPreferencesController
     await _service.savePreferences(state);
   }
 
+  Future<void> setPushEnabled(bool enabled) async {
+    state = state.copyWith(pushEnabled: enabled);
+    await _service.savePreferences(state);
+  }
+
+  Future<void> setLocalEnabled(bool enabled) async {
+    state = state.copyWith(localEnabled: enabled);
+    await _service.savePreferences(state);
+  }
+
   Future<void> setFrequency(NotificationFrequency frequency) async {
     state = state.copyWith(frequency: frequency);
     await _service.savePreferences(state);
@@ -335,7 +363,3 @@ class NotificationPreferencesController
     await _service.savePreferences(state);
   }
 }
-
-
-
-

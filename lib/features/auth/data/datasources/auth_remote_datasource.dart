@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:smartbudget/core/network/cert_pinning.dart';
 import 'package:smartbudget/core/network/debug_tls_noop.dart'
     if (dart.library.io) 'package:smartbudget/core/network/debug_tls_io.dart';
 import 'package:smartbudget/features/auth/data/models/auth_models.dart';
@@ -51,6 +52,10 @@ class AuthApiClient {
             headers: const {'Content-Type': 'application/json'},
           ),
         ) {
+    // H-5: Apply certificate pinning first (production hosts only).
+    // Debug TLS bypass applies only to localhost — never to production.
+    applyCertificatePinning(_dio, baseUrl);
+    applyCertificatePinning(_refreshDio, baseUrl);
     configureDebugTlsAdapter(_dio, baseUrl);
     configureDebugTlsAdapter(_refreshDio, baseUrl);
 

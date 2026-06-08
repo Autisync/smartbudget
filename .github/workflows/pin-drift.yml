@@ -1,0 +1,52 @@
+name: SPKI Pin Drift Check
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # every Monday at 09:00 UTC
+  workflow_dispatch:       # allow manual runs
+
+jobs:
+  check-pin:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch live SPKI pin from api.smaartspend.com
+        id: live
+        run: |
+          LIVE_PIN=$(openssl s_client \
+              -connect api.smaartspend.com:443 \
+              -servername api.smaartspend.com \
+              </dev/null 2>/dev/null \
+            | openssl x509 -pubkey -noout \
+            | openssl pkey -pubin -outform DER \
+            | openssl dgst -sha256 -binary \
+            | base64)
+          echo "pin=$LIVE_PIN" >> "$GITHUB_OUTPUT"
+          echo "Live SPKI pin: $LIVE_PIN"
+
+      - name: Compare against pinned value in cert_pinning.dart
+        run: |
+          LIVE_PIN="${{ steps.live.outputs.pin }}"
+          PINNED=$(grep -oE "'[A-Za-z0-9+/=]{44,}'" \
+            lib/core/network/cert_pinning.dart \
+            | tr -d "'" | head -1)
+
+          if [ -z "$PINNED" ] || [[ "$PINNED" == REPLACE_WITH* ]]; then
+            echo "⚠️  No real pin found in cert_pinning.dart — skipping drift check."
+            exit 0
+          fi
+
+          if [ "$LIVE_PIN" != "$PINNED" ]; then
+            echo "❌ SPKI pin drift detected!"
+            echo "   Live pin   : $LIVE_PIN"
+            echo "   Pinned pin : $PINNED"
+            echo ""
+            echo "The leaf cert has been renewed. Update _productionPins in"
+            echo "lib/core/network/cert_pinning.dart and cut a new app release"
+            echo "BEFORE the old cert expires to avoid a production outage."
+            exit 1
+          fi
+
+          echo "✅ SPKI pin matches live cert — no action needed."

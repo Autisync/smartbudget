@@ -95,8 +95,8 @@ class BurnRateEngine {
         ? monthlyBudgetLimit
         : null;
     final safeDailySpend = budgetLimit == null || daysRemaining == 0
-      ? 0.0
-      : max<double>((budgetLimit - monthlySpend) / daysRemaining, 0);
+        ? 0.0
+        : max<double>((budgetLimit - monthlySpend) / daysRemaining, 0);
 
     final status = _status(
       monthlySpend: monthlySpend,

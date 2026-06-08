@@ -13,20 +13,22 @@ void main() {
     final now = DateTime(2026, 3, 29, 9, 30);
     final items = <AppNotificationEntry>[
       AppNotificationEntry(
-        id: 1,
+        id: '1',
         title: 'Budget Alert',
         body: 'Food spending reached 90%.',
         payload: 'budget_food',
-        category: AppNotificationCategory.budget,
+        type: NotificationType.budgetThresholdReached,
         createdAt: now,
+        channel: NotificationChannel.inApp,
       ),
       AppNotificationEntry(
-        id: 2,
+        id: '2',
         title: 'Savings Nudge',
         body: 'You can save an extra 50 this week.',
         payload: 'goal_trip',
-        category: AppNotificationCategory.savings,
+        type: NotificationType.savingsGoalMilestone,
         createdAt: now.subtract(const Duration(hours: 1)),
+        channel: NotificationChannel.inApp,
       ),
     ];
 
@@ -63,12 +65,13 @@ void main() {
     final items = List<AppNotificationEntry>.generate(
       3,
       (index) => AppNotificationEntry(
-        id: index + 1,
+        id: '${index + 1}',
         title: 'Notification $index',
         body: 'Body $index',
         payload: 'payload_$index',
-        category: AppNotificationCategory.health,
+        type: NotificationType.subscriptionRenewalDue,
         createdAt: now,
+        channel: NotificationChannel.inApp,
       ),
     );
 

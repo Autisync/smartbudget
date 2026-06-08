@@ -184,19 +184,28 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SmartCard(
+    return SmartCard(
       radius: 28,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const AppLottieView(
+            assetPath: 'assets/animations/scenario_simulation.json',
+            width: 84,
+            height: 84,
+            repeat: false,
+            animate: false,
+            fallbackIcon: Icons.science_rounded,
+          ),
+          const SizedBox(height: 10),
+          const Text(
             'Scenario Lab',
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             'Test life changes before you make them.',
-            style: TextStyle(fontSize: 14),
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
@@ -249,6 +258,8 @@ class _CurrentVsSimulatedSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final delta = result.comparison.simulatedMonthlyCashflow -
+        result.comparison.currentMonthlyCashflow;
     return SmartCard(
       radius: 24,
       child: Column(
@@ -262,6 +273,28 @@ class _CurrentVsSimulatedSummary extends StatelessWidget {
                 ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
+          Row(
+            children: [
+              const AppLottieView(
+                assetPath: 'assets/animations/scenario_simulation.json',
+                width: 42,
+                height: 42,
+                repeat: false,
+                animate: false,
+                fallbackIcon: Icons.auto_graph_rounded,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  delta >= 0
+                      ? 'Simulation improves projected balance by ${currency.format(delta)}.'
+                      : 'Simulation reduces projected balance by ${currency.format(delta.abs())}.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
           Wrap(
             spacing: 10,
             runSpacing: 10,

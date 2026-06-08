@@ -1,6 +1,8 @@
 import 'dart:io';
-import 'package:flutter/services.dart';
+
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,23 +10,50 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 import 'package:smartbudget/components/app_ui.dart';
-import 'package:smartbudget/components/charts/app_finance_charts.dart';
+import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
+import 'package:smartbudget/components/forms/app_action_menu.dart';
+import 'package:smartbudget/components/forms/modern_date_picker.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
-import 'package:smartbudget/core/widgets/fintech_components.dart';
+import 'package:smartbudget/core/widgets/fintech_components.dart' show AppBadge;
 import 'package:smartbudget/core/widgets/page_header.dart';
-import 'package:smartbudget/core/widgets/form_date_field.dart';
-import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
-import 'package:smartbudget/data/models/tables.dart';
+import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
-import 'package:csv/csv.dart';
+
+class ReportGenerationOptions {
+  const ReportGenerationOptions({
+    required this.includeCharts,
+    required this.includeDetailedTransactions,
+    required this.includeBudgets,
+    required this.includeSubscriptions,
+    required this.includeSavingsGoals,
+  });
+
+  final bool includeCharts;
+  final bool includeDetailedTransactions;
+  final bool includeBudgets;
+  final bool includeSubscriptions;
+  final bool includeSavingsGoals;
+}
+
+typedef ReportsGenerationExecutor = Future<void> Function(
+  String reportKey,
+  String format,
+  ReportGenerationOptions options,
+);
 
 class ReportsScreen extends ConsumerStatefulWidget {
-  const ReportsScreen({super.key});
+  const ReportsScreen({
+    super.key,
+    this.generationExecutor,
+  });
+
+  final ReportsGenerationExecutor? generationExecutor;
 
   @override
   ConsumerState<ReportsScreen> createState() => _ReportsScreenState();
@@ -37,11 +66,26 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   bool _isAppBarScrolled = false;
   pw.Font? _pdfFontRegular;
   pw.Font? _pdfFontBold;
-  int _totalReportsGenerated = 0;
+
+  _QuickRangeFilter _quickRangeFilter = _QuickRangeFilter.thisMonth;
+  _ReportActivityFilter _activityFilter = _ReportActivityFilter.all;
+
   DateTime? _lastGeneratedAt;
   final Map<String, int> _reportCounts = <String, int>{};
   final List<_GeneratedReportEntry> _generatedReports =
       <_GeneratedReportEntry>[];
+  final List<_ReportActivityEntry> _activities = <_ReportActivityEntry>[];
+
+  late final List<_AvailableReportTemplate> _availableReports =
+      _buildAvailableReportTemplates();
+
+  _ReportsSummary _summary = const _ReportsSummary.empty();
+
+  @override
+  void initState() {
+    super.initState();
+    _recomputeSummary();
+  }
 
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
@@ -53,15 +97,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final appCurrency = ref.watch(appCurrencyControllerProvider);
-    final appCurrencyLabel = appCurrency.toUpperCase();
+
     return AppScaffold(
       appBar: AppBar(
         title: buildFrostedAppBarTitle(
           context: context,
-          title: l10n.reportsTitle,
+          title: 'Reports & Export',
           isScrolled: _isAppBarScrolled,
         ),
         backgroundColor: colorScheme.surface.withValues(
@@ -89,7 +131,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               ),
             ),
             icon: const Icon(Icons.ios_share_rounded),
-            onPressed: _isGenerating ? null : _showExportOptions,
+            onPressed: _isGenerating ? null : _openExportWorkflowSheet,
           ),
           const SizedBox(width: 8),
         ],
@@ -106,118 +148,22 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SmartSpendHeader(
+              const AppHeader(
                 title: 'Reports & Export',
                 subtitle:
-                    'Generate polished financial reports with flexible date ranges and quick exports.',
-                trailing: AppBadge(
-                  label: appCurrencyLabel,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                    'Generate, export, and review your financial reports.',
               ),
-              const SizedBox(height: 24),
-              // Date Range Selector
-              SmartCard(
-                radius: 28,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.reportsPeriod,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildDateField(
-                            label: l10n.reportsFrom,
-                            date: _startDate,
-                            onTap: () => _selectDate(context, true),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildDateField(
-                            label: l10n.reportsTo,
-                            date: _endDate,
-                            onTap: () => _selectDate(context, false),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
+              const SizedBox(height: 20),
+              _buildOverviewInsightCard(context),
               const SizedBox(height: UiTokens.sectionGapLg),
-
-              // Quick Period Buttons
-              Text(
-                l10n.reportsQuickSelect,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: UiTokens.chipSpacing),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildPeriodButton(l10n.reportsThisWeek, _setThisWeek),
-                  _buildPeriodButton(l10n.reportsThisMonth, _setThisMonth),
-                  _buildPeriodButton(l10n.reportsLastMonth, _setLastMonth),
-                  _buildPeriodButton(l10n.reportsLast3Months, _setLast3Months),
-                  _buildPeriodButton(l10n.reportsThisYear, _setThisYear),
-                ],
-              ),
-
-              const SizedBox(height: 32),
-              _buildReportMetricsSection(),
-
+              _buildDateRangeAndFilters(context),
               const SizedBox(height: UiTokens.sectionGapLg),
-
-              // Report Actions
-              Text(
-                l10n.reportsGenerateReports,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: UiTokens.sectionGapMd),
-              _buildReportCard(
-                reportKey: 'Financial Summary',
-                title: l10n.reportsFinancialSummary(appCurrencyLabel),
-                description: l10n.reportsFinancialSummaryDescription,
-                icon: Icons.analytics_rounded,
-                onPressed: _generateFinancialSummary,
-              ),
-              _buildReportCard(
-                reportKey: 'Transaction History',
-                title: l10n.reportsTransactionHistory,
-                description: l10n.reportsTransactionHistoryDescription,
-                icon: Icons.receipt_long_rounded,
-                onPressed: _generateTransactionHistory,
-              ),
-              _buildReportCard(
-                reportKey: 'Budget Analysis',
-                title: l10n.reportsBudgetAnalysis,
-                description: l10n.reportsBudgetAnalysisDescription,
-                icon: Icons.pie_chart_rounded,
-                onPressed: _generateBudgetAnalysis,
-              ),
-              _buildReportCard(
-                reportKey: 'Subscription Costs',
-                title: l10n.reportsSubscriptionCosts,
-                description: l10n.reportsSubscriptionCostsDescription,
-                icon: Icons.subscriptions_rounded,
-                onPressed: _generateSubscriptionReport,
-              ),
-
+              _buildAvailableReportsSection(context),
               const SizedBox(height: UiTokens.sectionGapLg),
-              _buildGeneratedReportsSection(),
+              _buildRecentActivitySection(context),
+              const SizedBox(height: UiTokens.sectionGapLg),
+              _buildGeneratedReportsSection(context),
+              SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
             ],
           ),
         ),
@@ -225,95 +171,112 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildReportMetricsSection() {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final generatedToday = _generatedReports.where((entry) {
-      final now = DateTime.now();
-      return entry.generatedAt.year == now.year &&
-          entry.generatedAt.month == now.month &&
-          entry.generatedAt.day == now.day;
-    }).length;
+  Widget _buildOverviewInsightCard(BuildContext context) {
+    final now = DateTime.now();
+    final insightText = _summary.generatedThisMonth > 0
+        ? 'You have generated ${_summary.generatedThisMonth} reports this month. Export your latest summary for a clearer monthly view.'
+        : 'No reports yet. Generate your first report to review spending, budgets, and savings progress.';
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: AppSurfaces.elevated(context),
+    return MinimalInsightCard(
+      key: const ValueKey('reports-overview-card'),
+      title: 'Reporting Overview',
+      icon: Icons.assessment_rounded,
+      insightText: insightText,
+      semanticTone: InsightCardSemanticTone.general,
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFFEFF1FF),
+          Color(0xFFEAF8FF),
+        ],
+      ),
+      metrics: [
+        MinimalInsightMetric(
+          label: 'Generated',
+          value: '${_summary.totalGenerated}',
+        ),
+        MinimalInsightMetric(
+          label: 'This Month',
+          value: '${_summary.generatedThisMonth}',
+        ),
+        MinimalInsightMetric(
+          label: 'Last Export',
+          value: _summary.lastExportAt == null
+              ? 'None'
+              : DateFormat('MMM dd').format(_summary.lastExportAt!),
+        ),
+        MinimalInsightMetric(
+          label: 'Available Types',
+          value: '${_availableReports.length}',
+        ),
+      ],
+      footer: _isGenerating
+          ? const AppLottieView(
+              assetPath: 'assets/animations/report_generation.json',
+              width: 44,
+              height: 44,
+              repeat: true,
+              animate: true,
+              semanticLabel: 'Generating report animation',
+              fallbackIcon: Icons.sync_rounded,
+            )
+          : Text(
+              'Updated ${DateFormat('MMM dd, HH:mm').format(now)}',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+    );
+  }
+
+  Widget _buildDateRangeAndFilters(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AppCard(
+      key: const ValueKey('reports-date-filter-card'),
+      radius: 28,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            'Date Range & Filters',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _QuickRangeFilter.values
+                .map((filter) => ChoiceChip(
+                      key: ValueKey('reports-filter-${filter.key}'),
+                      label: Text(filter.label),
+                      selected: _quickRangeFilter == filter,
+                      onSelected: (_) => _applyQuickFilter(filter),
+                    ))
+                .toList(growable: false),
+          ),
+          const SizedBox(height: 14),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.insights_rounded,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      l10n.reportsActivity,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                  ],
+                child: ModernDatePicker(
+                  key: const ValueKey('reports-date-from'),
+                  label: l10n.reportsFrom,
+                  value: DateFormat('MMM dd, yyyy').format(_startDate),
+                  onTap: () => _selectDate(context, true),
                 ),
               ),
-              AppDonutChart(
-                segments: [
-                  AppDonutSegment(
-                    value: _totalReportsGenerated
-                        .toDouble()
-                        .clamp(1, 9999)
-                        .toDouble(),
-                    color: colorScheme.primary,
-                  ),
-                  AppDonutSegment(
-                    value: generatedToday.toDouble().clamp(1, 9999).toDouble(),
-                    color: colorScheme.tertiary,
-                  ),
-                  AppDonutSegment(
-                    value: _reportCounts.length
-                        .toDouble()
-                        .clamp(1, 9999)
-                        .toDouble(),
-                    color: colorScheme.secondary,
-                  ),
-                ],
-                radius: 22,
-                centerSpaceRadius: 16,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: UiTokens.chipSpacing,
-            runSpacing: UiTokens.chipRunSpacing,
-            children: [
-              _ReportMetricChip(
-                label: l10n.reportsGenerated,
-                value: '$_totalReportsGenerated',
-                icon: Icons.description_rounded,
-              ),
-              _ReportMetricChip(
-                label: l10n.reportsToday,
-                value: '$generatedToday',
-                icon: Icons.today_rounded,
-              ),
-              _ReportMetricChip(
-                label: l10n.reportsTypesUsed,
-                value: '${_reportCounts.length}',
-                icon: Icons.category_rounded,
-              ),
-              _ReportMetricChip(
-                label: l10n.reportsLastRun,
-                value: _lastGeneratedAt == null
-                    ? l10n.reportsNone
-                    : DateFormat('MMM dd, HH:mm').format(_lastGeneratedAt!),
-                icon: Icons.schedule_rounded,
+              const SizedBox(width: 12),
+              Expanded(
+                child: ModernDatePicker(
+                  key: const ValueKey('reports-date-to'),
+                  label: l10n.reportsTo,
+                  value: DateFormat('MMM dd, yyyy').format(_endDate),
+                  onTap: () => _selectDate(context, false),
+                ),
               ),
             ],
           ),
@@ -322,194 +285,800 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildPeriodButton(String label, VoidCallback onPressed) {
-    return OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        minimumSize: const Size(0, 44),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      ),
-      onPressed: onPressed,
-      child: Text(label),
-    );
-  }
-
-  Widget _buildDateField({
-    required String label,
-    required DateTime date,
-    required VoidCallback onTap,
-  }) {
-    return FormDateField(
-      label: label,
-      value: DateFormat('MMM dd, yyyy').format(date),
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildReportCard(
-      {required String reportKey,
-      required String title,
-      required String description,
-      required IconData icon,
-      required VoidCallback onPressed}) {
-    final runCount = _reportCounts[reportKey] ?? 0;
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final iconBadgeColor = isDark
-        ? colorScheme.primary.withValues(alpha: 0.85)
-        : colorScheme.primary;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: SmartCard(
-        radius: 24,
-        padding: const EdgeInsets.all(16),
-        onTap: _isGenerating ? null : onPressed,
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: iconBadgeColor,
-                borderRadius: BorderRadius.circular(16),
+  Widget _buildAvailableReportsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Available Reports',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
-              child: Icon(
-                icon,
-                size: 25,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(description),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            _isGenerating
-                ? const AppLottieView(
-                    assetPath: 'assets/animations/report_generation.json',
-                    width: 36,
-                    height: 36,
-                    repeat: true,
-                    animate: true,
-                    semanticLabel: 'Generating report',
-                    fallbackIcon: Icons.sync,
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+        ),
+        const SizedBox(height: 12),
+        ListView.separated(
+          key: const ValueKey('available-reports-list'),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _availableReports.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final template = _availableReports[index];
+            final lastRun = _generatedReports
+                .where((e) => e.reportKey == template.reportKey)
+                .cast<_GeneratedReportEntry?>()
+                .firstWhere((_) => true, orElse: () => null)
+                ?.generatedAt;
+
+            return AppCard(
+              key: ValueKey('report-card-${template.reportKey}'),
+              radius: 24,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompact = constraints.maxWidth < 320;
+                  final actions = Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.chevron_right_rounded, size: 18),
-                      const SizedBox(height: 6),
+                      AppButton(
+                        label: 'Generate',
+                        icon: Icons.auto_graph_rounded,
+                        onPressed: _isGenerating
+                            ? null
+                            : () => _openGenerationSheet(template),
+                        expand: false,
+                      ),
+                      AppActionMenu(
+                        title: '${template.title} actions',
+                        tooltip: 'Report actions',
+                        onSelected: (value) {
+                          if (value == 'schedule') {
+                            _trackActivity(
+                              title: '${template.title} scheduled',
+                              status: _ReportActivityStatus.scheduled,
+                              format: template.formats.first,
+                              icon: Icons.schedule_rounded,
+                            );
+                            AppFeedbackService.showInfo(
+                              context,
+                              'Report scheduled.',
+                            );
+                          }
+                        },
+                        items: const [
+                          AppActionItem(
+                            value: 'schedule',
+                            label: 'Schedule run',
+                            icon: Icons.schedule_rounded,
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+
+                  final details = Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        l10n.reportsRuns(runCount),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        template.title,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(template.description),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          ...template.formats.map(
+                            (format) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                format,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
                               color: Theme.of(context)
                                   .colorScheme
-                                  .onSurfaceVariant,
+                                  .tertiary
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(999),
                             ),
+                            child: Text(
+                              template.estimatedDurationLabel,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (lastRun != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Last generated ${DateFormat('MMM dd, yyyy HH:mm').format(lastRun)}',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                        ),
+                      ],
+                    ],
+                  );
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Icon(
+                              template.icon,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(child: details),
+                          if (!isCompact) ...[
+                            const SizedBox(width: 8),
+                            actions,
+                          ],
+                        ],
+                      ),
+                      if (isCompact) ...[
+                        const SizedBox(height: 10),
+                        actions,
+                      ],
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentActivitySection(BuildContext context) {
+    final filtered = _filteredActivities();
+
+    return AppCard(
+      key: const ValueKey('reports-activity-card'),
+      radius: 28,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Recent Report Activity',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _ReportActivityFilter.values
+                .map(
+                  (filter) => ChoiceChip(
+                    key: ValueKey('reports-activity-filter-${filter.key}'),
+                    label: Text(filter.label),
+                    selected: _activityFilter == filter,
+                    onSelected: (_) {
+                      setState(() {
+                        _activityFilter = filter;
+                      });
+                      AppFeedbackService.showInfo(context, 'Filter applied');
+                    },
+                  ),
+                )
+                .toList(growable: false),
+          ),
+          const SizedBox(height: 12),
+          if (filtered.isEmpty)
+            AppAnimatedEmptyState(
+              icon: Icons.history_toggle_off_rounded,
+              title: 'No report activity yet',
+              message: 'Generated and exported reports will appear here.',
+              lottieAsset: 'assets/animations/empty_reports.json',
+              action: AppButton(
+                label: 'Generate report',
+                icon: Icons.auto_graph_rounded,
+                onPressed: _availableReports.isEmpty
+                    ? null
+                    : () => _openGenerationSheet(_availableReports.first),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: filtered.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final entry = filtered[index];
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: AppSurfaces.elevated(context, radius: 18),
+                  child: Row(
+                    children: [
+                      Icon(entry.icon, color: entry.status.color(context)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.title,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(DateFormat('MMM dd, yyyy • HH:mm')
+                                .format(entry.at)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          AppBadge(
+                            label: entry.status.label,
+                            color: entry.status.color(context),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              entry.format,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeneratedReportsSection(BuildContext context) {
+    return AppCard(
+      key: const ValueKey('generated-reports-card'),
+      radius: 28,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Generated Reports',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 12),
+          if (_generatedReports.isEmpty)
+            AppAnimatedEmptyState(
+              icon: Icons.description_outlined,
+              title: 'No generated reports yet',
+              message:
+                  'Generate your first report to build a reusable export history.',
+              lottieAsset: 'assets/animations/empty_reports.json',
+              action: AppButton(
+                label: 'Generate report',
+                icon: Icons.add_chart_rounded,
+                onPressed: _availableReports.isEmpty
+                    ? null
+                    : () => _openGenerationSheet(_availableReports.first),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _generatedReports.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final entry = _generatedReports[index];
+                return Container(
+                  key: ValueKey('generated-report-${entry.reportKey}-$index'),
+                  padding: const EdgeInsets.all(12),
+                  decoration: AppSurfaces.elevated(context, radius: 18),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(entry.icon,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.filename,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${entry.title} • ${entry.format} • ${DateFormat('MMM dd, yyyy HH:mm').format(entry.generatedAt)} • ${entry.fileSizeLabel}',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Download',
+                        icon: const Icon(Icons.download_rounded),
+                        onPressed: () {
+                          _trackActivity(
+                            title: '${entry.title} downloaded',
+                            status: _ReportActivityStatus.downloaded,
+                            format: entry.format,
+                            icon: Icons.download_rounded,
+                          );
+                          AppFeedbackService.showInfo(
+                              context, 'Download started');
+                        },
+                      ),
+                      AppActionMenu(
+                        title: '${entry.title} actions',
+                        tooltip: 'Report activity actions',
+                        onSelected: (value) {
+                          if (value == 'share') {
+                            _trackActivity(
+                              title: '${entry.title} shared',
+                              status: _ReportActivityStatus.exported,
+                              format: entry.format,
+                              icon: Icons.share_rounded,
+                            );
+                            AppFeedbackService.showSuccess(
+                                context, 'Export completed');
+                          }
+                        },
+                        items: const [
+                          AppActionItem(
+                            value: 'share',
+                            label: 'Share / Export',
+                            icon: Icons.share_rounded,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openGenerationSheet(_AvailableReportTemplate template) async {
+    var selectedFormat = template.formats.first;
+    var includeCharts = true;
+    var includeDetailedTransactions = true;
+    var includeBudgets = true;
+    var includeSubscriptions = true;
+    var includeSavingsGoals = true;
+
+    await AppFormSheet.show(
+      context,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return AppFormSheet(
+              maxHeightFactor: 0.88,
+              body: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Generate ${template.title}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  AppDropdown<String>(
+                    key: const ValueKey('report-format-dropdown'),
+                    value: selectedFormat,
+                    label: 'Format',
+                    prefixIcon: Icons.file_present_rounded,
+                    items: template.formats
+                        .map(
+                          (format) => DropdownMenuItem<String>(
+                            value: format,
+                            child: Text(format),
+                          ),
+                        )
+                        .toList(growable: false),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setSheetState(() => selectedFormat = value);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Include charts'),
+                    value: includeCharts,
+                    onChanged: (value) =>
+                        setSheetState(() => includeCharts = value),
+                  ),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Include detailed transactions'),
+                    value: includeDetailedTransactions,
+                    onChanged: (value) => setSheetState(
+                        () => includeDetailedTransactions = value),
+                  ),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Include budgets'),
+                    value: includeBudgets,
+                    onChanged: (value) =>
+                        setSheetState(() => includeBudgets = value),
+                  ),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Include subscriptions'),
+                    value: includeSubscriptions,
+                    onChanged: (value) =>
+                        setSheetState(() => includeSubscriptions = value),
+                  ),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Include savings goals'),
+                    value: includeSavingsGoals,
+                    onChanged: (value) =>
+                        setSheetState(() => includeSavingsGoals = value),
+                  ),
+                  if (_isGenerating)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: AppLottieView(
+                        assetPath: 'assets/animations/report_generation.json',
+                        width: 64,
+                        height: 64,
+                        repeat: true,
+                        animate: true,
+                        fallbackIcon: Icons.sync_rounded,
+                      ),
+                    ),
+                ],
+              ),
+              actions: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'Cancel',
+                        style: AppButtonStyle.secondary,
+                        onPressed: () => Navigator.of(sheetContext).pop(),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: AppButton(
+                        key: const ValueKey('confirm-generate-report'),
+                        label: 'Generate',
+                        icon: Icons.play_arrow_rounded,
+                        onPressed: _isGenerating
+                            ? null
+                            : () async {
+                                Navigator.of(sheetContext).pop();
+                                await _handleGenerate(
+                                  template,
+                                  selectedFormat,
+                                  ReportGenerationOptions(
+                                    includeCharts: includeCharts,
+                                    includeDetailedTransactions:
+                                        includeDetailedTransactions,
+                                    includeBudgets: includeBudgets,
+                                    includeSubscriptions: includeSubscriptions,
+                                    includeSavingsGoals: includeSavingsGoals,
+                                  ),
+                                );
+                              },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _handleGenerate(
+    _AvailableReportTemplate template,
+    String format,
+    ReportGenerationOptions options,
+  ) async {
+    AppFeedbackService.showInfo(context, 'Generating report...');
+    _trackActivity(
+      title: '${template.title} processing',
+      status: _ReportActivityStatus.processing,
+      format: format,
+      icon: Icons.sync_rounded,
+    );
+
+    if (widget.generationExecutor != null) {
+      setState(() {
+        _isGenerating = true;
+      });
+      try {
+        await widget.generationExecutor!(template.reportKey, format, options);
+        if (!mounted) return;
+        _trackGeneratedReport(
+          reportKey: template.reportKey,
+          title: template.title,
+          format: format,
+          filename:
+              '${template.reportKey}_${DateTime.now().millisecondsSinceEpoch}.${format.toLowerCase()}',
+          icon: template.icon,
+          fileSizeBytes: 0,
+        );
+        _trackActivity(
+          title: '${template.title} generated',
+          status: _ReportActivityStatus.generated,
+          format: format,
+          icon: template.icon,
+        );
+        AppFeedbackService.showSuccess(
+            context, 'Report generated successfully');
+      } catch (_) {
+        if (!mounted) return;
+        _trackFailedReport(
+          reportKey: template.reportKey,
+          title: template.title,
+          format: format,
+          icon: template.icon,
+        );
+        AppFeedbackService.showError(context, 'Report generation failed');
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isGenerating = false;
+          });
+        }
+      }
+      return;
+    }
+
+    try {
+      await _runDefaultGeneration(template, format);
+      if (!mounted) return;
+      _trackActivity(
+        title: '${template.title} generated',
+        status: _ReportActivityStatus.generated,
+        format: format,
+        icon: template.icon,
+      );
+      AppFeedbackService.showSuccess(context, 'Report generated successfully');
+    } catch (_) {
+      if (!mounted) return;
+      _trackFailedReport(
+        reportKey: template.reportKey,
+        title: template.title,
+        format: format,
+        icon: template.icon,
+      );
+      AppFeedbackService.showError(context, 'Report generation failed');
+    }
+  }
+
+  Future<void> _runDefaultGeneration(
+    _AvailableReportTemplate template,
+    String format,
+  ) async {
+    switch (template.reportKey) {
+      case 'financial_summary':
+        if (format == 'PDF') {
+          await _generateFinancialSummary();
+          return;
+        }
+        if (format == 'CSV') {
+          await _generateTransactionHistory();
+          return;
+        }
+        AppFeedbackService.showWarning(
+          context,
+          'XLSX is exported as CSV in this build.',
+        );
+        await _generateTransactionHistory();
+        return;
+      case 'transaction_history':
+        await _generateTransactionHistory();
+        return;
+      case 'budget_analysis':
+        await _generateBudgetAnalysis();
+        return;
+      case 'subscription_costs':
+        await _generateSubscriptionReport();
+        return;
+      case 'savings_progress':
+      case 'cashflow_forecast':
+      case 'category_insights':
+        await _generateFinancialSummary();
+        return;
+      case 'tax_ready_export':
+        await _exportAsCSV();
+        return;
+    }
+  }
+
+  void _openExportWorkflowSheet() {
+    AppFormSheet.show(
+      context,
+      builder: (sheetContext) => AppFormSheet(
+        maxHeightFactor: 0.44,
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: const Text('Export Financial Summary (PDF)'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                AppFeedbackService.showInfo(context, 'Export started');
+                _generateFinancialSummary();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.table_chart_rounded),
+              title: const Text('Export Complete Data (CSV)'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                AppFeedbackService.showInfo(context, 'Export started');
+                _exportAsCSV();
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGeneratedReportsSection() {
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: AppSurfaces.elevated(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.history_rounded,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                l10n.reportsGeneratedReports,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (_generatedReports.isEmpty)
-            const SmartEmptyState(
-              icon: Icons.description_outlined,
-              title: 'No Reports Generated',
-              message:
-                  'Run a report to see your latest exports and generated files here.',
-              lottieAsset: 'assets/animations/empty_reports.json',
-            )
-          else
-            ..._generatedReports.map(
-              (entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .shadow
-                            .withValues(alpha: 0.06),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    leading: Icon(
-                      entry.icon,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    title: Text(
-                      entry.title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    subtitle: Text(
-                      '${entry.format} • ${DateFormat('MMM dd, yyyy HH:mm').format(entry.generatedAt)} • ${entry.filename}',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
+  void _applyQuickFilter(_QuickRangeFilter filter) {
+    final now = DateTime.now();
+    setState(() {
+      _quickRangeFilter = filter;
+      switch (filter) {
+        case _QuickRangeFilter.thisWeek:
+          final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+          _startDate =
+              DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+          _endDate = now;
+        case _QuickRangeFilter.thisMonth:
+          _startDate = DateTime(now.year, now.month, 1);
+          _endDate = now;
+        case _QuickRangeFilter.lastMonth:
+          _startDate = DateTime(now.year, now.month - 1, 1);
+          _endDate = DateTime(now.year, now.month, 0);
+        case _QuickRangeFilter.last3Months:
+          _startDate = DateTime(now.year, now.month - 3, 1);
+          _endDate = now;
+        case _QuickRangeFilter.thisYear:
+          _startDate = DateTime(now.year, 1, 1);
+          _endDate = now;
+        case _QuickRangeFilter.custom:
+          break;
+      }
+    });
+    AppFeedbackService.showInfo(context, 'Filter applied');
+  }
+
+  List<_ReportActivityEntry> _filteredActivities() {
+    return _activities.where((entry) {
+      switch (_activityFilter) {
+        case _ReportActivityFilter.all:
+          return true;
+        case _ReportActivityFilter.generated:
+          return entry.status == _ReportActivityStatus.generated ||
+              entry.status == _ReportActivityStatus.exported ||
+              entry.status == _ReportActivityStatus.downloaded;
+        case _ReportActivityFilter.failed:
+          return entry.status == _ReportActivityStatus.failed;
+        case _ReportActivityFilter.scheduled:
+          return entry.status == _ReportActivityStatus.scheduled;
+      }
+    }).toList(growable: false);
+  }
+
+  void _trackActivity({
+    required String title,
+    required _ReportActivityStatus status,
+    required String format,
+    required IconData icon,
+  }) {
+    setState(() {
+      _activities.insert(
+        0,
+        _ReportActivityEntry(
+          title: title,
+          status: status,
+          format: format,
+          icon: icon,
+          at: DateTime.now(),
+        ),
+      );
+      if (_activities.length > 20) {
+        _activities.removeLast();
+      }
+      _recomputeSummary();
+    });
   }
 
   void _trackGeneratedReport({
@@ -518,26 +1087,90 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     required String format,
     required String filename,
     required IconData icon,
+    required int fileSizeBytes,
   }) {
     final now = DateTime.now();
     setState(() {
-      _totalReportsGenerated += 1;
       _lastGeneratedAt = now;
       _reportCounts.update(reportKey, (value) => value + 1, ifAbsent: () => 1);
       _generatedReports.insert(
         0,
         _GeneratedReportEntry(
+          reportKey: reportKey,
           title: title,
           format: format,
           filename: filename,
           generatedAt: now,
           icon: icon,
+          status: _ReportRunStatus.generated,
+          fileSizeBytes: fileSizeBytes,
         ),
       );
-      if (_generatedReports.length > 10) {
+      if (_generatedReports.length > 12) {
         _generatedReports.removeLast();
       }
+      _recomputeSummary();
     });
+  }
+
+  void _trackFailedReport({
+    required String reportKey,
+    required String title,
+    required String format,
+    required IconData icon,
+  }) {
+    setState(() {
+      _generatedReports.insert(
+        0,
+        _GeneratedReportEntry(
+          reportKey: reportKey,
+          title: title,
+          format: format,
+          filename: 'failed',
+          generatedAt: DateTime.now(),
+          icon: icon,
+          status: _ReportRunStatus.failed,
+          fileSizeBytes: 0,
+        ),
+      );
+      if (_generatedReports.length > 12) {
+        _generatedReports.removeLast();
+      }
+      _activities.insert(
+        0,
+        _ReportActivityEntry(
+          title: '$title failed',
+          status: _ReportActivityStatus.failed,
+          format: format,
+          icon: icon,
+          at: DateTime.now(),
+        ),
+      );
+      if (_activities.length > 20) {
+        _activities.removeLast();
+      }
+      _recomputeSummary();
+    });
+  }
+
+  void _recomputeSummary() {
+    final now = DateTime.now();
+    var thisMonth = 0;
+    for (final entry in _generatedReports) {
+      if (entry.generatedAt.year == now.year &&
+          entry.generatedAt.month == now.month &&
+          entry.status == _ReportRunStatus.generated) {
+        thisMonth += 1;
+      }
+    }
+
+    _summary = _ReportsSummary(
+      totalGenerated: _generatedReports
+          .where((e) => e.status == _ReportRunStatus.generated)
+          .length,
+      generatedThisMonth: thisMonth,
+      lastExportAt: _lastGeneratedAt,
+    );
   }
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
@@ -550,88 +1183,88 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     if (picked != null) {
       setState(() {
+        _quickRangeFilter = _QuickRangeFilter.custom;
         if (isStart) {
           _startDate = picked;
         } else {
           _endDate = picked;
         }
       });
+      if (context.mounted) {
+        AppFeedbackService.showInfo(context, 'Filter applied');
+      }
     }
   }
 
-  void _setThisWeek() {
-    final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    setState(() {
-      _startDate =
-          DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
-      _endDate = DateTime.now();
-    });
-  }
-
-  void _setThisMonth() {
-    final now = DateTime.now();
-    setState(() {
-      _startDate = DateTime(now.year, now.month, 1);
-      _endDate = DateTime.now();
-    });
-  }
-
-  void _setLastMonth() {
-    final now = DateTime.now();
-    final lastMonth = DateTime(now.year, now.month - 1, 1);
-    final lastDayOfLastMonth = DateTime(now.year, now.month, 0);
-    setState(() {
-      _startDate = lastMonth;
-      _endDate = lastDayOfLastMonth;
-    });
-  }
-
-  void _setLast3Months() {
-    final now = DateTime.now();
-    setState(() {
-      _startDate = DateTime(now.year, now.month - 3, 1);
-      _endDate = DateTime.now();
-    });
-  }
-
-  void _setThisYear() {
-    final now = DateTime.now();
-    setState(() {
-      _startDate = DateTime(now.year, 1, 1);
-      _endDate = DateTime.now();
-    });
-  }
-
-  void _showExportOptions() {
-    final l10n = AppLocalizations.of(context)!;
-    AppFormSheet.show(
-      context,
-      builder: (sheetContext) => AppFormSheet(
-        body: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: Text(l10n.reportsExportAsPdf),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _generateFinancialSummary();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.table_chart),
-              title: Text(l10n.reportsExportAsCsv),
-              onTap: () {
-                Navigator.of(sheetContext).pop();
-                _exportAsCSV();
-              },
-            ),
-          ],
-        ),
-        maxHeightFactor: 0.42,
+  List<_AvailableReportTemplate> _buildAvailableReportTemplates() {
+    return const [
+      _AvailableReportTemplate(
+        reportKey: 'financial_summary',
+        title: 'Financial Summary',
+        description:
+            'High-level financial performance with balances and trends.',
+        icon: Icons.analytics_rounded,
+        formats: ['PDF', 'CSV', 'XLSX'],
+        estimatedDurationLabel: '~15s',
       ),
-    );
+      _AvailableReportTemplate(
+        reportKey: 'transaction_history',
+        title: 'Transaction History',
+        description: 'Full transaction timeline with categories and notes.',
+        icon: Icons.receipt_long_rounded,
+        formats: ['CSV', 'PDF', 'XLSX'],
+        estimatedDurationLabel: '~10s',
+      ),
+      _AvailableReportTemplate(
+        reportKey: 'budget_analysis',
+        title: 'Budget Analysis',
+        description: 'Budget utilization and over/under allocation insights.',
+        icon: Icons.pie_chart_rounded,
+        formats: ['PDF', 'CSV', 'XLSX'],
+        estimatedDurationLabel: '~20s',
+      ),
+      _AvailableReportTemplate(
+        reportKey: 'subscription_costs',
+        title: 'Subscription Costs',
+        description: 'Recurring services cost review and renewal overview.',
+        icon: Icons.subscriptions_rounded,
+        formats: ['PDF', 'CSV', 'XLSX'],
+        estimatedDurationLabel: '~12s',
+      ),
+      _AvailableReportTemplate(
+        reportKey: 'savings_progress',
+        title: 'Savings Progress',
+        description: 'Savings trajectory against targets and monthly cadence.',
+        icon: Icons.savings_rounded,
+        formats: ['PDF', 'CSV', 'XLSX'],
+        estimatedDurationLabel: '~12s',
+      ),
+      _AvailableReportTemplate(
+        reportKey: 'cashflow_forecast',
+        title: 'Cashflow Forecast',
+        description: 'Projected short-term inflow and outflow forecast.',
+        icon: Icons.show_chart_rounded,
+        formats: ['PDF', 'CSV', 'XLSX'],
+        estimatedDurationLabel: '~16s',
+      ),
+      _AvailableReportTemplate(
+        reportKey: 'category_insights',
+        title: 'Category Insights',
+        description: 'Category-level spend concentration and changes.',
+        icon: Icons.grid_view_rounded,
+        formats: ['PDF', 'CSV', 'XLSX'],
+        estimatedDurationLabel: '~14s',
+      ),
+      _AvailableReportTemplate(
+        reportKey: 'tax_ready_export',
+        title: 'Tax-ready Export',
+        description:
+            'Consolidated export package for tax preparation workflows.',
+        icon: Icons.request_page_rounded,
+        formats: ['CSV', 'XLSX', 'PDF'],
+        estimatedDurationLabel: '~18s',
+      ),
+    ];
   }
 
   Future<pw.ThemeData> _buildPdfTheme() async {
@@ -682,6 +1315,53 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     AppFeedbackService.dismissLoading();
   }
 
+  /// L-2 FIX: Show a privacy warning before sharing any report file.
+  /// Financial exports contain sensitive data; users should be reminded
+  /// before the OS share sheet hands the file to a third-party app.
+  Future<bool> _confirmShare(BuildContext ctx) async {
+    final confirmed = await showDialog<bool>(
+      context: ctx,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 22),
+            SizedBox(width: 8),
+            Text('Share Financial Data?'),
+          ],
+        ),
+        content: const Text(
+          'This file contains sensitive financial information. '
+          'Only share it with trusted recipients via secure channels.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.orange,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Share'),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
+  Future<void> _warnAndShare(XFile file, {required String text}) async {
+    if (!mounted) return;
+    final ok = await _confirmShare(context);
+    if (!ok || !mounted) return;
+    await Share.shareXFiles([file], text: text);
+  }
+
   Future<void> _generateFinancialSummary() async {
     _beginReportGeneration('Generating financial summary...');
     final l10n = AppLocalizations.of(context)!;
@@ -692,7 +1372,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       final appCurrency = ref.read(appCurrencyControllerProvider);
       final appCurrencySymbol = CurrencyUtils.symbol(appCurrency);
 
-      // Get data
       final transactions = await ref.read(transactionListProvider().future);
       final subscriptions = await ref.read(subscriptionListProvider.future);
       final budgets = await ref.read(activeBudgetsProvider.future);
@@ -713,11 +1392,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       final netIncome = income - expenses;
 
-      // Calculate subscription costs for the period
       final subscriptionCosts =
           subscriptions.fold<double>(0, (sum, s) => sum + s.monthlyCost);
 
-      // Calculate budget utilization
       final budgetUtilization = <String, double>{};
       for (final budget in budgets) {
         final spent = await ref.read(budgetSpendingProvider(
@@ -728,7 +1405,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         budgetUtilization[budget.category] = spent / budget.limitAmount;
       }
 
-      // Generate PDF
       pdf.addPage(
         pw.Page(
           theme: pdfTheme,
@@ -770,33 +1446,46 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         ),
       );
 
-      // Save and share
       final output = await _getOutputFile('financial_summary.pdf');
       await output.writeAsBytes(await pdf.save());
+      final fileSize = await output.length();
 
       _trackGeneratedReport(
-        reportKey: 'Financial Summary',
+        reportKey: 'financial_summary',
         title: l10n.reportsFinancialSummary(appCurrency.toUpperCase()),
         format: 'PDF',
         filename: output.path.split('/').last,
         icon: Icons.analytics_rounded,
+        fileSizeBytes: fileSize,
       );
 
-      await Share.shareXFiles(
-        [XFile(output.path)],
-        text: l10n.reportsShareFinancialSummary,
+      await _warnAndShare(XFile(output.path), text: l10n.reportsShareFinancialSummary);
+
+      _trackActivity(
+        title: 'Financial Summary shared',
+        status: _ReportActivityStatus.exported,
+        format: 'PDF',
+        icon: Icons.share_rounded,
       );
 
       if (mounted) {
         AppFeedbackService.showSuccess(context, l10n.reportsPdfGeneratedShared);
       }
     } catch (e) {
+      final appCurrency = ref.read(appCurrencyControllerProvider);
+      _trackFailedReport(
+        reportKey: 'financial_summary',
+        title: l10n.reportsFinancialSummary(appCurrency.toUpperCase()),
+        format: 'PDF',
+        icon: Icons.analytics_rounded,
+      );
       if (mounted) {
         AppFeedbackService.showError(
           context,
           l10n.reportsErrorGenerating(e.toString()),
         );
       }
+      rethrow;
     } finally {
       _finishReportGeneration();
     }
@@ -834,18 +1523,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       final csvString = const ListToCsvConverter().convert(csvData);
       final output = await _getOutputFile('transaction_history.csv');
       await output.writeAsString(csvString);
+      final fileSize = await output.length();
 
       _trackGeneratedReport(
-        reportKey: 'Transaction History',
+        reportKey: 'transaction_history',
         title: l10n.reportsTransactionHistory,
         format: 'CSV',
         filename: output.path.split('/').last,
         icon: Icons.receipt_long_rounded,
+        fileSizeBytes: fileSize,
       );
 
-      await Share.shareXFiles(
-        [XFile(output.path)],
-        text: l10n.reportsShareTransactionHistory,
+      await _warnAndShare(XFile(output.path), text: l10n.reportsShareTransactionHistory);
+
+      _trackActivity(
+        title: 'Transaction History shared',
+        status: _ReportActivityStatus.exported,
+        format: 'CSV',
+        icon: Icons.share_rounded,
       );
 
       if (mounted) {
@@ -855,12 +1550,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         );
       }
     } catch (e) {
+      _trackFailedReport(
+        reportKey: 'transaction_history',
+        title: l10n.reportsTransactionHistory,
+        format: 'CSV',
+        icon: Icons.receipt_long_rounded,
+      );
       if (mounted) {
         AppFeedbackService.showError(
           context,
           l10n.reportsErrorExportingData(e.toString()),
         );
       }
+      rethrow;
     } finally {
       _finishReportGeneration();
     }
@@ -877,7 +1579,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       final appCurrency = ref.read(appCurrencyControllerProvider);
       final appCurrencySymbol = CurrencyUtils.symbol(appCurrency);
 
-      // Calculate spending for each budget
       final budgetData = <Map<String, dynamic>>[];
       for (final budget in budgets) {
         final spent = await ref.read(budgetSpendingProvider(
@@ -958,18 +1659,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       final output = await _getOutputFile('budget_analysis.pdf');
       await output.writeAsBytes(await pdf.save());
+      final fileSize = await output.length();
 
       _trackGeneratedReport(
-        reportKey: 'Budget Analysis',
+        reportKey: 'budget_analysis',
         title: l10n.reportsBudgetAnalysis,
         format: 'PDF',
         filename: output.path.split('/').last,
         icon: Icons.pie_chart_rounded,
+        fileSizeBytes: fileSize,
       );
 
-      await Share.shareXFiles(
-        [XFile(output.path)],
-        text: l10n.reportsShareBudgetAnalysis,
+      await _warnAndShare(XFile(output.path), text: l10n.reportsShareBudgetAnalysis);
+
+      _trackActivity(
+        title: 'Budget Analysis shared',
+        status: _ReportActivityStatus.exported,
+        format: 'PDF',
+        icon: Icons.share_rounded,
       );
 
       if (mounted) {
@@ -979,12 +1686,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         );
       }
     } catch (e) {
+      _trackFailedReport(
+        reportKey: 'budget_analysis',
+        title: l10n.reportsBudgetAnalysis,
+        format: 'PDF',
+        icon: Icons.pie_chart_rounded,
+      );
       if (mounted) {
         AppFeedbackService.showError(
           context,
           l10n.reportsErrorGenerating(e.toString()),
         );
       }
+      rethrow;
     } finally {
       _finishReportGeneration();
     }
@@ -1055,18 +1769,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
       final output = await _getOutputFile('subscription_report.pdf');
       await output.writeAsBytes(await pdf.save());
+      final fileSize = await output.length();
 
       _trackGeneratedReport(
-        reportKey: 'Subscription Costs',
+        reportKey: 'subscription_costs',
         title: l10n.reportsSubscriptionCosts,
         format: 'PDF',
         filename: output.path.split('/').last,
         icon: Icons.subscriptions_rounded,
+        fileSizeBytes: fileSize,
       );
 
-      await Share.shareXFiles(
-        [XFile(output.path)],
-        text: l10n.reportsShareSubscriptionReport,
+      await _warnAndShare(XFile(output.path), text: l10n.reportsShareSubscriptionReport);
+
+      _trackActivity(
+        title: 'Subscription Costs shared',
+        status: _ReportActivityStatus.exported,
+        format: 'PDF',
+        icon: Icons.share_rounded,
       );
 
       if (mounted) {
@@ -1076,12 +1796,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         );
       }
     } catch (e) {
+      _trackFailedReport(
+        reportKey: 'subscription_costs',
+        title: l10n.reportsSubscriptionCosts,
+        format: 'PDF',
+        icon: Icons.subscriptions_rounded,
+      );
       if (mounted) {
         AppFeedbackService.showError(
           context,
           l10n.reportsErrorGenerating(e.toString()),
         );
       }
+      rethrow;
     } finally {
       _finishReportGeneration();
     }
@@ -1122,18 +1849,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       final csvString = const ListToCsvConverter().convert(csvData);
       final output = await _getOutputFile('complete_export.csv');
       await output.writeAsString(csvString);
+      final fileSize = await output.length();
 
       _trackGeneratedReport(
-        reportKey: 'Complete Export',
+        reportKey: 'tax_ready_export',
         title: l10n.reportsCompleteDataExportTitle,
         format: 'CSV',
         filename: output.path.split('/').last,
         icon: Icons.table_chart_rounded,
+        fileSizeBytes: fileSize,
       );
 
-      await Share.shareXFiles(
-        [XFile(output.path)],
-        text: l10n.reportsShareCompleteDataExport,
+      await _warnAndShare(XFile(output.path), text: l10n.reportsShareCompleteDataExport);
+
+      _trackActivity(
+        title: 'Complete Export shared',
+        status: _ReportActivityStatus.exported,
+        format: 'CSV',
+        icon: Icons.share_rounded,
       );
 
       if (mounted) {
@@ -1143,12 +1876,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         );
       }
     } catch (e) {
+      _trackFailedReport(
+        reportKey: 'tax_ready_export',
+        title: l10n.reportsCompleteDataExportTitle,
+        format: 'CSV',
+        icon: Icons.table_chart_rounded,
+      );
       if (mounted) {
         AppFeedbackService.showError(
           context,
           l10n.reportsErrorExportingData(e.toString()),
         );
       }
+      rethrow;
     } finally {
       _finishReportGeneration();
     }
@@ -1164,84 +1904,205 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 }
 
-class _ReportMetricChip extends StatelessWidget {
-  const _ReportMetricChip({
-    required this.label,
-    required this.value,
+class _AvailableReportTemplate {
+  const _AvailableReportTemplate({
+    required this.reportKey,
+    required this.title,
+    required this.description,
     required this.icon,
+    required this.formats,
+    required this.estimatedDurationLabel,
   });
 
-  final String label;
-  final String value;
+  final String reportKey;
+  final String title;
+  final String description;
   final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color:
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  final List<String> formats;
+  final String estimatedDurationLabel;
 }
 
 class _GeneratedReportEntry {
   const _GeneratedReportEntry({
+    required this.reportKey,
     required this.title,
     required this.format,
     required this.filename,
     required this.generatedAt,
     required this.icon,
+    required this.status,
+    required this.fileSizeBytes,
   });
 
+  final String reportKey;
   final String title;
   final String format;
   final String filename;
   final DateTime generatedAt;
   final IconData icon;
+  final _ReportRunStatus status;
+  final int fileSizeBytes;
+
+  String get fileSizeLabel {
+    if (fileSizeBytes <= 0) return 'size unavailable';
+    final kb = fileSizeBytes / 1024;
+    if (kb < 1024) return '${kb.toStringAsFixed(1)} KB';
+    return '${(kb / 1024).toStringAsFixed(2)} MB';
+  }
+}
+
+class _ReportActivityEntry {
+  const _ReportActivityEntry({
+    required this.title,
+    required this.status,
+    required this.format,
+    required this.icon,
+    required this.at,
+  });
+
+  final String title;
+  final _ReportActivityStatus status;
+  final String format;
+  final IconData icon;
+  final DateTime at;
+}
+
+enum _ReportRunStatus { generated, failed }
+
+enum _ReportActivityStatus {
+  generated,
+  exported,
+  processing,
+  failed,
+  scheduled,
+  downloaded,
+}
+
+extension _ReportActivityStatusX on _ReportActivityStatus {
+  String get label {
+    switch (this) {
+      case _ReportActivityStatus.generated:
+        return 'Generated';
+      case _ReportActivityStatus.exported:
+        return 'Exported';
+      case _ReportActivityStatus.processing:
+        return 'Processing';
+      case _ReportActivityStatus.failed:
+        return 'Failed';
+      case _ReportActivityStatus.scheduled:
+        return 'Scheduled';
+      case _ReportActivityStatus.downloaded:
+        return 'Generated';
+    }
+  }
+
+  Color color(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    switch (this) {
+      case _ReportActivityStatus.generated:
+        return const Color(0xFF0F9D58);
+      case _ReportActivityStatus.exported:
+        return scheme.primary;
+      case _ReportActivityStatus.processing:
+        return scheme.tertiary;
+      case _ReportActivityStatus.failed:
+        return scheme.error;
+      case _ReportActivityStatus.scheduled:
+        return const Color(0xFF6F62F4);
+      case _ReportActivityStatus.downloaded:
+        return scheme.primary;
+    }
+  }
+}
+
+enum _ReportActivityFilter { all, generated, failed, scheduled }
+
+extension _ReportActivityFilterX on _ReportActivityFilter {
+  String get label {
+    switch (this) {
+      case _ReportActivityFilter.all:
+        return 'All';
+      case _ReportActivityFilter.generated:
+        return 'Generated';
+      case _ReportActivityFilter.failed:
+        return 'Failed';
+      case _ReportActivityFilter.scheduled:
+        return 'Scheduled';
+    }
+  }
+
+  String get key {
+    switch (this) {
+      case _ReportActivityFilter.all:
+        return 'all';
+      case _ReportActivityFilter.generated:
+        return 'generated';
+      case _ReportActivityFilter.failed:
+        return 'failed';
+      case _ReportActivityFilter.scheduled:
+        return 'scheduled';
+    }
+  }
+}
+
+enum _QuickRangeFilter {
+  thisWeek,
+  thisMonth,
+  lastMonth,
+  last3Months,
+  thisYear,
+  custom,
+}
+
+extension _QuickRangeFilterX on _QuickRangeFilter {
+  String get label {
+    switch (this) {
+      case _QuickRangeFilter.thisWeek:
+        return 'This Week';
+      case _QuickRangeFilter.thisMonth:
+        return 'This Month';
+      case _QuickRangeFilter.lastMonth:
+        return 'Last Month';
+      case _QuickRangeFilter.last3Months:
+        return 'Last 3 Months';
+      case _QuickRangeFilter.thisYear:
+        return 'This Year';
+      case _QuickRangeFilter.custom:
+        return 'Custom';
+    }
+  }
+
+  String get key {
+    switch (this) {
+      case _QuickRangeFilter.thisWeek:
+        return 'this-week';
+      case _QuickRangeFilter.thisMonth:
+        return 'this-month';
+      case _QuickRangeFilter.lastMonth:
+        return 'last-month';
+      case _QuickRangeFilter.last3Months:
+        return 'last-3-months';
+      case _QuickRangeFilter.thisYear:
+        return 'this-year';
+      case _QuickRangeFilter.custom:
+        return 'custom';
+    }
+  }
+}
+
+class _ReportsSummary {
+  const _ReportsSummary({
+    required this.totalGenerated,
+    required this.generatedThisMonth,
+    required this.lastExportAt,
+  });
+
+  const _ReportsSummary.empty()
+      : totalGenerated = 0,
+        generatedThisMonth = 0,
+        lastExportAt = null;
+
+  final int totalGenerated;
+  final int generatedThisMonth;
+  final DateTime? lastExportAt;
 }

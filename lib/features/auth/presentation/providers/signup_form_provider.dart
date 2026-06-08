@@ -85,9 +85,13 @@ class SignupFormController extends StateNotifier<SignupFormState> {
   }
 }
 
-final signupFormProvider = StateNotifierProvider<SignupFormController, SignupFormState>((ref) {
-  return SignupFormController();
-});
+// M-3 FIX: autoDispose clears all signup fields (including password) when
+// the signup screen is popped, preventing credential state from persisting
+// in the Riverpod container after the user completes or abandons registration.
+final signupFormProvider =
+    StateNotifierProvider.autoDispose<SignupFormController, SignupFormState>(
+  (ref) => SignupFormController(),
+);
 
 
 

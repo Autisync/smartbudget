@@ -162,9 +162,9 @@ void main() {
       expect(file.existsSync(), isTrue, reason: 'Missing $path');
       final content = file.readAsStringSync();
       expect(
-        content.contains('KeyboardAwareFormSheet(') ||
-            content.contains('AppFormSheet('),
-        isTrue,
+          content.contains('KeyboardAwareFormSheet(') ||
+              content.contains('AppFormSheet('),
+          isTrue,
           reason: 'Expected keyboard-aware modal in $path');
     }
   });

@@ -611,8 +611,12 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   }) async {
     switch (action) {
       case 'viewTransactions':
-        _showOverspendTransactions(
-            context, budget, transactions, currencyFormat);
+        await _showOverspendTransactions(
+          context,
+          budget,
+          transactions,
+          currencyFormat,
+        );
         return;
       case 'edit':
         await _openBudgetForm(ref, existingBudget: budget);
@@ -827,14 +831,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     }
   }
 
-  void _showOverspendTransactions(
+  Future<void> _showOverspendTransactions(
     BuildContext context,
     Budget budget,
     List<Transaction> transactions,
     NumberFormat currencyFormat,
-  ) {
+  ) async {
     final l10n = AppLocalizations.of(context)!;
-    AppFormSheet.show<void>(
+    await AppFormSheet.show<void>(
       context,
       builder: (context) {
         if (transactions.isEmpty) {
@@ -849,29 +853,54 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
         return AppFormSheet(
           maxHeightFactor: 0.72,
-          body: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.all(12),
-              children: [
-                Text(
-                  l10n.budgetCategoryTransactions(budget.category),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                ...transactions.map(
-                  (tx) => ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(tx.note ?? tx.category),
-                    subtitle: Text(
-                      MaterialLocalizations.of(context)
-                          .formatMediumDate(tx.date),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.budgetCategoryTransactions(budget.category),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
-                    trailing: Text(currencyFormat.format(tx.amount)),
+              ),
+              const SizedBox(height: 12),
+              ...transactions.map(
+                (tx) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.48),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      title: Text(
+                        tx.note ?? tx.category,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        MaterialLocalizations.of(context)
+                            .formatMediumDate(tx.date),
+                      ),
+                      trailing: Text(
+                        currencyFormat.format(tx.amount),
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

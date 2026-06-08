@@ -1,0 +1,39 @@
+# Traefik v3 static configuration
+# Deploy this alongside docker-compose.yml on the production server.
+#
+# Setup:
+#   mkdir -p /opt/traefik/letsencrypt
+#   touch /opt/traefik/letsencrypt/acme.json
+#   chmod 600 /opt/traefik/letsencrypt/acme.json
+#
+# Then run Traefik (example docker-compose.traefik.yml in this directory).
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: proxy
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: no-reply@smaartspend.com   # receives expiry notices
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web                  # Let's Encrypt POSTs to :80 to verify domain
+
+log:
+  level: INFO
+
+api:
+  dashboard: false

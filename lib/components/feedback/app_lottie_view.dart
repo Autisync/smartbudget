@@ -158,6 +158,16 @@ class AppSuccessState extends StatelessWidget {
   }
 }
 
+class AppAnimatedSuccessState extends AppSuccessState {
+  const AppAnimatedSuccessState({
+    super.key,
+    required super.title,
+    required super.message,
+    super.assetPath = 'assets/animations/success.json',
+    super.action,
+  });
+}
+
 class AppErrorState extends StatelessWidget {
   const AppErrorState({
     super.key,
@@ -187,6 +197,66 @@ class AppErrorState extends StatelessWidget {
               assetPath: assetPath,
               semanticLabel: 'Error animation',
               fallbackIcon: Icons.error_outline_rounded,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 14),
+              FilledButton(
+                onPressed: onAction,
+                child: Text(actionLabel!),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AppAnimatedWarningState extends StatelessWidget {
+  const AppAnimatedWarningState({
+    super.key,
+    required this.title,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+    this.assetPath = 'assets/animations/warning.json',
+  });
+
+  final String title;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final String assetPath;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppLottieView(
+              assetPath: assetPath,
+              semanticLabel: 'Warning animation',
+              fallbackIcon: Icons.warning_amber_rounded,
             ),
             const SizedBox(height: 12),
             Text(

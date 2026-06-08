@@ -51,9 +51,13 @@ class LoginFormController extends StateNotifier<LoginFormState> {
   }
 }
 
-final loginFormProvider = StateNotifierProvider<LoginFormController, LoginFormState>((ref) {
-  return LoginFormController();
-});
+// M-3 FIX: autoDispose clears credentials from memory when the login screen
+// is popped, preventing sensitive form state from living indefinitely in the
+// Riverpod container while the user navigates the rest of the app.
+final loginFormProvider =
+    StateNotifierProvider.autoDispose<LoginFormController, LoginFormState>(
+  (ref) => LoginFormController(),
+);
 
 
 

@@ -53,7 +53,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byType(DropdownButton<String>));
+    await tester.tap(find.text('Food'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Bills').last);
     await tester.pumpAndSettle();

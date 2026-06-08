@@ -17,6 +17,7 @@ import 'package:smartbudget/core/services/theme_service.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/locale_service.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart';
+import 'package:smartbudget/data/encryption/field_encryptor.dart';
 import 'package:smartbudget/data/repositories/subscription_repository_impl.dart';
 
 part 'core_providers.g.dart';
@@ -51,6 +52,13 @@ EncryptionService encryptionService(EncryptionServiceRef ref) {
   final storage = ref.watch(secureStorageProvider);
   return EncryptionService(storage);
 }
+
+// C-2: Field-level encryption provider — injected into repositories that store
+// sensitive free-text in SQLite (notes, payment methods, descriptions).
+final fieldEncryptorProvider = Provider<FieldEncryptor>((ref) {
+  final encryption = ref.watch(encryptionServiceProvider);
+  return FieldEncryptor(encryption);
+});
 
 @Riverpod(keepAlive: true)
 BiometricAuthService biometricAuthService(BiometricAuthServiceRef ref) {
@@ -177,13 +185,17 @@ final notificationInboxProvider =
   return service.watchInbox();
 });
 
+final pushPermissionStateProvider =
+    FutureProvider<PushPermissionState>((ref) async {
+  final service = ref.watch(notificationServiceProvider);
+  return service.getPushPermissionState();
+});
+
 @Riverpod(keepAlive: true)
 SubscriptionRepositoryImpl subscriptionRepository(
     SubscriptionRepositoryRef ref) {
   final database = ref.watch(databaseProvider);
-  return SubscriptionRepositoryImpl(database);
+  final encryptor = ref.watch(fieldEncryptorProvider);
+  // C-2: inject FieldEncryptor so description/paymentMethod/website are encrypted.
+  return SubscriptionRepositoryImpl(database, encryptor: encryptor);
 }
-
-
-
-

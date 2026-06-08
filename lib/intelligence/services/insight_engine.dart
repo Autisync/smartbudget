@@ -11,7 +11,10 @@ import 'package:smartbudget/intelligence/predictors/cashflow_predictor.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 
 class InsightEngine {
-  const InsightEngine();
+  const InsightEngine({InsightRankingService? rankingService})
+      : _rankingService = rankingService ?? const InsightRankingService();
+
+  final InsightRankingService _rankingService;
 
   InsightResults buildResults({
     required SpendingProfile profile,
@@ -35,11 +38,13 @@ class InsightEngine {
       insights.add(_buildHealthyInsight(currency));
     }
 
+    final rankedInsights = _rankingService.rank(insights);
+
     final forecastSeries = _buildForecastSeries(history, forecast, currency);
 
     return InsightResults(
       currency: currency,
-      insights: insights,
+      insights: rankedInsights,
       forecastSeries: forecastSeries,
       spendingProfile: profile,
       forecast: forecast,
@@ -328,6 +333,30 @@ class InsightEngine {
   }
 }
 
+class InsightRankingService {
+  const InsightRankingService();
 
+  List<Insight> rank(List<Insight> insights) {
+    final ranked = [...insights];
+    ranked.sort((a, b) {
+      final severityDelta =
+          _severityWeight(b.severity) - _severityWeight(a.severity);
+      if (severityDelta != 0) return severityDelta;
+      final confidenceDelta = b.confidence.compareTo(a.confidence);
+      if (confidenceDelta != 0) return confidenceDelta;
+      return a.title.compareTo(b.title);
+    });
+    return ranked;
+  }
 
-
+  int _severityWeight(InsightSeverity severity) {
+    switch (severity) {
+      case InsightSeverity.high:
+        return 3;
+      case InsightSeverity.medium:
+        return 2;
+      case InsightSeverity.low:
+        return 1;
+    }
+  }
+}
