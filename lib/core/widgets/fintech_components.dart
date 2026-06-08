@@ -885,6 +885,20 @@ class AppBottomNavigation extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(UiTokens.radiusLg),
                 ),
+                // Subtle upward lift to separate the bar from scrolling content
+                // without a heavy border or divider.
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.shadow.withValues(
+                      alpha: colorScheme.brightness == Brightness.dark
+                          ? 0.22
+                          : 0.05,
+                    ),
+                    blurRadius: 24,
+                    offset: const Offset(0, -8),
+                    spreadRadius: -10,
+                  ),
+                ],
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
