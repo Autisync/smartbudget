@@ -1,12 +1,8 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
+import 'database_cipher.dart';
 import '../../models/tables.dart';
 
 part 'app_database.g.dart';
@@ -78,12 +74,11 @@ class AppDatabase extends _$AppDatabase {
         },
       );
 
+  // Production connection is SQLCipher-encrypted at rest. DatabaseCipher reads
+  // the key from the OS keychain/keystore and migrates a legacy plaintext DB on
+  // first run. Unit tests bypass this via AppDatabase.forTesting (plain memory).
   static QueryExecutor _openConnection() {
-    return LazyDatabase(() async {
-      final docs = await getApplicationDocumentsDirectory();
-      final file = File(p.join(docs.path, 'smartbudget_db.sqlite'));
-      return NativeDatabase(file);
-    });
+    return DatabaseCipher.openEncryptedDatabase();
   }
 
   // Transaction Queries

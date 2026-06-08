@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/data/datasources/local/database_cipher.dart';
 import 'package:smartbudget/features/accounts/presentation/providers/account_provider.dart';
 import 'package:smartbudget/core/router/app_router.dart';
 import 'package:smartbudget/core/services/locale_service.dart';
@@ -21,6 +23,11 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // Route package:sqlite3 to the bundled SQLCipher native library and apply the
+  // old-Android workaround BEFORE the encrypted database is first opened.
+  DatabaseCipher.setupSqlCipher();
+  await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
 
   // Initialize services
   final container = ProviderContainer();
