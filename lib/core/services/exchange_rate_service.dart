@@ -97,6 +97,13 @@ class ExchangeRateService {
   final Dio _openExchangeRateApiDio;
   final String _exchangeRateApiKey;
 
+  /// In-memory cache of the last successful quote per currency pair, with the
+  /// time it was fetched. A fresh entry (within [_cacheTtl]) is returned without
+  /// any network call, cutting billed API requests and enabling offline use. If
+  /// every provider fails, a stale entry is still returned as a last resort.
+  final Map<String, _CachedQuote> _rateCache = {};
+  static const Duration _cacheTtl = Duration(hours: 1);
+
   Future<ExchangeRateQuote> fetchRate({
     required String base,
     required String target,
@@ -113,25 +120,49 @@ class ExchangeRateService {
       );
     }
 
+    final cacheKey = '${from}_$to';
+    final cached = _rateCache[cacheKey];
+    if (cached != null &&
+        DateTime.now().difference(cached.fetchedAt) < _cacheTtl) {
+      return cached.quote; // fresh — skip the network entirely
+    }
+
     if (_exchangeRateApiKey.isNotEmpty) {
       try {
-        return await _fetchRateFromExchangeRateApi(base: from, target: to);
+        return _remember(
+          cacheKey,
+          await _fetchRateFromExchangeRateApi(base: from, target: to),
+        );
       } catch (_) {
         // Fallback to Frankfurter/ECB if the primary provider is unavailable.
       }
     }
 
     try {
-      return await _fetchRateFromOpenExchangeRateApi(base: from, target: to);
+      return _remember(
+        cacheKey,
+        await _fetchRateFromOpenExchangeRateApi(base: from, target: to),
+      );
     } catch (_) {
       // Fallback to Frankfurter/ECB if the open provider is unavailable.
     }
 
     try {
-      return await _fetchRateFromFrankfurter(base: from, target: to);
+      return _remember(
+        cacheKey,
+        await _fetchRateFromFrankfurter(base: from, target: to),
+      );
     } catch (error) {
+      // All live providers failed — serve a stale cached rate if we have one
+      // rather than leaving the user with nothing.
+      if (cached != null) return cached.quote;
       throw Exception('Unable to load exchange rate for $from/$to.');
     }
+  }
+
+  ExchangeRateQuote _remember(String key, ExchangeRateQuote quote) {
+    _rateCache[key] = _CachedQuote(quote, DateTime.now());
+    return quote;
   }
 
   Future<ExchangeRateQuote> _fetchRateFromExchangeRateApi({
@@ -354,3 +385,11 @@ class _ApiKeyRedactingInterceptor extends Interceptor {
 
 
 
+
+/// A previously-fetched quote plus the wall-clock time it was retrieved, used
+/// by [ExchangeRateService]'s in-memory TTL cache.
+class _CachedQuote {
+  const _CachedQuote(this.quote, this.fetchedAt);
+  final ExchangeRateQuote quote;
+  final DateTime fetchedAt;
+}
