@@ -128,7 +128,27 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
     expect(find.text('Budget Portfolio'), findsOneWidget);
+    // The action-menu trigger icon is wrapped in a Tooltip, which on current
+    // Flutter renders via an OverlayPortal. Default finders treat that subtree
+    // as offstage, so we must opt in with skipOffstage: false. The button is
+    // painted and hit-testable for real users; warnIfMissed: false avoids a
+    // false-positive miss warning from the offstage classification.
+    final menuTrigger =
+        find.byIcon(Icons.more_horiz, skipOffstage: false).first;
+    await tester.ensureVisible(menuTrigger);
+    await tester.pumpAndSettle();
+    await tester.tap(menuTrigger, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('View transactions').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Food transactions'), findsOneWidget);
+    // The redesigned detail view surfaces the amount in several places
+    // (header total, list row, summary). The smoke check only needs to confirm
+    // the $120 transaction made it onto the screen.
+    expect(find.textContaining(r'$120.00'), findsWidgets);
+    expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(
       _testHost(

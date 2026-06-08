@@ -47,9 +47,16 @@ class EncryptionService {
 
     final key = encrypt.Key.fromBase64(keyString);
 
-    // GCM requires padding: null — the GCMBlockCipher handles framing itself.
+    // IMPORTANT: do NOT pass padding: null for GCM. In the `encrypt` package,
+    // a null padding routes encryption/decryption through a raw processBlock
+    // loop that never calls doFinal — which means the GCM authentication tag is
+    // neither appended nor verified, silently disabling tamper detection.
+    // Leaving padding at its default makes the Encrypter call _cipher.process()
+    // (→ doFinal), so GCMBlockCipher appends the 16-byte tag on encrypt and
+    // throws on tag mismatch during decrypt. GCM ignores the PKCS7 byte-padding
+    // itself (it is an AEAD stream cipher), so no extra padding is applied.
     _gcmEncrypter = encrypt.Encrypter(
-      encrypt.AES(key, mode: encrypt.AESMode.gcm, padding: null),
+      encrypt.AES(key, mode: encrypt.AESMode.gcm),
     );
 
     // CBC encrypter retained exclusively for decrypting existing records.
