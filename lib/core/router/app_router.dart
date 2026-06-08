@@ -16,6 +16,7 @@ import 'package:smartbudget/features/savings/presentation/screens/savings_screen
 import 'package:smartbudget/features/insights/presentation/screens/insights_screen.dart';
 import 'package:smartbudget/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:smartbudget/features/exchange_rates/presentation/screens/exchange_rates_screen.dart';
+import 'package:smartbudget/features/accounts/presentation/screens/accounts_screen.dart';
 import 'package:smartbudget/features/balance_sheet/presentation/screens/recurring_balance_sheet_screen.dart';
 import 'package:smartbudget/features/scenario_lab/presentation/screens/scenario_lab_screen.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/subscriptions_screen.dart';
@@ -232,6 +233,10 @@ GoRouter router(RouterRef ref) {
           GoRoute(
             path: '/exchange-rates',
             builder: (context, state) => const ExchangeRatesScreen(),
+          ),
+          GoRoute(
+            path: '/accounts',
+            builder: (context, state) => const AccountsScreen(),
           ),
           GoRoute(
             path: '/balance-sheet',
@@ -502,140 +507,134 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                      Center(
-                        child: Container(
-                          width: 38,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: colorScheme.outline.withValues(alpha: 0.45),
-                            borderRadius: BorderRadius.circular(999),
+                        Center(
+                          child: Container(
+                            width: 38,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color:
+                                  colorScheme.outline.withValues(alpha: 0.45),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: UiTokens.space12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'More',
-                              style: textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w800,
+                        const SizedBox(height: UiTokens.space12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'More',
+                                style: textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
-                          ),
-                          IconButton(
-                            onPressed: () => Navigator.of(sheetContext).pop(),
-                            icon: const Icon(Icons.close_rounded),
-                            tooltip: MaterialLocalizations.of(sheetContext)
-                                .closeButtonTooltip,
-                          ),
-                        ],
-                      ),
-                      const _MoreSectionHeader(title: 'Account'),
-                      AppSettingsTile(
-                        icon: AppIcons.settingsFilled,
-                        title: l10n.settings,
-                        onTap: () => goTo('/settings'),
-                      ),
-                      const SizedBox(height: UiTokens.space8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _MoreQuickAction(
-                              icon: AppIcons.subscriptionsFilled,
-                              label: l10n.navSubscriptions,
-                              onTap: () => goTo('/subscriptions'),
+                            IconButton(
+                              onPressed: () => Navigator.of(sheetContext).pop(),
+                              icon: const Icon(Icons.close_rounded),
+                              tooltip: MaterialLocalizations.of(sheetContext)
+                                  .closeButtonTooltip,
                             ),
-                          ),
-                          const SizedBox(width: UiTokens.space8),
-                          Expanded(
-                            child: _MoreQuickAction(
-                              icon: AppIcons.reportsFilled,
-                              label: l10n.reportsTitle,
-                              onTap: () => goTo('/reports'),
+                          ],
+                        ),
+                        const _MoreSectionHeader(title: 'Account'),
+                        AppSettingsTile(
+                          icon: AppIcons.settingsFilled,
+                          title: l10n.settings,
+                          onTap: () => goTo('/settings'),
+                        ),
+                        const SizedBox(height: UiTokens.space8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _MoreQuickAction(
+                                icon: AppIcons.subscriptionsFilled,
+                                label: l10n.navSubscriptions,
+                                onTap: () => goTo('/subscriptions'),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: UiTokens.space8),
-                          Expanded(
-                            child: _MoreQuickAction(
-                              icon: AppIcons.exchangeRates,
-                              label: l10n.navExchangeRates,
-                              onTap: () => goTo('/exchange-rates'),
+                            const SizedBox(width: UiTokens.space8),
+                            Expanded(
+                              child: _MoreQuickAction(
+                                icon: AppIcons.reportsFilled,
+                                label: l10n.reportsTitle,
+                                onTap: () => goTo('/reports'),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: UiTokens.space8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _MoreQuickAction(
-                              icon: AppIcons.insightsFilled,
-                              label: l10n.insightsFinancialCopilot,
-                              onTap: () => goTo('/insights'),
+                            const SizedBox(width: UiTokens.space8),
+                            Expanded(
+                              child: _MoreQuickAction(
+                                icon: AppIcons.exchangeRates,
+                                label: l10n.navExchangeRates,
+                                onTap: () => goTo('/exchange-rates'),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: UiTokens.space8),
-                          Expanded(
-                            child: _MoreQuickAction(
-                              icon: Icons.ios_share_rounded,
-                              label: 'Export',
-                              onTap: () => goTo('/reports'),
+                          ],
+                        ),
+                        const SizedBox(height: UiTokens.space8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _MoreQuickAction(
+                                icon: AppIcons.insightsFilled,
+                                label: l10n.insightsFinancialCopilot,
+                                onTap: () => goTo('/insights'),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: UiTokens.space8),
-                          Expanded(
-                            child: _MoreQuickAction(
-                              icon: Icons.science_rounded,
-                              label: 'Scenario Lab',
-                              onTap: () => goTo('/scenario-lab'),
+                            const SizedBox(width: UiTokens.space8),
+                            Expanded(
+                              child: _MoreQuickAction(
+                                icon: Icons.science_rounded,
+                                label: 'Scenario Lab',
+                                onTap: () => goTo('/scenario-lab'),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: UiTokens.space16),
-                      AppSettingsTile(
-                        icon: Icons.lock_outline_rounded,
-                        title: 'Authentication settings',
-                        onTap: () => goTo('/security'),
-                      ),
-                      const SizedBox(height: UiTokens.space12),
-                      const _MoreSectionHeader(title: 'Support'),
-                      StatefulBuilder(
-                        builder: (context, setTileState) {
-                          Future<void> updateTheme(bool value) async {
-                            setTileState(() => isDarkMode = value);
-                            await container
-                                .read(themeModeControllerProvider.notifier)
-                                .setThemeMode(
-                                  value ? ThemeMode.dark : ThemeMode.light,
-                                );
-                          }
+                          ],
+                        ),
+                        const SizedBox(height: UiTokens.space16),
+                        AppSettingsTile(
+                          icon: Icons.lock_outline_rounded,
+                          title: 'Authentication settings',
+                          onTap: () => goTo('/security'),
+                        ),
+                        const SizedBox(height: UiTokens.space12),
+                        const _MoreSectionHeader(title: 'Support'),
+                        StatefulBuilder(
+                          builder: (context, setTileState) {
+                            Future<void> updateTheme(bool value) async {
+                              setTileState(() => isDarkMode = value);
+                              await container
+                                  .read(themeModeControllerProvider.notifier)
+                                  .setThemeMode(
+                                    value ? ThemeMode.dark : ThemeMode.light,
+                                  );
+                            }
 
-                          return AppSettingsTile(
-                            icon: Icons.dark_mode_rounded,
-                            title: 'Dark Mode Settings',
-                            subtitle: isDarkMode ? 'Night mode' : 'Light mode',
-                            trailing: Switch.adaptive(
-                              value: isDarkMode,
-                              onChanged: updateTheme,
-                            ),
-                            onTap: () => updateTheme(!isDarkMode),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: UiTokens.space8),
-                      AppSettingsTile(
-                        icon: Icons.help_outline_rounded,
-                        title: 'Help / Feedback',
-                        onTap: openHelpWebsite,
-                      ),
-                      const SizedBox(height: UiTokens.space8),
-                      AppSettingsTile(
-                        icon: Icons.gavel_rounded,
-                        title: l10n.legalCenterTitle,
-                        onTap: () => pushTo('/legal'),
-                      ),
+                            return AppSettingsTile(
+                              icon: Icons.dark_mode_rounded,
+                              title: 'Dark Mode Settings',
+                              subtitle:
+                                  isDarkMode ? 'Night mode' : 'Light mode',
+                              trailing: Switch.adaptive(
+                                value: isDarkMode,
+                                onChanged: updateTheme,
+                              ),
+                              onTap: () => updateTheme(!isDarkMode),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: UiTokens.space8),
+                        AppSettingsTile(
+                          icon: Icons.help_outline_rounded,
+                          title: 'Help / Feedback',
+                          onTap: openHelpWebsite,
+                        ),
+                        const SizedBox(height: UiTokens.space8),
+                        AppSettingsTile(
+                          icon: Icons.gavel_rounded,
+                          title: l10n.legalCenterTitle,
+                          onTap: () => pushTo('/legal'),
+                        ),
                       ],
                     ),
                   ),

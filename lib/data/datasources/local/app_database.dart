@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -29,6 +30,11 @@ String _generateUuid() {
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
+
+  /// Test-only constructor that accepts a custom executor (e.g. an in-memory
+  /// database) so the schema and queries can be exercised without touching disk.
+  @visibleForTesting
+  AppDatabase.forTesting(super.executor);
 
   @override
   int get schemaVersion => 6;
@@ -124,13 +130,107 @@ class AppDatabase extends _$AppDatabase {
     };
   }
 
-  Stream<double> watchTotalBalance() {
-    final query = select(accounts);
-    query.where((a) => a.isActive.equals(true));
+  // ---------------------------------------------------------------------------
+  // Account Queries
+  //
+  // Accounts model the *source* of money (Cash, Bank Transfer, Credit Card, …).
+  // The stored `balance` column is treated as the account's OPENING balance.
+  // The live "current balance" is always DERIVED as:
+  //     opening + Σ(income to account) − Σ(expense from account)
+  // Deriving on read (rather than mutating a stored running total on every
+  // write) guarantees the balance can never drift out of sync with the ledger.
+  // Transfers are excluded because the single-accountId schema cannot model the
+  // counterparty side of a transfer.
+  // ---------------------------------------------------------------------------
 
-    return query.watch().map(
-          (accounts) => accounts.fold(0.0, (sum, acc) => sum + acc.balance),
-        );
+  Future<List<Account>> getAccounts({bool includeInactive = false}) {
+    final query = select(accounts);
+    if (!includeInactive) {
+      query.where((a) => a.isActive.equals(true));
+    }
+    query.orderBy([(a) => OrderingTerm.asc(a.createdAt)]);
+    return query.get();
+  }
+
+  Stream<List<Account>> watchAccounts({bool includeInactive = false}) {
+    final query = select(accounts);
+    if (!includeInactive) {
+      query.where((a) => a.isActive.equals(true));
+    }
+    query.orderBy([(a) => OrderingTerm.asc(a.createdAt)]);
+    return query.watch();
+  }
+
+  Future<Account?> getAccountById(String id) {
+    return (select(accounts)..where((a) => a.id.equals(id))).getSingleOrNull();
+  }
+
+  Future<void> insertAccount(AccountsCompanion account) async {
+    await into(accounts).insert(account, mode: InsertMode.insertOrReplace);
+  }
+
+  Future<void> updateAccount(AccountsCompanion account) async {
+    await update(accounts).replace(account);
+  }
+
+  /// Soft-deletes an account by marking it inactive. We never hard-delete an
+  /// account that may still be referenced by historical transactions.
+  Future<void> deactivateAccount(String id) async {
+    await (update(accounts)..where((a) => a.id.equals(id))).write(
+      const AccountsCompanion(isActive: Value(false)),
+    );
+  }
+
+  /// Returns the net transaction delta (income − expense, transfers excluded)
+  /// grouped by accountId. Used to derive current balances.
+  Future<Map<String, double>> getNetTransactionDeltaByAccount() async {
+    final rows = await select(transactions).get();
+    final deltas = <String, double>{};
+    for (final tx in rows) {
+      switch (tx.type) {
+        case TransactionType.income:
+          deltas[tx.accountId] = (deltas[tx.accountId] ?? 0) + tx.amount;
+        case TransactionType.expense:
+          deltas[tx.accountId] = (deltas[tx.accountId] ?? 0) - tx.amount;
+        case TransactionType.transfer:
+          break; // counterparty cannot be modelled with a single accountId
+      }
+    }
+    return deltas;
+  }
+
+  /// Current balance per account id: opening balance + net transaction delta.
+  Future<Map<String, double>> computeAccountBalances({
+    bool includeInactive = false,
+  }) async {
+    final accs = await getAccounts(includeInactive: includeInactive);
+    final deltas = await getNetTransactionDeltaByAccount();
+    return {
+      for (final a in accs) a.id: a.balance + (deltas[a.id] ?? 0),
+    };
+  }
+
+  /// One-time, idempotent remap of legacy transactions that were written with
+  /// the placeholder accountId `'default'` (before real accounts existed) onto
+  /// a concrete account. Without this, the accounts↔transactions inner joins
+  /// used by analytics return zero rows for legacy data.
+  Future<int> remapLegacyAccountId({
+    required String fromId,
+    required String toId,
+  }) async {
+    return (update(transactions)..where((t) => t.accountId.equals(fromId)))
+        .write(TransactionsCompanion(accountId: Value(toId)));
+  }
+
+  Stream<double> watchTotalBalance() {
+    // Total current balance across active accounts (opening + net ledger).
+    return watchAccounts().asyncMap((accs) async {
+      final deltas = await getNetTransactionDeltaByAccount();
+      return accs.fold<double>(
+        0.0,
+        (sum, acc) => sum + acc.balance + (deltas[acc.id] ?? 0),
+      );
+    });
   }
 
   // Budget Queries
@@ -250,6 +350,29 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> insertAuthLog(AuthLogsCompanion log) async {
     await into(authLogs).insert(log);
+  }
+
+  /// H-2: Returns count of failed auth attempts for [deviceId] within [window].
+  /// Used by SecurityService.isLockedOut() to enforce client-side lockout.
+  Future<int> countRecentAuthFailures({
+    required Duration window,
+    String deviceId = 'local_device',
+  }) async {
+    final since = DateTime.now().subtract(window);
+    final query = select(authLogs)
+      ..where((a) => a.deviceId.equals(deviceId))
+      ..where((a) => a.status.equals(AuthStatus.failed.index))
+      ..where((a) => a.timestamp.isBiggerOrEqualValue(since));
+    final results = await query.get();
+    return results.length;
+  }
+
+  /// M-4: Deletes auth log entries older than [retentionDays] days.
+  Future<void> pruneAuthLogs({int retentionDays = 90}) async {
+    final cutoff = DateTime.now().subtract(Duration(days: retentionDays));
+    await (delete(authLogs)
+          ..where((a) => a.timestamp.isSmallerThanValue(cutoff)))
+        .go();
   }
 
   Future<List<Subscription>> getDueSubscriptions(DateTime date) {
