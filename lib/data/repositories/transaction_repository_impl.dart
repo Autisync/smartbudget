@@ -1,4 +1,5 @@
 import 'package:smartbudget/data/datasources/local/app_database.dart' as db;
+import 'package:smartbudget/data/encryption/field_encryptor.dart';
 import 'package:smartbudget/data/models/tables.dart' show TransactionRecurrence;
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/domain/repositories/transaction_repository.dart';
@@ -7,8 +8,10 @@ import 'package:uuid/uuid.dart';
 
 class TransactionRepositoryImpl implements TransactionRepository {
   final db.AppDatabase _db;
+  final FieldEncryptor _enc;
 
-  TransactionRepositoryImpl(this._db);
+  // C-2: Requires a [FieldEncryptor] to encrypt/decrypt the `note` field.
+  TransactionRepositoryImpl(this._db, this._enc);
 
   @override
   Future<List<Transaction>> getTransactions({
@@ -34,7 +37,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
       type: Value(transaction.type),
       category: Value(transaction.category),
       date: Value(transaction.date),
-      note: Value(transaction.note),
+      note: Value(_enc.encryptNullable(transaction.note)), // C-2: encrypted
       recurrence: Value(transaction.recurrence),
       isSynced: const Value(false),
     );
@@ -64,7 +67,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
       type: Value(transaction.type),
       category: Value(transaction.category),
       date: Value(transaction.date),
-      note: Value(transaction.note),
+      note: Value(_enc.encryptNullable(transaction.note)), // C-2: encrypted
       recurrence: Value(transaction.recurrence),
       updatedAt: Value(DateTime.now()),
       isSynced: const Value(false),
@@ -75,12 +78,10 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<void> syncTransactions() async {
-    // Implementation for cloud sync
-    final unsynced = await _db.getUnsyncedTransactions();
-    // TODO: Send to API and mark as synced
-    for (final tx in unsynced) {
-      await _db.updateSyncStatus(tx.id, true);
-    }
+    // Cloud sync not yet implemented. Transactions intentionally remain marked
+    // isSynced=false until the backend sync endpoint is integrated. Do NOT mark
+    // records as synced here — callers rely on isSynced=false to know what
+    // still needs to be sent to the server.
   }
 
   @override
@@ -92,11 +93,15 @@ class TransactionRepositoryImpl implements TransactionRepository {
       var nextDate = _nextOccurrence(tx.date, tx.recurrence);
       var iterations = 0;
 
-      // Generate all past-due occurrences, but keep each (rule + datetime)
-      // idempotent so repeated scheduler runs can't duplicate same-day rows.
+      // Generate all past-due occurrences idempotently: skip any (rule + date)
+      // combination that already exists in the DB.
       while (!nextDate.isAfter(now) && iterations < 4000) {
         final exists = await _hasRecurringOccurrence(tx, nextDate);
         if (!exists) {
+          // tx comes from the raw DB layer — tx.note is the encrypted ciphertext.
+          // Decrypt before handing to addTransaction, which will re-encrypt it.
+          // Passing the ciphertext directly would cause double-encryption and
+          // make the stored note unreadable.
           final newTransaction = Transaction(
             id: const Uuid().v4(),
             accountId: tx.accountId,
@@ -105,7 +110,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
             type: tx.type,
             category: tx.category,
             date: nextDate,
-            note: tx.note,
+            note: _enc.decryptNullable(tx.note), // decrypt raw DB value first
             recurrence: tx.recurrence,
             isSynced: false,
           );
@@ -118,6 +123,17 @@ class TransactionRepositoryImpl implements TransactionRepository {
     }
   }
 
+  /// Returns true if a transaction already exists for [source]'s rule at
+  /// [occurrenceDate].
+  ///
+  /// Deduplication is intentionally done on structural fields only
+  /// (accountId, amount, currency, type, category, recurrence, date).
+  /// The note column is excluded because:
+  ///   1. It is encrypted with a random nonce (AES-GCM), so two encryptions
+  ///      of the same plaintext produce different ciphertexts — a ciphertext
+  ///      comparison would never match even for identical notes.
+  ///   2. The structural fields alone uniquely identify one occurrence of a
+  ///      recurring rule on a specific date.
   Future<bool> _hasRecurringOccurrence(
     db.Transaction source,
     DateTime occurrenceDate,
@@ -130,12 +146,6 @@ class TransactionRepositoryImpl implements TransactionRepository {
       ..where((t) => t.category.equals(source.category))
       ..where((t) => t.recurrence.equals(source.recurrence.index))
       ..where((t) => t.date.equals(occurrenceDate));
-
-    if (source.note == null || source.note!.isEmpty) {
-      query.where((t) => t.note.isNull());
-    } else {
-      query.where((t) => t.note.equals(source.note!));
-    }
 
     final existing = await query.getSingleOrNull();
     return existing != null;
@@ -173,7 +183,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
       type: row.type,
       category: row.category,
       date: row.date,
-      note: row.note,
+      note: _enc.decryptNullable(row.note), // C-2: decrypt with plaintext fallback
       recurrence: row.recurrence,
       isSynced: row.isSynced,
     );
