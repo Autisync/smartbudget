@@ -12,7 +12,8 @@ part 'transaction_provider.g.dart';
 @Riverpod(keepAlive: true)
 TransactionRepository transactionRepository(TransactionRepositoryRef ref) {
   final database = ref.watch(databaseProvider);
-  return TransactionRepositoryImpl(database);
+  final encryptor = ref.watch(fieldEncryptorProvider);
+  return TransactionRepositoryImpl(database, encryptor);
 }
 
 @riverpod
@@ -112,8 +113,7 @@ Future<TransactionDecisionSnapshotData> transactionDecisionSnapshot(
 }
 
 @riverpod
-Future<CashflowPrediction> cashflowPrediction(
-    CashflowPredictionRef ref) async {
+Future<CashflowPrediction> cashflowPrediction(CashflowPredictionRef ref) async {
   final repo = ref.watch(transactionRepositoryProvider);
   final transactions = await repo.getTransactions();
   final currentBalance = transactions.fold<double>(0.0, (sum, tx) {
@@ -129,7 +129,3 @@ Future<void> recurringTransactions(RecurringTransactionsRef ref) async {
   final repo = ref.watch(transactionRepositoryProvider);
   await repo.generateRecurringTransactions();
 }
-
-
-
-
