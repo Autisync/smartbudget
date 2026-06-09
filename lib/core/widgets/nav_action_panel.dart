@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:smartbudget/core/theme/app_shadows.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
@@ -36,6 +38,10 @@ class NavActionPanel extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = cs.brightness == Brightness.dark;
 
+    final radius = BorderRadius.circular(UiTokens.radius2xl);
+    // Near-transparent, frosted panel so the screen shows through it.
+    final panelColor = cs.surface.withValues(alpha: isDark ? 0.55 : 0.62);
+
     return TweenAnimationBuilder<double>(
       duration: UiTokens.motionMedium,
       curve: UiTokens.motionCurve,
@@ -50,27 +56,41 @@ class NavActionPanel extends StatelessWidget {
           ),
         );
       },
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: cs.surface,
-            borderRadius: BorderRadius.circular(UiTokens.radius2xl),
-            border: Border.all(
-              color: cs.outline.withValues(alpha: isDark ? 0.55 : 0.9),
-              width: 1,
+      child: DecoratedBox(
+        // Shadow lives outside the clip so the blur doesn't swallow it.
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          boxShadow: AppShadows.floating(cs.shadow),
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: panelColor,
+                  borderRadius: radius,
+                  border: Border.all(
+                    color: cs.outline.withValues(alpha: isDark ? 0.5 : 0.8),
+                    width: 1,
+                  ),
+                ),
+                child: GridView.count(
+                  crossAxisCount: crossAxisCount,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 4,
+                  crossAxisSpacing: 4,
+                  childAspectRatio: 0.82,
+                  children: [
+                    for (final item in items) _NavActionTile(item: item),
+                  ],
+                ),
+              ),
             ),
-            boxShadow: AppShadows.floating(cs.shadow),
-          ),
-          child: GridView.count(
-            crossAxisCount: crossAxisCount,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 4,
-            crossAxisSpacing: 4,
-            childAspectRatio: 0.82,
-            children: [for (final item in items) _NavActionTile(item: item)],
           ),
         ),
       ),
@@ -87,9 +107,10 @@ class _NavActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = cs.brightness == Brightness.dark;
+    // Slightly stronger than the frosted panel so each tile stays distinct.
     final tileBg = isDark
-        ? Colors.white.withValues(alpha: 0.06)
-        : cs.onSurface.withValues(alpha: 0.04);
+        ? Colors.white.withValues(alpha: 0.1)
+        : cs.onSurface.withValues(alpha: 0.06);
 
     return InkWell(
       onTap: item.onTap,

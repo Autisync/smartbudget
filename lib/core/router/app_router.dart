@@ -383,7 +383,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
               behavior: HitTestBehavior.opaque,
               onTap: _closePanel,
               child: ColoredBox(
-                color: Colors.black.withValues(alpha: 0.28),
+                // Light scrim: the frosted panel provides the focus, so the
+                // rest of the screen stays visible behind it.
+                color: Colors.black.withValues(alpha: 0.12),
               ),
             ),
           ),
