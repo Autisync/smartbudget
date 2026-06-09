@@ -372,9 +372,15 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     );
   }
 
-  /// Overlays the active expandable panel (and a tap-to-dismiss scrim) above the
-  /// given body, anchored just above the navigation bar.
+  /// Overlays the active expandable panel (and a tap-to-dismiss scrim).
+  ///
+  /// The panel aligns with the capsule's footprint — its right edge stops where
+  /// the capsule ended (16 margin + 60 button + 10 gap = 86) so the round "×"
+  /// sits at the bottom-right *beside* the panel, not underneath it. Its bottom
+  /// is anchored near the button's centre so the "×" pokes out at the corner,
+  /// matching the reference.
   Widget _wrapWithPanel(Widget body) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
     return Stack(
       children: [
         Positioned.fill(child: body),
@@ -392,8 +398,8 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
           ),
           Positioned(
             left: 16,
-            right: 16,
-            bottom: 8,
+            right: 86,
+            bottom: bottomInset + 28,
             child: NavActionPanel(
               items: _panel == _NavPanel.add
                   ? _buildAddItems()
