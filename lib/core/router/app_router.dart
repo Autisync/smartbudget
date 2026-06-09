@@ -357,6 +357,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     }
 
     return Scaffold(
+      // Let the page content flow behind the floating nav capsule so there is
+      // no opaque strip behind it — it reads as truly floating over the screen.
+      extendBody: true,
       body: _wrapWithPanel(widget.child),
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: _calculateBottomIndex(context),
