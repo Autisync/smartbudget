@@ -454,7 +454,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       ),
       NavActionItem(
         icon: AppIcons.savingsFilled,
-        label: 'Savings goal',
+        label: 'Savings',
         onTap: () => openModalAdd(QuickAddTarget.savings, '/savings'),
       ),
       NavActionItem(

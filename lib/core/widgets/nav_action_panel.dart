@@ -73,7 +73,7 @@ class NavActionPanel extends StatelessWidget {
             child: Material(
               color: Colors.transparent,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
                 decoration: BoxDecoration(
                   color: panelColor,
                   borderRadius: radius,
@@ -86,9 +86,11 @@ class NavActionPanel extends StatelessWidget {
                   crossAxisCount: crossAxisCount,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 6,
-                  crossAxisSpacing: 6,
-                  childAspectRatio: 0.82,
+                  mainAxisSpacing: 4,
+                  crossAxisSpacing: 4,
+                  // Ratio tuned to actual content height so GridView doesn't
+                  // over-allocate and leave dead vertical space.
+                  childAspectRatio: 0.9,
                   children: [
                     for (final item in items)
                       _NavActionTile(item: item, columnCount: crossAxisCount),
@@ -115,12 +117,10 @@ class _NavActionTile extends StatelessWidget {
     final isDark = cs.brightness == Brightness.dark;
     final screenWidth = MediaQuery.sizeOf(context).width;
 
-    // All grids use the same compact sizing — tile width is determined by the
-    // column count so icons naturally fill the available space.
-    final baseSize = screenWidth < 360 ? 48.0 : screenWidth > 420 ? 60.0 : 54.0;
-
-    final containerSize = baseSize;
-    final iconSize = containerSize * 0.48;
+    // Compact icon container — smaller so tile content matches the allocated
+    // grid cell height without dead space above/below.
+    final containerSize = screenWidth < 360 ? 38.0 : screenWidth > 420 ? 48.0 : 42.0;
+    final iconSize = containerSize * 0.52;
     final containerRadius = containerSize * 0.28;
 
     // Tile background uses the app's primary container token so it inherits
@@ -136,7 +136,7 @@ class _NavActionTile extends StatelessWidget {
       onTap: item.onTap,
       borderRadius: BorderRadius.circular(containerRadius + 4),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+        padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 3.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -151,7 +151,7 @@ class _NavActionTile extends StatelessWidget {
               alignment: Alignment.center,
               child: Icon(item.icon, size: iconSize, color: iconColor),
             ),
-            const SizedBox(height: 6.0),
+            const SizedBox(height: 4.0),
             Flexible(
               child: Text(
                 item.label,
@@ -162,7 +162,9 @@ class _NavActionTile extends StatelessWidget {
                       color: cs.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                       height: 1.15,
-                      fontSize: screenWidth < 360 ? 10.0 : 11.0,
+                      // 9.5sp: "Subscription" (12 chars × ~5.4px) ≈ 65px
+                      // which fits inside the ~65px tile width at 4 columns.
+                      fontSize: screenWidth < 360 ? 9.0 : 9.5,
                     ),
               ),
             ),
