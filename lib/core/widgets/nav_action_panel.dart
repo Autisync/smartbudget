@@ -92,7 +92,8 @@ class NavActionPanel extends StatelessWidget {
                   // squarer tiles; narrow columns need taller tiles for text.
                   childAspectRatio: crossAxisCount <= 2 ? 1.0 : 0.82,
                   children: [
-                    for (final item in items) _NavActionTile(item: item),
+                    for (final item in items)
+                      _NavActionTile(item: item, columnCount: crossAxisCount),
                   ],
                 ),
               ),
@@ -105,9 +106,10 @@ class NavActionPanel extends StatelessWidget {
 }
 
 class _NavActionTile extends StatelessWidget {
-  const _NavActionTile({required this.item});
+  const _NavActionTile({required this.item, required this.columnCount});
 
   final NavActionItem item;
+  final int columnCount;
 
   @override
   Widget build(BuildContext context) {
@@ -115,17 +117,15 @@ class _NavActionTile extends StatelessWidget {
     final isDark = cs.brightness == Brightness.dark;
     final screenWidth = MediaQuery.sizeOf(context).width;
 
-    // Icon container scales with screen width:
-    //   • compact  (<360 dp) → 48 dp
-    //   • normal   (360–420) → 54 dp
-    //   • large    (>420 dp) → 60 dp
-    final containerSize = screenWidth < 360
-        ? 48.0
-        : screenWidth > 420
-            ? 60.0
-            : 54.0;
-    final iconSize = containerSize * 0.48; // ~50 % of container
-    final containerRadius = containerSize * 0.30;
+    // 2-column add menu has ~130 dp tiles — use large icons to fill the space.
+    // 3+ column menus stay compact.
+    final baseSize = columnCount <= 2
+        ? (screenWidth < 360 ? 72.0 : screenWidth > 420 ? 84.0 : 76.0)
+        : (screenWidth < 360 ? 48.0 : screenWidth > 420 ? 60.0 : 54.0);
+
+    final containerSize = baseSize;
+    final iconSize = containerSize * 0.48;
+    final containerRadius = containerSize * 0.28;
 
     // Tile background uses the app's primary container token so it inherits
     // the brand palette automatically in both light and dark modes.
@@ -140,7 +140,10 @@ class _NavActionTile extends StatelessWidget {
       onTap: item.onTap,
       borderRadius: BorderRadius.circular(containerRadius + 4),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        padding: EdgeInsets.symmetric(
+          vertical: columnCount <= 2 ? 12.0 : 8.0,
+          horizontal: columnCount <= 2 ? 8.0 : 4.0,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -155,7 +158,7 @@ class _NavActionTile extends StatelessWidget {
               alignment: Alignment.center,
               child: Icon(item.icon, size: iconSize, color: iconColor),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: columnCount <= 2 ? 10.0 : 6.0),
             Flexible(
               child: Text(
                 item.label,
@@ -166,7 +169,9 @@ class _NavActionTile extends StatelessWidget {
                       color: cs.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                       height: 1.15,
-                      fontSize: screenWidth < 360 ? 10 : 11,
+                      fontSize: columnCount <= 2
+                          ? (screenWidth < 360 ? 12.0 : 13.0)
+                          : (screenWidth < 360 ? 10.0 : 11.0),
                     ),
               ),
             ),
