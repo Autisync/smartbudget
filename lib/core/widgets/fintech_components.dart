@@ -1031,9 +1031,10 @@ class _CapsuleNavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
+    // Active pill uses primaryContainer so it matches the action panel tiles.
     final pillColor = isDark
-        ? Colors.white.withValues(alpha: 0.1)
-        : colorScheme.onSurface.withValues(alpha: 0.06);
+        ? colorScheme.primaryContainer.withValues(alpha: 0.45)
+        : colorScheme.primaryContainer.withValues(alpha: 0.70);
 
     return Semantics(
       button: true,
@@ -1056,8 +1057,9 @@ class _CapsuleNavItem extends StatelessWidget {
             child: Icon(
               selected ? item.activeIcon : item.icon,
               size: 22,
+              // Active icon uses cs.primary, matching brand buttons & panel icons.
               color: selected
-                  ? colorScheme.onSurface
+                  ? colorScheme.primary
                   : colorScheme.onSurfaceVariant,
             ),
           ),
