@@ -69,7 +69,7 @@ class NavActionPanel extends StatelessWidget {
             child: Material(
               color: Colors.transparent,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
                 decoration: BoxDecoration(
                   color: panelColor,
                   borderRadius: radius,
@@ -84,7 +84,7 @@ class NavActionPanel extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 6,
                   crossAxisSpacing: 6,
-                  childAspectRatio: 0.72,
+                  childAspectRatio: 0.85,
                   children: [
                     for (final item in items) _NavActionTile(item: item),
                   ],

@@ -400,11 +400,15 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
             left: 16,
             right: 86,
             bottom: bottomInset + 28,
-            child: NavActionPanel(
-              items: _panel == _NavPanel.add
-                  ? _buildAddItems()
-                  : _buildMoreItems(),
-            ),
+            child: _panel == _NavPanel.add
+                ? NavActionPanel(
+                    items: _buildAddItems(),
+                    crossAxisCount: 2,
+                  )
+                : NavActionPanel(
+                    items: _buildMoreItems(),
+                    crossAxisCount: 3,
+                  ),
           ),
         ],
       ],
@@ -524,12 +528,12 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       ),
       NavActionItem(
         icon: AppIcons.exchangeRates,
-        label: 'FX Rates',
+        label: 'Exchange Rates',
         onTap: () => goTo('/exchange-rates'),
       ),
       NavActionItem(
         icon: AppIcons.insightsFilled,
-        label: 'AI Copilot',
+        label: 'AI Insights',
         onTap: () => goTo('/insights'),
       ),
       NavActionItem(
