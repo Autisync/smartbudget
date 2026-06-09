@@ -373,8 +373,14 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   }
 
   /// Overlays the active expandable panel (and a tap-to-dismiss scrim) above the
-  /// given body, anchored just above the navigation bar.
+  /// given body, anchored well above the navigation bar / close button.
   Widget _wrapWithPanel(Widget body) {
+    // The shell Scaffold uses extendBody, so the body fills behind the nav.
+    // Anchor the panel above the whole nav row (height ~72 + safe inset) plus a
+    // generous gap so its bottom never reaches the round "×" close button.
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    const navHeight = 72.0;
+    const gap = 36.0;
     return Stack(
       children: [
         Positioned.fill(child: body),
@@ -393,7 +399,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
           Positioned(
             left: 16,
             right: 16,
-            bottom: 8,
+            bottom: bottomInset + navHeight + gap,
             child: NavActionPanel(
               items: _panel == _NavPanel.add
                   ? _buildAddItems()
