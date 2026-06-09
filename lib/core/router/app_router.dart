@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:smartbudget/core/theme/app_icons.dart';
-import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:smartbudget/features/dashboard/presentation/screens/financial_health_screen.dart';
@@ -36,7 +34,9 @@ import 'package:smartbudget/features/onboarding/presentation/screens/legal_cente
 import 'package:smartbudget/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/providers/quick_add_provider.dart';
 import 'package:smartbudget/core/widgets/logo_loading_indicator.dart';
+import 'package:smartbudget/core/widgets/nav_action_panel.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -294,8 +294,15 @@ class ScaffoldWithNavBar extends StatefulWidget {
   State<ScaffoldWithNavBar> createState() => _ScaffoldWithNavBarState();
 }
 
+/// Which expandable bottom-nav panel is currently open.
+enum _NavPanel { none, add, more }
+
 class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
-  bool _isMoreSheetOpen = false;
+  _NavPanel _panel = _NavPanel.none;
+
+  void _closePanel() {
+    if (_panel != _NavPanel.none) setState(() => _panel = _NavPanel.none);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -343,20 +350,202 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
               ],
             ),
             const VerticalDivider(width: 1),
-            Expanded(child: widget.child),
+            Expanded(child: _wrapWithPanel(widget.child)),
           ],
         ),
       );
     }
 
     return Scaffold(
-      body: widget.child,
+      body: _wrapWithPanel(widget.child),
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: _calculateBottomIndex(context),
-        moreTemporarilyActive: _isMoreSheetOpen,
+        moreActive: _panel == _NavPanel.more,
+        actionIsClose: _panel != _NavPanel.none,
         onTabSelected: _onBottomTabSelected,
+        onActionButtonTapped: _onActionButtonTapped,
       ),
     );
+  }
+
+  /// Overlays the active expandable panel (and a tap-to-dismiss scrim) above the
+  /// given body, anchored just above the navigation bar.
+  Widget _wrapWithPanel(Widget body) {
+    return Stack(
+      children: [
+        Positioned.fill(child: body),
+        if (_panel != _NavPanel.none) ...[
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _closePanel,
+              child: ColoredBox(
+                color: Colors.black.withValues(alpha: 0.28),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 8,
+            child: NavActionPanel(
+              items: _panel == _NavPanel.add
+                  ? _buildAddItems()
+                  : _buildMoreItems(),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _onActionButtonTapped() {
+    // The detached round button: "×" closes any open panel, "+" opens add.
+    setState(() {
+      _panel = _panel == _NavPanel.none ? _NavPanel.add : _NavPanel.none;
+    });
+  }
+
+  // -- Quick-add menu ---------------------------------------------------------
+
+  List<NavActionItem> _buildAddItems() {
+    final router = GoRouter.of(context);
+    final container = ProviderScope.containerOf(context);
+
+    void pushTo(String route) {
+      _closePanel();
+      router.push(route);
+    }
+
+    void openModalAdd(QuickAddTarget target, String route) {
+      _closePanel();
+      // Raise the in-screen add form via a pending request the destination
+      // screen consumes, then navigate there.
+      container.read(pendingQuickAddProvider.notifier).state = target;
+      router.go(route);
+    }
+
+    return [
+      NavActionItem(
+        icon: AppIcons.transactionsFilled,
+        label: 'Transaction',
+        onTap: () => pushTo('/transactions/add'),
+      ),
+      NavActionItem(
+        icon: AppIcons.subscriptionsFilled,
+        label: 'Subscription',
+        onTap: () => pushTo('/subscriptions/add'),
+      ),
+      NavActionItem(
+        icon: AppIcons.savingsFilled,
+        label: 'Savings goal',
+        onTap: () => openModalAdd(QuickAddTarget.savings, '/savings'),
+      ),
+      NavActionItem(
+        icon: AppIcons.budgetsFilled,
+        label: 'Budget',
+        onTap: () => openModalAdd(QuickAddTarget.budget, '/budgets'),
+      ),
+    ];
+  }
+
+  // -- More menu --------------------------------------------------------------
+
+  List<NavActionItem> _buildMoreItems() {
+    final l10n = AppLocalizations.of(context)!;
+    final router = GoRouter.of(context);
+    final container = ProviderScope.containerOf(context);
+    final isDark =
+        container.read(themeModeControllerProvider) == ThemeMode.dark;
+
+    void goTo(String route) {
+      _closePanel();
+      router.go(route);
+    }
+
+    void pushTo(String route) {
+      _closePanel();
+      router.push(route);
+    }
+
+    Future<void> openHelpWebsite() async {
+      _closePanel();
+      final websiteUri = Uri.parse('https://www.smaartspend.com');
+      final launched = await launchUrl(
+        websiteUri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to open website right now.')),
+        );
+      }
+    }
+
+    void toggleTheme() {
+      container
+          .read(themeModeControllerProvider.notifier)
+          .setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
+      _closePanel();
+    }
+
+    return [
+      NavActionItem(
+        icon: AppIcons.settingsFilled,
+        label: l10n.settings,
+        onTap: () => pushTo('/settings'),
+      ),
+      NavActionItem(
+        icon: Icons.account_balance_wallet_rounded,
+        label: 'Accounts',
+        onTap: () => pushTo('/accounts'),
+      ),
+      NavActionItem(
+        icon: AppIcons.subscriptionsFilled,
+        label: l10n.navSubscriptions,
+        onTap: () => goTo('/subscriptions'),
+      ),
+      NavActionItem(
+        icon: AppIcons.reportsFilled,
+        label: l10n.reportsTitle,
+        onTap: () => goTo('/reports'),
+      ),
+      NavActionItem(
+        icon: AppIcons.exchangeRates,
+        label: l10n.navExchangeRates,
+        onTap: () => goTo('/exchange-rates'),
+      ),
+      NavActionItem(
+        icon: AppIcons.insightsFilled,
+        label: l10n.insightsFinancialCopilot,
+        onTap: () => goTo('/insights'),
+      ),
+      NavActionItem(
+        icon: Icons.science_rounded,
+        label: 'Scenario Lab',
+        onTap: () => goTo('/scenario-lab'),
+      ),
+      NavActionItem(
+        icon: Icons.lock_outline_rounded,
+        label: 'Authentication',
+        onTap: () => goTo('/security'),
+      ),
+      NavActionItem(
+        icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+        label: isDark ? 'Light mode' : 'Dark mode',
+        onTap: toggleTheme,
+      ),
+      NavActionItem(
+        icon: Icons.help_outline_rounded,
+        label: 'Help',
+        onTap: openHelpWebsite,
+      ),
+      NavActionItem(
+        icon: Icons.gavel_rounded,
+        label: l10n.legalCenterTitle,
+        onTap: () => pushTo('/legal'),
+      ),
+    ];
   }
 
   int _calculateBottomIndex(BuildContext context) {
@@ -388,334 +577,19 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     return 4;
   }
 
-  void _onRailItemTapped(int index) {
-    switch (index) {
-      case 0:
-        GoRouter.of(context).go('/transactions');
-        break;
-      case 1:
-        GoRouter.of(context).go('/budgets');
-        break;
-      case 2:
-        GoRouter.of(context).go('/');
-        break;
-      case 3:
-        GoRouter.of(context).go('/savings');
-        break;
-      case 4:
-        _onBottomTabSelected(4);
-        break;
+  void _onRailItemTapped(int index) => _onBottomTabSelected(index);
+
+  void _onBottomTabSelected(int index) {
+    // The "More" item (4) toggles its expandable panel; the rest navigate and
+    // dismiss any open panel.
+    if (index == 4) {
+      setState(() {
+        _panel = _panel == _NavPanel.more ? _NavPanel.none : _NavPanel.more;
+      });
+      return;
     }
-  }
-
-  Future<void> _onBottomTabSelected(int index) async {
-    switch (index) {
-      case 0:
-        GoRouter.of(context).go('/transactions');
-        break;
-      case 1:
-        GoRouter.of(context).go('/budgets');
-        break;
-      case 2:
-        GoRouter.of(context).go('/');
-        break;
-      case 3:
-        GoRouter.of(context).go('/savings');
-        break;
-      case 4:
-        if (mounted) {
-          setState(() => _isMoreSheetOpen = true);
-        }
-        await _showMoreSheet();
-        if (mounted) {
-          setState(() => _isMoreSheetOpen = false);
-        }
-        break;
-    }
-  }
-
-  Future<void> _showMoreSheet() async {
-    final l10n = AppLocalizations.of(context)!;
-    final router = GoRouter.of(context);
-
-    await showCupertinoModalBottomSheet<void>(
-      context: context,
-      expand: false,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        final colorScheme = Theme.of(sheetContext).colorScheme;
-        final textTheme = Theme.of(sheetContext).textTheme;
-        final container = ProviderScope.containerOf(sheetContext);
-        var isDarkMode =
-            container.read(themeModeControllerProvider) == ThemeMode.dark;
-
-        void goTo(String route) {
-          Navigator.of(sheetContext).pop();
-          router.go(route);
-        }
-
-        void pushTo(String route) {
-          Navigator.of(sheetContext).pop();
-          router.push(route);
-        }
-
-        Future<void> openHelpWebsite() async {
-          final websiteUri = Uri.parse('https://www.smaartspend.com');
-          final launched = await launchUrl(
-            websiteUri,
-            mode: LaunchMode.externalApplication,
-          );
-          if (!launched && sheetContext.mounted) {
-            ScaffoldMessenger.of(sheetContext).showSnackBar(
-              const SnackBar(
-                content: Text('Unable to open website right now.'),
-              ),
-            );
-          }
-        }
-
-        return Material(
-          color: Colors.transparent,
-          child: AnimatedPadding(
-            duration: UiTokens.motionFast,
-            curve: UiTokens.motionCurve,
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(UiTokens.radius2xl),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.shadow.withValues(alpha: 0.14),
-                    blurRadius: 24,
-                    offset: const Offset(0, -8),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.86,
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Container(
-                            width: 38,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color:
-                                  colorScheme.outline.withValues(alpha: 0.45),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: UiTokens.space12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'More',
-                                style: textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () => Navigator.of(sheetContext).pop(),
-                              icon: const Icon(Icons.close_rounded),
-                              tooltip: MaterialLocalizations.of(sheetContext)
-                                  .closeButtonTooltip,
-                            ),
-                          ],
-                        ),
-                        const _MoreSectionHeader(title: 'Account'),
-                        AppSettingsTile(
-                          icon: AppIcons.settingsFilled,
-                          title: l10n.settings,
-                          onTap: () => goTo('/settings'),
-                        ),
-                        const SizedBox(height: UiTokens.space8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _MoreQuickAction(
-                                icon: AppIcons.subscriptionsFilled,
-                                label: l10n.navSubscriptions,
-                                onTap: () => goTo('/subscriptions'),
-                              ),
-                            ),
-                            const SizedBox(width: UiTokens.space8),
-                            Expanded(
-                              child: _MoreQuickAction(
-                                icon: AppIcons.reportsFilled,
-                                label: l10n.reportsTitle,
-                                onTap: () => goTo('/reports'),
-                              ),
-                            ),
-                            const SizedBox(width: UiTokens.space8),
-                            Expanded(
-                              child: _MoreQuickAction(
-                                icon: AppIcons.exchangeRates,
-                                label: l10n.navExchangeRates,
-                                onTap: () => goTo('/exchange-rates'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: UiTokens.space8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _MoreQuickAction(
-                                icon: AppIcons.insightsFilled,
-                                label: l10n.insightsFinancialCopilot,
-                                onTap: () => goTo('/insights'),
-                              ),
-                            ),
-                            const SizedBox(width: UiTokens.space8),
-                            Expanded(
-                              child: _MoreQuickAction(
-                                icon: Icons.science_rounded,
-                                label: 'Scenario Lab',
-                                onTap: () => goTo('/scenario-lab'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: UiTokens.space16),
-                        AppSettingsTile(
-                          icon: Icons.lock_outline_rounded,
-                          title: 'Authentication settings',
-                          onTap: () => goTo('/security'),
-                        ),
-                        const SizedBox(height: UiTokens.space12),
-                        const _MoreSectionHeader(title: 'Support'),
-                        StatefulBuilder(
-                          builder: (context, setTileState) {
-                            Future<void> updateTheme(bool value) async {
-                              setTileState(() => isDarkMode = value);
-                              await container
-                                  .read(themeModeControllerProvider.notifier)
-                                  .setThemeMode(
-                                    value ? ThemeMode.dark : ThemeMode.light,
-                                  );
-                            }
-
-                            return AppSettingsTile(
-                              icon: Icons.dark_mode_rounded,
-                              title: 'Dark Mode Settings',
-                              subtitle:
-                                  isDarkMode ? 'Night mode' : 'Light mode',
-                              trailing: Switch.adaptive(
-                                value: isDarkMode,
-                                onChanged: updateTheme,
-                              ),
-                              onTap: () => updateTheme(!isDarkMode),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: UiTokens.space8),
-                        AppSettingsTile(
-                          icon: Icons.help_outline_rounded,
-                          title: 'Help / Feedback',
-                          onTap: openHelpWebsite,
-                        ),
-                        const SizedBox(height: UiTokens.space8),
-                        AppSettingsTile(
-                          icon: Icons.gavel_rounded,
-                          title: l10n.legalCenterTitle,
-                          onTap: () => pushTo('/legal'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _MoreSectionHeader extends StatelessWidget {
-  const _MoreSectionHeader({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.9),
-            ),
-      ),
-    );
-  }
-}
-
-class _MoreQuickAction extends StatelessWidget {
-  const _MoreQuickAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(UiTokens.radiusLg),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: UiTokens.space8,
-          vertical: UiTokens.space12,
-        ),
-        decoration: BoxDecoration(
-          color: colorScheme.primary.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(UiTokens.radiusLg),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: colorScheme.primary, size: 20),
-            const SizedBox(height: UiTokens.space4),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
+    _closePanel();
+    const routes = {0: '/transactions', 1: '/budgets', 2: '/', 3: '/savings'};
+    GoRouter.of(context).go(routes[index]!);
   }
 }

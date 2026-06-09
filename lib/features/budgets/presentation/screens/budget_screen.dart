@@ -8,6 +8,7 @@ import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/components/sheets/keyboard_aware_form_sheet.dart';
 import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/providers/quick_add_provider.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
@@ -35,6 +36,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   bool _isAppBarScrolled = false;
   bool _hasShownBudgetExceededWarning = false;
 
+  void _maybeHandleQuickAdd(QuickAddTarget? target) {
+    if (target != QuickAddTarget.budget) return;
+    ref.read(pendingQuickAddProvider.notifier).state = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _openBudgetForm(ref);
+    });
+  }
+
   void _updateAppBarScrollState(double offset) {
     const threshold = 8.0;
     final shouldShowFill = offset > threshold;
@@ -46,6 +55,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   @override
   void initState() {
     super.initState();
+    // Consume a quick-add request raised from the bottom-nav "+" menu before
+    // navigating here (covers entering the screen fresh).
+    _maybeHandleQuickAdd(ref.read(pendingQuickAddProvider));
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final policy = await ref.read(rolloverPolicyServiceProvider).loadPolicy();
@@ -102,6 +114,11 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Covers the case where the user triggers the quick-add while already on
+    // this screen (provider changes null → budget without a fresh initState).
+    ref.listen<QuickAddTarget?>(pendingQuickAddProvider, (_, next) {
+      _maybeHandleQuickAdd(next);
+    });
     final l10n = AppLocalizations.of(context)!;
     final budgetsAsync = ref.watch(budgetListProvider);
     final alertsAsync = ref.watch(budgetAlertsProvider);

@@ -110,19 +110,25 @@ class AppBottomNav extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onTabSelected,
-    this.moreTemporarilyActive = false,
+    required this.onActionButtonTapped,
+    this.actionIsClose = false,
+    this.moreActive = false,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTabSelected;
-  final bool moreTemporarilyActive;
+  final VoidCallback onActionButtonTapped;
+  final bool actionIsClose;
+  final bool moreActive;
 
   @override
   Widget build(BuildContext context) {
     return AppBottomNavigation(
       currentIndex: currentIndex,
       onTabSelected: onTabSelected,
-      moreTemporarilyActive: moreTemporarilyActive,
+      onActionButtonTapped: onActionButtonTapped,
+      actionIsClose: actionIsClose,
+      moreActive: moreActive,
     );
   }
 }

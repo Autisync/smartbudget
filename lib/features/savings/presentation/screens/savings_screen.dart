@@ -11,6 +11,7 @@ import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
 import 'package:smartbudget/components/sheets/app_bottom_action_sheet.dart';
 import 'package:smartbudget/components/sheets/keyboard_aware_form_sheet.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/providers/quick_add_provider.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/core/widgets/app_feedback.dart';
@@ -74,6 +75,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     _loadSurplusDismissState();
     _loadGoalLifecycleState();
     _loadGoalMilestones();
+    // Consume a quick-add request raised from the bottom-nav "+" menu.
+    _maybeHandleQuickAdd(ref.read(pendingQuickAddProvider));
     _nudgeSubscription = ref.listenManual<AsyncValue<List<SavingsNudge>>>(
       savingsNudgesProvider,
       (previous, next) {
@@ -105,6 +108,14 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
   void dispose() {
     _nudgeSubscription?.close();
     super.dispose();
+  }
+
+  void _maybeHandleQuickAdd(QuickAddTarget? target) {
+    if (target != QuickAddTarget.savings) return;
+    ref.read(pendingQuickAddProvider.notifier).state = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _openGoalForm(ref);
+    });
   }
 
   Future<void> _loadSurplusDismissState() async {
@@ -393,6 +404,9 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<QuickAddTarget?>(pendingQuickAddProvider, (_, next) {
+      _maybeHandleQuickAdd(next);
+    });
     final l10n = AppLocalizations.of(context)!;
     final savingsAsync = ref.watch(savingsGoalListProvider);
     final nudgesAsync = ref.watch(savingsNudgesProvider);

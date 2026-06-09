@@ -367,19 +367,25 @@ class SmartBottomNav extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onTabSelected,
-    this.moreTemporarilyActive = false,
+    required this.onActionButtonTapped,
+    this.actionIsClose = false,
+    this.moreActive = false,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTabSelected;
-  final bool moreTemporarilyActive;
+  final VoidCallback onActionButtonTapped;
+  final bool actionIsClose;
+  final bool moreActive;
 
   @override
   Widget build(BuildContext context) {
     return AppBottomNavigation(
       currentIndex: currentIndex,
       onTabSelected: onTabSelected,
-      moreTemporarilyActive: moreTemporarilyActive,
+      onActionButtonTapped: onActionButtonTapped,
+      actionIsClose: actionIsClose,
+      moreActive: moreActive,
     );
   }
 }
@@ -821,12 +827,26 @@ class AppBottomNavigation extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onTabSelected,
-    this.moreTemporarilyActive = false,
+    required this.onActionButtonTapped,
+    this.actionIsClose = false,
+    this.moreActive = false,
   });
 
   final int currentIndex;
+
+  /// Invoked with the destination index for the five capsule items
+  /// (Home, Transactions, Budgets, Savings, More).
   final ValueChanged<int> onTabSelected;
-  final bool moreTemporarilyActive;
+
+  /// Invoked when the detached round button is tapped. It opens the quick-add
+  /// menu, or closes whichever menu is currently open (when [actionIsClose]).
+  final VoidCallback onActionButtonTapped;
+
+  /// When true the round button shows "×" (a menu is open) instead of "+".
+  final bool actionIsClose;
+
+  /// Highlights the "More" capsule item while its menu is open.
+  final bool moreActive;
 
   @override
   Widget build(BuildContext context) {
@@ -834,8 +854,8 @@ class AppBottomNavigation extends StatelessWidget {
     final isDark = colorScheme.brightness == Brightness.dark;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    // Four primary destinations live inside the floating capsule; the detached
-    // "+" circle to the right opens the expandable action menu (index 4).
+    // Five primary destinations live inside the floating capsule; the detached
+    // "+" circle to the right opens the quick-add menu.
     const items = <_AppNavItemData>[
       _AppNavItemData(
         icon: AppIcons.homeOutline,
@@ -860,6 +880,12 @@ class AppBottomNavigation extends StatelessWidget {
         activeIcon: AppIcons.savingsFilled,
         label: 'Savings',
         index: 3,
+      ),
+      _AppNavItemData(
+        icon: AppIcons.moreGrid,
+        activeIcon: AppIcons.moreGridFilled,
+        label: 'More',
+        index: 4,
       ),
     ];
 
@@ -896,7 +922,9 @@ class AppBottomNavigation extends StatelessWidget {
                     Expanded(
                       child: _CapsuleNavItem(
                         item: item,
-                        selected: currentIndex == item.index,
+                        selected: item.index == 4
+                            ? (moreActive || currentIndex == 4)
+                            : currentIndex == item.index,
                         onTap: () => onTabSelected(item.index),
                       ),
                     ),
@@ -907,9 +935,9 @@ class AppBottomNavigation extends StatelessWidget {
           const SizedBox(width: 10),
           // Detached circular action button (morphs + ↔ ×).
           _PlusNavButton(
-            active: moreTemporarilyActive,
+            active: actionIsClose,
             size: barHeight,
-            onTap: () => onTabSelected(4),
+            onTap: onActionButtonTapped,
           ),
         ],
       ),
