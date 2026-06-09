@@ -514,22 +514,22 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       ),
       NavActionItem(
         icon: AppIcons.subscriptionsFilled,
-        label: l10n.navSubscriptions,
+        label: 'Subscriptions',
         onTap: () => goTo('/subscriptions'),
       ),
       NavActionItem(
         icon: AppIcons.reportsFilled,
-        label: l10n.reportsTitle,
+        label: 'Reports',
         onTap: () => goTo('/reports'),
       ),
       NavActionItem(
         icon: AppIcons.exchangeRates,
-        label: l10n.navExchangeRates,
+        label: 'FX Rates',
         onTap: () => goTo('/exchange-rates'),
       ),
       NavActionItem(
         icon: AppIcons.insightsFilled,
-        label: l10n.insightsFinancialCopilot,
+        label: 'AI Copilot',
         onTap: () => goTo('/insights'),
       ),
       NavActionItem(
@@ -539,7 +539,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       ),
       NavActionItem(
         icon: Icons.lock_outline_rounded,
-        label: 'Authentication',
+        label: 'Security',
         onTap: () => goTo('/security'),
       ),
       NavActionItem(
