@@ -112,9 +112,12 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
   void _maybeHandleQuickAdd(QuickAddTarget? target) {
     if (target != QuickAddTarget.savings) return;
-    ref.read(pendingQuickAddProvider.notifier).state = null;
+    // Defer to after the current build/lifecycle: mutating a provider during
+    // initState or build is disallowed by Riverpod.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _openGoalForm(ref);
+      if (!mounted) return;
+      ref.read(pendingQuickAddProvider.notifier).state = null;
+      _openGoalForm(ref);
     });
   }
 

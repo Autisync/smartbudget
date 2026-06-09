@@ -38,9 +38,12 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
   void _maybeHandleQuickAdd(QuickAddTarget? target) {
     if (target != QuickAddTarget.budget) return;
-    ref.read(pendingQuickAddProvider.notifier).state = null;
+    // Defer to after the current build/lifecycle: mutating a provider during
+    // initState or build is disallowed by Riverpod.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _openBudgetForm(ref);
+      if (!mounted) return;
+      ref.read(pendingQuickAddProvider.notifier).state = null;
+      _openBudgetForm(ref);
     });
   }
 
