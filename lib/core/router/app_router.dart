@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/core/theme/app_icons.dart';
+import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:smartbudget/features/dashboard/presentation/screens/financial_health_screen.dart';
@@ -38,6 +39,7 @@ import 'package:smartbudget/core/providers/quick_add_provider.dart';
 import 'package:smartbudget/core/widgets/logo_loading_indicator.dart';
 import 'package:smartbudget/core/widgets/nav_action_panel.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:url_launcher/url_launcher.dart';
 
 part 'app_router.g.dart';
@@ -356,18 +358,25 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       );
     }
 
-    return Scaffold(
-      // Let the page content flow behind the floating nav capsule so there is
-      // no opaque strip behind it — it reads as truly floating over the screen.
-      extendBody: true,
-      body: _wrapWithPanel(widget.child),
-      bottomNavigationBar: AppBottomNavigation(
-        currentIndex: _calculateBottomIndex(context),
-        moreActive: _panel == _NavPanel.more,
-        actionIsClose: _panel != _NavPanel.none,
-        capsuleVisible: _panel == _NavPanel.none,
-        onTabSelected: _onBottomTabSelected,
-        onActionButtonTapped: _onActionButtonTapped,
+    return PopScope(
+      // While a panel is open, intercept the back gesture to close it first.
+      canPop: _panel == _NavPanel.none,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _closePanel();
+      },
+      child: Scaffold(
+        // Let the page content flow behind the floating nav capsule so there is
+        // no opaque strip behind it — it reads as truly floating over the screen.
+        extendBody: true,
+        body: _wrapWithPanel(widget.child),
+        bottomNavigationBar: AppBottomNavigation(
+          currentIndex: _calculateBottomIndex(context),
+          moreActive: _panel == _NavPanel.more,
+          actionIsClose: _panel != _NavPanel.none,
+          capsuleVisible: _panel == _NavPanel.none,
+          onTabSelected: _onBottomTabSelected,
+          onActionButtonTapped: _onActionButtonTapped,
+        ),
       ),
     );
   }
@@ -381,44 +390,69 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   /// matching the reference.
   Widget _wrapWithPanel(Widget body) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final isOpen = _panel != _NavPanel.none;
+
     return Stack(
       children: [
         Positioned.fill(child: body),
-        if (_panel != _NavPanel.none) ...[
-          Positioned.fill(
+        // Scrim — fades in/out with the panel.
+        AnimatedOpacity(
+          opacity: isOpen ? 1.0 : 0.0,
+          duration: UiTokens.motionMedium,
+          curve: UiTokens.motionCurve,
+          child: IgnorePointer(
+            ignoring: !isOpen,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _closePanel,
               child: ColoredBox(
-                // Light scrim: the frosted panel provides the focus, so the
-                // rest of the screen stays visible behind it.
-                color: Colors.black.withValues(alpha: 0.12),
+                // Raised from 0.12 → 0.30 so the dismiss zone is visible.
+                color: Colors.black.withValues(alpha: 0.30),
               ),
             ),
           ),
-          Positioned(
-            left: 16,
-            right: 86,
-            bottom: bottomInset + 28,
-            child: _panel == _NavPanel.add
-                ? NavActionPanel(
-                    items: _buildAddItems(),
-                    crossAxisCount: 4,
-                  )
-                : NavActionPanel(
-                    items: _buildMoreItems(),
-                    crossAxisCount: 3,
-                  ),
+        ),
+        // Panel — slides + fades in from bottom-right; reverses on close.
+        Positioned(
+          left: 16,
+          right: 86,
+          bottom: bottomInset + 28,
+          child: AnimatedSwitcher(
+            duration: UiTokens.motionMedium,
+            switchInCurve: UiTokens.motionCurve,
+            switchOutCurve: UiTokens.motionCurve.flipped,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.95, end: 1.0).animate(animation),
+                alignment: Alignment.bottomRight,
+                child: child,
+              ),
+            ),
+            child: isOpen
+                ? (_panel == _NavPanel.add
+                    ? NavActionPanel(
+                        key: const ValueKey(_NavPanel.add),
+                        items: _buildAddItems(),
+                        crossAxisCount: 4,
+                      )
+                    : NavActionPanel(
+                        key: const ValueKey(_NavPanel.more),
+                        items: _buildMoreItems(),
+                        crossAxisCount: 3,
+                      ))
+                : const SizedBox.shrink(key: ValueKey(_NavPanel.none)),
           ),
-        ],
+        ),
       ],
     );
   }
 
   void _onActionButtonTapped() {
     // The detached round button: "×" closes any open panel, "+" opens add.
+    HapticFeedback.lightImpact();
     setState(() {
-      _panel = _panel == _NavPanel.none ? _NavPanel.add : _NavPanel.none;
+      _panel = _panel != _NavPanel.none ? _NavPanel.none : _NavPanel.add;
     });
   }
 
@@ -471,8 +505,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     final l10n = AppLocalizations.of(context)!;
     final router = GoRouter.of(context);
     final container = ProviderScope.containerOf(context);
-    final isDark =
-        container.read(themeModeControllerProvider) == ThemeMode.dark;
+    // Read brightness from the live theme rather than provider snapshot so the
+    // label ("Dark mode" / "Light mode") is always current when the panel opens.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     void goTo(String route) {
       _closePanel();
@@ -578,7 +613,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         location.startsWith('/insights') ||
         location.startsWith('/notifications') ||
         location.startsWith('/exchange-rates') ||
-        location.startsWith('/balance-sheet')) {
+        location.startsWith('/balance-sheet') ||
+        location.startsWith('/accounts') ||
+        location.startsWith('/scenario-lab')) {
       return 4;
     }
     return 2;
@@ -599,6 +636,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     // The "More" item (4) toggles its expandable panel; the rest navigate and
     // dismiss any open panel.
     if (index == 4) {
+      HapticFeedback.lightImpact();
       setState(() {
         _panel = _panel == _NavPanel.more ? _NavPanel.none : _NavPanel.more;
       });

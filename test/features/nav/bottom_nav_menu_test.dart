@@ -6,6 +6,15 @@ import 'package:go_router/go_router.dart';
 import 'package:smartbudget/core/router/app_router.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
+// Pump one frame + a full animation cycle.
+// pumpAndSettle cannot be used: BackdropFilter inside _FrostedSurface keeps
+// requesting frames indefinitely in the test environment.
+const _animDuration = Duration(milliseconds: 300);
+Future<void> _pumpAnim(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(_animDuration);
+}
+
 Future<void> _pumpShell(WidgetTester tester) async {
   final router = GoRouter(
     initialLocation: '/',
@@ -39,8 +48,11 @@ Future<void> _pumpShell(WidgetTester tester) async {
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  await _pumpAnim(tester);
 }
+
+// Find the detached "+" action button by its icon.
+Finder get _addButton => find.byIcon(Icons.add_rounded, skipOffstage: false);
 
 void main() {
   testWidgets('the + button opens the quick-add menu with the four targets',
@@ -48,27 +60,33 @@ void main() {
     await _pumpShell(tester);
 
     // No add options visible until the + button is tapped.
-    expect(find.text('Transaction'), findsNothing);
+    expect(find.text('Transaction', skipOffstage: false), findsNothing);
 
-    await tester.tap(find.byIcon(Icons.add_rounded));
-    await tester.pumpAndSettle();
+    await tester.tap(_addButton.first, warnIfMissed: false);
+    await _pumpAnim(tester);
 
-    expect(find.text('Transaction'), findsOneWidget);
-    expect(find.text('Subscription'), findsOneWidget);
-    expect(find.text('Savings goal'), findsOneWidget);
-    expect(find.text('Budget'), findsOneWidget);
+    expect(find.text('Transaction', skipOffstage: false), findsOneWidget);
+    expect(find.text('Subscription', skipOffstage: false), findsOneWidget);
+    // "Savings goal" was shortened to "Savings"
+    expect(find.text('Savings', skipOffstage: false), findsOneWidget);
+    expect(find.text('Budget', skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('tapping the scrim dismisses the quick-add menu', (tester) async {
     await _pumpShell(tester);
 
-    await tester.tap(find.byIcon(Icons.add_rounded));
-    await tester.pumpAndSettle();
-    expect(find.text('Transaction'), findsOneWidget);
+    // Open the panel.
+    await tester.tap(_addButton.first, warnIfMissed: false);
+    await _pumpAnim(tester);
+    expect(find.text('Transaction', skipOffstage: false), findsOneWidget);
 
-    // Tap near the top of the screen (the scrim area) to dismiss.
+    // Tap near the top of the screen (inside the scrim, outside the panel).
     await tester.tapAt(const Offset(20, 40));
-    await tester.pumpAndSettle();
+    // Pump past both the AnimatedSwitcher exit animation (240 ms) and the
+    // AnimatedOpacity scrim fade (240 ms) — 500 ms is a safe margin.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    // After the exit animation the NavActionPanel is fully removed from the tree.
     expect(find.text('Transaction'), findsNothing);
   });
 }

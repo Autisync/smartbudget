@@ -1048,19 +1048,46 @@ class _CapsuleNavItem extends StatelessWidget {
           child: AnimatedContainer(
             duration: UiTokens.motionFast,
             curve: UiTokens.motionCurve,
-            height: 44,
+            height: selected ? 52 : 44,
             decoration: BoxDecoration(
               color: selected ? pillColor : Colors.transparent,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(26),
             ),
             alignment: Alignment.center,
-            child: Icon(
-              selected ? item.activeIcon : item.icon,
-              size: 22,
-              // Active icon uses cs.primary, matching brand buttons & panel icons.
-              color: selected
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  selected ? item.activeIcon : item.icon,
+                  size: 22,
+                  // Active icon uses cs.primary, matching brand buttons & panel icons.
+                  color: selected
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+                // Show label only under the active item for discoverability
+                // without cluttering every icon with text.
+                AnimatedSize(
+                  duration: UiTokens.motionFast,
+                  curve: UiTokens.motionCurve,
+                  child: selected
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            item.label,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.primary,
+                              height: 1.0,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
             ),
           ),
         ),
@@ -1088,7 +1115,7 @@ class _PlusNavButton extends StatelessWidget {
     final isDark = colorScheme.brightness == Brightness.dark;
     return Semantics(
       button: true,
-      label: active ? 'Close menu' : 'More actions',
+      label: active ? 'Close menu' : 'Open add menu',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
@@ -1102,12 +1129,19 @@ class _PlusNavButton extends StatelessWidget {
             width: size,
             height: size,
             child: Center(
-              child: AnimatedRotation(
+              // Cross-fade between add and close icons so the shape is always
+              // unambiguous — a rotated "+" can look like a diamond, not a ×.
+              child: AnimatedSwitcher(
                 duration: UiTokens.motionMedium,
-                curve: UiTokens.motionCurve,
-                turns: active ? 0.125 : 0.0, // + rotates 45° into ×
+                switchInCurve: UiTokens.motionCurve,
+                switchOutCurve: UiTokens.motionCurve.flipped,
+                transitionBuilder: (child, anim) => ScaleTransition(
+                  scale: anim,
+                  child: FadeTransition(opacity: anim, child: child),
+                ),
                 child: Icon(
-                  Icons.add_rounded,
+                  active ? Icons.close_rounded : Icons.add_rounded,
+                  key: ValueKey(active),
                   size: 26,
                   color: colorScheme.onSurface,
                 ),

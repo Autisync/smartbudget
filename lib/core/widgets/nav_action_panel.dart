@@ -48,19 +48,7 @@ class NavActionPanel extends StatelessWidget {
 
     final radius = BorderRadius.circular(UiTokens.radius2xl);
 
-    return TweenAnimationBuilder<double>(
-      duration: UiTokens.motionMedium,
-      curve: UiTokens.motionCurve,
-      tween: Tween(begin: 0, end: 1),
-      builder: (context, t, child) => Opacity(
-        opacity: t.clamp(0.0, 1.0),
-        child: Transform.scale(
-          scale: 0.95 + 0.05 * t,
-          alignment: Alignment.bottomRight,
-          child: child,
-        ),
-      ),
-      child: DecoratedBox(
+    return DecoratedBox(
         // Shadow outside the clip so blur doesn't eat it.
         decoration: BoxDecoration(
           borderRadius: radius,
@@ -100,7 +88,6 @@ class NavActionPanel extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }
