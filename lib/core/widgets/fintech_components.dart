@@ -830,11 +830,19 @@ class AppBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const homeButtonSize = 60.0;
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
+    // Four primary destinations live inside the floating capsule; the detached
+    // "+" circle to the right opens the expandable action menu (index 4).
     const items = <_AppNavItemData>[
+      _AppNavItemData(
+        icon: AppIcons.homeOutline,
+        activeIcon: AppIcons.home,
+        label: 'Home',
+        index: 2,
+      ),
       _AppNavItemData(
         icon: AppIcons.transactions,
         activeIcon: AppIcons.transactionsFilled,
@@ -848,101 +856,60 @@ class AppBottomNavigation extends StatelessWidget {
         index: 1,
       ),
       _AppNavItemData(
-        icon: AppIcons.homeOutline,
-        activeIcon: AppIcons.home,
-        label: '',
-        index: 2,
-      ),
-      _AppNavItemData(
         icon: AppIcons.savings,
         activeIcon: AppIcons.savingsFilled,
         label: 'Savings',
         index: 3,
       ),
-      _AppNavItemData(
-        icon: AppIcons.moreGrid,
-        activeIcon: AppIcons.moreGridFilled,
-        label: 'More',
-        index: 4,
-      ),
     ];
 
-    return SizedBox(
-      height: 73 + bottomInset,
-      child: Stack(
-        clipBehavior: Clip.none,
+    const barHeight = 60.0;
+    final capsuleColor = colorScheme.surface;
+    final floatShadow = <BoxShadow>[
+      BoxShadow(
+        color: colorScheme.shadow.withValues(alpha: isDark ? 0.4 : 0.1),
+        blurRadius: 24,
+        offset: const Offset(0, 8),
+        spreadRadius: -8,
+      ),
+    ];
+    final hairline = colorScheme.outline.withValues(alpha: isDark ? 0.6 : 0.9);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 4, 16, bottomInset + 8),
+      child: Row(
         children: [
-          // Nav bar background and items
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
+          // Main capsule with the four destinations.
+          Expanded(
             child: Container(
-              height: 73 + bottomInset,
-              padding: EdgeInsets.fromLTRB(12, 6, 12, 6 + bottomInset),
+              height: barHeight,
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(UiTokens.radiusLg),
-                ),
-                // Subtle upward lift to separate the bar from scrolling content
-                // without a heavy border or divider.
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.shadow.withValues(
-                      alpha: colorScheme.brightness == Brightness.dark
-                          ? 0.22
-                          : 0.05,
-                    ),
-                    blurRadius: 24,
-                    offset: const Offset(0, -8),
-                    spreadRadius: -10,
-                  ),
-                ],
+                color: capsuleColor,
+                borderRadius: BorderRadius.circular(barHeight / 2),
+                border: Border.all(color: hairline, width: 1),
+                boxShadow: floatShadow,
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _NavItemButton(
-                    item: items[0],
-                    selected: currentIndex == 0,
-                    onTap: () => onTabSelected(0),
-                  ),
-                  _NavItemButton(
-                    item: items[1],
-                    selected: currentIndex == 1,
-                    onTap: () => onTabSelected(1),
-                  ),
-                  const SizedBox(
-                      width: homeButtonSize), // Space for Home button
-                  _NavItemButton(
-                    item: items[3],
-                    selected: currentIndex == 3,
-                    onTap: () => onTabSelected(3),
-                  ),
-                  _NavItemButton(
-                    item: items[4],
-                    selected: moreTemporarilyActive || currentIndex == 4,
-                    onTap: () => onTabSelected(4),
-                  ),
+                  for (final item in items)
+                    Expanded(
+                      child: _CapsuleNavItem(
+                        item: item,
+                        selected: currentIndex == item.index,
+                        onTap: () => onTabSelected(item.index),
+                      ),
+                    ),
                 ],
               ),
             ),
           ),
-          // Centered Home button, slightly lower and with shadow
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 24 + bottomInset,
-            child: Center(
-              child: _HomeNavButton(
-                icon: items[2].activeIcon,
-                selected: currentIndex == 2,
-                onTap: () => onTabSelected(2),
-                size: homeButtonSize,
-              ),
-            ),
+          const SizedBox(width: 10),
+          // Detached circular action button (morphs + ↔ ×).
+          _PlusNavButton(
+            active: moreTemporarilyActive,
+            size: barHeight,
+            onTap: () => onTabSelected(4),
           ),
         ],
       ),
@@ -964,8 +931,11 @@ class _AppNavItemData {
   final int index;
 }
 
-class _NavItemButton extends StatelessWidget {
-  const _NavItemButton({
+/// A single icon destination inside the floating nav capsule. The active item
+/// gets a soft filled pill behind a filled-variant icon (matching the
+/// reference); inactive items are muted outline icons.
+class _CapsuleNavItem extends StatelessWidget {
+  const _CapsuleNavItem({
     required this.item,
     required this.selected,
     required this.onTap,
@@ -978,61 +948,35 @@ class _NavItemButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Expanded(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: item.label,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedScale(
-                  duration: UiTokens.motionFast,
-                  curve: UiTokens.motionCurve,
-                  scale: selected ? 1.06 : 1.0,
-                  child: Icon(
-                    selected ? item.activeIcon : item.icon,
-                    size: 23,
-                    color: selected
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                AnimatedDefaultTextStyle(
-                  duration: UiTokens.motionFast,
-                  curve: UiTokens.motionCurve,
-                  style: textTheme.labelSmall?.copyWith(
-                        fontSize: 11,
-                        height: 1,
-                        color: selected
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
-                        fontWeight:
-                            selected ? FontWeight.w700 : FontWeight.w500,
-                      ) ??
-                      TextStyle(
-                        fontSize: 11,
-                        height: 1,
-                        color: selected
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
-                        fontWeight:
-                            selected ? FontWeight.w700 : FontWeight.w500,
-                      ),
-                  child: Text(
-                    item.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final pillColor = isDark
+        ? Colors.white.withValues(alpha: 0.1)
+        : colorScheme.onSurface.withValues(alpha: 0.06);
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: item.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 8),
+          child: AnimatedContainer(
+            duration: UiTokens.motionFast,
+            curve: UiTokens.motionCurve,
+            height: 44,
+            decoration: BoxDecoration(
+              color: selected ? pillColor : Colors.transparent,
+              borderRadius: BorderRadius.circular(22),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              selected ? item.activeIcon : item.icon,
+              size: 22,
+              color: selected
+                  ? colorScheme.onSurface
+                  : colorScheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -1041,56 +985,57 @@ class _NavItemButton extends StatelessWidget {
   }
 }
 
-class _HomeNavButton extends StatelessWidget {
-  const _HomeNavButton({
-    required this.icon,
-    required this.selected,
-    required this.onTap,
+/// Detached circular button beside the capsule. Shows a "+" that morphs to "×"
+/// while the expandable action menu is open.
+class _PlusNavButton extends StatelessWidget {
+  const _PlusNavButton({
+    required this.active,
     required this.size,
+    required this.onTap,
   });
 
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
+  final bool active;
   final double size;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
     return Semantics(
       button: true,
-      selected: selected,
-      label: 'Home',
+      label: active ? 'Close menu' : 'More actions',
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: AnimatedScale(
-          duration: UiTokens.motionFast,
-          curve: UiTokens.motionCurve,
-          scale: selected ? 1.0 : 0.94,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [AppColors.brandDeep, AppColors.brand],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: colorScheme.primary.withValues(alpha: 0.18),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-                BoxShadow(
-                  color: colorScheme.primary.withValues(alpha: 0.10),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: isDark ? 0.6 : 0.9),
+              width: 1,
             ),
-            child: Icon(icon, color: colorScheme.onPrimary, size: 30),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: isDark ? 0.4 : 0.1),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+                spreadRadius: -8,
+              ),
+            ],
+          ),
+          child: AnimatedRotation(
+            duration: UiTokens.motionMedium,
+            curve: UiTokens.motionCurve,
+            turns: active ? 0.125 : 0.0, // + rotates 45° into ×
+            child: Icon(
+              Icons.add_rounded,
+              size: 26,
+              color: colorScheme.onSurface,
+            ),
           ),
         ),
       ),
