@@ -833,6 +833,7 @@ class AppBottomNavigation extends StatelessWidget {
     required this.onActionButtonTapped,
     this.actionIsClose = false,
     this.moreActive = false,
+    this.capsuleVisible = true,
   });
 
   final int currentIndex;
@@ -850,6 +851,10 @@ class AppBottomNavigation extends StatelessWidget {
 
   /// Highlights the "More" capsule item while its menu is open.
   final bool moreActive;
+
+  /// When false the main capsule is hidden, leaving only the detached round
+  /// button visible (used while an expandable menu is open).
+  final bool capsuleVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -903,30 +908,39 @@ class AppBottomNavigation extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 4, 16, bottomInset + 8),
       child: Row(
         children: [
-          // Main capsule with the five destinations.
+          // Main capsule with the five destinations. Hidden (and ignoring
+          // input) while an expandable menu is open, leaving just the round ×.
           Expanded(
-            child: _FrostedSurface(
-              borderRadius: BorderRadius.circular(barHeight / 2),
-              color: capsuleColor,
-              borderColor: hairline,
-              shadow: floatShadow,
-              child: SizedBox(
-                height: barHeight,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Row(
-                    children: [
-                      for (final item in items)
-                        Expanded(
-                          child: _CapsuleNavItem(
-                            item: item,
-                            selected: item.index == 4
-                                ? (moreActive || currentIndex == 4)
-                                : currentIndex == item.index,
-                            onTap: () => onTabSelected(item.index),
-                          ),
-                        ),
-                    ],
+            child: IgnorePointer(
+              ignoring: !capsuleVisible,
+              child: AnimatedOpacity(
+                duration: UiTokens.motionFast,
+                curve: UiTokens.motionCurve,
+                opacity: capsuleVisible ? 1 : 0,
+                child: _FrostedSurface(
+                  borderRadius: BorderRadius.circular(barHeight / 2),
+                  color: capsuleColor,
+                  borderColor: hairline,
+                  shadow: floatShadow,
+                  child: SizedBox(
+                    height: barHeight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Row(
+                        children: [
+                          for (final item in items)
+                            Expanded(
+                              child: _CapsuleNavItem(
+                                item: item,
+                                selected: item.index == 4
+                                    ? (moreActive || currentIndex == 4)
+                                    : currentIndex == item.index,
+                                onTap: () => onTabSelected(item.index),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

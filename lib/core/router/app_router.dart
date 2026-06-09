@@ -365,6 +365,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         currentIndex: _calculateBottomIndex(context),
         moreActive: _panel == _NavPanel.more,
         actionIsClose: _panel != _NavPanel.none,
+        capsuleVisible: _panel == _NavPanel.none,
         onTabSelected: _onBottomTabSelected,
         onActionButtonTapped: _onActionButtonTapped,
       ),
