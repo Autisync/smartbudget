@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartbudget/core/theme/app_shadows.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 
 /// One action tile inside a [NavActionPanel].
@@ -55,19 +56,12 @@ class NavActionPanel extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: cs.surface,
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(UiTokens.radius2xl),
             border: Border.all(
-              color: cs.outline.withValues(alpha: isDark ? 0.6 : 0.9),
+              color: cs.outline.withValues(alpha: isDark ? 0.55 : 0.9),
               width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: cs.shadow.withValues(alpha: isDark ? 0.45 : 0.12),
-                blurRadius: 30,
-                offset: const Offset(0, 12),
-                spreadRadius: -8,
-              ),
-            ],
+            boxShadow: AppShadows.floating(cs.shadow),
           ),
           child: GridView.count(
             crossAxisCount: crossAxisCount,

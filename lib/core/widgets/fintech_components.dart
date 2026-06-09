@@ -3,6 +3,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:smartbudget/components/feedback/app_lottie_view.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/app_icons.dart';
+import 'package:smartbudget/core/theme/app_shadows.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 
@@ -891,15 +892,10 @@ class AppBottomNavigation extends StatelessWidget {
 
     const barHeight = 60.0;
     final capsuleColor = colorScheme.surface;
-    final floatShadow = <BoxShadow>[
-      BoxShadow(
-        color: colorScheme.shadow.withValues(alpha: isDark ? 0.4 : 0.1),
-        blurRadius: 24,
-        offset: const Offset(0, 8),
-        spreadRadius: -8,
-      ),
-    ];
-    final hairline = colorScheme.outline.withValues(alpha: isDark ? 0.6 : 0.9);
+    // Use the same elevation + hairline tokens as the app's floating cards so
+    // the nav reads as part of the same surface family.
+    final floatShadow = AppShadows.floating(colorScheme.shadow);
+    final hairline = colorScheme.outline.withValues(alpha: isDark ? 0.55 : 0.9);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 4, 16, bottomInset + 8),
@@ -1043,17 +1039,10 @@ class _PlusNavButton extends StatelessWidget {
             color: colorScheme.surface,
             shape: BoxShape.circle,
             border: Border.all(
-              color: colorScheme.outline.withValues(alpha: isDark ? 0.6 : 0.9),
+              color: colorScheme.outline.withValues(alpha: isDark ? 0.55 : 0.9),
               width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: colorScheme.shadow.withValues(alpha: isDark ? 0.4 : 0.1),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-                spreadRadius: -8,
-              ),
-            ],
+            boxShadow: AppShadows.floating(colorScheme.shadow),
           ),
           child: AnimatedRotation(
             duration: UiTokens.motionMedium,

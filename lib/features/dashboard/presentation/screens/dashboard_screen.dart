@@ -216,10 +216,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final isDashboardDark = Theme.of(context).brightness == Brightness.dark;
     return AppScaffold(
       backgroundColor: isDashboardDark ? null : const Color(0xFFF8F8FA),
-      floatingActionButton: AppFloatingActionButton(
-        onPressed: _openAddTransactionModal,
-        icon: Icons.add_rounded,
-      ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           if (notification.metrics.axis == Axis.vertical) {

@@ -61,16 +61,6 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
     );
   }
 
-  Future<void> _openAddSubscriptionModal() async {
-    await AppFormSheet.show<void>(
-      context,
-      builder: (_) => const SubscriptionFormSheet(
-        mode: SubscriptionFormMode.create,
-        asModal: true,
-      ),
-    );
-  }
-
   Future<void> _handleMenuAction(
       Subscription subscription, String action) async {
     final l10n = AppLocalizations.of(context);
@@ -152,14 +142,6 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
         actions: buildPageHeaderActions(
           context: context,
           isScrolled: _isScrolled,
-        ),
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 72),
-        child: FloatingActionButton.extended(
-          onPressed: _openAddSubscriptionModal,
-          icon: const Icon(Icons.add_rounded),
-          label: Text(l10n?.subscriptionsAdd ?? 'Add Subscription'),
         ),
       ),
       body: NotificationListener<ScrollNotification>(

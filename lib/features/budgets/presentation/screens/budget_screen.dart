@@ -156,10 +156,6 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
           isScrolled: _isAppBarScrolled,
         ),
       ),
-      floatingActionButton: AppFloatingActionButton(
-        onPressed: () => _openBudgetForm(ref),
-        icon: Icons.add_rounded,
-      ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           if (notification.metrics.axis == Axis.vertical) {

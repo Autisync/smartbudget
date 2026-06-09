@@ -445,10 +445,6 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           isScrolled: _isAppBarScrolled,
         ),
       ),
-      floatingActionButton: AppFloatingActionButton(
-        onPressed: () => _openGoalForm(ref),
-        icon: Icons.add_rounded,
-      ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           if (notification.metrics.axis == Axis.vertical) {

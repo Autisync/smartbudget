@@ -137,10 +137,6 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           isScrolled: _isAppBarScrolled,
         ),
       ),
-      floatingActionButton: AppFloatingActionButton(
-        onPressed: _openAddTransactionModal,
-        icon: Icons.add_rounded,
-      ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           if (notification.metrics.axis == Axis.vertical) {
