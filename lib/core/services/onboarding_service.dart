@@ -20,6 +20,7 @@ class OnboardingService {
   static const _keyOnboardingComplete = 'onboarding_complete';
   static const _keyLegalAccepted = 'legal_accepted';
   static const _keyLegalReviewedAt = 'legal_reviewed_at';
+  static const _keyAppTourSeen = 'app_tour_seen';
 
   const OnboardingService(this._secureStorage);
 
@@ -62,6 +63,14 @@ class OnboardingService {
     } else {
       await _secureStorage.delete(key: _keyLegalReviewedAt);
     }
+  }
+
+  Future<bool> isAppTourSeen() async {
+    return await _secureStorage.read(key: _keyAppTourSeen) == 'true';
+  }
+
+  Future<void> markAppTourSeen() async {
+    await _secureStorage.write(key: _keyAppTourSeen, value: 'true');
   }
 
   Future<void> resetOnboarding() async {

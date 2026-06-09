@@ -37,6 +37,7 @@ import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/providers/quick_add_provider.dart';
 import 'package:smartbudget/core/widgets/logo_loading_indicator.dart';
+import 'package:smartbudget/core/widgets/app_tour_overlay.dart';
 import 'package:smartbudget/core/widgets/nav_action_panel.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
@@ -299,6 +300,16 @@ class ScaffoldWithNavBar extends StatefulWidget {
 /// Which expandable bottom-nav panel is currently open.
 enum _NavPanel { none, add, more }
 
+// Nav-bar layout constants (must match AppBottomNavigation in fintech_components).
+const _kNavBarHeight = 60.0;
+const _kNavBarPaddingBottom = 8.0;
+// The panel's bottom edge sits at the × button's centre minus a small overlap
+// so the round button "pokes out" at the panel's lower-right corner.
+// × centre from screen bottom = safeArea + paddingBottom + barHeight/2
+// = safeArea + 8 + 30 = safeArea + 38; subtract 10dp overlap → safeArea + 28.
+double _panelBottom(double safeAreaBottom) =>
+    safeAreaBottom + _kNavBarPaddingBottom + _kNavBarHeight / 2 - 10;
+
 class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   _NavPanel _panel = _NavPanel.none;
 
@@ -312,71 +323,78 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     final width = MediaQuery.sizeOf(context).width;
     final useRail = width >= 900;
 
-    if (useRail) {
-      return Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              indicatorColor: Theme.of(context).colorScheme.primaryContainer,
-              selectedIndex: _calculateRailSelectedIndex(context),
-              onDestinationSelected: (index) => _onRailItemTapped(index),
-              labelType: NavigationRailLabelType.all,
-              destinations: [
-                NavigationRailDestination(
-                  icon: const Icon(Icons.receipt_long_outlined),
-                  selectedIcon: const Icon(Icons.receipt_long_rounded),
-                  label: Text(l10n.transactionsTitle),
-                ),
-                NavigationRailDestination(
-                  icon: const Icon(Icons.account_balance_wallet_outlined),
-                  selectedIcon:
-                      const Icon(Icons.account_balance_wallet_rounded),
-                  label: Text(l10n.navBudgets),
-                ),
-                NavigationRailDestination(
-                  icon: const Icon(Icons.home_outlined),
-                  selectedIcon: const Icon(Icons.home_rounded),
-                  label: Text(l10n.navHome),
-                ),
-                NavigationRailDestination(
-                  icon: const Icon(Icons.savings_outlined),
-                  selectedIcon: const Icon(Icons.savings_rounded),
-                  label: Text(l10n.navSavings),
-                ),
-                const NavigationRailDestination(
-                  icon: Icon(AppIcons.moreGrid),
-                  selectedIcon: Icon(AppIcons.moreGridFilled),
-                  label: Text('More'),
-                ),
-              ],
-            ),
-            const VerticalDivider(width: 1),
-            Expanded(child: _wrapWithPanel(widget.child)),
-          ],
-        ),
-      );
-    }
-
+    // PopScope wraps BOTH layouts so the Android back button closes any open
+    // panel before navigating away, regardless of screen width.
     return PopScope(
-      // While a panel is open, intercept the back gesture to close it first.
       canPop: _panel == _NavPanel.none,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _closePanel();
       },
-      child: Scaffold(
-        // Let the page content flow behind the floating nav capsule so there is
-        // no opaque strip behind it — it reads as truly floating over the screen.
-        extendBody: true,
-        body: _wrapWithPanel(widget.child),
-        bottomNavigationBar: AppBottomNavigation(
-          currentIndex: _calculateBottomIndex(context),
-          moreActive: _panel == _NavPanel.more,
-          actionIsClose: _panel != _NavPanel.none,
-          capsuleVisible: _panel == _NavPanel.none,
-          onTabSelected: _onBottomTabSelected,
-          onActionButtonTapped: _onActionButtonTapped,
-        ),
+      child: AppTourOverlay(
+        child: useRail ? _buildRailScaffold(l10n) : _buildMobileScaffold(),
+      ),
+    );
+  }
+
+  Widget _buildRailScaffold(AppLocalizations l10n) {
+    return Scaffold(
+      body: Row(
+        children: [
+          NavigationRail(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            indicatorColor: Theme.of(context).colorScheme.primaryContainer,
+            selectedIndex: _calculateRailSelectedIndex(context),
+            onDestinationSelected: _onRailItemTapped,
+            labelType: NavigationRailLabelType.all,
+            destinations: [
+              NavigationRailDestination(
+                icon: const Icon(Icons.receipt_long_outlined),
+                selectedIcon: const Icon(Icons.receipt_long_rounded),
+                label: Text(l10n.transactionsTitle),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.account_balance_wallet_outlined),
+                selectedIcon:
+                    const Icon(Icons.account_balance_wallet_rounded),
+                label: Text(l10n.navBudgets),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.home_outlined),
+                selectedIcon: const Icon(Icons.home_rounded),
+                label: Text(l10n.navHome),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.savings_outlined),
+                selectedIcon: const Icon(Icons.savings_rounded),
+                label: Text(l10n.navSavings),
+              ),
+              const NavigationRailDestination(
+                icon: Icon(AppIcons.moreGrid),
+                selectedIcon: Icon(AppIcons.moreGridFilled),
+                label: Text('More'),
+              ),
+            ],
+          ),
+          const VerticalDivider(width: 1),
+          Expanded(child: _wrapWithPanel(widget.child)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileScaffold() {
+    return Scaffold(
+      // Let the page content flow behind the floating nav capsule so there is
+      // no opaque strip behind it — it reads as truly floating over the screen.
+      extendBody: true,
+      body: _wrapWithPanel(widget.child),
+      bottomNavigationBar: AppBottomNavigation(
+        currentIndex: _calculateBottomIndex(context),
+        moreActive: _panel == _NavPanel.more,
+        actionIsClose: _panel != _NavPanel.none,
+        capsuleVisible: _panel == _NavPanel.none,
+        onTabSelected: _onBottomTabSelected,
+        onActionButtonTapped: _onActionButtonTapped,
       ),
     );
   }
@@ -389,25 +407,28 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   /// is anchored near the button's centre so the "×" pokes out at the corner,
   /// matching the reference.
   Widget _wrapWithPanel(Widget body) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final safeAreaBottom = MediaQuery.paddingOf(context).bottom;
     final isOpen = _panel != _NavPanel.none;
 
     return Stack(
       children: [
         Positioned.fill(child: body),
-        // Scrim — fades in/out with the panel.
-        AnimatedOpacity(
-          opacity: isOpen ? 1.0 : 0.0,
-          duration: UiTokens.motionMedium,
-          curve: UiTokens.motionCurve,
-          child: IgnorePointer(
-            ignoring: !isOpen,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _closePanel,
-              child: ColoredBox(
-                // Raised from 0.12 → 0.30 so the dismiss zone is visible.
-                color: Colors.black.withValues(alpha: 0.30),
+        // Scrim — always Positioned.fill so it covers the full body area;
+        // fades in/out with the panel. IgnorePointer keeps it non-interactive
+        // when the panel is closed so the body receives all gestures normally.
+        Positioned.fill(
+          child: AnimatedOpacity(
+            opacity: isOpen ? 1.0 : 0.0,
+            duration: UiTokens.motionMedium,
+            curve: UiTokens.motionCurve,
+            child: IgnorePointer(
+              ignoring: !isOpen,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _closePanel,
+                child: ColoredBox(
+                  color: Colors.black.withValues(alpha: 0.30),
+                ),
               ),
             ),
           ),
@@ -416,7 +437,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         Positioned(
           left: 16,
           right: 86,
-          bottom: bottomInset + 28,
+          bottom: _panelBottom(safeAreaBottom),
           child: AnimatedSwitcher(
             duration: UiTokens.motionMedium,
             switchInCurve: UiTokens.motionCurve,
@@ -622,12 +643,8 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   }
 
   int _calculateRailSelectedIndex(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/transactions')) return 0;
-    if (location.startsWith('/budgets')) return 1;
-    if (location == '/' || location.startsWith('/health')) return 2;
-    if (location.startsWith('/savings')) return 3;
-    return 4;
+    // Mirror _calculateBottomIndex so rail + mobile highlight consistently.
+    return _calculateBottomIndex(context);
   }
 
   void _onRailItemTapped(int index) => _onBottomTabSelected(index);

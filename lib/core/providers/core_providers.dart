@@ -77,6 +77,12 @@ final onboardingStatusProvider = FutureProvider<OnboardingStatus>((ref) async {
   return onboardingService.readStatus();
 });
 
+/// `true` once the user has completed the in-app feature tour.
+final appTourSeenProvider = FutureProvider<bool>((ref) async {
+  final svc = ref.watch(onboardingServiceProvider);
+  return svc.isAppTourSeen();
+});
+
 final themeServiceProvider = Provider<ThemeService>((ref) {
   final storage = ref.watch(secureStorageProvider);
   return ThemeService(storage);

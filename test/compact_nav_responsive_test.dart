@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/core/router/app_router.dart';
@@ -41,7 +42,8 @@ Future<void> _pumpShell(
   );
 
   await tester.pumpWidget(
-    MaterialApp.router(
+    ProviderScope(
+    child: MaterialApp.router(
       routerConfig: router,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -60,9 +62,10 @@ Future<void> _pumpShell(
         );
       },
     ),
-  );
+  ));
 
-  await tester.pumpAndSettle();
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
   addTearDown(router.dispose);
 }
 

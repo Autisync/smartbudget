@@ -1045,41 +1045,45 @@ class _CapsuleNavItem extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 8),
+          // Pill height is always 44 dp so it never overflows the 60dp capsule
+          // (which has 8dp vertical padding on each side = 44dp content area).
+          // The label animates in below the icon INSIDE the fixed-height pill.
           child: AnimatedContainer(
             duration: UiTokens.motionFast,
             curve: UiTokens.motionCurve,
-            height: selected ? 52 : 44,
+            height: 44,
             decoration: BoxDecoration(
               color: selected ? pillColor : Colors.transparent,
-              borderRadius: BorderRadius.circular(26),
+              borderRadius: BorderRadius.circular(22),
             ),
             alignment: Alignment.center,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   selected ? item.activeIcon : item.icon,
-                  size: 22,
-                  // Active icon uses cs.primary, matching brand buttons & panel icons.
+                  size: 20,
                   color: selected
                       ? colorScheme.primary
                       : colorScheme.onSurfaceVariant,
                 ),
-                // Show label only under the active item for discoverability
-                // without cluttering every icon with text.
+                // Label slides in under the active icon without changing pill
+                // height — AnimatedSize collapses to zero for inactive items.
                 AnimatedSize(
                   duration: UiTokens.motionFast,
                   curve: UiTokens.motionCurve,
                   child: selected
                       ? Padding(
-                          padding: const EdgeInsets.only(top: 2),
+                          padding: const EdgeInsets.only(top: 1),
                           child: Text(
                             item.label,
                             style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
                               color: colorScheme.primary,
                               height: 1.0,
+                              letterSpacing: -0.2,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
