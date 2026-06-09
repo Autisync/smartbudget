@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smartbudget/components/feedback/app_lottie_view.dart';
@@ -891,9 +893,9 @@ class AppBottomNavigation extends StatelessWidget {
     ];
 
     const barHeight = 60.0;
-    final capsuleColor = colorScheme.surface;
-    // Use the same elevation + hairline tokens as the app's floating cards so
-    // the nav reads as part of the same surface family.
+    // Near-transparent, frosted fill so the screen shows through the bar.
+    final capsuleColor =
+        colorScheme.surface.withValues(alpha: isDark ? 0.55 : 0.6);
     final floatShadow = AppShadows.floating(colorScheme.shadow);
     final hairline = colorScheme.outline.withValues(alpha: isDark ? 0.55 : 0.9);
 
@@ -901,30 +903,32 @@ class AppBottomNavigation extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 4, 16, bottomInset + 8),
       child: Row(
         children: [
-          // Main capsule with the four destinations.
+          // Main capsule with the five destinations.
           Expanded(
-            child: Container(
-              height: barHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              decoration: BoxDecoration(
-                color: capsuleColor,
-                borderRadius: BorderRadius.circular(barHeight / 2),
-                border: Border.all(color: hairline, width: 1),
-                boxShadow: floatShadow,
-              ),
-              child: Row(
-                children: [
-                  for (final item in items)
-                    Expanded(
-                      child: _CapsuleNavItem(
-                        item: item,
-                        selected: item.index == 4
-                            ? (moreActive || currentIndex == 4)
-                            : currentIndex == item.index,
-                        onTap: () => onTabSelected(item.index),
-                      ),
-                    ),
-                ],
+            child: _FrostedSurface(
+              borderRadius: BorderRadius.circular(barHeight / 2),
+              color: capsuleColor,
+              borderColor: hairline,
+              shadow: floatShadow,
+              child: SizedBox(
+                height: barHeight,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Row(
+                    children: [
+                      for (final item in items)
+                        Expanded(
+                          child: _CapsuleNavItem(
+                            item: item,
+                            selected: item.index == 4
+                                ? (moreActive || currentIndex == 4)
+                                : currentIndex == item.index,
+                            onTap: () => onTabSelected(item.index),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -936,6 +940,46 @@ class AppBottomNavigation extends StatelessWidget {
             onTap: onActionButtonTapped,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A frosted-glass surface: a near-transparent fill with a backdrop blur so
+/// content shows through, a hairline border, and a soft drop shadow kept
+/// outside the clip. Used by the floating nav capsule and action button.
+class _FrostedSurface extends StatelessWidget {
+  const _FrostedSurface({
+    required this.borderRadius,
+    required this.color,
+    required this.borderColor,
+    required this.shadow,
+    required this.child,
+  });
+
+  final BorderRadius borderRadius;
+  final Color color;
+  final Color borderColor;
+  final List<BoxShadow> shadow;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(borderRadius: borderRadius, boxShadow: shadow),
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: borderRadius,
+              border: Border.all(color: borderColor, width: 1),
+            ),
+            child: child,
+          ),
+        ),
       ),
     );
   }
@@ -1032,26 +1076,26 @@ class _PlusNavButton extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: isDark ? 0.55 : 0.9),
-              width: 1,
-            ),
-            boxShadow: AppShadows.floating(colorScheme.shadow),
-          ),
-          child: AnimatedRotation(
-            duration: UiTokens.motionMedium,
-            curve: UiTokens.motionCurve,
-            turns: active ? 0.125 : 0.0, // + rotates 45° into ×
-            child: Icon(
-              Icons.add_rounded,
-              size: 26,
-              color: colorScheme.onSurface,
+        child: _FrostedSurface(
+          borderRadius: BorderRadius.circular(size / 2),
+          color: colorScheme.surface.withValues(alpha: isDark ? 0.55 : 0.6),
+          borderColor:
+              colorScheme.outline.withValues(alpha: isDark ? 0.55 : 0.9),
+          shadow: AppShadows.floating(colorScheme.shadow),
+          child: SizedBox(
+            width: size,
+            height: size,
+            child: Center(
+              child: AnimatedRotation(
+                duration: UiTokens.motionMedium,
+                curve: UiTokens.motionCurve,
+                turns: active ? 0.125 : 0.0, // + rotates 45° into ×
+                child: Icon(
+                  Icons.add_rounded,
+                  size: 26,
+                  color: colorScheme.onSurface,
+                ),
+              ),
             ),
           ),
         ),
