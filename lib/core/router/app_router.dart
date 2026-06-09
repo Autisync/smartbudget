@@ -403,7 +403,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
             child: _panel == _NavPanel.add
                 ? NavActionPanel(
                     items: _buildAddItems(),
-                    crossAxisCount: 2,
+                    crossAxisCount: 4,
                   )
                 : NavActionPanel(
                     items: _buildMoreItems(),

@@ -88,9 +88,7 @@ class NavActionPanel extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 6,
                   crossAxisSpacing: 6,
-                  // Responsive aspect ratio: wider panels (fewer cols) can afford
-                  // squarer tiles; narrow columns need taller tiles for text.
-                  childAspectRatio: crossAxisCount <= 2 ? 1.0 : 0.82,
+                  childAspectRatio: 0.82,
                   children: [
                     for (final item in items)
                       _NavActionTile(item: item, columnCount: crossAxisCount),
@@ -117,11 +115,9 @@ class _NavActionTile extends StatelessWidget {
     final isDark = cs.brightness == Brightness.dark;
     final screenWidth = MediaQuery.sizeOf(context).width;
 
-    // 2-column add menu has ~130 dp tiles — use large icons to fill the space.
-    // 3+ column menus stay compact.
-    final baseSize = columnCount <= 2
-        ? (screenWidth < 360 ? 72.0 : screenWidth > 420 ? 84.0 : 76.0)
-        : (screenWidth < 360 ? 48.0 : screenWidth > 420 ? 60.0 : 54.0);
+    // All grids use the same compact sizing — tile width is determined by the
+    // column count so icons naturally fill the available space.
+    final baseSize = screenWidth < 360 ? 48.0 : screenWidth > 420 ? 60.0 : 54.0;
 
     final containerSize = baseSize;
     final iconSize = containerSize * 0.48;
@@ -140,10 +136,7 @@ class _NavActionTile extends StatelessWidget {
       onTap: item.onTap,
       borderRadius: BorderRadius.circular(containerRadius + 4),
       child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: columnCount <= 2 ? 12.0 : 8.0,
-          horizontal: columnCount <= 2 ? 8.0 : 4.0,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -158,7 +151,7 @@ class _NavActionTile extends StatelessWidget {
               alignment: Alignment.center,
               child: Icon(item.icon, size: iconSize, color: iconColor),
             ),
-            SizedBox(height: columnCount <= 2 ? 10.0 : 6.0),
+            const SizedBox(height: 6.0),
             Flexible(
               child: Text(
                 item.label,
@@ -169,9 +162,7 @@ class _NavActionTile extends StatelessWidget {
                       color: cs.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                       height: 1.15,
-                      fontSize: columnCount <= 2
-                          ? (screenWidth < 360 ? 12.0 : 13.0)
-                          : (screenWidth < 360 ? 10.0 : 11.0),
+                      fontSize: screenWidth < 360 ? 10.0 : 11.0,
                     ),
               ),
             ),
