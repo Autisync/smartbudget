@@ -6,7 +6,7 @@ celery_app = Celery(
     "smartbudget",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["app.tasks.finance"],
+    include=["app.tasks.finance", "app.tasks.email"],
 )
 
 celery_app.conf.update(

@@ -129,6 +129,28 @@ def verify_email(payload: VerifyEmailRequest, db: Session = Depends(db_session))
     return MessageResponse(message="Email verified")
 
 
+@router.post("/resend-verification", response_model=MessageResponse)
+def resend_verification(
+    user=Depends(current_user),
+    db: Session = Depends(db_session),
+    rate_limiter: RateLimiterService = Depends(limiter),
+):
+    if user is None:
+        raise errors.unauthorized("Not authenticated")
+    # Throttle to prevent verification-email bombing (3 per hour per user).
+    if not rate_limiter.check_action(
+        "resend_verification", str(user.id), max_attempts=3, window_seconds=3600
+    ):
+        raise errors.bad_request(
+            "Too many requests. Please wait a while before requesting another email."
+        )
+    AuthService(db).resend_verification(user=user)
+    # Generic response — never reveals verification state to the caller.
+    return MessageResponse(
+        message="If your email is unverified, a new verification link has been sent."
+    )
+
+
 @router.get("/me", response_model=AuthUserOut)
 def me(user=Depends(current_user)):
     if user is None:

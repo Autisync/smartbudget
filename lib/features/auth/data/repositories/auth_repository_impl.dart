@@ -104,6 +104,11 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> resendVerificationEmail() {
+    return _remoteClient.resendVerificationEmail();
+  }
+
+  @override
   Future<AuthUser> me() {
     return _remoteClient.me();
   }

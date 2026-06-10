@@ -1,11 +1,11 @@
 # Privacy Policy
 
 **App:** SmartSpend
-**Data Controller:** Firmeza Consulting cc, [POSTAL_ADDRESS], Republic of Namibia
+**Data Controller:** Firmeza Consulting cc, 030915, Namibia, Republic of Namibia
 **Effective Date:** 05 April 2026
 **Last Updated:** 10 June 2026
-**Privacy Contact:** [PRIVACY_EMAIL]
-**Data Protection Officer / Representative:** [DPO_EMAIL_OR_CONTACT]
+**Privacy Contact:** admin@smaartspend.com
+**Data Protection Officer / Representative:** info@smaartspend.com
 
 ---
 
@@ -15,9 +15,10 @@ This Privacy Policy explains how Firmeza Consulting cc ("we," "us," "our") proce
 data when you use the SmartSpend mobile application ("App"). It applies to:
 
 - Data processed entirely on your device (local-first mode);
-- Data processed by our optional backend authentication service when you create an account;
-- Data incidentally processed when you use third-party integrations or OS-level features; and
-- Data collected via analytics.
+- Data processed by our optional backend authentication service when you create an account; and
+- Data incidentally processed when you use third-party integrations or OS-level features.
+
+We do **not** use any third-party analytics, advertising, or behavioural-tracking services.
 
 SmartSpend is available worldwide. This Policy applies to all users regardless of country of
 residence. We have designed our data practices to meet the requirements of the EU General Data
@@ -28,7 +29,7 @@ applicable globally. Where your local law grants greater rights, we will honour 
 ## 2. Data Controller and Sub-Processor Roles
 
 2.1 **Controller.** Firmeza Consulting cc is the data controller for personal data processed
-via the optional backend service (account credentials, session metadata) and analytics data.
+via the optional backend service (account credentials, session metadata).
 
 2.2 **Local device data.** Financial and preference data stored exclusively on your device
 within the App's local encrypted database is under your own control. Firmeza Consulting cc acts
@@ -41,7 +42,7 @@ access it.
 |---|---|---|
 | **Autisync** | Database management, backend hosting, email delivery infrastructure | Hetzner servers, Germany (EU) |
 | **Hetzner Online GmbH** | Physical server infrastructure | Germany (EU) |
-| **[ANALYTICS_PROVIDER]** | App analytics | [ACTION REQUIRED: confirm data location] |
+| **Google Firebase Cloud Messaging** | Push-notification delivery (only if you enable notifications) | Google infrastructure |
 
 All sub-processors are bound by data processing agreements requiring GDPR-compliant processing.
 
@@ -88,25 +89,16 @@ Keystore), isolated to the App's sandbox:
 - Theme, locale, currency, and other user preferences.
 - Encryption key material for the local database encryption service.
 
-### 3.4 Analytics Data
+### 3.4 Analytics and Usage Tracking
 
-We use [ANALYTICS_PROVIDER] to collect aggregated usage analytics to understand how the App is
-used and to improve it. Analytics data collected may include:
+**We do not use any third-party analytics, telemetry, advertising, or behavioural-tracking
+services.** We do not collect screen-view, feature-usage, session, or pseudonymous event data,
+and we do not embed any analytics SDK in the App. The aggregations and charts you see in the App
+(spending summaries, budget progress, insights) are computed locally on your device and are not
+transmitted to us or to any third party.
 
-- App screens visited and feature interactions (without content of financial entries);
-- Session duration and frequency;
-- Device type and operating system version;
-- App version and crash/error events;
-- General geographic region (country level, not precise location).
-
-**We do not pass financial data, transaction details, account balances, or any sensitive
-financial content to any analytics provider.** Analytics data is collected under a pseudonymous
-identifier and is not linked to your name or email address. You may opt out of analytics
-collection at any time via Settings > Privacy > Analytics within the App.
-
-**Legal basis:** Art. 6(1)(f) GDPR - legitimate interest in improving App quality. Where
-consent is required by applicable law (e.g., ePrivacy Directive for tracking), consent will be
-sought before analytics activation.
+Because no analytics is collected, there is nothing to opt out of in this respect. Crash and
+error events are not collected by us.
 
 ### 3.5 Exchange-Rate Lookups
 
@@ -170,7 +162,7 @@ For users in the EU/EEA, UK, and jurisdictions with equivalent requirements:
 | Email verification and password reset | Art. 6(1)(b) - contract performance |
 | Session management and security | Art. 6(1)(f) - legitimate interest in platform security |
 | Exchange-rate API calls | Art. 6(1)(b) - necessary for requested feature |
-| Analytics (pseudonymous) | Art. 6(1)(f) - legitimate interest in App improvement |
+| Push notifications (if enabled) | Art. 6(1)(a) - consent |
 | Legal compliance obligations | Art. 6(1)(c) - legal obligation |
 
 Where we rely on legitimate interests, you have the right to object at any time (see Section 9).
@@ -183,7 +175,6 @@ We use collected data strictly for:
 - Authenticating users and managing secure sessions;
 - Sending transactional emails (verification, password reset, account deletion confirmation) - no marketing emails without separate explicit consent;
 - Detecting and preventing fraudulent, abusive, or unauthorized use;
-- Analytics and App improvement (pseudonymous, aggregated);
 - Complying with legal obligations.
 
 We do **not** sell, rent, or trade your personal data. We do not use your financial data for
@@ -195,8 +186,8 @@ We share personal data only in the following circumstances:
 
 6.1 **Sub-processors.** Data is shared with Autisync (database management, hosting, email
 delivery) and Hetzner Online GmbH (server infrastructure) under binding data processing
-agreements. All processing occurs on Hetzner servers located in Germany (EU). Analytics data
-is shared with [ANALYTICS_PROVIDER] under a data processing agreement.
+agreements. All processing occurs on Hetzner servers located in Germany (EU). We do not share
+any data with analytics or advertising providers, because we do not use them.
 
 6.2 **Exchange-rate providers.** Currency lookup requests are sent to third-party APIs. See
 Third-Party Services Notice.
@@ -224,13 +215,12 @@ adequate-protection jurisdiction.
 Namibia-registered controller does not constitute a restricted transfer under GDPR; the EU
 servers provide a higher protection standard.
 
-7.4 **Analytics provider transfers:** Where [ANALYTICS_PROVIDER] processes data outside the
-EU, we rely on Standard Contractual Clauses (SCCs - European Commission Decision 2021/914,
-Module 1 Controller-to-Controller or Module 2 Controller-to-Processor as applicable) or
-equivalent safeguards. [ACTION REQUIRED: confirm analytics provider data location and insert
-applicable SCC module reference.]
+7.4 **Push notifications.** If you enable push notifications, the device push token is processed
+through Google Firebase Cloud Messaging, which may process data outside the EU under Google's
+own data-transfer safeguards (Standard Contractual Clauses). No financial or analytics data is
+sent through this channel.
 
-7.5 You may request a copy of applicable transfer safeguards by contacting [PRIVACY_EMAIL].
+7.5 You may request a copy of applicable transfer safeguards by contacting admin@smaartspend.com.
 
 ## 8. Data Retention
 
@@ -243,9 +233,7 @@ Please refer to our Data Retention Policy for full schedules. In summary:
 - **Local device data:** Remains on your device under your control. Uninstalling the App
   removes this data (subject to OS backup behaviour outside our control).
 - **Password reset / verification tokens:** Deleted on use or TTL expiry.
-- **Analytics data:** Retained in pseudonymous/aggregated form per [ANALYTICS_PROVIDER]'s
-  retention settings; raw event data deleted after [ACTION REQUIRED: confirm retention period
-  with analytics provider].
+- **Analytics data:** None collected, so none retained.
 - **Exchange-rate query data:** Not retained by us; third-party providers' own policies apply.
 
 ## 9. Your Rights
@@ -262,8 +250,7 @@ for complex requests; LGPD: 15 days; CCPA: 45 days):
 | **Restriction** | Request limited processing in certain circumstances |
 | **Portability** | Receive your data in a structured, machine-readable format |
 | **Objection** | Object to processing based on legitimate interests |
-| **Withdraw consent** | Where processing is consent-based, withdraw at any time |
-| **Opt out of analytics** | Opt out via App Settings > Privacy > Analytics |
+| **Withdraw consent** | Where processing is consent-based (e.g. push notifications), withdraw at any time |
 | **Complaint** | File a complaint with your local supervisory authority |
 
 9.1 **Identity verification.** We will verify your identity before processing rights requests
@@ -271,7 +258,7 @@ using email verification or account confirmation. We will not require disproport
 information.
 
 9.2 **Account deletion.** To delete your account and all associated backend data, email
-[PRIVACY_EMAIL] with subject line "Account Deletion Request - [your registered email address]."
+admin@smaartspend.com with subject line "Account Deletion Request - [your registered email address]."
 We will confirm receipt within 2 business days and complete deletion within 30 calendar days.
 You will receive a confirmation email when deletion is complete. See Section 12 for what
 happens to data after deletion.
@@ -281,7 +268,7 @@ opt out of sale/sharing. We do not sell personal information.
 
 9.4 **LGPD rights.** Brazilian residents may exercise rights under LGPD Art. 18.
 
-To exercise any right: [PRIVACY_EMAIL] - subject line "Privacy Rights Request."
+To exercise any right: admin@smaartspend.com - subject line "Privacy Rights Request."
 
 ## 10. Security
 
@@ -321,9 +308,9 @@ notice at [APP_STORE_URL_OR_WEBSITE] at least 14 days before changes take effect
 
 ## 14. Contact and Complaints
 
-**Privacy inquiries / rights requests:** [PRIVACY_EMAIL]
-**Data Protection contact:** [DPO_EMAIL_OR_CONTACT]
-**Postal address:** [POSTAL_ADDRESS], Republic of Namibia
+**Privacy inquiries / rights requests:** admin@smaartspend.com
+**Data Protection contact:** info@smaartspend.com
+**Postal address:** 030915, Namibia, Republic of Namibia
 
 **Supervisory authority complaints:**
 - EU/EEA users: your national data protection authority, or the Bundesbeauftragter fur den

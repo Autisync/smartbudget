@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart' as db;
 import 'package:smartbudget/domain/entities/account.dart';
 import 'package:smartbudget/domain/repositories/account_repository.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
 
 class AccountRepositoryImpl implements AccountRepository {
   AccountRepositoryImpl(this._db);
@@ -80,16 +81,17 @@ class AccountRepositoryImpl implements AccountRepository {
     required String currency,
     double openingBalance = 0,
   }) async {
+    final quantizedBalance = MoneyUtils.quantize(openingBalance, currency);
     final companion = db.AccountsCompanion.insert(
       name: name,
       type: type,
       currency: currency,
-      balance: Value(openingBalance),
+      balance: Value(quantizedBalance),
     );
     await _db.insertAccount(companion);
     // Re-read to obtain the generated id and createdAt.
     final created = (await _db.getAccounts(includeInactive: true))
-        .firstWhere((a) => a.name == name && a.balance == openingBalance);
+        .firstWhere((a) => a.name == name && a.balance == quantizedBalance);
     return _toEntity(created, created.balance);
   }
 
@@ -102,7 +104,8 @@ class AccountRepositoryImpl implements AccountRepository {
           .copyWith(
             name: account.name,
             type: account.type,
-            balance: account.openingBalance,
+            balance:
+                MoneyUtils.quantize(account.openingBalance, account.currency),
             currency: account.currency,
             isActive: account.isActive,
           )

@@ -145,4 +145,4 @@ as limited to the maximum extent permitted.
 
 ## 11. Contact
 
-[SUPPORT_EMAIL]
+support@smaartspend.com

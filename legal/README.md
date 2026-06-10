@@ -15,15 +15,17 @@ This directory contains the legal documents that are displayed in-app.
 
 ## Placeholder Values To Replace Before Publication
 
-- [SUPPORT_EMAIL]
-- [PRIVACY_EMAIL]
-- [DPO_EMAIL_OR_CONTACT]
-- [POSTAL_ADDRESS]
+- support@smaartspend.com
+- admin@smaartspend.com
+- info@smaartspend.com
+- 030915, Namibia
 - [APP_STORE_URL_OR_WEBSITE]
-- [ANALYTICS_PROVIDER]
-- [ANALYTICS_PRIVACY_URL]
 
 Use the values from your production/legal team before publishing to app stores.
+
+> Note: `[ANALYTICS_PROVIDER]` / `[ANALYTICS_PRIVACY_URL]` are intentionally **not** used.
+> SmartSpend ships with no third-party analytics; the policy documents state this explicitly.
+> If an analytics provider is ever added, restore those placeholders and the related sections.
 
 ## Safe Replacement Workflow
 

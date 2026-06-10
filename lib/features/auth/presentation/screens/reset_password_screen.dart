@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smartbudget/components/feedback/app_feedback_service.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
 
@@ -196,23 +195,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     final ok = await ref
         .read(sessionControllerProvider.notifier)
         .resetPassword(token: widget.token, newPassword: password);
+    if (!mounted) return;
     final session = ref.read(sessionControllerProvider);
-    final hasError = !ok;
-    final message = ok
-        ? 'Success. You can now sign in with your new password.'
-        : (session.errorMessage ?? 'Could not reset password.');
+    // Single inline message; the banner styles itself from the success keyword.
     setState(() {
       _submitting = false;
-      _message = message;
+      _message = ok
+          ? 'Success. You can now sign in with your new password.'
+          : (session.errorMessage ?? 'Could not reset password.');
     });
-
-    if (!mounted) return;
-
-    if (hasError) {
-      AppFeedbackService.showError(context, message);
-      return;
-    }
-    AppFeedbackService.showSuccess(context, message);
   }
 
   String? _passwordValidation(String password) {

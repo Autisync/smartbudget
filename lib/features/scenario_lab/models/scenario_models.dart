@@ -195,6 +195,7 @@ class ScenarioGoal {
     required this.targetAmount,
     required this.savedAmount,
     required this.createdAt,
+    this.targetDate,
   });
 
   final String id;
@@ -202,6 +203,10 @@ class ScenarioGoal {
   final double targetAmount;
   final double savedAmount;
   final DateTime createdAt;
+
+  /// Optional deadline. When set, the required monthly contribution is paced to
+  /// meet the target by this date instead of an arbitrary fixed horizon.
+  final DateTime? targetDate;
 
   double get remainingAmount =>
       (targetAmount - savedAmount).clamp(0, double.infinity).toDouble();

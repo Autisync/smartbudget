@@ -1,0 +1,137 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Flutter ────────────────────────────────────────────────────────────────
+  flutter:
+    name: Flutter — analyze & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run code generation (Drift, Riverpod)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze (zero warnings)
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Run tests
+        run: flutter test --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage/lcov.info
+          flags: flutter
+        continue-on-error: true
+
+  # ─── Backend ────────────────────────────────────────────────────────────────
+  backend:
+    name: Backend — lint & test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: smartbudget_test
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: smartbudget_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Type check (mypy)
+        run: mypy app --ignore-missing-imports
+        continue-on-error: true
+
+      - name: Run tests
+        env:
+          ENVIRONMENT: test
+          DATABASE_URL: postgresql+psycopg://smartbudget_test:test_password@localhost:5432/smartbudget_test
+          REDIS_URL: redis://localhost:6379/0
+          CELERY_BROKER_URL: redis://localhost:6379/1
+          CELERY_RESULT_BACKEND: redis://localhost:6379/2
+          JWT_SECRET_KEY: ci-test-secret-key-not-for-production
+        run: pytest -q --tb=short
+
+  # ─── Security ────────────────────────────────────────────────────────────────
+  pin-drift:
+    name: Cert pin drift check
+    runs-on: ubuntu-latest
+    # Only run weekly (or on changes to cert_pinning.dart)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check cert pin against live server
+        run: |
+          LIVE_PIN=$(echo | openssl s_client \
+            -connect api.smaartspend.com:443 \
+            -servername api.smaartspend.com 2>/dev/null \
+            | openssl x509 -pubkey -noout \
+            | openssl pkey -pubin -outform DER \
+            | openssl dgst -sha256 -binary \
+            | base64)
+
+          echo "Live SPKI pin: $LIVE_PIN"
+
+          if grep -q "$LIVE_PIN" lib/core/network/cert_pinning.dart; then
+            echo "✅ Pin is current — cert_pinning.dart contains the live pin."
+          else
+            echo "⚠️  Pin drift detected — $LIVE_PIN is not in cert_pinning.dart"
+            echo "Update _productionPins in lib/core/network/cert_pinning.dart"
+            exit 1
+          fi

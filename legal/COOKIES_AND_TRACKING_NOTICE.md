@@ -3,15 +3,15 @@
 **App:** SmartSpend
 **Operator:** Firmeza Consulting cc
 **Effective Date:** 05 April 2026
-**Last Updated:** 05 April 2026
+**Last Updated:** 10 June 2026
 
 ---
 
 ## 1. Overview
 
-SmartSpend is a native mobile application. It does not use browser cookies. This Notice
-describes the equivalent tracking technologies used on mobile platforms, including the analytics
-SDK we have implemented to improve the App experience.
+SmartSpend is a native mobile application. It does not use browser cookies, and it does not use
+any third-party analytics or advertising SDK. This Notice describes the limited, functional
+storage and connectivity technologies the App relies on.
 
 ## 2. Technologies We Use
 
@@ -45,24 +45,13 @@ the in-app inbox. No cross-device or cross-app tracking occurs.
 
 **Consent required:** No - functional to the App feature.
 
-### 2.5 Analytics SDK - [ANALYTICS_PROVIDER]
+### 2.5 Analytics SDK - None
 
-We use [ANALYTICS_PROVIDER] to collect pseudonymous usage analytics. Data collected includes
-app screens visited, feature interactions (excluding any financial content), session information,
-device type, OS version, app version, error events, and country-level location.
+SmartSpend does **not** include any analytics SDK and does **not** collect usage analytics,
+telemetry, or pseudonymous event data. No screen-view, feature-usage, session, device, or
+crash/error events are transmitted to us or to any third party.
 
-**Financial data, transaction details, and account balances are never sent to the analytics
-provider.**
-
-Analytics events are associated with a pseudonymous device identifier, not your name or email.
-
-**Consent:** Where required by applicable law (e.g., EU ePrivacy Directive, national
-implementations), we will request your consent before activating analytics. You may opt out
-at any time via **Settings > Privacy > Analytics** within the App. Opt-out prevents further
-event collection; previously collected pseudonymous data is handled per [ANALYTICS_PROVIDER]'s
-retention policy.
-
-**Provider privacy policy:** [ANALYTICS_PRIVACY_URL]
+**Consent required:** Not applicable - no analytics technology is present.
 
 ### 2.6 Exchange-Rate API Calls - Functional (Feature-Dependent)
 
@@ -79,7 +68,8 @@ As of 05 April 2026, SmartSpend does not use:
 
 - Browser cookies of any kind;
 - Advertising identifiers (IDFA / GAID) or ad networks;
-- Cross-app or cross-site behavioural tracking beyond the analytics SDK described above;
+- Third-party analytics or usage-tracking SDKs;
+- Cross-app or cross-site behavioural tracking;
 - Fingerprinting techniques;
 - Third-party social media trackers or pixels.
 
@@ -95,7 +85,8 @@ notification delivery. Notification permission can be revoked at any time in dev
 |---|---|
 | Local database / secure storage | Uninstall the App |
 | Session tokens | Log out (tokens are revoked on the backend) |
-| Analytics | Settings > Privacy > Analytics - toggle off at any time |
+| Analytics | None used - nothing to control |
+| Push notifications | Device OS Settings > Notifications, or in-app Settings > Notifications |
 | Local notifications | Device OS Settings > Notifications |
 | Exchange-rate API calls | Do not use currency conversion features |
 
@@ -106,4 +97,4 @@ existing ones. Material changes will be communicated as described in our Privacy
 
 ## 6. Contact
 
-[PRIVACY_EMAIL]
+admin@smaartspend.com

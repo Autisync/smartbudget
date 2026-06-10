@@ -24,6 +24,7 @@ import 'package:smartbudget/features/transactions/presentation/providers/transac
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 import 'package:smartbudget/core/widgets/animated_list_item.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
@@ -593,6 +594,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                           goals: activeGoals,
                           monthlySurplus: monthlySurplus,
                           currencyFormat: currencyFormat,
+                          currencyCode: appCurrency,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -830,6 +832,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     required List<SavingsGoal> goals,
     required double monthlySurplus,
     required NumberFormat currencyFormat,
+    required String currencyCode,
   }) async {
     if (goals.isEmpty) return;
     final result = await AppFormSheet.show<_SurplusSimulationResult>(
@@ -842,6 +845,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           goals: goals,
           monthlySurplus: monthlySurplus,
           currencyFormat: currencyFormat,
+          currencyCode: currencyCode,
         ),
       ),
     );
@@ -1035,6 +1039,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       builder: (_) => _SavingsGoalFormSheet(
         existingGoal: existingGoal,
         currencySymbol: CurrencyUtils.symbol(appCurrency),
+        currencyCode: appCurrency,
       ),
     );
 
@@ -1721,11 +1726,13 @@ class _SurplusSimulationSheet extends StatefulWidget {
     required this.goals,
     required this.monthlySurplus,
     required this.currencyFormat,
+    required this.currencyCode,
   });
 
   final List<SavingsGoal> goals;
   final double monthlySurplus;
   final NumberFormat currencyFormat;
+  final String currencyCode;
 
   @override
   State<_SurplusSimulationSheet> createState() =>
@@ -1861,6 +1868,7 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
               currencySymbol: widget.currencyFormat.currencySymbol,
               helperText:
                   'Available surplus: ${widget.currencyFormat.format(widget.monthlySurplus)}',
+              decimalDigits: MoneyUtils.decimalDigits(widget.currencyCode),
               validator: null,
             ),
             const SizedBox(height: 10),
@@ -1986,10 +1994,12 @@ class _SavingsGoalFormSheet extends StatefulWidget {
   const _SavingsGoalFormSheet({
     this.existingGoal,
     required this.currencySymbol,
+    required this.currencyCode,
   });
 
   final SavingsGoal? existingGoal;
   final String currencySymbol;
+  final String currencyCode;
 
   @override
   State<_SavingsGoalFormSheet> createState() => _SavingsGoalFormSheetState();
@@ -2171,6 +2181,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
             controller: _targetController,
             label: l10n.savingsTargetAmount,
             currencySymbol: widget.currencySymbol,
+            decimalDigits: MoneyUtils.decimalDigits(widget.currencyCode),
             onChanged: (_) => setState(() {}),
             validator: (value) => FormValidation.positiveAmount(
               value,
@@ -2183,6 +2194,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
             controller: _savedController,
             label: l10n.savingsCurrentSavedAmount,
             currencySymbol: widget.currencySymbol,
+            decimalDigits: MoneyUtils.decimalDigits(widget.currencyCode),
             onChanged: (_) => setState(() {}),
             validator: (value) => FormValidation.nonNegativeAmount(
               value,

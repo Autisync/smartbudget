@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:smartbudget/core/widgets/animated_count_text.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 
 enum InsightCardSemanticTone {
@@ -24,6 +25,8 @@ class MinimalInsightMetric {
     this.emphasis = MinimalInsightMetricEmphasis.standard,
     this.onTap,
     this.isSelected = false,
+    this.animatedValue,
+    this.valueFormatter,
   });
 
   final String label;
@@ -32,6 +35,12 @@ class MinimalInsightMetric {
   final MinimalInsightMetricEmphasis emphasis;
   final VoidCallback? onTap;
   final bool isSelected;
+
+  /// When provided (together with [valueFormatter]), the metric's value counts
+  /// smoothly up/down as it changes instead of snapping — used for figures that
+  /// react live to edits (e.g. income/spent/net after adding a transaction).
+  final double? animatedValue;
+  final String Function(double value)? valueFormatter;
 }
 
 class MinimalStatusChip extends StatelessWidget {
@@ -432,12 +441,21 @@ class _MinimalMetricItem extends StatelessWidget {
             child: FittedBox(
               alignment: Alignment.centerLeft,
               fit: BoxFit.scaleDown,
-              child: Text(
-                metric.value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: _valueStyle(context, tone),
-              ),
+              child: (metric.animatedValue != null &&
+                      metric.valueFormatter != null)
+                  ? AnimatedCountText(
+                      value: metric.animatedValue!,
+                      formatter: metric.valueFormatter!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _valueStyle(context, tone),
+                    )
+                  : Text(
+                      metric.value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _valueStyle(context, tone),
+                    ),
             ),
           ),
         ),
@@ -541,6 +559,8 @@ class TransactionDecisionSnapshot extends StatelessWidget {
       MinimalInsightMetric(
         label: 'Income',
         value: formatter.format(monthIncome),
+        animatedValue: monthIncome,
+        valueFormatter: formatter.format,
         tone: const Color(0xFF198754),
         emphasis: MinimalInsightMetricEmphasis.monetary,
         onTap: onIncomeTap,
@@ -549,6 +569,8 @@ class TransactionDecisionSnapshot extends StatelessWidget {
       MinimalInsightMetric(
         label: 'Spent',
         value: formatter.format(monthExpense),
+        animatedValue: monthExpense,
+        valueFormatter: formatter.format,
         tone: const Color(0xFFC94B2A),
         emphasis: MinimalInsightMetricEmphasis.monetary,
         onTap: onSpentTap,
@@ -565,6 +587,8 @@ class TransactionDecisionSnapshot extends StatelessWidget {
       MinimalInsightMetric(
         label: 'Net Flow',
         value: formatter.format(netFlow),
+        animatedValue: netFlow,
+        valueFormatter: formatter.format,
         tone: netFlow >= 0 ? const Color(0xFF198754) : const Color(0xFFC94B2A),
         emphasis: MinimalInsightMetricEmphasis.prominent,
       ),
@@ -655,6 +679,8 @@ class BudgetPortfolioInsight extends StatelessWidget {
       MinimalInsightMetric(
         label: remainingLabel,
         value: currencyFormat.format(remainingValue),
+        animatedValue: remainingValue,
+        valueFormatter: currencyFormat.format,
         tone: remainingTone,
         emphasis: MinimalInsightMetricEmphasis.monetary,
         isSelected: projectedOverspend > 0,
@@ -662,6 +688,8 @@ class BudgetPortfolioInsight extends StatelessWidget {
       MinimalInsightMetric(
         label: 'Spent',
         value: currencyFormat.format(totalSpent),
+        animatedValue: totalSpent,
+        valueFormatter: currencyFormat.format,
         emphasis: MinimalInsightMetricEmphasis.prominent,
       ),
       MinimalInsightMetric(
@@ -757,12 +785,16 @@ class SavingsPortfolioInsight extends StatelessWidget {
       MinimalInsightMetric(
         label: 'Saved',
         value: currencyFormat.format(totalSaved),
+        animatedValue: totalSaved,
+        valueFormatter: currencyFormat.format,
         tone: const Color(0xFF198754),
         emphasis: MinimalInsightMetricEmphasis.monetary,
       ),
       MinimalInsightMetric(
         label: 'Target',
         value: currencyFormat.format(totalTarget),
+        animatedValue: totalTarget,
+        valueFormatter: currencyFormat.format,
         emphasis: MinimalInsightMetricEmphasis.prominent,
       ),
       MinimalInsightMetric(

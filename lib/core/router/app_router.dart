@@ -38,6 +38,8 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/providers/quick_add_provider.dart';
 import 'package:smartbudget/core/widgets/animated_splash_screen.dart';
 import 'package:smartbudget/core/widgets/app_tour_overlay.dart';
+import 'package:smartbudget/core/widgets/email_verification_banner.dart';
+import 'package:smartbudget/core/utils/verification_gate.dart';
 import 'package:smartbudget/core/widgets/nav_action_panel.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
@@ -57,6 +59,17 @@ GoRouter router(RouterRef ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
+      // App Link / Universal Link paths arrive under the domain-registered
+      // `/app` prefix (e.g. https://smaartspend.com/app/verify-email?token=…).
+      // Normalise them onto the in-app auth routes, preserving query params
+      // such as the verification/reset token.
+      final location = state.matchedLocation;
+      if (location.startsWith('/app/')) {
+        final stripped = location.replaceFirst('/app', '');
+        final query = state.uri.query;
+        return query.isEmpty ? stripped : '$stripped?$query';
+      }
+
       if (sessionState.initializing || onboardingState.isLoading) {
         return '/splash';
       }
@@ -104,7 +117,16 @@ GoRouter router(RouterRef ref) {
         return '/login';
       }
 
-      if (isAuthenticated && !localUnlockRequired && isAuthRoute) {
+      // Email verification and password reset can legitimately be completed
+      // while already authenticated (e.g. right after signup, which issues a
+      // session, or when an authenticated user opens a reset link). Don't bounce
+      // those two routes to home — only the pure entry routes (login/signup).
+      final isPostAuthCompletableRoute =
+          isVerifyEmailRoute || isResetPasswordRoute;
+      if (isAuthenticated &&
+          !localUnlockRequired &&
+          isAuthRoute &&
+          !isPostAuthCompletableRoute) {
         return '/';
       }
 
@@ -409,9 +431,19 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     final safeAreaBottom = MediaQuery.paddingOf(context).bottom;
     final isOpen = _panel != _NavPanel.none;
 
+    // Verification banner sits above content but below the nav scrim/panel,
+    // so it is always visible regardless of which screen is active. It
+    // self-collapses once the user is verified or dismisses it this session.
+    final contentWithBanner = Column(
+      children: [
+        const AppEmailVerificationBanner(),
+        Expanded(child: body),
+      ],
+    );
+
     return Stack(
       children: [
-        Positioned.fill(child: body),
+        Positioned.fill(child: contentWithBanner),
         // Scrim — always Positioned.fill so it covers the full body area;
         // fades in/out with the panel. IgnorePointer keeps it non-interactive
         // when the panel is closed so the body receives all gestures normally.
@@ -495,26 +527,46 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       router.go(route);
     }
 
+    // Wraps a write-action tap with the email-verification gate.
+    // Panel is closed first so the verification sheet is never rendered on
+    // top of an open quick-add panel. If the user is unverified the gate
+    // returns false and the navigation/modal open is aborted.
+    void gatedPush(String route) async {
+      _closePanel();
+      if (!await VerificationGate.allow(context, container)) return;
+      if (context.mounted) router.push(route);
+    }
+
+    void gatedModal(QuickAddTarget target, String route) async {
+      _closePanel();
+      if (!await VerificationGate.allow(context, container)) return;
+      if (context.mounted) {
+        container.read(pendingQuickAddProvider.notifier).state = target;
+        router.go(route);
+      }
+    }
+
     return [
       NavActionItem(
         icon: AppIcons.transactionsFilled,
         label: 'Transaction',
-        onTap: () => pushTo('/transactions/add'),
+        onTap: () => gatedPush('/transactions/add'),
       ),
       NavActionItem(
         icon: Icons.account_balance_wallet_rounded,
         label: 'Account',
+        // Accounts are not blocked — adding an account has no financial data.
         onTap: () => openModalAdd(QuickAddTarget.account, '/accounts'),
       ),
       NavActionItem(
         icon: AppIcons.savingsFilled,
         label: 'Savings',
-        onTap: () => openModalAdd(QuickAddTarget.savings, '/savings'),
+        onTap: () => gatedModal(QuickAddTarget.savings, '/savings'),
       ),
       NavActionItem(
         icon: AppIcons.budgetsFilled,
         label: 'Budget',
-        onTap: () => openModalAdd(QuickAddTarget.budget, '/budgets'),
+        onTap: () => gatedModal(QuickAddTarget.budget, '/budgets'),
       ),
     ];
   }

@@ -381,6 +381,32 @@ class SessionController extends StateNotifier<SessionState> {
     }
   }
 
+  /// Requests a fresh verification email for the signed-in account. Requires an
+  /// authenticated session (the backend resolves the recipient from the token).
+  Future<bool> resendVerificationEmail() async {
+    state = state.copyWith(errorMessage: null);
+    try {
+      await _repository.resendVerificationEmail();
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        errorMessage: _errorMessageFromDio(
+          e,
+          fallback: 'Unable to send a verification email right now.',
+        ),
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: AppErrorMapper.from(
+          e,
+          fallback: 'Unable to send a verification email right now.',
+        ),
+      );
+      return false;
+    }
+  }
+
   /// Updates the signed-in user's personal details (name) and refreshes the
   /// in-memory session with the server's canonical response.
   Future<bool> updateProfile({String? firstName, String? lastName}) async {

@@ -1,6 +1,7 @@
 import 'package:smartbudget/data/datasources/local/app_database.dart' as db;
 import 'package:smartbudget/domain/entities/budget.dart';
 import 'package:smartbudget/domain/repositories/budget_repository.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
 import 'package:drift/drift.dart';
 
 class BudgetRepositoryImpl implements BudgetRepository {
@@ -13,7 +14,7 @@ class BudgetRepositoryImpl implements BudgetRepository {
     await _db.insertBudget(db.BudgetsCompanion(
       id: Value(budget.id),
       category: Value(budget.category),
-      limitAmount: Value(budget.limitAmount),
+      limitAmount: Value(MoneyUtils.quantize(budget.limitAmount, budget.currency)),
       currency: Value(budget.currency),
       period: Value(budget.period),
       startDate: Value(budget.startDate),
@@ -68,7 +69,7 @@ class BudgetRepositoryImpl implements BudgetRepository {
     await _db.updateBudget(db.BudgetsCompanion(
       id: Value(budget.id),
       category: Value(budget.category),
-      limitAmount: Value(budget.limitAmount),
+      limitAmount: Value(MoneyUtils.quantize(budget.limitAmount, budget.currency)),
       currency: Value(budget.currency),
       period: Value(budget.period),
       startDate: Value(budget.startDate),

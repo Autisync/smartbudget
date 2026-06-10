@@ -257,6 +257,10 @@ class AuthApiClient {
     return AuthUserModel.fromJson(response.data!);
   }
 
+  Future<void> resendVerificationEmail() async {
+    await _dio.post<void>('/api/v1/auth/resend-verification');
+  }
+
   Future<AuthUserModel> updateProfile({
     String? firstName,
     String? lastName,

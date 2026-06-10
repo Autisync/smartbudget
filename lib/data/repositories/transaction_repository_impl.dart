@@ -3,6 +3,7 @@ import 'package:smartbudget/data/encryption/field_encryptor.dart';
 import 'package:smartbudget/data/models/tables.dart' show TransactionRecurrence;
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/domain/repositories/transaction_repository.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -32,7 +33,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     final companion = db.TransactionsCompanion(
       id: Value(transaction.id),
       accountId: Value(transaction.accountId),
-      amount: Value(transaction.amount),
+      amount: Value(MoneyUtils.quantize(transaction.amount, transaction.currency)),
       currency: Value(transaction.currency),
       type: Value(transaction.type),
       category: Value(transaction.category),
@@ -42,7 +43,23 @@ class TransactionRepositoryImpl implements TransactionRepository {
       isSynced: const Value(false),
     );
 
-    await _db.insertTransaction(companion);
+    // Wrap both operations in a single Drift transaction so a crash between
+    // the insert and the originals write can never produce a row with NULL
+    // original_currency. setTransactionOriginals is idempotent (WHERE guard),
+    // so a retry after a partial failure is also safe.
+    // updateTransaction intentionally does NOT call setTransactionOriginals —
+    // originals are captured once at creation and must never be overwritten.
+    await _db.transaction(() async {
+      await _db.insertTransaction(companion);
+      await _db.setTransactionOriginals(
+        id: transaction.id,
+        originalCurrency: transaction.currency,
+        originalAmountMinorUnits: MoneyUtils.toMinorUnits(
+          MoneyUtils.quantize(transaction.amount, transaction.currency),
+          transaction.currency,
+        ),
+      );
+    });
   }
 
   @override
@@ -62,7 +79,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     final companion = db.TransactionsCompanion(
       id: Value(transaction.id),
       accountId: Value(transaction.accountId),
-      amount: Value(transaction.amount),
+      amount: Value(MoneyUtils.quantize(transaction.amount, transaction.currency)),
       currency: Value(transaction.currency),
       type: Value(transaction.type),
       category: Value(transaction.category),

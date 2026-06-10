@@ -268,6 +268,16 @@ def _reset_password_page_html(*, token: str) -> str:
 def create_application() -> FastAPI:
     app = FastAPI(title=settings.app_name)
 
+    # Fail fast if critical secrets are still at insecure defaults in production.
+    secret_issues = settings.production_secret_issues()
+    if secret_issues:
+        for issue in secret_issues:
+            logger.critical("SECURITY MISCONFIGURATION: %s", issue)
+        raise SystemExit(
+            "Refusing to start: critical security misconfigurations detected. "
+            "See logs above. Fix them and restart."
+        )
+
     smtp_issues = settings.smtp_validation_issues()
     for issue in smtp_issues:
         logger.warning("SMTP configuration: %s", issue)

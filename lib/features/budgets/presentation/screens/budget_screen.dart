@@ -21,6 +21,7 @@ import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/widgets/animated_list_item.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
@@ -781,6 +782,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
       builder: (_) => _BudgetFormSheet(
         existingBudget: existingBudget,
         currencySymbol: CurrencyUtils.symbol(appCurrency),
+        currencyCode: appCurrency,
       ),
     );
 
@@ -1475,10 +1477,12 @@ class _BudgetFormSheet extends StatefulWidget {
   const _BudgetFormSheet({
     this.existingBudget,
     required this.currencySymbol,
+    required this.currencyCode,
   });
 
   final Budget? existingBudget;
   final String currencySymbol;
+  final String currencyCode;
 
   @override
   State<_BudgetFormSheet> createState() => _BudgetFormSheetState();
@@ -1635,6 +1639,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
             controller: _amountController,
             label: l10n.budgetAmount,
             currencySymbol: widget.currencySymbol,
+            decimalDigits: MoneyUtils.decimalDigits(widget.currencyCode),
             onChanged: (_) => setState(() {}),
             validator: (value) => FormValidation.positiveAmount(
               value,

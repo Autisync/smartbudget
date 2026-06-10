@@ -3,7 +3,7 @@
 **App:** SmartSpend
 **Operator:** Firmeza Consulting cc
 **Effective Date:** 05 April 2026
-**Last Updated:** 05 April 2026
+**Last Updated:** 10 June 2026
 
 ---
 
@@ -59,10 +59,8 @@ No token values or reset links are written to persistent logs.
 
 ### 3.4 Analytics Data
 
-| Data | Retention | Notes |
-|---|---|---|
-| Pseudonymous event data | Per [ANALYTICS_PROVIDER] settings - [ACTION REQUIRED: confirm] | No financial content included |
-| Aggregated / anonymised reports | Indefinitely | Cannot be re-linked to individuals |
+SmartSpend does not use any third-party analytics service and collects no usage, telemetry, or
+pseudonymous event data. There is therefore no analytics data to retain.
 
 ### 3.5 Infrastructure and Application Logs (Autisync / Hetzner)
 
@@ -88,7 +86,7 @@ backups.
 
 ### How to Request Account Deletion
 
-Send an email to **[PRIVACY_EMAIL]** with:
+Send an email to **admin@smaartspend.com** with:
 
 - **Subject line:** `Account Deletion Request - [your registered email address]`
 - **Body:** Confirmation that you wish to permanently delete your account and all associated
@@ -135,4 +133,4 @@ communicated per our Privacy Policy change notification process.
 
 ## 8. Contact
 
-[PRIVACY_EMAIL]
+admin@smaartspend.com

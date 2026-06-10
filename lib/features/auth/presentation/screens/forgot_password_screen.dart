@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smartbudget/components/feedback/app_feedback_service.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/auth/presentation/widgets/auth_shell.dart';
 
@@ -17,6 +16,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   bool _submitting = false;
   String? _message;
+  bool _isError = false;
   bool _emailTouched = false;
 
   bool get _hasValidEmail => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
@@ -32,7 +32,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isError = _message != null && _message == 'Enter a valid email.';
+    final isError = _isError;
     final emailError =
         _emailTouched ? _emailValidation(_emailController.text) : null;
 
@@ -140,33 +140,30 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   Future<void> _submit() async {
     final email = _emailController.text.trim();
     if (!_hasValidEmail) {
-      setState(() => _message = 'Enter a valid email.');
+      setState(() {
+        _message = 'Enter a valid email.';
+        _isError = true;
+      });
       return;
     }
 
     setState(() {
       _submitting = true;
       _message = null;
+      _isError = false;
     });
     await ref.read(sessionControllerProvider.notifier).forgotPassword(email);
+    if (!mounted) return;
     final session = ref.read(sessionControllerProvider);
-    final hasError = session.errorMessage != null;
+    // Single inline message — no duplicate snackbar. The success copy is
+    // intentionally generic so it never reveals whether the account exists.
     setState(() {
       _submitting = false;
+      _isError = session.errorMessage != null;
       _message = session.errorMessage ??
-          'If this account exists, reset instructions were sent.';
+          'If an account exists for this email, a reset link has been sent. '
+              'Check your inbox and spam folder.';
     });
-
-    if (!mounted) return;
-
-    if (hasError) {
-      AppFeedbackService.showError(context, session.errorMessage!);
-      return;
-    }
-    AppFeedbackService.showSuccess(
-      context,
-      'Password reset email sent. Check your inbox.',
-    );
   }
 
   String? _emailValidation(String email) {

@@ -98,8 +98,13 @@ class RiskEngine {
     final lostIncomeEffect = incomeLossEnabled ? monthlyIncome * 0.2 : 0;
     final lostIncomeBurn =
         math.max(monthlyObligations + lostIncomeEffect, 1) / 30;
-    final emergencyExpense = emergencyCostEnabled ? 600 : 300;
-    final emergencyBuffer = math.max(0, liquidBuffer - emergencyExpense);
+    // Model an unexpected expense relative to the user's own cost of living so
+    // the shock is currency-agnostic and realistic across income levels: a
+    // severe event is roughly one month of obligations, a baseline event half
+    // a month.
+    final emergencyExpense =
+        monthlyObligations * (emergencyCostEnabled ? 1.0 : 0.5);
+    final emergencyBuffer = math.max(0.0, liquidBuffer - emergencyExpense);
 
     final withIncomeLossDays =
         (liquidBuffer / lostIncomeBurn).floor().clamp(0, 3650);

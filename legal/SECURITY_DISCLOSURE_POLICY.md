@@ -36,7 +36,7 @@ This Policy applies to:
 3.1 If you believe you have discovered a security vulnerability in an in-scope component,
 report it to us **before any public disclosure** at:
 
-**[SUPPORT_EMAIL]** - Subject: `[SECURITY DISCLOSURE] <brief description>`
+**support@smaartspend.com** - Subject: `[SECURITY DISCLOSURE] <brief description>`
 
 3.2 Please include where possible:
 
@@ -118,6 +118,6 @@ The following controls are currently in place (not an exhaustive list):
 
 ## 8. Contact
 
-**Security reports:** [SUPPORT_EMAIL] - subject `[SECURITY DISCLOSURE]`
-**General security enquiries:** [SUPPORT_EMAIL]
-**Postal:** [POSTAL_ADDRESS], Republic of Namibia
+**Security reports:** support@smaartspend.com - subject `[SECURITY DISCLOSURE]`
+**General security enquiries:** support@smaartspend.com
+**Postal:** 030915, Namibia, Republic of Namibia

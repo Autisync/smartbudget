@@ -3,7 +3,7 @@
 **App:** SmartSpend
 **Operator:** Firmeza Consulting cc
 **Effective Date:** 05 April 2026
-**Last Updated:** 05 April 2026
+**Last Updated:** 10 June 2026
 
 ---
 
@@ -50,18 +50,19 @@ Union on Hetzner infrastructure.
 
 ## 4. Analytics
 
-### 4.1 [ANALYTICS_PROVIDER]
+SmartSpend uses **no third-party analytics provider**. No analytics SDK is embedded in the App,
+and no usage, telemetry, session, device, crash, or pseudonymous event data is collected or sent
+to any third party. In-app reports and insights are computed locally on your device.
+
+## 4a. Push Notifications - Google Firebase Cloud Messaging (FCM)
 
 | Item | Detail |
 |---|---|
-| **Provider** | [ANALYTICS_PROVIDER] |
-| **Purpose** | Pseudonymous usage analytics for App improvement |
-| **Data sent** | Pseudonymous device identifier; app screens visited; feature interactions (no financial content); session metrics; device type; OS version; app version; error events; country-level location |
-| **Financial data sent** | **None** - financial entries, balances, and transaction data are never sent to the analytics provider |
-| **Data location** | [ACTION REQUIRED: confirm and insert] |
-| **Transfer safeguards** | Standard Contractual Clauses (where transfer outside EU/EEA) |
-| **Privacy policy** | [ANALYTICS_PRIVACY_URL] |
-| **Opt-out** | Settings > Privacy > Analytics within the App |
+| **Provider** | Google Firebase Cloud Messaging |
+| **Purpose** | Delivery of remote push notifications (only if you enable notifications) |
+| **Data sent** | An opaque device push token; the notification payload we send |
+| **Financial data sent** | **None** |
+| **Opt-out** | Disable notifications in device Settings or in-app Settings > Notifications |
 
 ## 5. Exchange-Rate Data Providers
 
@@ -135,4 +136,4 @@ Material changes communicated per Privacy Policy §13.
 
 ## 8. Contact
 
-[PRIVACY_EMAIL]
+admin@smaartspend.com

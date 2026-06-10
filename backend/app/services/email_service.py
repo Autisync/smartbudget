@@ -153,6 +153,32 @@ class EmailService:
             html_body=html_body,
         )
 
+    def send_duplicate_signup_alert_email(
+        self,
+        *,
+        email: str,
+        user_name: str,
+        attempt_time: str,
+    ) -> None:
+        """Notifies an existing account holder that someone tried to register
+        using their email. The response to the requester is already generic
+        (no enumeration), so this is the only way the legitimate owner is
+        informed of the attempt."""
+        action_url = 'https://smaartspend.com/app/security'
+        context = self._base_context(user_name=user_name, action_url=action_url)
+        context.update({'email': email, 'attempt_time': attempt_time})
+        html_body = self._render_html_template('duplicate_signup_alert.html', context)
+        self._send_email(
+            to_email=email,
+            subject='Sign-up attempt on your account',
+            text_body=(
+                f'Hi {user_name}, someone tried to register a new account using your '
+                f'email ({email}) at {attempt_time}. No changes were made. '
+                f'If this wasn\'t you, secure your account: {action_url}'
+            ),
+            html_body=html_body,
+        )
+
     def send_billing_subscription_email(
         self,
         *,

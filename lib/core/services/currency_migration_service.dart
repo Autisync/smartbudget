@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/exchange_rate_service.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart';
 
 class CurrencyMigrationService {
@@ -57,7 +58,7 @@ class CurrencyMigrationService {
               ..where((t) => t.id.equals(row.id)))
             .write(
           TransactionsCompanion(
-            amount: Value(_convert(row.amount, rates[sourceCurrency]!)),
+            amount: Value(_convert(row.amount, rates[sourceCurrency]!, normalizedTo)),
             currency: Value(normalizedTo),
             updatedAt: Value(DateTime.now()),
             isSynced: const Value(false),
@@ -72,8 +73,8 @@ class CurrencyMigrationService {
               ..where((b) => b.id.equals(row.id)))
             .write(
           BudgetsCompanion(
-            limitAmount:
-                Value(_convert(row.limitAmount, rates[sourceCurrency]!)),
+            limitAmount: Value(
+                _convert(row.limitAmount, rates[sourceCurrency]!, normalizedTo)),
             currency: Value(normalizedTo),
           ),
         );
@@ -86,7 +87,7 @@ class CurrencyMigrationService {
               ..where((s) => s.id.equals(row.id)))
             .write(
           SubscriptionsCompanion(
-            amount: Value(_convert(row.amount, rates[sourceCurrency]!)),
+            amount: Value(_convert(row.amount, rates[sourceCurrency]!, normalizedTo)),
             currency: Value(normalizedTo),
             updatedAt: Value(DateTime.now()),
           ),
@@ -100,7 +101,8 @@ class CurrencyMigrationService {
               ..where((a) => a.id.equals(row.id)))
             .write(
           AccountsCompanion(
-            balance: Value(_convert(row.balance, rates[sourceCurrency]!)),
+            balance: Value(
+                _convert(row.balance, rates[sourceCurrency]!, normalizedTo)),
             currency: Value(normalizedTo),
           ),
         );
@@ -114,8 +116,10 @@ class CurrencyMigrationService {
                 ..where((g) => g.id.equals(row.id)))
               .write(
             SavingsGoalsCompanion(
-              targetAmount: Value(_convert(row.targetAmount, savingsRate)),
-              savedAmount: Value(_convert(row.savedAmount, savingsRate)),
+              targetAmount:
+                  Value(_convert(row.targetAmount, savingsRate, normalizedTo)),
+              savedAmount:
+                  Value(_convert(row.savedAmount, savingsRate, normalizedTo)),
             ),
           );
         }
@@ -125,8 +129,12 @@ class CurrencyMigrationService {
     await _currencyService.saveSavingsCurrencyCode(normalizedTo);
   }
 
-  double _convert(double amount, double rate) {
-    return double.parse((amount * rate).toStringAsFixed(2));
+  /// Converts [amount] at [rate] and rounds to the smallest unit of the
+  /// destination currency (ISO 4217 minor units) rather than a hard-coded two
+  /// decimals, so zero-decimal (e.g. JPY) and three-decimal currencies convert
+  /// correctly.
+  double _convert(double amount, double rate, String targetCurrency) {
+    return MoneyUtils.quantize(amount * rate, targetCurrency);
   }
 }
 

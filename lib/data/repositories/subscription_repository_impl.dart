@@ -3,6 +3,7 @@ import 'package:smartbudget/data/datasources/local/app_database.dart';
 import 'package:smartbudget/data/encryption/field_encryptor.dart';
 import 'package:smartbudget/domain/entities/subscription.dart' as entity;
 import 'package:smartbudget/domain/repositories/subscription_repository.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
 
 class SubscriptionRepositoryImpl implements SubscriptionRepository {
   final AppDatabase database;
@@ -80,7 +81,8 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
           : Value(subscription.id),
       name: Value(subscription.name),
       description: Value(encryptor?.encryptNullable(subscription.description) ?? subscription.description),
-      amount: Value(subscription.amount),
+      amount:
+          Value(MoneyUtils.quantize(subscription.amount, subscription.currency)),
       currency: Value(subscription.currency),
       billingCycle: Value(subscription.billingCycle),
       startDate: Value(subscription.startDate),

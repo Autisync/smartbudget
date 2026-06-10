@@ -60,7 +60,7 @@ providers.
 email address. You must provide accurate, complete, and current information.
 
 4.2 You are responsible for maintaining the confidentiality of your credentials and for all
-activity that occurs under your account. You must notify us immediately at [SUPPORT_EMAIL] of
+activity that occurs under your account. You must notify us immediately at support@smaartspend.com of
 any suspected unauthorized access.
 
 4.3 We reserve the right to suspend or terminate accounts that we reasonably believe involve
@@ -247,4 +247,4 @@ infrastructure, or telecommunications failures.
 20.6 **Language.** These Terms are provided in English. Where translated versions are provided
 as a convenience, the English version prevails in the event of any inconsistency.
 
-20.7 **Contact.** General inquiries: [SUPPORT_EMAIL]. Legal notices: [POSTAL_ADDRESS].
+20.7 **Contact.** General inquiries: support@smaartspend.com. Legal notices: 030915, Namibia.

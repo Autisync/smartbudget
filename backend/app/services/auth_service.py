@@ -21,7 +21,13 @@ from app.core.security import (
 from app.repositories.session_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import AuthResponse
-from app.services.email_service import EmailService
+from app.tasks.email import (
+    send_duplicate_signup_alert_email_task,
+    send_login_alert_email_task,
+    send_password_reset_email_task,
+    send_verification_email_task,
+    send_welcome_email_task,
+)
 
 
 class AuthService:
@@ -31,11 +37,25 @@ class AuthService:
         self.db = db
         self.users = UserRepository(db)
         self.sessions = SessionRepository(db)
-        self.email = EmailService()
 
     def signup(self, *, email: str, password: str, first_name: str, last_name: str, device_name: str | None, platform: str | None):
-        if self.users.get_by_email(email):
-            raise errors.bad_request("Account already exists")
+        existing = self.users.get_by_email(email)
+        if existing:
+            # Account-enumeration fix: never reveal whether the email is
+            # registered. The response to the caller is identical to the
+            # success path up to the point where we'd return tokens — but we
+            # return an error with a *generic* message so the caller cannot
+            # distinguish "email already in use" from "invalid request".
+            #
+            # We do notify the legitimate owner out-of-band (async, no latency)
+            # so they know the attempt happened and can act if it wasn't them.
+            attempt_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+            send_duplicate_signup_alert_email_task.delay(
+                email=existing.email,
+                user_name=existing.first_name,
+                attempt_time=attempt_time,
+            )
+            raise errors.bad_request("Unable to create account with the provided details")
 
         user = self.users.create(
             email=email,
@@ -49,7 +69,8 @@ class AuthService:
             token_type="verify_email",
             ttl_seconds=settings.verify_email_ttl_seconds,
         )
-        self.email.send_verification_email(
+        # Fire-and-forget via Celery — never blocks the signup response.
+        send_verification_email_task.delay(
             email=user.email, token=verification_token, user_name=user.first_name
         )
         return self._issue_tokens(user_id=str(user.id), device_name=device_name, platform=platform, user=user)
@@ -79,10 +100,11 @@ class AuthService:
         login_device = device_name or platform or "Unknown device"
         login_location = request_ip or "Unknown location"
         login_time = datetime.now(timezone.utc).isoformat()
-        self.email.send_login_alert_email(
+        # M-1 FIX: Use HTTPS App Link instead of custom scheme (not hijackable).
+        send_login_alert_email_task.delay(
             email=user.email,
             user_name=user.first_name,
-            action_url="smartbudget://security",
+            action_url="https://smaartspend.com/app/security",
             device=login_device,
             location=login_location,
             login_time=login_time,
@@ -140,10 +162,10 @@ class AuthService:
         login_device = device_name or platform or "Unknown device"
         login_location = request_ip or "Unknown location"
         login_time = datetime.now(timezone.utc).isoformat()
-        self.email.send_login_alert_email(
+        send_login_alert_email_task.delay(
             email=user.email,
             user_name=user.first_name,
-            action_url="smartbudget://security",
+            action_url="https://smaartspend.com/app/security",
             device=login_device,
             location=login_location,
             login_time=login_time,
@@ -175,6 +197,22 @@ class AuthService:
         token_hash = hash_token(refresh_token)
         self.sessions.revoke_by_token_hash(token_hash)
 
+    def resend_verification(self, *, user) -> None:
+        """Re-issues an email-verification link to the given user. Idempotent and
+        leak-free: already-verified users are a no-op."""
+        if user is None or user.is_verified:
+            return
+        verification_token = create_short_lived_token(
+            subject=str(user.id),
+            token_type="verify_email",
+            ttl_seconds=settings.verify_email_ttl_seconds,
+        )
+        send_verification_email_task.delay(
+            email=user.email,
+            token=verification_token,
+            user_name=user.first_name,
+        )
+
     def update_profile(self, *, user, first_name: str | None, last_name: str | None):
         return self.users.update_profile(
             user, first_name=first_name, last_name=last_name
@@ -187,7 +225,7 @@ class AuthService:
         token = create_short_lived_token(
             subject=str(user.id), token_type="reset_password", ttl_seconds=settings.password_reset_ttl_seconds
         )
-        self.email.send_password_reset_email(
+        send_password_reset_email_task.delay(
             email=user.email, token=token, user_name=user.first_name
         )
 
@@ -208,10 +246,10 @@ class AuthService:
         self.db.add(user)
         self.db.commit()
 
-        self.email.send_welcome_email(
+        send_welcome_email_task.delay(
             email=user.email,
             user_name=user.first_name,
-            action_url="smartbudget://dashboard",
+            action_url="https://smaartspend.com/app/dashboard",
         )
 
     def _verify_social_token(

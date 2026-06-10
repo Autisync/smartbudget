@@ -50,10 +50,28 @@ class ForecastEngine {
         currentMonthsRemaining: currentMonths,
         simulatedMonthsRemaining: simulatedMonths,
         monthsSavedOrDelayed: _monthsDelta(currentMonths, simulatedMonths),
-        requiredMonthlyContribution:
-            goal.remainingAmount <= 0 ? 0 : goal.remainingAmount / 12,
+        requiredMonthlyContribution: _requiredMonthlyContribution(goal, now),
       );
     }).toList(growable: false);
+  }
+
+  /// Monthly amount needed to reach the goal. Paced to the goal's deadline when
+  /// one is set (never dividing by a non-positive horizon), otherwise spread
+  /// over a default 12-month planning window.
+  double _requiredMonthlyContribution(ScenarioGoal goal, DateTime now) {
+    final remaining = goal.remainingAmount;
+    if (remaining <= 0) return 0;
+
+    final deadline = goal.targetDate;
+    if (deadline == null) return remaining / 12;
+
+    // Whole months until the deadline, with at least one month so an imminent
+    // or overdue goal asks for the full remaining amount rather than dividing
+    // by zero (which would yield Infinity).
+    final days = deadline.difference(now).inDays;
+    final months = (days / 30).ceil();
+    final horizon = months < 1 ? 1 : months;
+    return remaining / horizon;
   }
 
   int? _monthsToTarget({

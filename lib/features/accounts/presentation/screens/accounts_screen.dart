@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/core/providers/quick_add_provider.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
+import 'package:smartbudget/core/widgets/animated_count_text.dart';
 import 'package:smartbudget/core/widgets/animated_list_item.dart';
 import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/domain/entities/account.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/features/accounts/presentation/providers/account_provider.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 
@@ -277,8 +280,9 @@ class _TotalCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Text(
-            fmt.format(total),
+          AnimatedCountText(
+            value: total,
+            formatter: fmt.format,
             style: theme.textTheme.headlineMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w800,
@@ -355,8 +359,9 @@ class _AccountTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              fmt.format(account.currentBalance),
+            AnimatedCountText(
+              value: account.currentBalance,
+              formatter: fmt.format,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.2,
@@ -420,7 +425,7 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
     if (_saving || !_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final repo = ref.read(accountRepositoryProvider);
-    final opening = double.tryParse(_opening.text.trim()) ?? 0;
+    final opening = FormValidation.parseDecimal(_opening.text) ?? 0;
     final existing = widget.existing;
     if (existing == null) {
       // New custom accounts use the app's default currency of the first account.
@@ -447,6 +452,11 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.existing != null;
+    // Use the existing account's currency when editing; fall back to the
+    // app default for new accounts (currency is resolved on save from the
+    // first account, but we need it here for decimal-digit constraints).
+    final appCurrency = ref.watch(appCurrencyControllerProvider);
+    final effectiveCurrency = widget.existing?.currency ?? appCurrency;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final liveName = _name.text.trim();
@@ -541,13 +551,21 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
           CurrencyInput(
             controller: _opening,
             label: 'Opening balance',
-            currencySymbol: '',
-            helperText: 'Starting balance for this account',
+            currencySymbol: CurrencyUtils.symbol(effectiveCurrency),
+            decimalDigits: MoneyUtils.decimalDigits(effectiveCurrency),
+            // Liability accounts (e.g. credit cards) can carry a negative
+            // balance, so allow a leading minus for those types.
+            allowNegative: _type == AccountType.creditCard,
+            helperText: _type == AccountType.creditCard
+                ? 'Use a negative value for an outstanding balance owed'
+                : 'Starting balance for this account',
             onChanged: (_) => setState(() {}),
-            validator: (v) =>
-                double.tryParse((v ?? '').trim()) == null
-                    ? 'Enter a number'
-                    : null,
+            validator: (v) {
+              final parsed = FormValidation.parseDecimal(v ?? '');
+              if (parsed == null) return 'Enter a number';
+              if (!MoneyUtils.isWithinLimit(parsed)) return 'Amount too large';
+              return null;
+            },
           ),
         ],
       ),

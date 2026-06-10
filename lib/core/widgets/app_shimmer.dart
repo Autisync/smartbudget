@@ -137,7 +137,7 @@ class AppShimmerSkeleton extends StatelessWidget {
         itemCount,
         (i) => Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: _SkeletonRowTile(),
+          child: const _SkeletonRowTile(),
         ),
       );
 
@@ -150,13 +150,13 @@ class AppShimmerSkeleton extends StatelessWidget {
       );
 
   List<Widget> _dashboardItems() => [
-        _SkeletonCard(tall: true, height: 140),
+        const _SkeletonCard(tall: true, height: 140),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _SkeletonCard(height: 80)),
+            Expanded(child: const _SkeletonCard(height: 80)),
             const SizedBox(width: 10),
-            Expanded(child: _SkeletonCard(height: 80)),
+            Expanded(child: const _SkeletonCard(height: 80)),
           ],
         ),
         const SizedBox(height: 16),
@@ -167,6 +167,8 @@ class AppShimmerSkeleton extends StatelessWidget {
 }
 
 class _SkeletonRowTile extends StatelessWidget {
+  const _SkeletonRowTile();
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -183,14 +185,14 @@ class _SkeletonRowTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _SkeletonBox(width: 140, height: 13),
+              const _SkeletonBox(width: 140, height: 13),
               const SizedBox(height: 6),
-              _SkeletonBox(width: 90, height: 11),
+              const _SkeletonBox(width: 90, height: 11),
             ],
           ),
         ),
         const SizedBox(width: 12),
-        _SkeletonBox(width: 60, height: 13),
+        const _SkeletonBox(width: 60, height: 13),
       ],
     );
   }
@@ -218,12 +220,12 @@ class _SkeletonCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _SkeletonBox(width: 110, height: 12),
+          const _SkeletonBox(width: 110, height: 12),
           if (tall) ...[
             const SizedBox(height: 10),
-            _SkeletonBox(width: 180, height: 20),
+            const _SkeletonBox(width: 180, height: 20),
             const SizedBox(height: 10),
-            _SkeletonBox(width: 90, height: 11),
+            const _SkeletonBox(width: 90, height: 11),
           ],
         ],
       ),

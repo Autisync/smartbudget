@@ -1,3 +1,5 @@
+import 'package:smartbudget/core/utils/money_utils.dart';
+
 class FormValidation {
   const FormValidation._();
 
@@ -14,7 +16,7 @@ class FormValidation {
       return emptyMessage;
     }
     final parsed = parseDecimal(value);
-    if (parsed == null || parsed <= 0) {
+    if (parsed == null || parsed <= 0 || !MoneyUtils.isWithinLimit(parsed)) {
       return invalidMessage;
     }
     return null;
@@ -22,17 +24,16 @@ class FormValidation {
 
   static String? nonNegativeAmount(String? value, String invalidMessage) {
     final parsed = parseDecimal(value ?? '');
-    if (parsed == null || parsed < 0) {
+    if (parsed == null || parsed < 0 || !MoneyUtils.isWithinLimit(parsed)) {
       return invalidMessage;
     }
     return null;
   }
 
-  static double? parseDecimal(String raw) {
-    final normalized =
-        raw.replaceAll(RegExp(r'[^0-9,.-]'), '').replaceAll(',', '');
-    return double.tryParse(normalized);
-  }
+  /// Parses a monetary string. Locale-aware: tolerates both `1,234.56` and
+  /// `1.234,56` conventions instead of blindly stripping commas, and accepts a
+  /// leading minus for liability/credit balances.
+  static double? parseDecimal(String raw) => MoneyUtils.parse(raw);
 
   static String? requiredDate(DateTime? value, String message) {
     if (value == null) return message;

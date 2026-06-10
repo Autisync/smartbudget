@@ -9,6 +9,7 @@ import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
@@ -355,6 +356,7 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
             label: l10n?.amount ?? 'Amount',
             currencySymbol: CurrencyUtils.symbol(appCurrency),
             helperText: l10n?.subscriptionsPerMonth ?? 'per month',
+            decimalDigits: MoneyUtils.decimalDigits(appCurrency),
             validator: (value) => FormValidation.positiveAmount(
               value,
               l10n?.subscriptionsRequired ?? 'Required',

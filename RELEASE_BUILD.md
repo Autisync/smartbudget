@@ -190,3 +190,79 @@ https://smaartspend.com/.well-known/apple-app-site-association
 ```
 
 The file must be served with `Content-Type: application/json` and no redirect.
+
+---
+
+## Performance & Scalability (Required before launch)
+
+Three workstreams must be completed and signed off before the public launch:
+**(1) DB index audit, (2) pagination, (3) auth-endpoint load testing.**
+
+### 1. Database index audit
+
+Auth and finance hot paths must be index-backed. Current state (verify these are
+present in the deployed schema, not just the models):
+
+| Table | Column(s) | Index | Status |
+|-------|-----------|-------|--------|
+| `users` | `email` | unique + index | ✅ present (`app/models/user.py`) |
+| `auth_sessions` | `token_hash` | unique + index | ✅ present |
+| `auth_sessions` | `user_id` | index | ✅ present |
+| `transactions` | `(user_id, occurred_on)`, `(user_id, category)` | composite | ✅ present |
+| `budgets` | `(user_id, category)` | composite | ✅ present |
+| `subscriptions` | `(user_id, next_due_on)` | composite | ✅ present |
+| `audit_logs` | `(actor_user_id, created_at)` | composite | ✅ present |
+
+Pre-launch tasks:
+- [ ] Confirm a migration has actually created every index above in production
+      (`\di` in psql / inspect `alembic` history) — models alone don't guarantee it.
+- [ ] `EXPLAIN ANALYZE` the login lookup (`SELECT … FROM users WHERE email = …`) and the
+      session lookup by `token_hash`; confirm **Index Scan**, not Seq Scan.
+- [ ] Add a partial index on `auth_sessions (user_id) WHERE revoked_at IS NULL` if
+      active-session lookups appear in slow-query logs.
+- [ ] Verify the DB connection pool size (`app/db/session.py`) is tuned for expected
+      concurrency and below Postgres `max_connections`.
+
+### 2. Pagination
+
+Server-side pagination already exists for **transactions**
+(`app/api/v1/endpoints/finance.py`: `limit` default 50 / max 200, `offset`, returns
+`TransactionPage` + `PageMeta.total`). Remaining work:
+
+- [ ] **Audit the other list endpoints** (budgets, savings goals, subscriptions, audit
+      logs) — apply the same `limit`/`offset` + max-page-size guard so none can return an
+      unbounded result set.
+- [ ] **Migrate transactions to keyset/cursor pagination** on `(occurred_on, id)` — the
+      current `OFFSET` approach degrades on large histories (deep pages scan + discard).
+- [ ] **Client-side incremental loading:** confirm the Flutter transaction list
+      (`lib/features/transactions/.../transaction_list_screen.dart`) consumes the paged API
+      and lazy-loads on scroll, rather than materialising the full ledger in memory.
+- [ ] **Reports / exports:** cap or stream any "all transactions" report/CSV/PDF export so
+      a multi-year history can't OOM the request.
+
+### 3. Load testing — auth endpoints
+
+Auth is the launch bottleneck because **Argon2 is intentionally CPU-expensive** and
+signup/login/verify all hit it. Load-test before launch with k6 or Locust against a
+production-like deploy (real Postgres + Redis, SMTP in async/Celery mode):
+
+Targets to exercise: `POST /auth/signup`, `/auth/login`, `/auth/refresh`,
+`/auth/forgot-password`, `/auth/verify-email`, `/auth/resend-verification`.
+
+- [ ] Establish a baseline: ramp to expected peak concurrency; record **p50/p95/p99
+      latency** and error rate per endpoint. Set an SLO (e.g. p95 login < 400 ms
+      excluding Argon2 cost, error rate < 0.5%).
+- [ ] **Argon2 tuning:** confirm the cost parameters (`app/core/security.py`) give an
+      acceptable hash time (~150–350 ms) at peak CPU without starving the event loop.
+      Run signup/login under sustained load and watch CPU saturation.
+- [ ] **Rate-limit verification under load:** confirm the login limiter and the new
+      `resend_verification` / generic `check_action` limiter (`app/services/rate_limiter.py`)
+      actually cap abusive callers and that Redis is not a single point of contention.
+- [ ] **Email path:** confirm verification/reset emails are dispatched **off the request
+      thread** (Celery) so SMTP latency/outages don't inflate auth response times or block
+      signup. (Tracked separately in the pre-beta to-do.)
+- [ ] **Failure modes:** kill Redis and the DB mid-test; confirm graceful 5xx with the
+      sanitised error messages (no internals leaked) and automatic recovery.
+- [ ] Document results + the chosen production instance/replica count and DB pool size.
+
+**Do not launch** until all three checklists are green and the load-test report is filed.

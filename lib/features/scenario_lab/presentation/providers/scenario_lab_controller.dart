@@ -55,6 +55,7 @@ final scenarioLabBaseDataProvider =
           targetAmount: goal.targetAmount,
           savedAmount: goal.savedAmount,
           createdAt: goal.createdAt ?? now,
+          targetDate: goal.deadline,
         ),
       )
       .toList(growable: false);

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     celery_broker_url: str = Field(default="redis://redis:6379/1")
     celery_result_backend: str = Field(default="redis://redis:6379/2")
 
-    jwt_secret_key: str = "change-me"
+    jwt_secret_key: str = "change-me"  # MUST be overridden via JWT_SECRET_KEY env var in production
     jwt_algorithm: str = "HS256"
     access_token_ttl_seconds: int = 900
     refresh_token_ttl_seconds: int = 2592000
@@ -26,8 +26,12 @@ class Settings(BaseSettings):
     login_rate_limit_window_seconds: int = 60
     login_rate_limit_max_attempts: int = 10
 
-    reset_password_deep_link_base: str = "smartbudget://reset-password"
-    verify_email_deep_link_base: str = "smartbudget://verify-email"
+    # Domain-bound App Links / Universal Links (cryptographically verified via
+    # assetlinks.json + apple-app-site-association) instead of a hijackable
+    # custom URL scheme. Must match the /app path prefix registered in the
+    # native deep-link intent-filters.
+    reset_password_deep_link_base: str = "https://smaartspend.com/app/reset-password"
+    verify_email_deep_link_base: str = "https://smaartspend.com/app/verify-email"
     google_oauth_client_ids: str = ""
     apple_oauth_audiences: str = ""
 
@@ -40,6 +44,28 @@ class Settings(BaseSettings):
     smtp_use_ssl: bool = False
     smtp_from_email: str = "noreply@smartbudget.local"
     smtp_from_name: str = "SmartBudget"
+
+    def production_secret_issues(self) -> list[str]:
+        """Returns a list of critical misconfiguration issues that must block startup
+        in any non-development environment. Raises SystemExit when called from main.py."""
+        if self.environment == "development":
+            return []
+        issues: list[str] = []
+        if self.jwt_secret_key == "change-me":
+            issues.append(
+                "JWT_SECRET_KEY is still the default 'change-me' — "
+                "set a cryptographically random value in the environment"
+            )
+        if "postgres:postgres@" in self.database_url or self.database_url.endswith(":5432/smartbudget") and "postgres:postgres" in self.database_url:
+            issues.append(
+                "DATABASE_URL contains default postgres:postgres credentials — "
+                "use a dedicated DB user with a strong password"
+            )
+        if self.cors_origins == "*":
+            issues.append(
+                "CORS_ORIGINS is '*' — restrict to your production domain(s)"
+            )
+        return issues
 
     def smtp_validation_issues(self) -> list[str]:
         issues: list[str] = []

@@ -13,6 +13,7 @@ import 'package:smartbudget/features/accounts/presentation/providers/account_pro
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
+import 'package:smartbudget/core/utils/money_utils.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:uuid/uuid.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
@@ -266,6 +267,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             label: l10n.amount,
             currencySymbol: CurrencyUtils.symbol(appCurrency),
             helperText: 'Use amount with decimals, e.g. 1,250.75',
+            decimalDigits: MoneyUtils.decimalDigits(appCurrency),
             validator: (value) => FormValidation.positiveAmount(
               value,
               l10n.transactionsEnterAmount,

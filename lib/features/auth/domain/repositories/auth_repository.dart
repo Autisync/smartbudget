@@ -34,6 +34,7 @@ abstract class AuthRepository {
   Future<void> resetPassword(
       {required String token, required String newPassword});
   Future<void> verifyEmail(String token);
+  Future<void> resendVerificationEmail();
   Future<AuthUser> me();
   Future<AuthUser> updateProfile({String? firstName, String? lastName});
   Future<AuthTokens?> readStoredTokens();

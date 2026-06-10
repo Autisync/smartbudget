@@ -602,7 +602,7 @@ class _SpendingIllustration extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _Label('Total Balance', Colors.white60),
+                          const _Label('Total Balance', Colors.white60),
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
@@ -631,8 +631,8 @@ class _SpendingIllustration extends StatelessWidget {
                           const Icon(Icons.arrow_upward_rounded,
                               size: 13, color: Color(0xFF5EEAAA)),
                           const SizedBox(width: 3),
-                          _Label('+8.4% vs last month',
-                              const Color(0xFF5EEAAA)),
+                          const _Label('+8.4% vs last month',
+                              Color(0xFF5EEAAA)),
                         ],
                       ),
                     ],
@@ -648,7 +648,7 @@ class _SpendingIllustration extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Label('Weekly Spending', Colors.white60),
+                const _Label('Weekly Spending', Colors.white60),
                 const SizedBox(height: 14),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -752,7 +752,7 @@ class _InsightsIllustration extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Label('Spending Forecast', Colors.white60),
+                      const _Label('Spending Forecast', Colors.white60),
                       const SizedBox(height: 12),
                       AnimatedBuilder(
                         animation: stagger,
@@ -772,12 +772,12 @@ class _InsightsIllustration extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _Label('Jan', Colors.white38),
-                          _Label('Feb', Colors.white38),
-                          _Label('Mar', Colors.white38),
-                          _Label('Apr', Colors.white38),
-                          _Label('May', Colors.white38),
-                          _Label('Jun', Colors.white60),
+                          const _Label('Jan', Colors.white38),
+                          const _Label('Feb', Colors.white38),
+                          const _Label('Mar', Colors.white38),
+                          const _Label('Apr', Colors.white38),
+                          const _Label('May', Colors.white38),
+                          const _Label('Jun', Colors.white60),
                         ],
                       ),
                     ],

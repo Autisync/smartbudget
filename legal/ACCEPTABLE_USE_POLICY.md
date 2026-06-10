@@ -81,7 +81,7 @@ suspected violations.
 
 ## 5. Reporting Violations
 
-Contact [SUPPORT_EMAIL] to report AUP violations. For security vulnerabilities, follow our
+Contact support@smaartspend.com to report AUP violations. For security vulnerabilities, follow our
 Security Disclosure Policy.
 
 ## 6. No Limitation of Applicable Law

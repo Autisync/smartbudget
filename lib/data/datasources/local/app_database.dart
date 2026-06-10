@@ -33,12 +33,21 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) async {
           await m.createAll();
+          // These two columns are managed outside the Drift table definition
+          // (no code-gen required) so they must be added manually even on a
+          // fresh install — createAll() does not know about them.
+          await m.customStatement(
+            'ALTER TABLE transactions ADD COLUMN original_amount_minor_units INTEGER',
+          );
+          await m.customStatement(
+            'ALTER TABLE transactions ADD COLUMN original_currency TEXT',
+          );
         },
         onUpgrade: (Migrator m, int from, int to) async {
           // Downgrades are unsupported: a newer DB may contain tables/columns
@@ -70,6 +79,40 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from >= 4 && from < 6) {
             await m.addColumn(subscriptions, subscriptions.importance);
+          }
+          if (from < 7) {
+            // Add non-destructive multi-currency columns. These are NOT in the
+            // Drift table definition (tables.dart) because adding a Drift column
+            // requires regenerating app_database.g.dart. Instead we manage them
+            // exclusively via customStatement / customUpdate so no generated
+            // file needs to change.
+            await m.customStatement(
+              'ALTER TABLE transactions ADD COLUMN original_amount_minor_units INTEGER',
+            );
+            await m.customStatement(
+              'ALTER TABLE transactions ADD COLUMN original_currency TEXT',
+            );
+            // Back-fill existing rows with the original currency and the amount
+            // converted to integer minor units using ISO 4217 decimal-place rules.
+            // Rows already having a non-NULL original_currency are left untouched
+            // so the migration is safe to re-run (idempotent via the WHERE guard).
+            await m.customStatement('''
+UPDATE transactions SET
+  original_currency              = currency,
+  original_amount_minor_units    = CAST(ROUND(amount *
+    CASE
+      WHEN currency IN (
+        'JPY','KRW','VND','CLP','ISK','XOF','XAF','XPF',
+        'PYG','RWF','UGX','GNF','KMF','BIF','DJF','VUV'
+      ) THEN 1
+      WHEN currency IN (
+        'BHD','KWD','OMR','TND','IQD','JOD','LYD'
+      ) THEN 1000
+      ELSE 100
+    END
+  ) AS INTEGER)
+WHERE original_currency IS NULL
+''');
           }
         },
       );
@@ -313,6 +356,35 @@ class AppDatabase extends _$AppDatabase {
     await into(
       transactions,
     ).insert(transaction, mode: InsertMode.insertOrReplace);
+  }
+
+  /// Writes the immutable multi-currency originals for a freshly-inserted
+  /// transaction. The WHERE guard (`original_currency IS NULL`) makes this a
+  /// no-op if called a second time, so the originals are never overwritten.
+  ///
+  /// These columns live outside the Drift table definition (no code-gen needed)
+  /// and are therefore managed via raw SQL only.
+  Future<void> setTransactionOriginals({
+    required String id,
+    required String originalCurrency,
+    required int originalAmountMinorUnits,
+  }) async {
+    await customUpdate(
+      '''
+      UPDATE transactions
+      SET
+        original_currency           = ?,
+        original_amount_minor_units = ?
+      WHERE id = ?
+        AND original_currency IS NULL
+      ''',
+      variables: [
+        Variable.withString(originalCurrency),
+        Variable.withInt(originalAmountMinorUnits),
+        Variable.withString(id),
+      ],
+      updates: {transactions},
+    );
   }
 
   Future<void> updateSyncStatus(String id, bool synced) async {
