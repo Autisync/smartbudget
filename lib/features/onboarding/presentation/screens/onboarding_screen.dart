@@ -626,12 +626,12 @@ class _SpendingIllustration extends StatelessWidget {
                               fontWeight: FontWeight.w800,
                               letterSpacing: -0.8)),
                       const SizedBox(height: 4),
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.arrow_upward_rounded,
+                          Icon(Icons.arrow_upward_rounded,
                               size: 13, color: Color(0xFF5EEAAA)),
-                          const SizedBox(width: 3),
-                          const _Label('+8.4% vs last month',
+                          SizedBox(width: 3),
+                          _Label('+8.4% vs last month',
                               Color(0xFF5EEAAA)),
                         ],
                       ),
@@ -769,15 +769,15 @@ class _InsightsIllustration extends StatelessWidget {
                         },
                       ),
                       const SizedBox(height: 8),
-                      Row(
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const _Label('Jan', Colors.white38),
-                          const _Label('Feb', Colors.white38),
-                          const _Label('Mar', Colors.white38),
-                          const _Label('Apr', Colors.white38),
-                          const _Label('May', Colors.white38),
-                          const _Label('Jun', Colors.white60),
+                          _Label('Jan', Colors.white38),
+                          _Label('Feb', Colors.white38),
+                          _Label('Mar', Colors.white38),
+                          _Label('Apr', Colors.white38),
+                          _Label('May', Colors.white38),
+                          _Label('Jun', Colors.white60),
                         ],
                       ),
                     ],

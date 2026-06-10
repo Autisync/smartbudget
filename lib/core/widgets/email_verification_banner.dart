@@ -111,8 +111,8 @@ class _AppEmailVerificationBannerState
               GestureDetector(
                 onTap: () => setState(() => _dismissed = true),
                 behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
                   child: Icon(
                     Icons.close_rounded,
                     size: 16,

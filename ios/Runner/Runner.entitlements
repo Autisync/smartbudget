@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Sign in with Apple capability. Required for SignInWithApple to return a
+	     credential on device; without it getAppleIDCredential fails. -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+	<!-- Universal Links: the apps this build is allowed to handle links for.
+	     Backed by apple-app-site-association at https://smaartspend.com. -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:smaartspend.com</string>
+	</array>
+</dict>
+</plist>

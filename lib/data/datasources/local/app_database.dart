@@ -42,10 +42,10 @@ class AppDatabase extends _$AppDatabase {
           // These two columns are managed outside the Drift table definition
           // (no code-gen required) so they must be added manually even on a
           // fresh install — createAll() does not know about them.
-          await m.customStatement(
+          await customStatement(
             'ALTER TABLE transactions ADD COLUMN original_amount_minor_units INTEGER',
           );
-          await m.customStatement(
+          await customStatement(
             'ALTER TABLE transactions ADD COLUMN original_currency TEXT',
           );
         },
@@ -86,17 +86,17 @@ class AppDatabase extends _$AppDatabase {
             // requires regenerating app_database.g.dart. Instead we manage them
             // exclusively via customStatement / customUpdate so no generated
             // file needs to change.
-            await m.customStatement(
+            await customStatement(
               'ALTER TABLE transactions ADD COLUMN original_amount_minor_units INTEGER',
             );
-            await m.customStatement(
+            await customStatement(
               'ALTER TABLE transactions ADD COLUMN original_currency TEXT',
             );
             // Back-fill existing rows with the original currency and the amount
             // converted to integer minor units using ISO 4217 decimal-place rules.
             // Rows already having a non-NULL original_currency are left untouched
             // so the migration is safe to re-run (idempotent via the WHERE guard).
-            await m.customStatement('''
+            await customStatement('''
 UPDATE transactions SET
   original_currency              = currency,
   original_amount_minor_units    = CAST(ROUND(amount *

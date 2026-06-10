@@ -514,11 +514,6 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     final router = GoRouter.of(context);
     final container = ProviderScope.containerOf(context);
 
-    void pushTo(String route) {
-      _closePanel();
-      router.push(route);
-    }
-
     void openModalAdd(QuickAddTarget target, String route) {
       _closePanel();
       // Raise the in-screen add form via a pending request the destination

@@ -33,7 +33,10 @@ class Settings(BaseSettings):
     reset_password_deep_link_base: str = "https://smaartspend.com/app/reset-password"
     verify_email_deep_link_base: str = "https://smaartspend.com/app/verify-email"
     google_oauth_client_ids: str = ""
-    apple_oauth_audiences: str = ""
+    # For native Sign in with Apple the identity token's `aud` claim is the
+    # app's bundle identifier. Override per-environment (comma-separated) if a
+    # Services ID or additional bundle IDs are also used.
+    apple_oauth_audiences: str = "autisync.smartbudget"
 
     smtp_enabled: bool = False
     smtp_host: str = ""

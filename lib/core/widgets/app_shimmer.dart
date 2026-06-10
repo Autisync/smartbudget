@@ -135,9 +135,9 @@ class AppShimmerSkeleton extends StatelessWidget {
 
   List<Widget> _listItems() => List.generate(
         itemCount,
-        (i) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: const _SkeletonRowTile(),
+        (i) => const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: _SkeletonRowTile(),
         ),
       );
 
@@ -152,11 +152,11 @@ class AppShimmerSkeleton extends StatelessWidget {
   List<Widget> _dashboardItems() => [
         const _SkeletonCard(tall: true, height: 140),
         const SizedBox(height: 12),
-        Row(
+        const Row(
           children: [
-            Expanded(child: const _SkeletonCard(height: 80)),
-            const SizedBox(width: 10),
-            Expanded(child: const _SkeletonCard(height: 80)),
+            Expanded(child: _SkeletonCard(height: 80)),
+            SizedBox(width: 10),
+            Expanded(child: _SkeletonCard(height: 80)),
           ],
         ),
         const SizedBox(height: 16),
@@ -181,13 +181,13 @@ class _SkeletonRowTile extends StatelessWidget {
           decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
         ),
         const SizedBox(width: 12),
-        Expanded(
+        const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _SkeletonBox(width: 140, height: 13),
-              const SizedBox(height: 6),
-              const _SkeletonBox(width: 90, height: 11),
+              _SkeletonBox(width: 140, height: 13),
+              SizedBox(height: 6),
+              _SkeletonBox(width: 90, height: 11),
             ],
           ),
         ),
