@@ -68,9 +68,11 @@ class EmailService:
             # Email delivery must not break core auth flows (login/signup/reset).
             return
 
-    def send_verification_email(self, *, email: str, token: str) -> None:
+    def send_verification_email(self, *, email: str, token: str, user_name: str = 'there') -> None:
         verification_link = self._build_link(settings.verify_email_deep_link_base, token)
-        context = self._base_context(user_name='there', action_url=verification_link)
+        context = self._base_context(
+            user_name=user_name.strip() or 'there', action_url=verification_link
+        )
         html_body = self._render_html_template('email_verification.html', context)
         subject = 'Verify your SmartBudget email'
         text_body = f'Use this link to verify your email: {verification_link}'
@@ -81,9 +83,11 @@ class EmailService:
             html_body=html_body,
         )
 
-    def send_password_reset_email(self, *, email: str, token: str) -> None:
+    def send_password_reset_email(self, *, email: str, token: str, user_name: str = 'there') -> None:
         reset_link = self._build_link(settings.reset_password_deep_link_base, token)
-        context = self._base_context(user_name='there', action_url=reset_link)
+        context = self._base_context(
+            user_name=user_name.strip() or 'there', action_url=reset_link
+        )
         context['expiration_minutes'] = '30'
         html_body = self._render_html_template('password_reset.html', context)
         subject = 'Reset your SmartBudget password'
@@ -164,7 +168,7 @@ class EmailService:
         html_body = self._render_html_template('billing_subscription.html', context)
         self._send_email(
             to_email=email,
-            subject='Payment सफल / Invoice',
+            subject=f'Your {settings.app_name} payment receipt',
             text_body=f'Payment processed. Amount: {amount}. View invoice: {action_url}',
             html_body=html_body,
         )

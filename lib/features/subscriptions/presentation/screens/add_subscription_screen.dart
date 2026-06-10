@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/components/sheets/app_sheet_container.dart';
-import 'package:smartbudget/components/sheets/keyboard_aware_form_sheet.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/data/models/tables.dart';
@@ -403,25 +402,15 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
             },
           ),
           const SizedBox(height: 16),
-          ModernDropdown<SubscriptionImportance>(
+          _ImportanceChipSelector(
             value: _importance,
-            label: l10n?.subscriptionsImportance ?? 'Importance',
-            prefixIcon: Icons.priority_high_rounded,
-            items: SubscriptionImportance.values
-                .map(
-                  (importance) => DropdownMenuItem(
-                    value: importance,
-                    child: Text(_importanceLabel(importance, l10n)),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => _importance = value);
-              }
-            },
+            importanceLabel: _importanceLabel,
+            l10n: l10n,
+            onChanged: (v) => setState(() => _importance = v),
           ),
           const SizedBox(height: 16),
+          _FormSectionLabel(label: l10n?.subscriptionsStartDate != null ? 'Billing Dates' : 'Billing Dates'),
+          const SizedBox(height: 8),
           ModernDatePicker(
             label: l10n?.subscriptionsStartDate ?? 'Start Date',
             value: MaterialLocalizations.of(context).formatFullDate(_startDate),
@@ -447,7 +436,9 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
             subtitle: Text(_isActive ? 'Active' : 'Paused'),
             onChanged: (value) => setState(() => _isActive = value),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          const _FormSectionLabel(label: 'Optional Details'),
+          const SizedBox(height: 8),
           ModernInput(
             controller: _paymentMethodController,
             label: l10n?.subscriptionsPaymentMethod ?? 'Payment Method',
@@ -517,9 +508,9 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
     );
 
     if (widget.asModal) {
-      return KeyboardAwareFormSheet(
+      return AppFormSheet(
         onClose: _closeScreen,
-        maxHeightFactor: 0.78,
+        maxHeightFactor: 0.90,
         body: formFields,
         actions: FilledButton.icon(
           onPressed: _saving ? null : _save,
@@ -686,5 +677,146 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
     }
 
     return values;
+  }
+}
+
+// ─── Section label ─────────────────────────────────────────────────────────
+
+class _FormSectionLabel extends StatelessWidget {
+  const _FormSectionLabel({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+              ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Divider(
+            color: scheme.outlineVariant.withValues(alpha: 0.6),
+            height: 1,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Importance chip selector ───────────────────────────────────────────────
+
+class _ImportanceChipSelector extends StatelessWidget {
+  const _ImportanceChipSelector({
+    required this.value,
+    required this.importanceLabel,
+    required this.l10n,
+    required this.onChanged,
+  });
+
+  final SubscriptionImportance value;
+  final String Function(SubscriptionImportance, AppLocalizations?) importanceLabel;
+  final AppLocalizations? l10n;
+  final ValueChanged<SubscriptionImportance> onChanged;
+
+  static Color _color(SubscriptionImportance imp) => switch (imp) {
+        SubscriptionImportance.low => const Color(0xFF3A7A2A),
+        SubscriptionImportance.medium => const Color(0xFF3B5FBB),
+        SubscriptionImportance.high => const Color(0xFFB2710D),
+        SubscriptionImportance.critical => const Color(0xFFC94B2A),
+      };
+
+  static String _shortLabel(SubscriptionImportance imp) => switch (imp) {
+        SubscriptionImportance.low => 'Low',
+        SubscriptionImportance.medium => 'Medium',
+        SubscriptionImportance.high => 'High',
+        SubscriptionImportance.critical => 'Critical',
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Importance',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: SubscriptionImportance.values.map((imp) {
+            final selected = value == imp;
+            final color = _color(imp);
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: GestureDetector(
+                  onTap: () => onChanged(imp),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? color.withValues(alpha: 0.14)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: selected
+                            ? color
+                            : scheme.outlineVariant,
+                        width: selected ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 180),
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium!
+                              .copyWith(
+                                color: selected ? color : scheme.onSurfaceVariant,
+                                fontWeight: selected
+                                    ? FontWeight.w800
+                                    : FontWeight.w500,
+                              ),
+                          child: Text(
+                            _shortLabel(imp),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        if (selected) ...[
+                          const SizedBox(height: 3),
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
   }
 }

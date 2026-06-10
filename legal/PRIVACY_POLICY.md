@@ -3,7 +3,7 @@
 **App:** SmartSpend
 **Data Controller:** Firmeza Consulting cc, [POSTAL_ADDRESS], Republic of Namibia
 **Effective Date:** 05 April 2026
-**Last Updated:** 05 April 2026
+**Last Updated:** 10 June 2026
 **Privacy Contact:** [PRIVACY_EMAIL]
 **Data Protection Officer / Representative:** [DPO_EMAIL_OR_CONTACT]
 
@@ -124,7 +124,37 @@ When you use the optional backend, we or our infrastructure providers may automa
 - Timestamps of authentication events;
 - HTTP request metadata necessary for service operation.
 
-### 3.7 Data We Do Not Collect
+### 3.7 Push Notifications (Firebase Cloud Messaging)
+
+If you enable push notifications, the App registers with Google Firebase Cloud
+Messaging (FCM) to deliver remote alerts (for example, security or billing
+notices). For this purpose:
+
+- A **device push token** (an opaque identifier issued by FCM/Apple Push
+  Notification service) is generated and may be transmitted to our backend so
+  we can address notifications to your device. The token does not contain your
+  name, email, or any financial data.
+- On Android 13+ and iOS, the operating system asks for your permission before
+  any notification is shown; you can revoke this at any time in your device
+  settings or in **Settings > Notifications** within the App.
+- **Local (on-device) notifications** — budget alerts, savings nudges, and
+  similar reminders — are generated entirely on your device and are **not**
+  transmitted to us or to Google.
+
+Google Firebase acts as a processor for push delivery. See the Third-Party
+Services Notice. **Legal basis:** Art. 6(1)(a) GDPR — consent (you opt in by
+enabling notifications).
+
+### 3.8 Social Sign-In (Optional)
+
+If you choose to sign in with Google or Apple, the respective provider returns a
+signed identity token from which we read your **email address and, where
+available, your first/last name** solely to create or match your account. We do
+not receive your social-account password. Apple's "Hide My Email" relay
+addresses are supported. **Legal basis:** Art. 6(1)(b) GDPR — contract
+performance.
+
+### 3.9 Data We Do Not Collect
 
 We do not collect: raw biometric data; bank account or card numbers; Social Security, tax
 identification, or national identity numbers; health or medical data; precise geolocation;

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/intelligence/models/forecast_data_point.dart';
@@ -70,7 +71,8 @@ class ForecastChartWidget extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
+            ChartEntrance(
+              builder: (context, _) => SizedBox(
               height: 260,
               child: LineChart(
                 duration: UiTokens.motionSlow,
@@ -174,7 +176,8 @@ class ForecastChartWidget extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
+              ), // ChartEntrance SizedBox
+            ), // ChartEntrance
             const SizedBox(height: 12),
             Row(
               children: [

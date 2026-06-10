@@ -109,6 +109,14 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<AuthUser> updateProfile({String? firstName, String? lastName}) {
+    return _remoteClient.updateProfile(
+      firstName: firstName,
+      lastName: lastName,
+    );
+  }
+
+  @override
   Future<AuthTokens> refreshToken() async {
     final existing = await _storage.readTokens();
     if (existing == null) {

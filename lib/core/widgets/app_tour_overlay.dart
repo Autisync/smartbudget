@@ -1,66 +1,71 @@
+import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
-import 'package:smartbudget/core/theme/ui_tokens.dart';
 
-// ---------------------------------------------------------------------------
-// Tour step data
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
+// Step definitions
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _TourStep {
   const _TourStep({
-    required this.icon,
     required this.title,
-    required this.body,
-    this.accentColor,
+    required this.subtitle,
+    required this.gradientTop,
+    required this.gradientBottom,
+    required this.illustration,
   });
 
-  final IconData icon;
   final String title;
-  final String body;
-  final Color? accentColor;
+  final String subtitle;
+  final Color gradientTop;
+  final Color gradientBottom;
+  final Widget Function(BuildContext, Animation<double>) illustration;
 }
 
-const _steps = <_TourStep>[
+final _steps = <_TourStep>[
   _TourStep(
-    icon: Icons.waving_hand_rounded,
     title: 'Welcome to SmartSpend',
-    body:
-        'Your personal finance companion. Track spending, set budgets, grow savings — all in one place.',
-    accentColor: AppColors.brand,
+    subtitle:
+        'Your all-in-one personal finance app. Track spending, build budgets, and grow savings — all in one place.',
+    gradientTop: const Color(0xFF1A1060),
+    gradientBottom: const Color(0xFF4C3BE8),
+    illustration: (ctx, anim) => _WelcomeIllustration(progress: anim),
   ),
   _TourStep(
-    icon: Icons.add_circle_rounded,
-    title: 'Add anything with "+"',
-    body:
-        'The "+" button in the bottom-right opens a quick menu to add a transaction, subscription, savings goal, or budget.',
-    accentColor: AppColors.success,
+    title: 'Track every transaction',
+    subtitle:
+        'Log cash, bank transfers and credit card payments. See exactly where your money goes in real time.',
+    gradientTop: const Color(0xFF0B3528),
+    gradientBottom: const Color(0xFF1A9E6A),
+    illustration: (ctx, anim) => _TransactionsIllustration(progress: anim),
   ),
   _TourStep(
-    icon: Icons.grid_view_rounded,
-    title: 'Explore with the grid icon',
-    body:
-        'The four-squares icon in the nav bar opens your full menu — settings, reports, AI insights, exchange rates and more.',
-    accentColor: AppColors.info,
+    title: 'Set budgets & goals',
+    subtitle:
+        'Create category budgets and savings goals. SmartSpend tracks your progress and warns you before you overspend.',
+    gradientTop: const Color(0xFF3A1200),
+    gradientBottom: const Color(0xFFF09030),
+    illustration: (ctx, anim) => _BudgetsIllustration(progress: anim),
   ),
   _TourStep(
-    icon: Icons.insights_rounded,
-    title: 'Stay on track',
-    body:
-        'Your dashboard shows a live snapshot of your net balance, budget health and savings progress every time you open the app.',
-    accentColor: AppColors.warning,
+    title: 'Add anything in one tap',
+    subtitle:
+        'The "+" button launches a quick-add menu. The grid icon opens navigation — reports, accounts, AI insights and more.',
+    gradientTop: const Color(0xFF0D1F3C),
+    gradientBottom: const Color(0xFF3B7BFF),
+    illustration: (ctx, anim) => _NavIllustration(progress: anim),
   ),
 ];
 
-// ---------------------------------------------------------------------------
-// Overlay widget (wraps the shell with the tour on first launch)
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
+// Root overlay widget
+// ─────────────────────────────────────────────────────────────────────────────
 
-/// Wraps [child] with a full-screen tour overlay on the user's first launch
-/// after completing the account and legal onboarding.
 class AppTourOverlay extends ConsumerStatefulWidget {
   const AppTourOverlay({super.key, required this.child});
 
@@ -71,49 +76,39 @@ class AppTourOverlay extends ConsumerStatefulWidget {
 }
 
 class _AppTourOverlayState extends ConsumerState<AppTourOverlay>
-    with SingleTickerProviderStateMixin {
-  int _step = 0;
+    with TickerProviderStateMixin {
   bool _dismissed = false;
-  late final AnimationController _ctrl;
-  late final Animation<double> _fade;
+  late final AnimationController _enterCtrl;
+  late final AnimationController _exitCtrl;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: UiTokens.motionMedium,
-    )..forward();
-    _fade = CurvedAnimation(parent: _ctrl, curve: UiTokens.motionCurve);
+    _enterCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 420))
+      ..forward();
+    _exitCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 320));
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _enterCtrl.dispose();
+    _exitCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _dismiss() async {
-    await _ctrl.reverse();
+    HapticFeedback.lightImpact();
+    await _exitCtrl.forward();
     if (!mounted) return;
     setState(() => _dismissed = true);
-    // Persist so the tour never shows again.
     await ref.read(onboardingServiceProvider).markAppTourSeen();
-    // Invalidate the provider so the overlay is not shown again this session.
     ref.invalidate(appTourSeenProvider);
-  }
-
-  void _next() {
-    if (_step < _steps.length - 1) {
-      setState(() => _step++);
-    } else {
-      _dismiss();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Only show once tour-seen status has loaded and is false.
     final tourSeenAsync = ref.watch(appTourSeenProvider);
     final showTour = tourSeenAsync.valueOrNull == false && !_dismissed;
 
@@ -121,97 +116,175 @@ class _AppTourOverlayState extends ConsumerState<AppTourOverlay>
       children: [
         widget.child,
         if (showTour)
-          FadeTransition(
-            opacity: _fade,
-            child: _TourCard(
-              step: _step,
-              totalSteps: _steps.length,
-              onNext: _next,
-              onSkip: _dismiss,
-            ),
+          AnimatedBuilder(
+            animation: Listenable.merge([_enterCtrl, _exitCtrl]),
+            builder: (context, _) {
+              final enterT = CurvedAnimation(
+                      parent: _enterCtrl, curve: Curves.easeOutCubic)
+                  .value;
+              final exitT = CurvedAnimation(
+                      parent: _exitCtrl, curve: Curves.easeInCubic)
+                  .value;
+              final opacity = enterT * (1 - exitT);
+              final slide = (1 - enterT) * 0.06 + exitT * 0.04;
+              return Opacity(
+                opacity: opacity.clamp(0.0, 1.0),
+                child: Transform.translate(
+                  offset: Offset(0, MediaQuery.sizeOf(context).height * slide),
+                  child: _TourFlow(onDismiss: _dismiss),
+                ),
+              );
+            },
           ),
       ],
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// Tour card
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
+// Full-screen tour flow (PageView + state)
+// ─────────────────────────────────────────────────────────────────────────────
 
-class _TourCard extends StatelessWidget {
-  const _TourCard({
-    required this.step,
-    required this.totalSteps,
-    required this.onNext,
-    required this.onSkip,
-  });
+class _TourFlow extends StatefulWidget {
+  const _TourFlow({required this.onDismiss});
 
-  final int step;
-  final int totalSteps;
-  final VoidCallback onNext;
-  final VoidCallback onSkip;
+  final VoidCallback onDismiss;
+
+  @override
+  State<_TourFlow> createState() => _TourFlowState();
+}
+
+class _TourFlowState extends State<_TourFlow> with TickerProviderStateMixin {
+  final _pageCtrl = PageController();
+  int _page = 0;
+
+  // Per-step stagger controller (reset on every page change).
+  late AnimationController _stagger;
+
+  // Background gradient interpolation (driven by page scroll).
+  late AnimationController _bgCtrl;
+  int _bgFrom = 0;
+  int _bgTo = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _stagger = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 700))
+      ..forward();
+    _bgCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 450));
+  }
+
+  @override
+  void dispose() {
+    _pageCtrl.dispose();
+    _stagger.dispose();
+    _bgCtrl.dispose();
+    super.dispose();
+  }
+
+  void _goTo(int page) {
+    if (page < 0 || page >= _steps.length) return;
+    _bgFrom = _page;
+    _bgTo = page;
+    _bgCtrl
+      ..reset()
+      ..forward();
+    _stagger
+      ..reset()
+      ..forward();
+    _pageCtrl.animateToPage(
+      page,
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeInOutCubic,
+    );
+    setState(() => _page = page);
+    HapticFeedback.selectionClick();
+  }
+
+  void _next() {
+    if (_page < _steps.length - 1) {
+      _goTo(_page + 1);
+    } else {
+      widget.onDismiss();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = cs.brightness == Brightness.dark;
-    final data = _steps[step];
-    final isLast = step == totalSteps - 1;
-    final accent = data.accentColor ?? cs.primary;
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Full-screen backdrop blur + dim
+          // Animated background gradient
+          Positioned.fill(child: _AnimatedBg(
+            fromStep: _bgFrom,
+            toStep: _bgTo,
+            animation: CurvedAnimation(
+                parent: _bgCtrl, curve: Curves.easeInOutCubic),
+          )),
+
+          // Swipeable page content (illustration area only — no swiping text)
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: ColoredBox(
-                color: Colors.black.withValues(alpha: isDark ? 0.55 : 0.45),
+            child: PageView.builder(
+              controller: _pageCtrl,
+              physics: const BouncingScrollPhysics(),
+              itemCount: _steps.length,
+              onPageChanged: (p) {
+                if (p != _page) {
+                  _bgFrom = _page;
+                  _bgTo = p;
+                  _bgCtrl..reset()..forward();
+                  _stagger..reset()..forward();
+                  setState(() => _page = p);
+                  HapticFeedback.selectionClick();
+                }
+              },
+              itemBuilder: (context, i) => _PageSlide(
+                step: _steps[i],
+                stagger: _stagger,
               ),
             ),
           ),
-          // Tap outside to skip (full-screen GestureDetector behind the card)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: onSkip,
-              behavior: HitTestBehavior.opaque,
-              child: const ColoredBox(color: Colors.transparent),
+
+          // Bottom text + controls panel (slides up once, stays put)
+          Positioned(
+            left: 0, right: 0, bottom: 0,
+            child: _BottomPanel(
+              step: _page,
+              totalSteps: _steps.length,
+              stagger: _stagger,
+              onNext: _next,
+              onSkip: widget.onDismiss,
             ),
           ),
-          // Centred card
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: AnimatedSwitcher(
-                duration: UiTokens.motionMedium,
-                switchInCurve: UiTokens.motionCurve,
-                switchOutCurve: UiTokens.motionCurve.flipped,
-                transitionBuilder: (child, anim) => FadeTransition(
-                  opacity: anim,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0.04, 0),
-                      end: Offset.zero,
-                    ).animate(anim),
-                    child: child,
-                  ),
-                ),
-                child: _StepCard(
-                  key: ValueKey(step),
-                  data: data,
-                  step: step,
-                  totalSteps: totalSteps,
-                  accent: accent,
-                  isDark: isDark,
-                  cs: cs,
-                  isLast: isLast,
-                  onNext: onNext,
-                  onSkip: onSkip,
-                ),
-              ),
+
+          // Top safe-area skip button
+          Positioned(
+            top: MediaQuery.paddingOf(context).top + 12,
+            right: 20,
+            child: AnimatedBuilder(
+              animation: _stagger,
+              builder: (context, _) {
+                final t = CurvedAnimation(
+                        parent: _stagger,
+                        curve: const Interval(0.6, 1.0,
+                            curve: Curves.easeOut))
+                    .value;
+                return Opacity(
+                  opacity: t,
+                  child: _page < _steps.length - 1
+                      ? TextButton(
+                          onPressed: widget.onDismiss,
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white60,
+                          ),
+                          child: const Text('Skip'),
+                        )
+                      : const SizedBox.shrink(),
+                );
+              },
             ),
           ),
         ],
@@ -220,136 +293,749 @@ class _TourCard extends StatelessWidget {
   }
 }
 
-class _StepCard extends StatelessWidget {
-  const _StepCard({
-    super.key,
-    required this.data,
+// ─────────────────────────────────────────────────────────────────────────────
+// Animated gradient background
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AnimatedBg extends AnimatedWidget {
+  const _AnimatedBg({
+    required this.fromStep,
+    required this.toStep,
+    required Animation<double> animation,
+  }) : super(listenable: animation);
+
+  final int fromStep;
+  final int toStep;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = (listenable as Animation<double>).value;
+    final from = _steps[fromStep.clamp(0, _steps.length - 1)];
+    final to = _steps[toStep.clamp(0, _steps.length - 1)];
+    final top = Color.lerp(from.gradientTop, to.gradientTop, t)!;
+    final bottom = Color.lerp(from.gradientBottom, to.gradientBottom, t)!;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [top, bottom],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Full-height page slide (illustration)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _PageSlide extends StatelessWidget {
+  const _PageSlide({required this.step, required this.stagger});
+
+  final _TourStep step;
+  final AnimationController stagger;
+
+  @override
+  Widget build(BuildContext context) {
+    final illustAnim = CurvedAnimation(
+        parent: stagger,
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOutBack));
+    return Align(
+      alignment: const Alignment(0, -0.15),
+      child: AnimatedBuilder(
+        animation: illustAnim,
+        builder: (context, child) => Transform.scale(
+          scale: 0.85 + 0.15 * illustAnim.value,
+          child: Opacity(
+            opacity: illustAnim.value.clamp(0.0, 1.0),
+            child: child,
+          ),
+        ),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.44,
+          child: step.illustration(context, illustAnim),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bottom panel — text + dots + buttons
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _BottomPanel extends StatelessWidget {
+  const _BottomPanel({
     required this.step,
     required this.totalSteps,
-    required this.accent,
-    required this.isDark,
-    required this.cs,
-    required this.isLast,
+    required this.stagger,
     required this.onNext,
     required this.onSkip,
   });
 
-  final _TourStep data;
   final int step;
   final int totalSteps;
-  final Color accent;
-  final bool isDark;
-  final ColorScheme cs;
-  final bool isLast;
+  final AnimationController stagger;
   final VoidCallback onNext;
   final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
-    final cardBg = isDark
-        ? cs.surfaceContainerHigh.withValues(alpha: 0.92)
-        : cs.surface.withValues(alpha: 0.96);
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    final data = _steps[step];
+    final isLast = step == totalSteps - 1;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(UiTokens.radius2xl),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(28, 32, 28, 28),
+          padding: EdgeInsets.fromLTRB(28, 32, 28, bottom + 28),
           decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(UiTokens.radius2xl),
-            border: Border.all(
-              color: cs.outline.withValues(alpha: isDark ? 0.25 : 0.5),
+            color: Colors.black.withValues(alpha: 0.35),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(32)),
+            border: Border(
+              top: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.12), width: 1),
             ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Progress dots
-              Row(
-                children: List.generate(totalSteps, (i) {
-                  final active = i == step;
-                  return AnimatedContainer(
-                    duration: UiTokens.motionFast,
-                    curve: UiTokens.motionCurve,
-                    width: active ? 24 : 6,
-                    height: 6,
-                    margin: const EdgeInsets.only(right: 5),
-                    decoration: BoxDecoration(
-                      color: active
-                          ? accent
-                          : cs.onSurface.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(3),
+              // Step dots
+              AnimatedBuilder(
+                animation: stagger,
+                builder: (context, _) {
+                  final t = CurvedAnimation(
+                          parent: stagger,
+                          curve: const Interval(0.1, 0.5,
+                              curve: Curves.easeOut))
+                      .value;
+                  return Opacity(
+                    opacity: t,
+                    child: Row(
+                      children: List.generate(totalSteps, (i) {
+                        final active = i == step;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          width: active ? 28 : 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(right: 6),
+                          decoration: BoxDecoration(
+                            color: active
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.28),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        );
+                      }),
                     ),
                   );
-                }),
-              ),
-              const SizedBox(height: 28),
-              // Icon
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Icon(data.icon, size: 32, color: accent),
+                },
               ),
               const SizedBox(height: 20),
               // Title
-              Text(
-                data.title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: cs.onSurface,
+              AnimatedBuilder(
+                animation: stagger,
+                builder: (context, child) {
+                  final t = CurvedAnimation(
+                          parent: stagger,
+                          curve: const Interval(0.2, 0.65,
+                              curve: Curves.easeOut))
+                      .value;
+                  return Opacity(
+                    opacity: t,
+                    child: Transform.translate(
+                        offset: Offset(0, 16 * (1 - t)), child: child),
+                  );
+                },
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: Text(
+                    data.title,
+                    key: ValueKey(step),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
                       height: 1.2,
+                      letterSpacing: -0.5,
                     ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 10),
-              // Body
-              Text(
-                data.body,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      height: 1.5,
+              const SizedBox(height: 12),
+              // Subtitle
+              AnimatedBuilder(
+                animation: stagger,
+                builder: (context, child) {
+                  final t = CurvedAnimation(
+                          parent: stagger,
+                          curve: const Interval(0.35, 0.8,
+                              curve: Curves.easeOut))
+                      .value;
+                  return Opacity(
+                    opacity: t,
+                    child: Transform.translate(
+                        offset: Offset(0, 12 * (1 - t)), child: child),
+                  );
+                },
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: Text(
+                    data.subtitle,
+                    key: ValueKey(step),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      fontSize: 15,
+                      height: 1.55,
                     ),
+                  ),
+                ),
               ),
               const SizedBox(height: 28),
               // Buttons
-              Row(
-                children: [
-                  if (!isLast)
-                    TextButton(
-                      onPressed: onSkip,
-                      style: TextButton.styleFrom(
-                        foregroundColor: cs.onSurfaceVariant,
+              AnimatedBuilder(
+                animation: stagger,
+                builder: (context, child) {
+                  final t = CurvedAnimation(
+                          parent: stagger,
+                          curve: const Interval(0.55, 1.0,
+                              curve: Curves.easeOut))
+                      .value;
+                  return Opacity(
+                      opacity: t,
+                      child: Transform.translate(
+                          offset: Offset(0, 10 * (1 - t)), child: child));
+                },
+                child: Row(
+                  children: [
+                    if (!isLast)
+                      GestureDetector(
+                        onTap: onSkip,
+                        child: Text(
+                          'Skip',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.45),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                      child: const Text('Skip tour'),
+                    const Spacer(),
+                    // Next / Get started button
+                    GestureDetector(
+                      onTap: onNext,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 280),
+                        curve: Curves.easeInOut,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 28, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(50),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.18),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              isLast ? 'Get started' : 'Next',
+                              style: const TextStyle(
+                                color: Color(0xFF14161D),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Icon(Icons.arrow_forward_rounded,
+                                size: 16, color: Color(0xFF14161D)),
+                          ],
+                        ),
+                      ),
                     ),
-                  const Spacer(),
-                  FilledButton(
-                    onPressed: onNext,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: accent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(isLast ? 'Get started' : 'Next'),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 1 — Welcome illustration (floating cards + brand mark)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _WelcomeIllustration extends StatefulWidget {
+  const _WelcomeIllustration({required this.progress});
+  final Animation<double> progress;
+  @override
+  State<_WelcomeIllustration> createState() => _WelcomeIllustrationState();
+}
+
+class _WelcomeIllustrationState extends State<_WelcomeIllustration>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _float;
+
+  @override
+  void initState() {
+    super.initState();
+    _float = AnimationController(
+        vsync: this, duration: const Duration(seconds: 3))
+      ..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _float.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _float,
+      builder: (context, _) {
+        final f = math.sin(_float.value * math.pi);
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            // Glow circle
+            Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.18),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+            // Central logo mark
+            Transform.translate(
+              offset: Offset(0, f * 6),
+              child: Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3), width: 1.5),
+                ),
+                child: const Icon(Icons.account_balance_wallet_rounded,
+                    size: 48, color: Colors.white),
+              ),
+            ),
+            // Floating mini-cards
+            ..._floatingCard(-130, -60, f, 0, '+ Kz 45,000', Icons.arrow_upward_rounded, AppColors.success),
+            ..._floatingCard(100, -80, f, 0.4, '− Kz 3,200', Icons.arrow_downward_rounded, AppColors.danger),
+            ..._floatingCard(-80, 90, f, 0.7, 'Kz 1.2M', Icons.savings_rounded, AppColors.brand),
+            ..._floatingCard(110, 70, f, 0.2, '87% budget', Icons.pie_chart_rounded, AppColors.warning),
+          ],
+        );
+      },
+    );
+  }
+
+  List<Widget> _floatingCard(
+      double dx, double dy, double f, double phase, String label,
+      IconData icon, Color color) {
+    final offset = math.sin((f + phase) * math.pi) * 5;
+    return [
+      Transform.translate(
+        offset: Offset(dx, dy + offset),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2), width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 5),
+              Text(label,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 2 — Transaction list illustration
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TransactionsIllustration extends StatelessWidget {
+  const _TransactionsIllustration({required this.progress});
+  final Animation<double> progress;
+
+  static const _items = [
+    ('Grocery Store', '−Kz 4,200', Icons.shopping_cart_rounded, false),
+    ('Salary', '+Kz 280,000', Icons.work_rounded, true),
+    ('Netflix', '−Kz 1,800', Icons.play_circle_rounded, false),
+    ('Freelance', '+Kz 55,000', Icons.computer_rounded, true),
+    ('Electricity', '−Kz 6,500', Icons.bolt_rounded, false),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(_items.length, (i) {
+          final delay = i * 0.12;
+          final t = CurvedAnimation(
+            parent: progress,
+            curve: Interval(delay, (delay + 0.45).clamp(0, 1),
+                curve: Curves.easeOutBack),
+          );
+          final item = _items[i];
+          final isIncome = item.$4;
+          return AnimatedBuilder(
+            animation: t,
+            builder: (context, _) => Opacity(
+              opacity: t.value.clamp(0.0, 1.0),
+              child: Transform.translate(
+                offset: Offset(30 * (1 - t.value), 0),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.15), width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: (isIncome ? AppColors.success : AppColors.danger)
+                              .withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(item.$3, size: 18,
+                            color: isIncome ? AppColors.success : AppColors.danger),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(item.$1,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600)),
+                      ),
+                      Text(item.$2,
+                          style: TextStyle(
+                              color: isIncome ? AppColors.success : Colors.white70,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 3 — Budgets illustration (progress bars)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _BudgetsIllustration extends StatelessWidget {
+  const _BudgetsIllustration({required this.progress});
+  final Animation<double> progress;
+
+  static const _budgets = [
+    ('Groceries', 0.72, AppColors.success),
+    ('Transport', 0.45, AppColors.info),
+    ('Entertainment', 0.91, AppColors.danger),
+    ('Utilities', 0.33, AppColors.success),
+    ('Savings goal', 0.62, AppColors.warning),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(_budgets.length, (i) {
+          final delay = i * 0.1;
+          final appear = CurvedAnimation(
+            parent: progress,
+            curve: Interval(delay, (delay + 0.4).clamp(0, 1),
+                curve: Curves.easeOut),
+          );
+          final fill = CurvedAnimation(
+            parent: progress,
+            curve: Interval((delay + 0.15).clamp(0, 1),
+                (delay + 0.75).clamp(0, 1),
+                curve: Curves.easeOutCubic),
+          );
+          final item = _budgets[i];
+          return AnimatedBuilder(
+            animation: Listenable.merge([appear, fill]),
+            builder: (context, _) {
+              final barWidth = item.$2 * fill.value;
+              final isOver = item.$2 > 0.85;
+              return Opacity(
+                opacity: appear.value.clamp(0.0, 1.0),
+                child: Transform.translate(
+                  offset: Offset(0, 14 * (1 - appear.value)),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(item.$1,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600)),
+                            Text('${(item.$2 * 100).toInt()}%',
+                                style: TextStyle(
+                                    color: isOver
+                                        ? AppColors.danger
+                                        : Colors.white60,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Stack(
+                          children: [
+                            Container(
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            FractionallySizedBox(
+                              widthFactor: barWidth.clamp(0.0, 1.0),
+                              child: Container(
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: item.$3,
+                                  borderRadius: BorderRadius.circular(4),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: item.$3.withValues(alpha: 0.5),
+                                      blurRadius: 6,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        }),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 4 — Nav bar illustration
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _NavIllustration extends StatelessWidget {
+  const _NavIllustration({required this.progress});
+  final Animation<double> progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final capsule = CurvedAnimation(
+        parent: progress,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack));
+    final menu = CurvedAnimation(
+        parent: progress,
+        curve: const Interval(0.35, 0.85, curve: Curves.easeOutBack));
+    final items = CurvedAnimation(
+        parent: progress,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeOut));
+
+    const menuItems = [
+      (Icons.settings_rounded, 'Settings'),
+      (Icons.account_balance_wallet_rounded, 'Accounts'),
+      (Icons.layers_rounded, 'Subscriptions'),
+      (Icons.bar_chart_rounded, 'Reports'),
+      (Icons.swap_horiz_rounded, 'FX Rates'),
+      (Icons.insights_rounded, 'AI Insights'),
+    ];
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Menu panel
+        AnimatedBuilder(
+          animation: menu,
+          builder: (context, _) => Transform.scale(
+            scale: 0.85 + 0.15 * menu.value,
+            alignment: Alignment.bottomRight,
+            child: Opacity(
+              opacity: menu.value.clamp(0.0, 1.0),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2), width: 1),
+                ),
+                child: AnimatedBuilder(
+                  animation: items,
+                  builder: (context, _) => GridView.count(
+                    crossAxisCount: 3,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 6,
+                    crossAxisSpacing: 6,
+                    childAspectRatio: 1.15,
+                    children: List.generate(menuItems.length, (i) {
+                      final delay = i * 0.07;
+                      final t = CurvedAnimation(
+                        parent: items,
+                        curve: Interval(delay, (delay + 0.4).clamp(0, 1),
+                            curve: Curves.easeOut),
+                      ).value;
+                      return Opacity(
+                        opacity: t.clamp(0.0, 1.0),
+                        child: Transform.scale(
+                          scale: 0.7 + 0.3 * t,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(menuItems[i].$1,
+                                    size: 18, color: Colors.white),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(menuItems[i].$2,
+                                  style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w600),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Nav capsule + plus button
+        AnimatedBuilder(
+          animation: capsule,
+          builder: (context, _) => Opacity(
+            opacity: capsule.value.clamp(0.0, 1.0),
+            child: Transform.translate(
+              offset: Offset(0, 20 * (1 - capsule.value)),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(26),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              width: 1),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Icons.home_rounded,
+                            Icons.receipt_long_rounded,
+                            Icons.account_balance_wallet_rounded,
+                            Icons.savings_rounded,
+                            Icons.grid_view_rounded,
+                          ].map((icon) => Icon(icon, size: 20, color: Colors.white70)).toList(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1),
+                      ),
+                      child: const Icon(Icons.add_rounded,
+                          color: Colors.white, size: 24),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

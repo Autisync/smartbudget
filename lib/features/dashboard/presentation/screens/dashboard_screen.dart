@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/core/widgets/animated_list_item.dart';
 import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/exchange_rate_service.dart';
@@ -430,7 +431,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       final subtitle = tx.note?.trim().isNotEmpty == true
                           ? tx.note!
                           : l10n.transactionsNoNote;
-                      return Padding(
+                      return AnimatedListItem(
+                        index: index,
+                        child: Padding(
                         padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
                         child: AppTransactionTile(
                           icon: isExpense
@@ -445,7 +448,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           amountColor: amountColor,
                           onTap: () => _openEditTransactionModal(tx),
                         ),
-                      );
+                        ),
+                        ); // AnimatedListItem
                     },
                     childCount: items.length,
                   ),

@@ -18,6 +18,7 @@ from app.schemas.auth import (
     ResetPasswordRequest,
     SocialLoginRequest,
     SignupRequest,
+    UpdateProfileRequest,
     VerifyEmailRequest,
 )
 from app.services.auth_service import AuthService
@@ -133,3 +134,19 @@ def me(user=Depends(current_user)):
     if user is None:
         raise errors.unauthorized("Not authenticated")
     return user
+
+
+@router.patch("/me", response_model=AuthUserOut)
+def update_me(
+    payload: UpdateProfileRequest,
+    user=Depends(current_user),
+    db: Session = Depends(db_session),
+):
+    if user is None:
+        raise errors.unauthorized("Not authenticated")
+    service = AuthService(db)
+    return service.update_profile(
+        user=user,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+    )

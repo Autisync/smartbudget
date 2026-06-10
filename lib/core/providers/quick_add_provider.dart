@@ -6,6 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// The nav sets this and navigates to the destination screen; that screen
 /// listens, opens its add form once, and resets the value to null.
-enum QuickAddTarget { budget, savings }
+enum QuickAddTarget { budget, savings, account }
 
 final pendingQuickAddProvider = StateProvider<QuickAddTarget?>((ref) => null);

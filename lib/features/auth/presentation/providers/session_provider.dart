@@ -381,6 +381,36 @@ class SessionController extends StateNotifier<SessionState> {
     }
   }
 
+  /// Updates the signed-in user's personal details (name) and refreshes the
+  /// in-memory session with the server's canonical response.
+  Future<bool> updateProfile({String? firstName, String? lastName}) async {
+    state = state.copyWith(errorMessage: null);
+    try {
+      final updated = await _repository.updateProfile(
+        firstName: firstName,
+        lastName: lastName,
+      );
+      state = state.copyWith(user: updated, errorMessage: null);
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        errorMessage: _errorMessageFromDio(
+          e,
+          fallback: 'Unable to update your profile right now.',
+        ),
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: AppErrorMapper.from(
+          e,
+          fallback: 'Unable to update your profile right now.',
+        ),
+      );
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     state = const SessionState(

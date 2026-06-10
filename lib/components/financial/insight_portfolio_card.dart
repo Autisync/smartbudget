@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
@@ -76,6 +77,7 @@ class MinimalInsightCard extends StatelessWidget {
     this.iconTint,
     this.statusChip,
     this.footer,
+    this.chart,
   });
 
   final String title;
@@ -87,6 +89,10 @@ class MinimalInsightCard extends StatelessWidget {
   final Color? iconTint;
   final Widget? statusChip;
   final Widget? footer;
+
+  /// Optional compact visualization (e.g. a progress ring) rendered beside the
+  /// decision callout to give an at-a-glance read of the headline ratio.
+  final Widget? chart;
 
   @override
   Widget build(BuildContext context) {
@@ -108,19 +114,19 @@ class MinimalInsightCard extends StatelessWidget {
         : scheme.outlineVariant.withValues(alpha: 0.42);
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 6),
       decoration: BoxDecoration(
         gradient: effectiveGradient,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: borderColor,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.035),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -130,21 +136,21 @@ class MinimalInsightCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 30,
-                height: 30,
+                width: 26,
+                height: 26,
                 decoration: BoxDecoration(
                   color: effectiveIconTint.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(9),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: effectiveIconTint, size: 16),
+                child: Icon(icon, color: effectiveIconTint, size: 15),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 9),
               Expanded(
                 child: Text(
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.1,
                       ),
@@ -156,20 +162,28 @@ class MinimalInsightCard extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            insightText,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.32,
+          const SizedBox(height: 12),
+          // ── Decision callout + compact chart side-by-side ──
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: _DecisionCallout(
+                  text: insightText,
+                  tone: effectiveIconTint,
+                  semanticTone: semanticTone,
                 ),
+              ),
+              if (chart != null) ...[
+                const SizedBox(width: 12),
+                chart!,
+              ],
+            ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
           _MinimalMetricGrid(metrics: metrics),
           if (footer != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
             footer!,
           ],
         ],
@@ -188,6 +202,161 @@ class MinimalInsightCard extends StatelessWidget {
       case InsightCardSemanticTone.general:
         return const Color(0xFF4F5FA7);
     }
+  }
+}
+
+/// A tinted callout that frames the card's headline recommendation so the
+/// "what should I do" message reads as an actionable insight rather than body
+/// copy. The leading indicator + tint are driven by the card's semantic tone.
+class _DecisionCallout extends StatelessWidget {
+  const _DecisionCallout({
+    required this.text,
+    required this.tone,
+    required this.semanticTone,
+  });
+
+  final String text;
+  final Color tone;
+  final InsightCardSemanticTone semanticTone;
+
+  IconData get _glyph {
+    switch (semanticTone) {
+      case InsightCardSemanticTone.positive:
+        return Icons.check_circle_rounded;
+      case InsightCardSemanticTone.caution:
+        return Icons.error_rounded;
+      case InsightCardSemanticTone.warning:
+        return Icons.warning_rounded;
+      case InsightCardSemanticTone.general:
+        return Icons.lightbulb_rounded;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.fromLTRB(12, 11, 14, 11),
+      decoration: BoxDecoration(
+        color: tone.withValues(alpha: isDark ? 0.16 : 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: tone.withValues(alpha: isDark ? 0.34 : 0.20),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(_glyph, size: 16, color: tone),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDark
+                        ? Theme.of(context).colorScheme.onSurface
+                        : tone.withValues(alpha: 0.92),
+                    height: 1.3,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A small, discrete progress-ring chart (fl_chart donut) used inside insight
+/// cards to visualize the single most decision-relevant ratio at a glance.
+class InsightRingChart extends StatelessWidget {
+  const InsightRingChart({
+    super.key,
+    required this.fraction,
+    required this.color,
+    required this.centerLabel,
+    this.caption,
+    this.size = 58,
+  });
+
+  /// 0..1 portion of the ring filled with [color].
+  final double fraction;
+  final Color color;
+
+  /// Text shown in the middle of the ring (e.g. "62%").
+  final String centerLabel;
+
+  /// Optional tiny caption under the center label (e.g. "spent").
+  final String? caption;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final f = fraction.isNaN ? 0.0 : fraction.clamp(0.0, 1.0);
+    final track = color.withValues(alpha: 0.14);
+    final ringWidth = size * 0.12;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          PieChart(
+            PieChartData(
+              startDegreeOffset: -90,
+              sectionsSpace: f <= 0 || f >= 1 ? 0 : 2,
+              centerSpaceRadius: size / 2 - ringWidth,
+              sections: [
+                PieChartSectionData(
+                  value: f <= 0 ? 0.0001 : f,
+                  color: color,
+                  radius: ringWidth,
+                  showTitle: false,
+                ),
+                PieChartSectionData(
+                  value: (1 - f) <= 0 ? 0.0001 : (1 - f),
+                  color: track,
+                  radius: ringWidth,
+                  showTitle: false,
+                ),
+              ],
+            ),
+            swapAnimationDuration: const Duration(milliseconds: 500),
+            swapAnimationCurve: Curves.easeOutCubic,
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                centerLabel,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                      letterSpacing: -0.3,
+                      height: 1.0,
+                    ),
+              ),
+              if (caption != null)
+                Text(
+                  caption!,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 9,
+                        height: 1.1,
+                      ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -217,9 +386,9 @@ class _MinimalMetricGrid extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 12,
-            mainAxisExtent: 70,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 10,
+            mainAxisExtent: 54,
           ),
           itemBuilder: (context, index) {
             return _MinimalMetricItem(metric: metrics[index]);
@@ -306,15 +475,15 @@ class _MinimalMetricItem extends StatelessWidget {
       case MinimalInsightMetricEmphasis.monetary:
         return theme.headlineSmall?.copyWith(
           fontWeight: FontWeight.w800,
-          fontSize: 28,
+          fontSize: 22,
           color: tone,
-          letterSpacing: -0.4,
+          letterSpacing: -0.3,
           height: 1.0,
         );
       case MinimalInsightMetricEmphasis.prominent:
         return theme.titleLarge?.copyWith(
           fontWeight: FontWeight.w800,
-          fontSize: 24,
+          fontSize: 19,
           color: tone,
           letterSpacing: -0.2,
           height: 1.05,
@@ -322,7 +491,7 @@ class _MinimalMetricItem extends StatelessWidget {
       case MinimalInsightMetricEmphasis.standard:
         return theme.titleLarge?.copyWith(
           fontWeight: FontWeight.w700,
-          fontSize: 22,
+          fontSize: 17,
           color: tone,
           letterSpacing: -0.2,
           height: 1.05,
@@ -422,6 +591,18 @@ class TransactionDecisionSnapshot extends StatelessWidget {
       semanticTone: InsightCardSemanticTone.general,
       metrics: metrics,
       iconTint: const Color(0xFF4F5FA7),
+      chart: InsightRingChart(
+        fraction: monthIncome > 0
+            ? monthExpense / monthIncome
+            : (monthExpense > 0 ? 1.0 : 0.0),
+        color: netFlow >= 0
+            ? const Color(0xFF198754)
+            : const Color(0xFFC94B2A),
+        centerLabel: monthIncome > 0
+            ? '${((monthExpense / monthIncome) * 100).round()}%'
+            : '—',
+        caption: 'spent',
+      ),
     );
   }
 }
@@ -517,6 +698,17 @@ class BudgetPortfolioInsight extends StatelessWidget {
       metrics: metrics,
       statusChip: statusChip,
       iconTint: const Color(0xFF4F5FA7),
+      chart: Builder(builder: (context) {
+        final limit = totalSpent + (totalRemaining > 0 ? totalRemaining : 0);
+        final used =
+            limit > 0 ? totalSpent / limit : (totalSpent > 0 ? 1.0 : 0.0);
+        return InsightRingChart(
+          fraction: projectedOverspend > 0 ? 1.0 : used,
+          color: remainingTone,
+          centerLabel: limit > 0 ? '${(used * 100).round()}%' : '—',
+          caption: 'used',
+        );
+      }),
       footer: Align(
         alignment: Alignment.centerRight,
         child: TextButton(
@@ -607,6 +799,14 @@ class SavingsPortfolioInsight extends StatelessWidget {
       metrics: metrics,
       statusChip: statusChip,
       iconTint: const Color(0xFF198754),
+      chart: InsightRingChart(
+        fraction: totalTarget > 0 ? totalSaved / totalTarget : 0,
+        color: const Color(0xFF198754),
+        centerLabel: totalTarget > 0
+            ? '${((totalSaved / totalTarget) * 100).round()}%'
+            : '—',
+        caption: 'saved',
+      ),
     );
   }
 }
@@ -625,6 +825,7 @@ class SubscriptionPortfolioInsight<T> extends StatelessWidget {
     required this.filterLabelBuilder,
     required this.onFilterSelected,
     this.criticalCount = 0,
+    this.showChipsInFooter = true,
   });
 
   final int activeCount;
@@ -638,6 +839,9 @@ class SubscriptionPortfolioInsight<T> extends StatelessWidget {
   final String Function(T filter) filterLabelBuilder;
   final ValueChanged<T?> onFilterSelected;
   final int criticalCount;
+  /// When false the filter chips are not rendered inside the card footer,
+  /// allowing the caller to render them separately (e.g. as a standalone Wrap).
+  final bool showChipsInFooter;
 
   @override
   Widget build(BuildContext context) {
@@ -699,29 +903,41 @@ class SubscriptionPortfolioInsight<T> extends StatelessWidget {
       metrics: metrics,
       statusChip: statusChip,
       iconTint: const Color(0xFF4F5FA7),
-      footer: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _SubscriptionFilterChip(
-              label: 'All',
-              selected: activeFilter == null,
-              onTap: () => onFilterSelected(null),
-            ),
-            const SizedBox(width: 8),
-            ...filters.map(
-              (filter) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: _SubscriptionFilterChip(
-                  label: filterLabelBuilder(filter),
-                  selected: activeFilter == filter,
-                  onTap: () => onFilterSelected(filter),
-                ),
-              ),
-            ),
-          ],
-        ),
+      chart: InsightRingChart(
+        fraction: monthlyLoad > 0 ? lowPriorityMonthlyCost / monthlyLoad : 0,
+        color: lowPriorityMonthlyCost > 0
+            ? const Color(0xFFB36A10)
+            : const Color(0xFF198754),
+        centerLabel: monthlyLoad > 0
+            ? '${((lowPriorityMonthlyCost / monthlyLoad) * 100).round()}%'
+            : '—',
+        caption: 'optional',
       ),
+      footer: showChipsInFooter
+          ? SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _SubscriptionFilterChip(
+                    label: 'All',
+                    selected: activeFilter == null,
+                    onTap: () => onFilterSelected(null),
+                  ),
+                  const SizedBox(width: 8),
+                  ...filters.map(
+                    (filter) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _SubscriptionFilterChip(
+                        label: filterLabelBuilder(filter),
+                        selected: activeFilter == filter,
+                        onTap: () => onFilterSelected(filter),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : null,
     );
   }
 }
@@ -866,5 +1082,6 @@ class SubscriptionPortfolioCard<T> extends SubscriptionPortfolioInsight<T> {
     required super.activeFilter,
     required super.filterLabelBuilder,
     required super.onFilterSelected,
+    super.showChipsInFooter,
   });
 }

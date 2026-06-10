@@ -186,6 +186,36 @@ class LocalNotificationService {
     );
   }
 
+  /// Requests the OS-level permission needed to display local notifications.
+  ///
+  /// On Android 13+ (API 33) this triggers the POST_NOTIFICATIONS runtime
+  /// prompt; without it notifications are silently dropped. On iOS it requests
+  /// alert/badge/sound. Returns true if permission is granted (or implicitly
+  /// granted on older Android versions where no runtime prompt exists).
+  Future<bool> requestPermission() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android != null) {
+      final granted = await android.requestNotificationsPermission();
+      // requestNotificationsPermission returns null on Android < 13, where the
+      // permission is granted at install time.
+      return granted ?? true;
+    }
+
+    final ios = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    if (ios != null) {
+      final granted = await ios.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      return granted ?? false;
+    }
+
+    return true;
+  }
+
   Future<void> show(NotificationModel notification) async {
     const androidDetails = AndroidNotificationDetails(
       'smartspend_dynamic',
@@ -360,6 +390,9 @@ class NotificationService {
     if (_initialized) return;
 
     await _local.initialize(onTap: _onNotificationTapped);
+    // Ask for the OS notification permission up front (Android 13+/iOS) so
+    // dynamically-triggered local notifications can actually be displayed.
+    await _local.requestPermission();
 
     try {
       if (Firebase.apps.isNotEmpty) {
@@ -395,6 +428,10 @@ class NotificationService {
       return PushPermissionState.error;
     }
   }
+
+  /// Requests the OS permission required to show local (on-device)
+  /// notifications. Works independently of Firebase/push configuration.
+  Future<bool> requestLocalPermission() => _local.requestPermission();
 
   void markRead(String id) => _repository.markRead(id);
 

@@ -49,7 +49,9 @@ class AuthService:
             token_type="verify_email",
             ttl_seconds=settings.verify_email_ttl_seconds,
         )
-        self.email.send_verification_email(email=user.email, token=verification_token)
+        self.email.send_verification_email(
+            email=user.email, token=verification_token, user_name=user.first_name
+        )
         return self._issue_tokens(user_id=str(user.id), device_name=device_name, platform=platform, user=user)
 
     def login(
@@ -173,6 +175,11 @@ class AuthService:
         token_hash = hash_token(refresh_token)
         self.sessions.revoke_by_token_hash(token_hash)
 
+    def update_profile(self, *, user, first_name: str | None, last_name: str | None):
+        return self.users.update_profile(
+            user, first_name=first_name, last_name=last_name
+        )
+
     def forgot_password(self, *, email: str) -> None:
         user = self.users.get_by_email(email)
         if user is None:
@@ -180,7 +187,9 @@ class AuthService:
         token = create_short_lived_token(
             subject=str(user.id), token_type="reset_password", ttl_seconds=settings.password_reset_ttl_seconds
         )
-        self.email.send_password_reset_email(email=user.email, token=token)
+        self.email.send_password_reset_email(
+            email=user.email, token=token, user_name=user.first_name
+        )
 
     def reset_password(self, *, token_payload: dict, new_password: str) -> None:
         user = self.users.get_by_id(token_payload["sub"])

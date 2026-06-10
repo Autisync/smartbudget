@@ -11,6 +11,8 @@ import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/data/models/tables.dart';
+import 'package:smartbudget/core/widgets/animated_list_item.dart';
+import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/add_subscription_screen.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
@@ -35,6 +37,7 @@ class SubscriptionsScreen extends ConsumerStatefulWidget {
 class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
   bool _isScrolled = false;
   SubscriptionFilter? _activeFilter;
+  String _searchQuery = '';
   bool _hasShownRenewalWarning = false;
 
   void _updateAppBarScrollState(double offset) {
@@ -154,7 +157,8 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
         child: RefreshIndicator(
           onRefresh: _refresh,
           child: subscriptionsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const AppShimmerSkeleton(
+                variant: AppShimmerVariant.cards, itemCount: 5),
             error: (error, stackTrace) => ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 160),
@@ -266,144 +270,247 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                   ),
                 );
 
+              // Apply search query on top of category/importance filter.
+              final query = _searchQuery.trim().toLowerCase();
+              final searched = query.isEmpty
+                  ? filtered
+                  : filtered.where((e) {
+                      final sub = e.subscription;
+                      return sub.name.toLowerCase().contains(query) ||
+                          sub.category.toLowerCase().contains(query);
+                    }).toList(growable: false);
+
+              final snapshotCard = SubscriptionDecisionSnapshotCard(
+                activeCount: subscriptions.isEmpty ? 0 : activeCount,
+                criticalCount: subscriptions.isEmpty ? 0 : criticalCount,
+                renewingSoonCount:
+                    subscriptions.isEmpty ? 0 : renewingSoonCount,
+                highPriorityCount:
+                    subscriptions.isEmpty ? 0 : highPriorityCount,
+                monthlyLoad: subscriptions.isEmpty ? 0 : monthlyLoad,
+                lowPriorityMonthlyCost:
+                    subscriptions.isEmpty ? 0 : lowPriorityMonthlyCost,
+                currencySymbol: CurrencyUtils.symbol(appCurrency),
+                insightText: subscriptions.isEmpty
+                    ? 'Add subscriptions to understand your monthly recurring load.'
+                    : subscriptionInsight,
+                filters: SubscriptionFilter.values,
+                activeFilter: _activeFilter,
+                filterLabelBuilder: (filter) => _filterLabel(filter, l10n),
+                onFilterSelected: (filter) =>
+                    setState(() => _activeFilter = filter),
+                showChipsInFooter: false,
+              );
+
               if (subscriptions.isEmpty) {
-                return ListView(
+                return CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 160),
-                  children: [
-                    SubscriptionDecisionSnapshotCard(
-                      activeCount: 0,
-                      criticalCount: 0,
-                      renewingSoonCount: 0,
-                      highPriorityCount: 0,
-                      monthlyLoad: 0,
-                      lowPriorityMonthlyCost: 0,
-                      currencySymbol: CurrencyUtils.symbol(appCurrency),
-                      insightText:
-                          'Add subscriptions to understand your monthly recurring load.',
-                      filters: SubscriptionFilter.values,
-                      activeFilter: _activeFilter,
-                      filterLabelBuilder: (filter) =>
-                          _filterLabel(filter, l10n),
-                      onFilterSelected: (filter) {
-                        setState(() => _activeFilter = filter);
-                      },
+                  slivers: [
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _SubscriptionSearchHeaderDelegate(
+                        backgroundColor:
+                            Theme.of(context).scaffoldBackgroundColor,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                          child: _SubscriptionSearchField(
+                            value: _searchQuery,
+                            onChanged: (v) =>
+                                setState(() => _searchQuery = v),
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    SmartEmptyState(
-                      icon: Icons.subscriptions_outlined,
-                      title: l10n?.subscriptionsEmpty ?? 'No subscriptions yet',
-                      message: l10n?.subscriptionsEmptySubtitle ??
-                          'Add your first subscription to start tracking',
-                      lottieAsset: 'assets/animations/empty_subscriptions.json',
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      sliver: SliverToBoxAdapter(child: snapshotCard),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: _SubscriptionFilterChipRow(
+                          filters: SubscriptionFilter.values,
+                          activeFilter: _activeFilter,
+                          filterLabelBuilder: (f) => _filterLabel(f, l10n),
+                          onFilterSelected: (f) =>
+                              setState(() => _activeFilter = f),
+                        ),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 160),
+                      sliver: SliverToBoxAdapter(
+                        child: SmartEmptyState(
+                          icon: Icons.subscriptions_outlined,
+                          title: l10n?.subscriptionsEmpty ??
+                              'No subscriptions yet',
+                          message: l10n?.subscriptionsEmptySubtitle ??
+                              'Add your first subscription to start tracking',
+                          lottieAsset:
+                              'assets/animations/empty_subscriptions.json',
+                        ),
+                      ),
                     ),
                   ],
                 );
               }
 
-              return ListView(
+              return CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 172),
-                children: [
-                  SubscriptionDecisionSnapshotCard(
-                    activeCount: activeCount,
-                    criticalCount: criticalCount,
-                    renewingSoonCount: renewingSoonCount,
-                    highPriorityCount: highPriorityCount,
-                    monthlyLoad: monthlyLoad,
-                    lowPriorityMonthlyCost: lowPriorityMonthlyCost,
-                    currencySymbol: CurrencyUtils.symbol(appCurrency),
-                    insightText: subscriptionInsight,
-                    filters: SubscriptionFilter.values,
-                    activeFilter: _activeFilter,
-                    filterLabelBuilder: (filter) => _filterLabel(filter, l10n),
-                    onFilterSelected: (filter) {
-                      setState(() => _activeFilter = filter);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _activeFilter == null
-                        ? (l10n?.subscriptionsDueThisMonth ?? 'Due This Month')
-                        : (l10n?.subscriptionsFilteredTo(
-                              _filterLabel(_activeFilter!, l10n),
-                            ) ??
-                            'Filtered'),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (filtered.isEmpty)
-                    const SmartEmptyState(
-                      icon: Icons.filter_alt_off_rounded,
-                      title: 'Nothing here',
-                      message: 'Try another filter to see subscriptions.',
-                      lottieAsset: 'assets/animations/empty_subscriptions.json',
-                    ),
-                  ...filtered.map(
-                    (entry) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Slidable(
-                        key: ValueKey('subscription-${entry.subscription.id}'),
-                        startActionPane: ActionPane(
-                          motion: const BehindMotion(),
-                          extentRatio: 0.30,
-                          children: [
-                            SlidableAction(
-                              onPressed: (_) => _handleMenuAction(
-                                  entry.subscription, 'toggle'),
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.secondary,
-                              foregroundColor: Colors.white,
-                              icon: entry.subscription.isActive
-                                  ? Icons.pause_circle_outline_rounded
-                                  : Icons.play_circle_outline_rounded,
-                              label: entry.subscription.isActive
-                                  ? 'Pause'
-                                  : 'Resume',
-                              borderRadius:
-                                  BorderRadius.circular(UiTokens.radiusXl),
-                            ),
-                          ],
-                        ),
-                        endActionPane: ActionPane(
-                          motion: const BehindMotion(),
-                          extentRatio: 0.30,
-                          children: [
-                            SlidableAction(
-                              onPressed: (_) => _handleMenuAction(
-                                  entry.subscription, 'delete'),
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.error,
-                              foregroundColor: Colors.white,
-                              icon: Icons.delete_outline_rounded,
-                              label: l10n?.delete ?? 'Delete',
-                              borderRadius:
-                                  BorderRadius.circular(UiTokens.radiusXl),
-                            ),
-                          ],
-                        ),
-                        child: SwipeableCard(
-                          radius: UiTokens.radiusXl,
-                          child: SubscriptionItemCard(
-                            subscription: entry.subscription,
-                            amount: entry.amount,
-                            currencyCode: entry.currencyCode,
-                            categoryLabel: entry.subscription.category,
-                            cycleLabel: _cycleShort(
-                              entry.subscription.billingCycle,
-                              l10n,
-                            ),
-                            onTap: () =>
-                                _openEditSubscriptionModal(entry.subscription),
-                            onMenuAction: (action) =>
-                                _handleMenuAction(entry.subscription, action),
-                          ),
+                slivers: [
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _SubscriptionSearchHeaderDelegate(
+                      backgroundColor:
+                          Theme.of(context).scaffoldBackgroundColor,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: _SubscriptionSearchField(
+                          value: _searchQuery,
+                          onChanged: (v) => setState(() => _searchQuery = v),
                         ),
                       ),
                     ),
                   ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                    sliver: SliverToBoxAdapter(child: snapshotCard),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                    sliver: SliverToBoxAdapter(
+                      child: _SubscriptionFilterChipRow(
+                        filters: SubscriptionFilter.values,
+                        activeFilter: _activeFilter,
+                        filterLabelBuilder: (f) => _filterLabel(f, l10n),
+                        onFilterSelected: (f) =>
+                            setState(() => _activeFilter = f),
+                      ),
+                    ),
+                  ),
+                  if (searched.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.filter_alt_off,
+                                size: 40,
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Nothing here',
+                                style:
+                                    Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                query.isNotEmpty
+                                    ? 'No subscriptions match "$query".'
+                                    : 'Try another filter to see subscriptions.',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                              ),
+                              const SizedBox(height: 16),
+                              OutlinedButton(
+                                onPressed: () => setState(() {
+                                  _activeFilter = null;
+                                  _searchQuery = '';
+                                }),
+                                child: const Text('Clear filters'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 172),
+                      sliver: SliverList.separated(
+                        itemCount: searched.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, idx) {
+                          final entry = searched[idx];
+                          return AnimatedListItem(
+                            index: idx,
+                            child: Slidable(
+                              key: ValueKey(
+                                  'subscription-${entry.subscription.id}'),
+                              startActionPane: ActionPane(
+                                motion: const BehindMotion(),
+                                extentRatio: 0.30,
+                                children: [
+                                  SlidableAction(
+                                    onPressed: (_) => _handleMenuAction(
+                                        entry.subscription, 'toggle'),
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .secondary,
+                                    foregroundColor: Colors.white,
+                                    icon: entry.subscription.isActive
+                                        ? Icons.pause_circle_outline_rounded
+                                        : Icons.play_circle_outline_rounded,
+                                    label: entry.subscription.isActive
+                                        ? 'Pause'
+                                        : 'Resume',
+                                    borderRadius: BorderRadius.circular(
+                                        UiTokens.radiusXl),
+                                  ),
+                                ],
+                              ),
+                              endActionPane: ActionPane(
+                                motion: const BehindMotion(),
+                                extentRatio: 0.30,
+                                children: [
+                                  SlidableAction(
+                                    onPressed: (_) => _handleMenuAction(
+                                        entry.subscription, 'delete'),
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.error,
+                                    foregroundColor: Colors.white,
+                                    icon: Icons.delete_outline_rounded,
+                                    label: l10n?.delete ?? 'Delete',
+                                    borderRadius: BorderRadius.circular(
+                                        UiTokens.radiusXl),
+                                  ),
+                                ],
+                              ),
+                              child: SwipeableCard(
+                                radius: UiTokens.radiusXl,
+                                child: SubscriptionItemCard(
+                                  subscription: entry.subscription,
+                                  amount: entry.amount,
+                                  currencyCode: entry.currencyCode,
+                                  categoryLabel: entry.subscription.category,
+                                  cycleLabel: _cycleShort(
+                                    entry.subscription.billingCycle,
+                                    l10n,
+                                  ),
+                                  onTap: () => _openEditSubscriptionModal(
+                                      entry.subscription),
+                                  onMenuAction: (action) => _handleMenuAction(
+                                      entry.subscription, action),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                 ],
               );
             },
@@ -479,6 +586,7 @@ class SubscriptionDecisionSnapshotCard extends StatelessWidget {
     required this.activeFilter,
     required this.filterLabelBuilder,
     required this.onFilterSelected,
+    this.showChipsInFooter = true,
   });
 
   final int activeCount;
@@ -493,6 +601,7 @@ class SubscriptionDecisionSnapshotCard extends StatelessWidget {
   final SubscriptionFilter? activeFilter;
   final String Function(SubscriptionFilter filter) filterLabelBuilder;
   final ValueChanged<SubscriptionFilter?> onFilterSelected;
+  final bool showChipsInFooter;
 
   @override
   Widget build(BuildContext context) {
@@ -509,6 +618,7 @@ class SubscriptionDecisionSnapshotCard extends StatelessWidget {
       activeFilter: activeFilter,
       filterLabelBuilder: filterLabelBuilder,
       onFilterSelected: onFilterSelected,
+      showChipsInFooter: showChipsInFooter,
     );
   }
 }
@@ -670,6 +780,219 @@ class SubscriptionItemCard extends StatelessWidget {
     );
   }
 }
+
+// ─── Search header delegate ─────────────────────────────────────────────────
+
+class _SubscriptionSearchHeaderDelegate
+    extends SliverPersistentHeaderDelegate {
+  _SubscriptionSearchHeaderDelegate({
+    required this.child,
+    required this.backgroundColor,
+  });
+
+  final Widget child;
+  final Color backgroundColor;
+
+  static const double _extent = 64;
+
+  @override
+  double get minExtent => _extent;
+
+  @override
+  double get maxExtent => _extent;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return ColoredBox(
+      color: backgroundColor,
+      child: SizedBox.expand(child: child),
+    );
+  }
+
+  @override
+  bool shouldRebuild(
+      covariant _SubscriptionSearchHeaderDelegate oldDelegate) {
+    return oldDelegate.child != child ||
+        oldDelegate.backgroundColor != backgroundColor;
+  }
+}
+
+// ─── Search field ────────────────────────────────────────────────────────────
+
+class _SubscriptionSearchField extends StatefulWidget {
+  const _SubscriptionSearchField({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_SubscriptionSearchField> createState() =>
+      _SubscriptionSearchFieldState();
+}
+
+class _SubscriptionSearchFieldState extends State<_SubscriptionSearchField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SubscriptionSearchField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != _controller.text) {
+      _controller.text = widget.value;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return TextField(
+      controller: _controller,
+      onChanged: widget.onChanged,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: isDark
+            ? scheme.surfaceContainerHigh
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        hintText: 'Search by name or category',
+        prefixIcon: Icon(
+          Icons.search_rounded,
+          color: scheme.onSurfaceVariant,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.16)
+                : Colors.black.withValues(alpha: 0.16),
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.16)
+                : Colors.black.withValues(alpha: 0.16),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: scheme.primary, width: 2),
+        ),
+        suffixIcon: widget.value.isEmpty
+            ? null
+            : IconButton(
+                tooltip: 'Clear search',
+                onPressed: () {
+                  _controller.clear();
+                  widget.onChanged('');
+                },
+                icon: const Icon(Icons.close_rounded),
+              ),
+      ),
+    );
+  }
+}
+
+// ─── Filter chip row ─────────────────────────────────────────────────────────
+
+class _SubscriptionFilterChipRow extends StatelessWidget {
+  const _SubscriptionFilterChipRow({
+    required this.filters,
+    required this.activeFilter,
+    required this.filterLabelBuilder,
+    required this.onFilterSelected,
+  });
+
+  final List<SubscriptionFilter> filters;
+  final SubscriptionFilter? activeFilter;
+  final String Function(SubscriptionFilter) filterLabelBuilder;
+  final ValueChanged<SubscriptionFilter?> onFilterSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _SubFilterChip(
+          label: 'All',
+          selected: activeFilter == null,
+          onTap: () => onFilterSelected(null),
+        ),
+        ...filters.map(
+          (f) => _SubFilterChip(
+            label: filterLabelBuilder(f),
+            selected: activeFilter == f,
+            onTap: () => onFilterSelected(activeFilter == f ? null : f),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SubFilterChip extends StatelessWidget {
+  const _SubFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? scheme.primary.withValues(alpha: 0.14)
+              : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? scheme.primary : scheme.outlineVariant,
+          ),
+        ),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Computed data ────────────────────────────────────────────────────────────
 
 class _ComputedSubscription {
   _ComputedSubscription({

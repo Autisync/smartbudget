@@ -36,7 +36,7 @@ import 'package:smartbudget/features/onboarding/presentation/screens/onboarding_
 import 'package:smartbudget/core/services/onboarding_service.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/providers/quick_add_provider.dart';
-import 'package:smartbudget/core/widgets/logo_loading_indicator.dart';
+import 'package:smartbudget/core/widgets/animated_splash_screen.dart';
 import 'package:smartbudget/core/widgets/app_tour_overlay.dart';
 import 'package:smartbudget/core/widgets/nav_action_panel.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
@@ -113,13 +113,7 @@ GoRouter router(RouterRef ref) {
     routes: [
       GoRoute(
         path: '/splash',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: LogoLoadingIndicator(
-              label: 'Loading SmartSpend...',
-            ),
-          ),
-        ),
+        builder: (context, state) => const AnimatedSplashScreen(),
       ),
       GoRoute(
         path: '/onboarding',
@@ -368,6 +362,11 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                 selectedIcon: const Icon(Icons.savings_rounded),
                 label: Text(l10n.navSavings),
               ),
+              NavigationRailDestination(
+                icon: const Icon(AppIcons.subscriptions),
+                selectedIcon: const Icon(AppIcons.subscriptionsFilled),
+                label: Text(l10n.navSubscriptions),
+              ),
               const NavigationRailDestination(
                 icon: Icon(AppIcons.moreGrid),
                 selectedIcon: Icon(AppIcons.moreGridFilled),
@@ -503,9 +502,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         onTap: () => pushTo('/transactions/add'),
       ),
       NavActionItem(
-        icon: AppIcons.subscriptionsFilled,
-        label: 'Subscription',
-        onTap: () => pushTo('/subscriptions/add'),
+        icon: Icons.account_balance_wallet_rounded,
+        label: 'Account',
+        onTap: () => openModalAdd(QuickAddTarget.account, '/accounts'),
       ),
       NavActionItem(
         icon: AppIcons.savingsFilled,
@@ -573,9 +572,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         onTap: () => pushTo('/accounts'),
       ),
       NavActionItem(
-        icon: AppIcons.subscriptionsFilled,
-        label: 'Subscriptions',
-        onTap: () => goTo('/subscriptions'),
+        icon: AppIcons.balanceSheet,
+        label: 'Balance Sheet',
+        onTap: () => goTo('/balance-sheet'),
       ),
       NavActionItem(
         icon: AppIcons.reportsFilled,
@@ -621,13 +620,20 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   }
 
   int _calculateBottomIndex(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
+    // Use the true current router location rather than the shell route's
+    // matchedLocation, which can lag behind imperative pushes (e.g. opening
+    // Settings from a page-header action) and leave the previous tab lit.
+    final location = GoRouter.of(context)
+        .routerDelegate
+        .currentConfiguration
+        .uri
+        .path;
     if (location.startsWith('/transactions')) return 0;
     if (location.startsWith('/budgets')) return 1;
     if (location == '/' || location.startsWith('/health')) return 2;
     if (location.startsWith('/savings')) return 3;
+    if (location.startsWith('/subscriptions')) return 5;
     if (location.startsWith('/reports') ||
-        location.startsWith('/subscriptions') ||
         location.startsWith('/settings') ||
         location.startsWith('/security') ||
         location.startsWith('/legal') ||
@@ -660,7 +666,13 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       return;
     }
     _closePanel();
-    const routes = {0: '/transactions', 1: '/budgets', 2: '/', 3: '/savings'};
+    const routes = {
+      0: '/transactions',
+      1: '/budgets',
+      2: '/',
+      3: '/savings',
+      5: '/subscriptions',
+    };
     GoRouter.of(context).go(routes[index]!);
   }
 }

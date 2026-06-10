@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
+import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -442,10 +443,13 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
               message: 'Keep using SmartSpend to unlock prediction trends.',
             )
           else
-            SizedBox(
+            ChartEntrance(
               key: const ValueKey<String>('copilot-forecast-chart'),
+              builder: (ctx, _) => SizedBox(
               height: 190,
               child: LineChart(
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeInOutCubic,
                 LineChartData(
                   minY: 0,
                   maxY: 3.4,
@@ -483,7 +487,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                   ],
                 ),
               ),
-            ),
+              ), // SizedBox
+            ), // ChartEntrance
         ],
       ),
     );

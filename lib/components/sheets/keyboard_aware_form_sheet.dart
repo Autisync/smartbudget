@@ -11,7 +11,7 @@ class KeyboardAwareFormSheet extends StatefulWidget {
     this.bodyPadding = const EdgeInsets.fromLTRB(24, 12, 24, 12),
     this.scrollController,
     this.showDragHandle = true,
-    this.dismissOnBarrierTap = true,
+    this.dismissOnBarrierTap = false,
   });
 
   final Widget body;
@@ -85,7 +85,11 @@ class _KeyboardAwareFormSheetState extends State<KeyboardAwareFormSheet> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final viewportHeight = mediaQuery.size.height;
-    final maxHeight = viewportHeight * widget.maxHeightFactor;
+    // Height taken up by the on-screen keyboard (0 when hidden). The sheet must
+    // sit above it and be constrained to the remaining visible area, otherwise
+    // the lower fields and the action button end up hidden behind the keyboard.
+    final keyboardInset = mediaQuery.viewInsets.bottom;
+    final maxHeight = (viewportHeight - keyboardInset) * widget.maxHeightFactor;
     final resolvedBodyPadding =
         widget.bodyPadding.resolve(Directionality.of(context));
     final bodyBottomInset = widget.actions != null ? 24.0 : 12.0;
@@ -107,10 +111,14 @@ class _KeyboardAwareFormSheetState extends State<KeyboardAwareFormSheet> {
             ),
           Align(
             alignment: Alignment.bottomCenter,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: maxHeight),
-              child: SizedBox(
-                width: double.infinity,
+            child: AnimatedPadding(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(bottom: keyboardInset),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: maxHeight),
+                child: SizedBox(
+                  width: double.infinity,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: _dismissKeyboard,
@@ -169,6 +177,7 @@ class _KeyboardAwareFormSheetState extends State<KeyboardAwareFormSheet> {
               ),
             ),
           ),
+        ),
         ],
       ),
     );

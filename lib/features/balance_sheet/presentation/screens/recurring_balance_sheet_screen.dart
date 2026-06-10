@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/data/models/tables.dart'
     show
@@ -592,7 +593,7 @@ class _RecurringBalanceSheetScreenState
           return false;
         },
         child: snapshotAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const AppShimmerSkeleton(),
           error: (error, _) => Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),

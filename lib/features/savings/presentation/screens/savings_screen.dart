@@ -9,7 +9,6 @@ import 'package:smartbudget/components/dialogs/confirm_action_dialog.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
 import 'package:smartbudget/components/sheets/app_bottom_action_sheet.dart';
-import 'package:smartbudget/components/sheets/keyboard_aware_form_sheet.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/providers/quick_add_provider.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
@@ -23,6 +22,8 @@ import 'package:smartbudget/data/models/tables.dart' show GoalPriority;
 import 'package:smartbudget/data/models/tables.dart' show TransactionType;
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
+import 'package:smartbudget/core/widgets/animated_list_item.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
@@ -610,7 +611,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                       lottieAsset: 'assets/animations/empty_savings.json',
                     ),
                   ),
-                ...activeGoals.map((goal) {
+                ...activeGoals.mapIndexed((idx, goal) {
                   final progress = goal.targetAmount > 0
                       ? (goal.savedAmount / goal.targetAmount).clamp(0.0, 1.0)
                       : 0.0;
@@ -639,7 +640,9 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
                   final statusColor = _goalStatusColor(progress, projectedLate);
 
-                  return Padding(
+                  return AnimatedListItem(
+                    index: idx,
+                    child: Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: Slidable(
                       key: ValueKey('savings-goal-${goal.id}'),
@@ -706,7 +709,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                         ),
                       ),
                     ),
-                  );
+                    ),
+                    ); // AnimatedListItem
                 }),
                 if (pausedGoals.isNotEmpty) ...[
                   const SizedBox(height: 4),
@@ -2071,38 +2075,94 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final baseTheme = Theme.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isEdit = widget.existingGoal != null;
+    final liveTarget =
+        FormValidation.parseDecimal(_targetController.text.trim()) ?? 0;
+    final liveSaved =
+        FormValidation.parseDecimal(_savedController.text.trim()) ?? 0;
+    final liveTitle = _titleController.text.trim();
+    final liveProgress = liveTarget > 0
+        ? (liveSaved / liveTarget).clamp(0.0, 1.0)
+        : 0.0;
+
     final formFields = Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.flag_rounded,
-                color: baseTheme.colorScheme.primary,
-                size: 28,
+          // ── Header card ──
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.brightness == Brightness.dark
+                  ? colorScheme.surfaceContainerHigh
+                  : colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.10),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  widget.existingGoal == null
-                      ? l10n.savingsCreateGoal
-                      : l10n.savingsEditGoal,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+            ),
+            child: Row(
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        value: liveProgress.toDouble(),
+                        strokeWidth: 3,
+                        backgroundColor:
+                            colorScheme.primary.withValues(alpha: 0.12),
+                        color: colorScheme.primary,
                       ),
+                    ),
+                    Icon(Icons.flag_rounded,
+                        color: colorScheme.primary, size: 18),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isEdit ? l10n.savingsEditGoal : l10n.savingsCreateGoal,
+                        style: theme.textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        liveTitle.isNotEmpty
+                            ? liveTarget > 0
+                                ? '$liveTitle · ${widget.currencySymbol} ${liveTarget.toStringAsFixed(2)}'
+                                : liveTitle
+                            : 'Name your goal and set a target',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           ModernInput(
             controller: _titleController,
             label: l10n.savingsGoalName,
             helperText: 'Choose a specific target such as Emergency Fund',
+            onChanged: (_) => setState(() {}),
             validator: (value) =>
                 FormValidation.requiredText(value, l10n.savingsEnterGoalName),
           ),
@@ -2111,6 +2171,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
             controller: _targetController,
             label: l10n.savingsTargetAmount,
             currencySymbol: widget.currencySymbol,
+            onChanged: (_) => setState(() {}),
             validator: (value) => FormValidation.positiveAmount(
               value,
               l10n.savingsEnterValidTargetAmount,
@@ -2122,38 +2183,18 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
             controller: _savedController,
             label: l10n.savingsCurrentSavedAmount,
             currencySymbol: widget.currencySymbol,
+            onChanged: (_) => setState(() {}),
             validator: (value) => FormValidation.nonNegativeAmount(
               value,
               l10n.savingsEnterValidSavedAmount,
             ),
           ),
           const SizedBox(height: 16),
-          ModernSelect<GoalPriority>(
+          // ── Priority chips ──
+          _GoalPriorityChipSelector(
             value: _priority,
-            label: l10n.savingsPriority,
-            prefixIcon: Icons.flag_rounded,
-            items: GoalPriority.values
-                .map(
-                  (p) => DropdownMenuItem(
-                    value: p,
-                    child: Text(
-                      switch (p) {
-                        GoalPriority.low => l10n.subscriptionsFilterLowPriority,
-                        GoalPriority.medium =>
-                          l10n.subscriptionsImportanceMedium,
-                        GoalPriority.high =>
-                          l10n.subscriptionsFilterHighPriority,
-                        GoalPriority.critical =>
-                          l10n.subscriptionsFilterCritical,
-                      },
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              if (value == null) return;
-              setState(() => _priority = value);
-            },
+            l10n: l10n,
+            onChanged: (p) => setState(() => _priority = p),
           ),
           const SizedBox(height: 16),
           SwitchListTile.adaptive(
@@ -2182,22 +2223,16 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
       ),
     );
 
-    return KeyboardAwareFormSheet(
+    return AppFormSheet(
       onClose: () => Navigator.of(context).pop(),
-      maxHeightFactor: 0.78,
+      maxHeightFactor: 0.90,
       body: formFields,
       actions: FilledButton.icon(
         onPressed: _submit,
-        icon: Icon(
-          widget.existingGoal == null ? Icons.add_rounded : Icons.edit_rounded,
-        ),
-        label: Text(
-          widget.existingGoal == null
-              ? l10n.savingsSaveGoal
-              : l10n.savingsUpdateGoal,
-        ),
+        icon: Icon(isEdit ? Icons.edit_rounded : Icons.add_rounded),
+        label: Text(isEdit ? l10n.savingsUpdateGoal : l10n.savingsSaveGoal),
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
+          minimumSize: const Size.fromHeight(52),
         ),
       ),
     );
@@ -2260,6 +2295,114 @@ class _ContributionDialogState extends State<_ContributionDialog> {
         FilledButton(
           onPressed: _submit,
           child: Text(l10n.commonAdd),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Goal priority chip selector ────────────────────────────────────────────
+
+class _GoalPriorityChipSelector extends StatelessWidget {
+  const _GoalPriorityChipSelector({
+    required this.value,
+    required this.l10n,
+    required this.onChanged,
+  });
+
+  final GoalPriority value;
+  final AppLocalizations l10n;
+  final ValueChanged<GoalPriority> onChanged;
+
+  static Color _color(GoalPriority p) => switch (p) {
+        GoalPriority.low => const Color(0xFF3A7A2A),
+        GoalPriority.medium => const Color(0xFF3B5FBB),
+        GoalPriority.high => const Color(0xFFB2710D),
+        GoalPriority.critical => const Color(0xFFC94B2A),
+      };
+
+  static String _shortLabel(GoalPriority p) => switch (p) {
+        GoalPriority.low => 'Low',
+        GoalPriority.medium => 'Medium',
+        GoalPriority.high => 'High',
+        GoalPriority.critical => 'Critical',
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.savingsPriority,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: GoalPriority.values.map((p) {
+            final selected = value == p;
+            final color = _color(p);
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: GestureDetector(
+                  onTap: () => onChanged(p),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? color.withValues(alpha: 0.14)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: selected ? color : scheme.outlineVariant,
+                        width: selected ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 180),
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium!
+                              .copyWith(
+                                color: selected
+                                    ? color
+                                    : scheme.onSurfaceVariant,
+                                fontWeight: selected
+                                    ? FontWeight.w800
+                                    : FontWeight.w500,
+                              ),
+                          child: Text(
+                            _shortLabel(p),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        if (selected) ...[
+                          const SizedBox(height: 3),
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );

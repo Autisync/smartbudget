@@ -9,6 +9,8 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
+import 'package:smartbudget/core/widgets/animated_list_item.dart';
+import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/widgets/transaction_form_sheet.dart';
@@ -374,7 +376,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                         final amountColor = isExpense
                             ? Theme.of(context).colorScheme.error
                             : const Color(0xFF059669);
-                        return Slidable(
+                        return AnimatedListItem(
+                          index: index,
+                          child: Slidable(
                           key: ValueKey(tx.id),
                           endActionPane: ActionPane(
                             motion: const BehindMotion(),
@@ -519,14 +523,15 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                               ),
                             ),
                           ),
-                        );
+                        ),
+                        ); // AnimatedListItem
                       },
                     ),
                   ),
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const AppShimmerSkeleton(),
           error: (err, st) =>
               Center(child: Text(l10n.transactionsError(err.toString()))),
         ),

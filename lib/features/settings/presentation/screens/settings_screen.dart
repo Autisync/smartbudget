@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/components/forms/financial_input.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/locale_service.dart';
@@ -132,282 +133,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _openControlCenterSheet({
-    required AppLocalizations l10n,
-    required ThemeMode themeMode,
-    required String appCurrency,
-    required Locale appLocale,
-    required List<(String, String)> languageOptions,
-    required String displayName,
+  Future<void> _openPersonalDetailsSheet({
+    required String firstName,
+    required String lastName,
     required String userEmail,
     required bool isActive,
     required bool isVerified,
   }) async {
-    final colorScheme = Theme.of(context).colorScheme;
-
     await AppFormSheet.show<void>(
       context,
-      builder: (sheetContext) {
-        return AppFormSheet(
-          maxHeightFactor: 0.86,
-          bodyPadding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-          body: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor:
-                          colorScheme.primary.withValues(alpha: 0.14),
-                      child: Text(
-                        displayName.isNotEmpty
-                            ? displayName.characters.first.toUpperCase()
-                            : 'U',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            displayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            userEmail,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: (isVerified
-                                ? Colors.green
-                                : colorScheme.onSurfaceVariant)
-                            .withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        isVerified ? 'Verified' : 'Unverified',
-                        style:
-                            Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: isVerified
-                                      ? Colors.green.shade700
-                                      : colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                _MoreActionTile(
-                  icon: Icons.badge_outlined,
-                  title: 'Account info',
-                  subtitle: 'View your account details',
-                  onTap: () {
-                    showDialog<void>(
-                      context: context,
-                      builder: (dialogContext) {
-                        return AlertDialog(
-                          title: const Text('Account info'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _AccountInfoRow(
-                                  label: 'Name', value: displayName),
-                              _AccountInfoRow(label: 'Email', value: userEmail),
-                              _AccountInfoRow(
-                                label: 'Email status',
-                                value: isVerified ? 'Verified' : 'Unverified',
-                              ),
-                              _AccountInfoRow(
-                                label: 'Account status',
-                                value: isActive ? 'Active' : 'Inactive',
-                              ),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.of(dialogContext).pop(),
-                              child: const Text('Close'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-                _MoreActionTile(
-                  icon: Icons.palette_outlined,
-                  title: l10n.settingsAppearance,
-                  subtitle: switch (themeMode) {
-                    ThemeMode.system => l10n.themeSystem,
-                    ThemeMode.light => l10n.themeLight,
-                    ThemeMode.dark => l10n.themeDark,
-                  },
-                  onTap: () async {
-                    Navigator.of(sheetContext).pop();
-                    final selected = await showDialog<ThemeMode>(
-                      context: context,
-                      builder: (context) => SimpleDialog(
-                        title: Text(l10n.settingsAppearance),
-                        children: [
-                          RadioGroup<ThemeMode>(
-                            groupValue: themeMode,
-                            onChanged: (value) =>
-                                Navigator.of(context).pop(value),
-                            child: Column(
-                              children: [
-                                RadioListTile<ThemeMode>(
-                                  value: ThemeMode.system,
-                                  title: Text(l10n.themeSystem),
-                                ),
-                                RadioListTile<ThemeMode>(
-                                  value: ThemeMode.light,
-                                  title: Text(l10n.themeLight),
-                                ),
-                                RadioListTile<ThemeMode>(
-                                  value: ThemeMode.dark,
-                                  title: Text(l10n.themeDark),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (selected == null) return;
-                    await ref
-                        .read(themeModeControllerProvider.notifier)
-                        .setThemeMode(selected);
-                    if (!mounted) return;
-                    AppFeedbackService.showSuccess(
-                      context,
-                      'Appearance updated.',
-                    );
-                  },
-                ),
-                _MoreActionTile(
-                  icon: Icons.language_rounded,
-                  title: l10n.language,
-                  subtitle: languageOptions
-                      .firstWhere(
-                        (option) => option.$1 == appLocale.languageCode,
-                        orElse: () => languageOptions.first,
-                      )
-                      .$2,
-                  onTap: () async {
-                    Navigator.of(sheetContext).pop();
-                    final selected = await showDialog<String>(
-                      context: context,
-                      builder: (context) => SimpleDialog(
-                        title: Text(l10n.language),
-                        children: [
-                          RadioGroup<String>(
-                            groupValue: appLocale.languageCode,
-                            onChanged: (value) =>
-                                Navigator.of(context).pop(value),
-                            child: Column(
-                              children: [
-                                for (final option in languageOptions)
-                                  RadioListTile<String>(
-                                    value: option.$1,
-                                    title: Text(option.$2),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (selected == null) return;
-                    await ref
-                        .read(appLocaleControllerProvider.notifier)
-                        .setLanguageCode(selected);
-                    if (!mounted) return;
-                    AppFeedbackService.showSuccess(
-                      context,
-                      'Language updated.',
-                    );
-                  },
-                ),
-                _MoreActionTile(
-                  icon: Icons.currency_exchange_rounded,
-                  title: l10n.currency,
-                  subtitle: appCurrency,
-                  onTap: () async {
-                    Navigator.of(sheetContext).pop();
-                    final selected = await showDialog<String>(
-                      context: context,
-                      builder: (context) => SimpleDialog(
-                        title: Text(l10n.currency),
-                        children: [
-                          RadioGroup<String>(
-                            groupValue: appCurrency,
-                            onChanged: (value) =>
-                                Navigator.of(context).pop(value),
-                            child: Column(
-                              children: [
-                                for (final code
-                                    in CurrencyService.supportedCurrencyCodes)
-                                  RadioListTile<String>(
-                                    value: code,
-                                    title: Text(code),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (selected == null) return;
-                    await _handleCurrencyChange(selected);
-                  },
-                ),
-                _MoreActionTile(
-                  icon: Icons.lock_outline,
-                  title: l10n.settingsAuthenticationSettings,
-                  subtitle: l10n.settingsAuthenticationSettingsSubtitle,
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    GoRouter.of(context).push('/security');
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (sheetContext) => _PersonalDetailsSheet(
+        firstName: firstName,
+        lastName: lastName,
+        userEmail: userEmail,
+        isActive: isActive,
+        isVerified: isVerified,
+      ),
     );
   }
 
@@ -476,6 +217,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: buildPageHeaderActions(
           context: context,
           isScrolled: _isAppBarScrolled,
+          // Already on Settings — don't show a cog that points back here.
+          includeSettings: false,
         ),
         backgroundColor: colorScheme.surface
             .withValues(alpha: _isAppBarScrolled ? 0.88 : 0.0),
@@ -503,13 +246,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(18),
-                onTap: () => _openControlCenterSheet(
-                  l10n: l10n,
-                  themeMode: themeMode,
-                  appCurrency: appCurrency,
-                  appLocale: appLocale,
-                  languageOptions: languageOptions,
-                  displayName: userDisplayName,
+                onTap: () => _openPersonalDetailsSheet(
+                  firstName: session.user?.firstName ?? '',
+                  lastName: session.user?.lastName ?? '',
                   userEmail: userEmail,
                   isActive: isActive,
                   isVerified: isVerified,
@@ -938,17 +677,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   showChevron: false,
                   tileVerticalPadding: 10,
                   onTap: () async {
+                    final enabling = !notificationPrefs.localEnabled;
+                    // When turning on, make sure the OS-level permission is
+                    // actually granted (Android 13+/iOS) so notifications show.
+                    var granted = true;
+                    if (enabling) {
+                      granted = await ref
+                          .read(notificationServiceProvider)
+                          .requestLocalPermission();
+                    }
                     await ref
                         .read(
                             notificationPreferencesControllerProvider.notifier)
-                        .setLocalEnabled(!notificationPrefs.localEnabled);
+                        .setLocalEnabled(enabling && granted);
                     if (!context.mounted) return;
-                    AppFeedbackService.showSuccess(
-                      context,
-                      notificationPrefs.localEnabled
-                          ? 'Local notifications disabled.'
-                          : 'Local notifications enabled.',
-                    );
+                    if (enabling && !granted) {
+                      AppFeedbackService.showInfo(
+                        context,
+                        'Enable notifications for SmartBudget in your device '
+                        'settings to receive local alerts.',
+                      );
+                    } else {
+                      AppFeedbackService.showSuccess(
+                        context,
+                        enabling
+                            ? 'Local notifications enabled.'
+                            : 'Local notifications disabled.',
+                      );
+                    }
                   },
                 ),
                 _MoreActionTile(
@@ -1423,34 +1179,257 @@ class _SectionDivider extends StatelessWidget {
   }
 }
 
-class _AccountInfoRow extends StatelessWidget {
-  const _AccountInfoRow({
+/// Editable Personal & Account details sheet opened by tapping the profile
+/// row at the top of Settings. Lets the user update their name and review
+/// their account/email status.
+class _PersonalDetailsSheet extends ConsumerStatefulWidget {
+  const _PersonalDetailsSheet({
+    required this.firstName,
+    required this.lastName,
+    required this.userEmail,
+    required this.isActive,
+    required this.isVerified,
+  });
+
+  final String firstName;
+  final String lastName;
+  final String userEmail;
+  final bool isActive;
+  final bool isVerified;
+
+  @override
+  ConsumerState<_PersonalDetailsSheet> createState() =>
+      _PersonalDetailsSheetState();
+}
+
+class _PersonalDetailsSheetState extends ConsumerState<_PersonalDetailsSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _first;
+  late final TextEditingController _last;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _first = TextEditingController(text: widget.firstName);
+    _last = TextEditingController(text: widget.lastName);
+  }
+
+  @override
+  void dispose() {
+    _first.dispose();
+    _last.dispose();
+    super.dispose();
+  }
+
+  bool get _isDirty =>
+      _first.text.trim() != widget.firstName.trim() ||
+      _last.text.trim() != widget.lastName.trim();
+
+  Future<void> _save() async {
+    if (_saving || !_formKey.currentState!.validate()) return;
+    if (!_isDirty) {
+      Navigator.of(context).pop();
+      return;
+    }
+    setState(() => _saving = true);
+    final ok = await ref.read(sessionControllerProvider.notifier).updateProfile(
+          firstName: _first.text.trim(),
+          lastName: _last.text.trim(),
+        );
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (ok) {
+      Navigator.of(context).pop();
+      AppFeedbackService.showSuccess(context, 'Profile updated.');
+    } else {
+      final message = ref.read(sessionControllerProvider).errorMessage ??
+          'Unable to update your profile right now.';
+      AppFeedbackService.showError(context, message);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final liveName = [_first.text.trim(), _last.text.trim()]
+        .where((p) => p.isNotEmpty)
+        .join(' ')
+        .trim();
+
+    final header = Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.brightness == Brightness.dark
+            ? colorScheme.surfaceContainerHigh
+            : colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.brightness == Brightness.dark
+              ? Colors.white.withValues(alpha: 0.10)
+              : Colors.black.withValues(alpha: 0.10),
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 26,
+            backgroundColor: colorScheme.primary.withValues(alpha: 0.14),
+            child: Text(
+              liveName.isNotEmpty ? liveName.characters.first.toUpperCase() : 'U',
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  liveName.isNotEmpty ? liveName : 'Personal details',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.userEmail,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final statusRow = Row(
+      children: [
+        _StatusPill(
+          label: widget.isVerified ? 'Email verified' : 'Email unverified',
+          positive: widget.isVerified,
+          icon: widget.isVerified
+              ? Icons.verified_rounded
+              : Icons.mark_email_unread_outlined,
+        ),
+        const SizedBox(width: 8),
+        _StatusPill(
+          label: widget.isActive ? 'Active' : 'Inactive',
+          positive: widget.isActive,
+          icon: widget.isActive
+              ? Icons.check_circle_rounded
+              : Icons.pause_circle_outline,
+        ),
+      ],
+    );
+
+    final body = Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          header,
+          const SizedBox(height: 16),
+          statusRow,
+          const SizedBox(height: 20),
+          ModernInput(
+            controller: _first,
+            label: 'First name',
+            hintText: 'e.g. Alex',
+            prefixIcon: Icons.person_outline_rounded,
+            onChanged: (_) => setState(() {}),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Enter your first name' : null,
+          ),
+          const SizedBox(height: 16),
+          ModernInput(
+            controller: _last,
+            label: 'Last name',
+            hintText: 'e.g. Morgan',
+            prefixIcon: Icons.person_outline_rounded,
+            onChanged: (_) => setState(() {}),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Enter your last name' : null,
+          ),
+          const SizedBox(height: 16),
+          // Email is read-only — changing it requires re-verification.
+          IgnorePointer(
+            child: Opacity(
+              opacity: 0.7,
+              child: ModernInput(
+                controller: TextEditingController(text: widget.userEmail),
+                label: 'Email',
+                prefixIcon: Icons.alternate_email_rounded,
+                helperText: 'Contact support to change your email address.',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return AppFormSheet(
+      onClose: () => Navigator.of(context).pop(),
+      maxHeightFactor: 0.86,
+      body: body,
+      actions: FilledButton.icon(
+        onPressed: _saving ? null : _save,
+        icon: _saving
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.check_rounded),
+        label: const Text('Save changes'),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(52),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({
     required this.label,
-    required this.value,
+    required this.positive,
+    required this.icon,
   });
 
   final String label;
-  final String value;
+  final bool positive;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final color = positive ? const Color(0xFF198754) : colorScheme.onSurfaceVariant;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 6),
           Text(
             label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: color,
                   fontWeight: FontWeight.w700,
                 ),
-          ),
-          const SizedBox(height: 2),
-          SelectableText(
-            value,
-            style: Theme.of(context).textTheme.bodyLarge,
           ),
         ],
       ),

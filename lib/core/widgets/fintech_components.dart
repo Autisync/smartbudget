@@ -862,7 +862,7 @@ class AppBottomNavigation extends StatelessWidget {
     final isDark = colorScheme.brightness == Brightness.dark;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    // Five primary destinations live inside the floating capsule; the detached
+    // Six primary destinations live inside the floating capsule; the detached
     // "+" circle to the right opens the quick-add menu.
     const items = <_AppNavItemData>[
       _AppNavItemData(
@@ -888,6 +888,12 @@ class AppBottomNavigation extends StatelessWidget {
         activeIcon: AppIcons.savingsFilled,
         label: 'Savings',
         index: 3,
+      ),
+      _AppNavItemData(
+        icon: AppIcons.subscriptions,
+        activeIcon: AppIcons.subscriptionsFilled,
+        label: 'Subscriptions',
+        index: 5,
       ),
       _AppNavItemData(
         icon: AppIcons.moreGrid,
@@ -1063,7 +1069,7 @@ class _CapsuleNavItem extends StatelessWidget {
               children: [
                 Icon(
                   selected ? item.activeIcon : item.icon,
-                  size: 20,
+                  size: 24,
                   color: selected
                       ? colorScheme.primary
                       : colorScheme.onSurfaceVariant,
@@ -1465,7 +1471,7 @@ class FinanceAmount extends StatelessWidget {
   }
 }
 
-class AppEmptyState extends StatelessWidget {
+class AppEmptyState extends StatefulWidget {
   const AppEmptyState({
     super.key,
     required this.icon,
@@ -1484,53 +1490,142 @@ class AppEmptyState extends StatelessWidget {
   final String? semanticLabel;
 
   @override
+  State<AppEmptyState> createState() => _AppEmptyStateState();
+}
+
+class _AppEmptyStateState extends State<AppEmptyState>
+    with TickerProviderStateMixin {
+  late final AnimationController _entranceCtrl;
+  late final AnimationController _floatCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _entranceCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600))
+      ..forward();
+    _floatCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 2200))
+      ..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _entranceCtrl.dispose();
+    _floatCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    final iconAnim = CurvedAnimation(
+        parent: _entranceCtrl,
+        curve: const Interval(0.0, 0.55, curve: Curves.easeOutBack));
+    final titleAnim = CurvedAnimation(
+        parent: _entranceCtrl,
+        curve: const Interval(0.25, 0.70, curve: Curves.easeOut));
+    final bodyAnim = CurvedAnimation(
+        parent: _entranceCtrl,
+        curve: const Interval(0.42, 0.85, curve: Curves.easeOut));
+    final actionAnim = CurvedAnimation(
+        parent: _entranceCtrl,
+        curve: const Interval(0.58, 1.00, curve: Curves.easeOut));
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(UiTokens.space24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (lottieAsset != null)
-              AppLottieView(
-                assetPath: lottieAsset!,
-                width: 108,
-                height: 108,
-                animate: true,
-                repeat: false,
-                semanticLabel: semanticLabel ?? '$title animation',
-                fallbackIcon: icon,
-              )
-            else
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(UiTokens.radiusXl),
-                ),
-                child: Icon(icon, size: 34, color: colorScheme.primary),
-              ),
-            const SizedBox(height: UiTokens.space16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
+            // Icon — scales in + floats continuously
+            AnimatedBuilder(
+              animation: Listenable.merge([iconAnim, _floatCtrl]),
+              builder: (context, _) {
+                final floatY = (_floatCtrl.value * 2 - 1) * 5;
+                return Transform.translate(
+                  offset: Offset(0, floatY),
+                  child: Transform.scale(
+                    scale: iconAnim.value,
+                    child: Opacity(
+                      opacity: iconAnim.value.clamp(0.0, 1.0),
+                      child: widget.lottieAsset != null
+                          ? AppLottieView(
+                              assetPath: widget.lottieAsset!,
+                              width: 200,
+                              height: 200,
+                              animate: true,
+                              repeat: true,
+                              semanticLabel: widget.semanticLabel ??
+                                  '${widget.title} animation',
+                              fallbackIcon: widget.icon,
+                            )
+                          : Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.10),
+                                borderRadius:
+                                    BorderRadius.circular(UiTokens.radiusXl),
+                              ),
+                              child: Icon(widget.icon,
+                                  size: 38, color: colorScheme.primary),
+                            ),
+                    ),
                   ),
+                );
+              },
+            ),
+            const SizedBox(height: UiTokens.space16),
+            // Title
+            AnimatedBuilder(
+              animation: titleAnim,
+              builder: (context, child) => Opacity(
+                opacity: titleAnim.value,
+                child: Transform.translate(
+                    offset: Offset(0, 14 * (1 - titleAnim.value)),
+                    child: child),
+              ),
+              child: Text(
+                widget.title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
             ),
             const SizedBox(height: UiTokens.space8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+            // Message
+            AnimatedBuilder(
+              animation: bodyAnim,
+              builder: (context, child) => Opacity(
+                opacity: bodyAnim.value,
+                child: Transform.translate(
+                    offset: Offset(0, 10 * (1 - bodyAnim.value)),
+                    child: child),
+              ),
+              child: Text(
+                widget.message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
             ),
-            if (action != null) ...[
+            if (widget.action != null) ...[
               const SizedBox(height: UiTokens.space20),
-              action!,
+              AnimatedBuilder(
+                animation: actionAnim,
+                builder: (context, child) => Opacity(
+                  opacity: actionAnim.value,
+                  child: Transform.translate(
+                      offset: Offset(0, 8 * (1 - actionAnim.value)),
+                      child: child),
+                ),
+                child: widget.action!,
+              ),
             ],
           ],
         ),

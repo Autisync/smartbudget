@@ -6,6 +6,8 @@ import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
+import 'package:smartbudget/core/widgets/animated_list_item.dart';
+import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
@@ -102,7 +104,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               itemBuilder: (context, index) {
                 final key = orderedKeys[index];
                 final sectionItems = grouped[key]!;
-                return Padding(
+                return AnimatedListItem(
+                  index: index,
+                  child: Padding(
                   padding: const EdgeInsets.only(bottom: 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,11 +235,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       }),
                     ],
                   ),
+                  ), // AnimatedListItem
                 );
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const AppShimmerSkeleton(
+              variant: AppShimmerVariant.list, itemCount: 6),
           error: (err, st) => Center(
             child: Text(l10n.notificationsLoadError(err.toString())),
           ),

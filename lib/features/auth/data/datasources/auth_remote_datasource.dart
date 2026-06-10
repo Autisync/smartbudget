@@ -256,4 +256,18 @@ class AuthApiClient {
     final response = await _dio.get<Map<String, dynamic>>('/api/v1/auth/me');
     return AuthUserModel.fromJson(response.data!);
   }
+
+  Future<AuthUserModel> updateProfile({
+    String? firstName,
+    String? lastName,
+  }) async {
+    final response = await _dio.patch<Map<String, dynamic>>(
+      '/api/v1/auth/me',
+      data: <String, dynamic>{
+        if (firstName != null) 'first_name': firstName,
+        if (lastName != null) 'last_name': lastName,
+      },
+    );
+    return AuthUserModel.fromJson(response.data!);
+  }
 }

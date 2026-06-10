@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -306,9 +307,12 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                                     ?.copyWith(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 8),
-                              SizedBox(
+                              ChartEntrance(
+                                builder: (ctx, _) => SizedBox(
                                 height: 140,
                                 child: LineChart(
+                                  duration: const Duration(milliseconds: 600),
+                                  curve: Curves.easeInOutCubic,
                                   LineChartData(
                                     gridData: const FlGridData(show: false),
                                     borderData: FlBorderData(show: false),
@@ -381,7 +385,8 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                                     ],
                                   ),
                                 ),
-                              ),
+                                ), // SizedBox
+                              ), // ChartEntrance
                             ],
                           ],
                         ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/components/forms/modern_select.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
+import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
@@ -235,13 +237,10 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                 const SizedBox(height: 8),
                 trendAsync.when(
                   data: (trend) => _HealthTrendCard(trend: trend),
-                  loading: () => Container(
-                    decoration: AppSurfaces.elevated(context, radius: 20),
-                    padding: const EdgeInsets.all(16),
-                    child: const SizedBox(
-                      height: 80,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
+                  loading: () => const SizedBox(
+                    height: 80,
+                    child: AppShimmerSkeleton(
+                        variant: AppShimmerVariant.cards, itemCount: 1),
                   ),
                   error: (_, __) => const SizedBox.shrink(),
                 ),
@@ -271,7 +270,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const AppShimmerSkeleton(),
           error: (err, st) => Center(
             child: Text(l10n.transactionsError(err.toString())),
           ),
@@ -437,9 +436,12 @@ class _HealthTrendCard extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
+            ChartEntrance(
+              builder: (ctx, _) => SizedBox(
               height: 180,
               child: LineChart(
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeInOutCubic,
                 LineChartData(
                   minY: minY,
                   maxY: maxY,
@@ -498,7 +500,8 @@ class _HealthTrendCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
+              ), // SizedBox
+            ), // ChartEntrance
             const SizedBox(height: 10),
             Text(
               l10n.financialHealthOverallChange(

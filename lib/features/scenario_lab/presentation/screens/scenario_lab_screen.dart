@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
+import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/scenario_lab/engines/scenario_engine.dart';
 import 'package:smartbudget/features/scenario_lab/models/scenario_models.dart';
@@ -58,7 +59,7 @@ class _ScenarioLabScreenState extends ConsumerState<ScenarioLabScreen> {
         ),
       ),
       body: resultAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppShimmerSkeleton(variant: AppShimmerVariant.dashboard),
         error: (error, _) => Center(child: Text('Scenario error: $error')),
         data: (result) {
           final input = ref.watch(scenarioLabControllerProvider);
@@ -198,11 +199,6 @@ class _Header extends StatelessWidget {
             fallbackIcon: Icons.science_rounded,
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Scenario Lab',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
           Text(
             'Test life changes before you make them.',
             style: Theme.of(context).textTheme.bodyMedium,

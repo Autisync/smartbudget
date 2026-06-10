@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:smartbudget/components/forms/financial_input.dart';
 import 'package:smartbudget/components/forms/modern_select.dart';
@@ -289,7 +287,7 @@ class AppFormSheet extends StatelessWidget {
     this.maxHeightFactor = 0.78,
     this.bodyPadding = const EdgeInsets.fromLTRB(24, 12, 24, 12),
     this.showDragHandle = true,
-    this.dismissOnBarrierTap = true,
+    this.dismissOnBarrierTap = false,
   });
 
   final Widget body;
@@ -318,10 +316,13 @@ class AppFormSheet extends StatelessWidget {
     required WidgetBuilder builder,
     bool useRootNavigator = true,
   }) {
-    return showCupertinoModalBottomSheet<T>(
+    return showModalBottomSheet<T>(
       context: context,
       useRootNavigator: useRootNavigator,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
       builder: builder,
     );
   }
@@ -342,33 +343,6 @@ class AppSkeletonLoader extends StatelessWidget {
     return Skeletonizer(
       enabled: enabled,
       child: child,
-    );
-  }
-}
-
-class AppSvgIcon extends StatelessWidget {
-  const AppSvgIcon({
-    super.key,
-    required this.assetName,
-    this.size = 20,
-    this.color,
-    this.semanticLabel,
-  });
-
-  final String assetName;
-  final double size;
-  final Color? color;
-  final String? semanticLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      assetName,
-      width: size,
-      height: size,
-      colorFilter:
-          color == null ? null : ColorFilter.mode(color!, BlendMode.srcIn),
-      semanticsLabel: semanticLabel,
     );
   }
 }

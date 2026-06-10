@@ -5,7 +5,6 @@ import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
 import 'package:smartbudget/components/dialogs/confirm_action_dialog.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
-import 'package:smartbudget/components/sheets/keyboard_aware_form_sheet.dart';
 import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/providers/quick_add_provider.dart';
@@ -21,6 +20,7 @@ import 'package:smartbudget/domain/entities/budget.dart';
 import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:smartbudget/core/widgets/animated_list_item.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
@@ -356,7 +356,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                             ),
                           );
 
-                          return Padding(
+                          return AnimatedListItem(
+                            index: index,
+                            child: Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Slidable(
                               key: ValueKey('budget-${budget.id}'),
@@ -534,7 +536,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                 ),
                               ),
                             ),
-                          );
+                            ),
+                            ); // AnimatedListItem
                         },
                         childCount: activeBudgets.length,
                       ),
@@ -1552,32 +1555,70 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final baseTheme = Theme.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isEdit = widget.existingBudget != null;
+    final liveAmount =
+        FormValidation.parseDecimal(_amountController.text.trim()) ?? 0;
+    final liveCategory = _categoryController.text.trim();
+
     final formFields = Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.pie_chart_rounded,
-                color: baseTheme.colorScheme.primary,
-                size: 28,
+          // ── Header card (matches transaction form style) ──
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.brightness == Brightness.dark
+                  ? colorScheme.surfaceContainerHigh
+                  : colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.10),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  widget.existingBudget == null
-                      ? l10n.budgetCreate
-                      : l10n.budgetEdit,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.pie_chart_rounded,
+                      color: colorScheme.primary, size: 20),
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isEdit ? l10n.budgetEdit : l10n.budgetCreate,
+                        style: theme.textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        liveAmount > 0
+                            ? '${widget.currencySymbol} ${liveAmount.toStringAsFixed(2)}${liveCategory.isNotEmpty ? ' · $liveCategory' : ''}'
+                            : 'Set a category and limit',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           ModernInput(
@@ -1585,6 +1626,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
             label: l10n.category,
             hintText: l10n.budgetCategoryHint,
             helperText: 'Used for insights and category-based controls',
+            onChanged: (_) => setState(() {}),
             validator: (value) =>
                 FormValidation.requiredText(value, l10n.budgetEnterCategory),
           ),
@@ -1593,6 +1635,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
             controller: _amountController,
             label: l10n.budgetAmount,
             currencySymbol: widget.currencySymbol,
+            onChanged: (_) => setState(() {}),
             validator: (value) => FormValidation.positiveAmount(
               value,
               l10n.budgetEnterValidAmount,
@@ -1645,22 +1688,18 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
       ),
     );
 
-    return KeyboardAwareFormSheet(
+    return AppFormSheet(
       onClose: () => Navigator.of(context).pop(),
-      maxHeightFactor: 0.78,
+      maxHeightFactor: 0.85,
       body: formFields,
       actions: FilledButton.icon(
         onPressed: _submit,
         icon: Icon(
-          widget.existingBudget == null
-              ? Icons.add_rounded
-              : Icons.edit_rounded,
+          isEdit ? Icons.edit_rounded : Icons.add_rounded,
         ),
-        label: Text(
-          widget.existingBudget == null ? l10n.budgetSave : l10n.budgetUpdate,
-        ),
+        label: Text(isEdit ? l10n.budgetUpdate : l10n.budgetSave),
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
+          minimumSize: const Size.fromHeight(52),
         ),
       ),
     );

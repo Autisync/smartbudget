@@ -77,19 +77,21 @@ List<Widget> buildPageHeaderActions({
   required bool isScrolled,
   bool includeTrailingSpace = true,
   bool useProviderNotificationBell = true,
+  bool includeSettings = true,
 }) {
   final colorScheme = Theme.of(context).colorScheme;
   final actionBackground = colorScheme.surfaceContainerHighest.withValues(
     alpha: isScrolled ? 0.9 : 0,
   );
   return [
-    IconButton(
-      style: IconButton.styleFrom(
-        backgroundColor: actionBackground,
+    if (includeSettings)
+      IconButton(
+        style: IconButton.styleFrom(
+          backgroundColor: actionBackground,
+        ),
+        icon: const Icon(Icons.settings_outlined),
+        onPressed: () => context.push('/settings'),
       ),
-      icon: const Icon(Icons.settings_outlined),
-      onPressed: () => context.push('/settings'),
-    ),
     if (useProviderNotificationBell)
       NotificationBellButton(
         backgroundColor: actionBackground,
