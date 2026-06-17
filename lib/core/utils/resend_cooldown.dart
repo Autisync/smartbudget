@@ -10,11 +10,23 @@ class ResendCooldown {
   static const Duration window = Duration(hours: 1);
   static DateTime? _until;
 
+  /// TEMPORARY kill-switch: the resend limit is disabled until this UTC instant,
+  /// after which normal 1-hour throttling auto-resumes with no redeploy/rebuild.
+  /// Set 2026-06-17 14:42Z → expires 2026-06-17 16:42Z.
+  static final DateTime _disabledUntil = DateTime.utc(2026, 6, 17, 16, 42, 19);
+
+  static bool get _isDisabled =>
+      DateTime.now().toUtc().isBefore(_disabledUntil);
+
   /// Begin a fresh 1-hour cooldown (call after a send is accepted OR rate-limited).
-  static void start() => _until = DateTime.now().add(window);
+  static void start() {
+    if (_isDisabled) return;
+    _until = DateTime.now().add(window);
+  }
 
   /// Time left before another resend is allowed. Zero when ready.
   static Duration get remaining {
+    if (_isDisabled) return Duration.zero;
     final until = _until;
     if (until == null) return Duration.zero;
     final left = until.difference(DateTime.now());

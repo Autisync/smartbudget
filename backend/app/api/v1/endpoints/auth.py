@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import jwt
 from fastapi import APIRouter, Depends, Request
 from redis import Redis
@@ -25,6 +27,10 @@ from app.services.auth_service import AuthService
 from app.services.rate_limiter import RateLimiterService
 
 router = APIRouter()
+
+# TEMPORARY resend-limit kill-switch. While now < this instant the per-user
+# resend throttle is bypassed; afterwards it auto-re-enables (no redeploy).
+_RESEND_LIMIT_DISABLED_UNTIL = datetime(2026, 6, 17, 16, 42, 19, tzinfo=timezone.utc)
 
 
 def limiter() -> RateLimiterService:
@@ -138,12 +144,15 @@ def resend_verification(
     if user is None:
         raise errors.unauthorized("Not authenticated")
     # Throttle to prevent verification-email bombing (1 per hour per user).
-    if not rate_limiter.check_action(
-        "resend_verification", str(user.id), max_attempts=1, window_seconds=3600
-    ):
-        raise errors.bad_request(
-            "Too many requests. Please wait a while before requesting another email."
-        )
+    # TEMPORARY: the limit is disabled until this UTC instant, after which it
+    # auto-re-enables with no redeploy. Set 2026-06-17 14:42Z → 16:42Z.
+    if datetime.now(timezone.utc) >= _RESEND_LIMIT_DISABLED_UNTIL:
+        if not rate_limiter.check_action(
+            "resend_verification", str(user.id), max_attempts=1, window_seconds=3600
+        ):
+            raise errors.bad_request(
+                "Too many requests. Please wait a while before requesting another email."
+            )
     AuthService(db).resend_verification(user=user)
     # Generic response — never reveals verification state to the caller.
     return MessageResponse(
