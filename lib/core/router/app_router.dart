@@ -50,15 +50,45 @@ part 'app_router.g.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Bridges Riverpod auth/onboarding changes to go_router as a [Listenable], so
+/// the router can re-run `redirect` WITHOUT being rebuilt. Rebuilding the
+/// GoRouter (which is what `ref.watch` in the provider body used to do on every
+/// session change, incl. ~15-min token refreshes) recreated its navigators —
+/// all sharing the top-level _rootNavigatorKey/_shellNavigatorKey — so the old
+/// and new instances briefly coexisted, throwing "Duplicate GlobalKey" and
+/// "InheritedElement.debugDeactivated: _dependents.isEmpty".
+class _AuthRefreshListenable extends ChangeNotifier {
+  _AuthRefreshListenable(Ref ref) {
+    _subs = [
+      ref.listen(sessionControllerProvider, (_, __) => notifyListeners()),
+      ref.listen(onboardingStatusProvider, (_, __) => notifyListeners()),
+    ];
+  }
+
+  late final List<ProviderSubscription<Object?>> _subs;
+
+  @override
+  void dispose() {
+    for (final sub in _subs) {
+      sub.close();
+    }
+    super.dispose();
+  }
+}
+
 @riverpod
 GoRouter router(RouterRef ref) {
-  final sessionState = ref.watch(sessionControllerProvider);
-  final onboardingState = ref.watch(onboardingStatusProvider);
+  // Build the router ONCE; react to auth/onboarding via refreshListenable.
+  final refresh = _AuthRefreshListenable(ref);
+  ref.onDispose(refresh.dispose);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
+    refreshListenable: refresh,
     redirect: (context, state) {
+      final sessionState = ref.read(sessionControllerProvider);
+      final onboardingState = ref.read(onboardingStatusProvider);
       // App Link / Universal Link paths arrive under the domain-registered
       // `/app` prefix (e.g. https://smaartspend.com/app/verify-email?token=…).
       // Normalise them onto the in-app auth routes, preserving query params
