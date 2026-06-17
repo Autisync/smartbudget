@@ -488,7 +488,7 @@ class _BiometricUnlockView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (state.message != null) ...[
+          if (state.message != BiometricUiMessage.none) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -509,7 +509,7 @@ class _BiometricUnlockView extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      state.message!,
+                      _biometricMessage(l10n, state.message),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: _messageTone(colorScheme),
                         fontWeight: FontWeight.w600,
@@ -576,5 +576,32 @@ class _BiometricUnlockView extends StatelessWidget {
       case BiometricUiPhase.idle:
         return Icons.lock_outline_rounded;
     }
+  }
+}
+
+/// Resolves a biometric status key (set by the context-less provider) to a
+/// localized string.
+String _biometricMessage(AppLocalizations l10n, BiometricUiMessage m) {
+  switch (m) {
+    case BiometricUiMessage.none:
+      return '';
+    case BiometricUiMessage.openingPrompt:
+      return l10n.bioMsgOpeningPrompt;
+    case BiometricUiMessage.waiting:
+      return l10n.bioMsgWaiting;
+    case BiometricUiMessage.usePassword:
+      return l10n.bioMsgUsePassword;
+    case BiometricUiMessage.verified:
+      return l10n.bioMsgVerified;
+    case BiometricUiMessage.cancelled:
+      return l10n.bioMsgCancelled;
+    case BiometricUiMessage.notAvailable:
+      return l10n.bioMsgNotAvailable;
+    case BiometricUiMessage.noneEnrolled:
+      return l10n.bioMsgNoneEnrolled;
+    case BiometricUiMessage.locked:
+      return l10n.bioMsgLocked;
+    case BiometricUiMessage.error:
+      return l10n.bioMsgError;
   }
 }

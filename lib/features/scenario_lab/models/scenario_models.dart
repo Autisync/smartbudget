@@ -420,19 +420,34 @@ class EmergencyRunwayResult {
   final int withUnexpectedExpenseDays;
 }
 
+/// Identifies a recommendation so the UI can localize its title/reason/action.
+/// The engine is in the data layer (no BuildContext), so it emits a code plus
+/// any numeric params instead of pre-built English copy.
+enum ScenarioRecommendationCode {
+  subscriptionBurden,
+  optimizeFood,
+  breakEvenGap,
+  emergencyRunway,
+  debtAcceleration,
+  deficitProbability,
+}
+
 @immutable
 class ScenarioRecommendation {
   const ScenarioRecommendation({
-    required this.title,
-    required this.reason,
-    required this.suggestedAction,
+    required this.code,
+    this.reasonParam = '',
+    this.actionParam = '',
     required this.impactValue,
     required this.actionType,
   });
 
-  final String title;
-  final String reason;
-  final String suggestedAction;
+  final ScenarioRecommendationCode code;
+
+  /// Pre-formatted value interpolated into the localized reason/action (e.g. a
+  /// percentage or a currency amount), or empty when that string has no param.
+  final String reasonParam;
+  final String actionParam;
   final double impactValue;
   final ScenarioActionType actionType;
 }

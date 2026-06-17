@@ -2953,4 +2953,100 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authReqPasswordsMatch => 'Passwords match';
+
+  @override
+  String get bioMsgOpeningPrompt => 'Opening biometric prompt…';
+
+  @override
+  String get bioMsgWaiting => 'Waiting for biometric verification…';
+
+  @override
+  String get bioMsgUsePassword => 'Use your password to continue.';
+
+  @override
+  String get bioMsgVerified => 'Verified. Unlocking your session…';
+
+  @override
+  String get bioMsgCancelled => 'Biometric verification was cancelled or denied.';
+
+  @override
+  String get bioMsgNotAvailable => 'Biometrics are not available on this device.';
+
+  @override
+  String get bioMsgNoneEnrolled => 'No biometrics are enrolled. Use password instead.';
+
+  @override
+  String get bioMsgLocked => 'Biometrics are locked. Unlock your device and try again.';
+
+  @override
+  String get bioMsgError => 'Unable to verify biometrics right now. Try again.';
+
+  @override
+  String get scenarioRecSubBurdenTitle => 'Subscription burden is high';
+
+  @override
+  String scenarioRecSubBurdenReason(String pct) {
+    return 'Subscriptions consume $pct% of recurring obligations.';
+  }
+
+  @override
+  String get scenarioRecSubBurdenAction => 'Cancel or pause low-priority subscriptions.';
+
+  @override
+  String get scenarioRecFoodTitle => 'Optimize food spending';
+
+  @override
+  String scenarioRecFoodReason(String amount) {
+    return 'Reducing food spend by 15% can recover $amount per month.';
+  }
+
+  @override
+  String get scenarioRecFoodAction => 'Set a food budget cap and track weekly variance.';
+
+  @override
+  String get scenarioRecBreakEvenTitle => 'Break-even income gap detected';
+
+  @override
+  String scenarioRecBreakEvenReason(String amount) {
+    return 'Increase recurring income by $amount to avoid a monthly deficit.';
+  }
+
+  @override
+  String get scenarioRecBreakEvenAction => 'Create a recurring income goal or reduce variable spending.';
+
+  @override
+  String get scenarioRecRunwayTitle => 'Emergency runway is low';
+
+  @override
+  String get scenarioRecRunwayReason => 'Current emergency runway is below 30 days.';
+
+  @override
+  String get scenarioRecRunwayAction => 'Increase emergency allocation and reduce optional spend.';
+
+  @override
+  String get scenarioRecDebtTitle => 'Debt repayment acceleration available';
+
+  @override
+  String get scenarioRecDebtReason => 'Debt obligations are taking a significant share of cashflow.';
+
+  @override
+  String scenarioRecDebtAction(String amount) {
+    return 'Route $amount extra monthly to debt repayment.';
+  }
+
+  @override
+  String get scenarioRecDeficitTitle => 'High next-month deficit probability';
+
+  @override
+  String scenarioRecDeficitReason(String pct) {
+    return 'Deficit likelihood is $pct%.';
+  }
+
+  @override
+  String get scenarioRecDeficitAction => 'Review transactions by category and apply targeted reductions.';
+
+  @override
+  String scenarioEstimatedImpact(String amount) {
+    return 'Estimated impact: $amount';
+  }
 }

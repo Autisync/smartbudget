@@ -794,19 +794,20 @@ class _Recommendations extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      rec.title,
+                      _recTitle(l10n, rec.code),
                       style: Theme.of(context)
                           .textTheme
                           .titleSmall
                           ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 4),
-                    Text(rec.reason),
+                    Text(_recReason(l10n, rec)),
                     const SizedBox(height: 4),
-                    Text(rec.suggestedAction),
+                    Text(_recAction(l10n, rec)),
                     const SizedBox(height: 6),
                     Text(
-                      'Estimated impact: ${currency.format(rec.impactValue)}',
+                      l10n.scenarioEstimatedImpact(
+                          currency.format(rec.impactValue)),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 6),
@@ -883,5 +884,58 @@ class _SmartActions extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// --- Localized recommendation copy (engine emits codes; UI resolves text) ---
+
+String _recTitle(AppLocalizations l10n, ScenarioRecommendationCode c) {
+  switch (c) {
+    case ScenarioRecommendationCode.subscriptionBurden:
+      return l10n.scenarioRecSubBurdenTitle;
+    case ScenarioRecommendationCode.optimizeFood:
+      return l10n.scenarioRecFoodTitle;
+    case ScenarioRecommendationCode.breakEvenGap:
+      return l10n.scenarioRecBreakEvenTitle;
+    case ScenarioRecommendationCode.emergencyRunway:
+      return l10n.scenarioRecRunwayTitle;
+    case ScenarioRecommendationCode.debtAcceleration:
+      return l10n.scenarioRecDebtTitle;
+    case ScenarioRecommendationCode.deficitProbability:
+      return l10n.scenarioRecDeficitTitle;
+  }
+}
+
+String _recReason(AppLocalizations l10n, ScenarioRecommendation r) {
+  switch (r.code) {
+    case ScenarioRecommendationCode.subscriptionBurden:
+      return l10n.scenarioRecSubBurdenReason(r.reasonParam);
+    case ScenarioRecommendationCode.optimizeFood:
+      return l10n.scenarioRecFoodReason(r.reasonParam);
+    case ScenarioRecommendationCode.breakEvenGap:
+      return l10n.scenarioRecBreakEvenReason(r.reasonParam);
+    case ScenarioRecommendationCode.emergencyRunway:
+      return l10n.scenarioRecRunwayReason;
+    case ScenarioRecommendationCode.debtAcceleration:
+      return l10n.scenarioRecDebtReason;
+    case ScenarioRecommendationCode.deficitProbability:
+      return l10n.scenarioRecDeficitReason(r.reasonParam);
+  }
+}
+
+String _recAction(AppLocalizations l10n, ScenarioRecommendation r) {
+  switch (r.code) {
+    case ScenarioRecommendationCode.subscriptionBurden:
+      return l10n.scenarioRecSubBurdenAction;
+    case ScenarioRecommendationCode.optimizeFood:
+      return l10n.scenarioRecFoodAction;
+    case ScenarioRecommendationCode.breakEvenGap:
+      return l10n.scenarioRecBreakEvenAction;
+    case ScenarioRecommendationCode.emergencyRunway:
+      return l10n.scenarioRecRunwayAction;
+    case ScenarioRecommendationCode.debtAcceleration:
+      return l10n.scenarioRecDebtAction(r.actionParam);
+    case ScenarioRecommendationCode.deficitProbability:
+      return l10n.scenarioRecDeficitAction;
   }
 }

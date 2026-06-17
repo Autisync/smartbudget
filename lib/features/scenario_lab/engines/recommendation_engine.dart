@@ -29,10 +29,8 @@ class RecommendationEngine {
       if (subsShare >= 0.25) {
         recommendations.add(
           ScenarioRecommendation(
-            title: 'Subscription burden is high',
-            reason:
-                'Subscriptions consume ${(subsShare * 100).toStringAsFixed(0)}% of recurring obligations.',
-            suggestedAction: 'Cancel or pause low-priority subscriptions.',
+            code: ScenarioRecommendationCode.subscriptionBurden,
+            reasonParam: (subsShare * 100).toStringAsFixed(0),
             impactValue: subscriptionCost * 0.2,
             actionType: ScenarioActionType.reviewSubscriptions,
           ),
@@ -44,10 +42,8 @@ class RecommendationEngine {
       final recoverable = foodCost * 0.15;
       recommendations.add(
         ScenarioRecommendation(
-          title: 'Optimize food spending',
-          reason:
-              'Reducing food spend by 15% can recover ${recoverable.toStringAsFixed(0)} per month.',
-          suggestedAction: 'Set a food budget cap and track weekly variance.',
+          code: ScenarioRecommendationCode.optimizeFood,
+          reasonParam: recoverable.toStringAsFixed(0),
           impactValue: recoverable,
           actionType: ScenarioActionType.openBudgetAdjustment,
         ),
@@ -58,11 +54,8 @@ class RecommendationEngine {
       final breakEvenGap = computation.simulatedMonthlyCashflow.abs();
       recommendations.add(
         ScenarioRecommendation(
-          title: 'Break-even income gap detected',
-          reason:
-              'Increase recurring income by ${breakEvenGap.toStringAsFixed(0)} to avoid monthly deficit.',
-          suggestedAction:
-              'Create a recurring income goal or reduce variable spending.',
+          code: ScenarioRecommendationCode.breakEvenGap,
+          reasonParam: breakEvenGap.toStringAsFixed(0),
           impactValue: breakEvenGap,
           actionType: ScenarioActionType.openRecurringBalanceSheet,
         ),
@@ -72,10 +65,7 @@ class RecommendationEngine {
     if (runway.runwayDays < 30) {
       recommendations.add(
         ScenarioRecommendation(
-          title: 'Emergency runway is low',
-          reason: 'Current emergency runway is below 30 days.',
-          suggestedAction:
-              'Increase emergency allocation and reduce optional spend.',
+          code: ScenarioRecommendationCode.emergencyRunway,
           impactValue: (30 - runway.runwayDays).toDouble(),
           actionType: ScenarioActionType.createSavingsRule,
         ),
@@ -86,11 +76,8 @@ class RecommendationEngine {
       final debtRelief = math.min(debtCost * 0.1, 500).toDouble();
       recommendations.add(
         ScenarioRecommendation(
-          title: 'Debt repayment acceleration available',
-          reason:
-              'Debt obligations are taking a significant share of cashflow.',
-          suggestedAction:
-              'Route ${debtRelief.toStringAsFixed(0)} extra monthly to debt repayment.',
+          code: ScenarioRecommendationCode.debtAcceleration,
+          actionParam: debtRelief.toStringAsFixed(0),
           impactValue: debtRelief,
           actionType: ScenarioActionType.openBudgetAdjustment,
         ),
@@ -100,11 +87,9 @@ class RecommendationEngine {
     if (probabilities.nextMonthDeficitLikelihood >= 0.6) {
       recommendations.add(
         ScenarioRecommendation(
-          title: 'High next-month deficit probability',
-          reason:
-              'Deficit likelihood is ${(probabilities.nextMonthDeficitLikelihood * 100).toStringAsFixed(0)}%.',
-          suggestedAction:
-              'Review transactions by category and apply targeted reductions.',
+          code: ScenarioRecommendationCode.deficitProbability,
+          reasonParam:
+              (probabilities.nextMonthDeficitLikelihood * 100).toStringAsFixed(0),
           impactValue: probabilities.nextMonthDeficitLikelihood * 100,
           actionType: ScenarioActionType.openTransactionsByCategory,
         ),

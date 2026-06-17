@@ -2953,4 +2953,100 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get authReqPasswordsMatch => 'Las contraseñas coinciden';
+
+  @override
+  String get bioMsgOpeningPrompt => 'Abriendo el aviso biométrico…';
+
+  @override
+  String get bioMsgWaiting => 'Esperando la verificación biométrica…';
+
+  @override
+  String get bioMsgUsePassword => 'Usa tu contraseña para continuar.';
+
+  @override
+  String get bioMsgVerified => 'Verificado. Desbloqueando tu sesión…';
+
+  @override
+  String get bioMsgCancelled => 'La verificación biométrica fue cancelada o denegada.';
+
+  @override
+  String get bioMsgNotAvailable => 'La biometría no está disponible en este dispositivo.';
+
+  @override
+  String get bioMsgNoneEnrolled => 'No hay biometría registrada. Usa la contraseña.';
+
+  @override
+  String get bioMsgLocked => 'La biometría está bloqueada. Desbloquea tu dispositivo e inténtalo de nuevo.';
+
+  @override
+  String get bioMsgError => 'No se pudo verificar la biometría ahora. Inténtalo de nuevo.';
+
+  @override
+  String get scenarioRecSubBurdenTitle => 'La carga de suscripciones es alta';
+
+  @override
+  String scenarioRecSubBurdenReason(String pct) {
+    return 'Las suscripciones consumen el $pct% de las obligaciones recurrentes.';
+  }
+
+  @override
+  String get scenarioRecSubBurdenAction => 'Cancela o pausa las suscripciones de baja prioridad.';
+
+  @override
+  String get scenarioRecFoodTitle => 'Optimiza el gasto en comida';
+
+  @override
+  String scenarioRecFoodReason(String amount) {
+    return 'Reducir el gasto en comida un 15% puede recuperar $amount al mes.';
+  }
+
+  @override
+  String get scenarioRecFoodAction => 'Fija un límite de presupuesto para comida y controla la variación semanal.';
+
+  @override
+  String get scenarioRecBreakEvenTitle => 'Brecha de ingresos para el equilibrio';
+
+  @override
+  String scenarioRecBreakEvenReason(String amount) {
+    return 'Aumenta los ingresos recurrentes en $amount para evitar un déficit mensual.';
+  }
+
+  @override
+  String get scenarioRecBreakEvenAction => 'Crea una meta de ingresos recurrentes o reduce el gasto variable.';
+
+  @override
+  String get scenarioRecRunwayTitle => 'El fondo de emergencia es bajo';
+
+  @override
+  String get scenarioRecRunwayReason => 'El fondo de emergencia actual es inferior a 30 días.';
+
+  @override
+  String get scenarioRecRunwayAction => 'Aumenta la asignación de emergencia y reduce el gasto opcional.';
+
+  @override
+  String get scenarioRecDebtTitle => 'Aceleración del pago de deudas disponible';
+
+  @override
+  String get scenarioRecDebtReason => 'Las deudas consumen una parte importante del flujo de caja.';
+
+  @override
+  String scenarioRecDebtAction(String amount) {
+    return 'Destina $amount extra al mes al pago de la deuda.';
+  }
+
+  @override
+  String get scenarioRecDeficitTitle => 'Alta probabilidad de déficit el próximo mes';
+
+  @override
+  String scenarioRecDeficitReason(String pct) {
+    return 'La probabilidad de déficit es del $pct%.';
+  }
+
+  @override
+  String get scenarioRecDeficitAction => 'Revisa las transacciones por categoría y aplica reducciones específicas.';
+
+  @override
+  String scenarioEstimatedImpact(String amount) {
+    return 'Impacto estimado: $amount';
+  }
 }

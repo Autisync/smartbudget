@@ -5560,6 +5560,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passwords match'**
   String get authReqPasswordsMatch;
+
+  /// No description provided for @bioMsgOpeningPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening biometric prompt…'**
+  String get bioMsgOpeningPrompt;
+
+  /// No description provided for @bioMsgWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for biometric verification…'**
+  String get bioMsgWaiting;
+
+  /// No description provided for @bioMsgUsePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your password to continue.'**
+  String get bioMsgUsePassword;
+
+  /// No description provided for @bioMsgVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified. Unlocking your session…'**
+  String get bioMsgVerified;
+
+  /// No description provided for @bioMsgCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric verification was cancelled or denied.'**
+  String get bioMsgCancelled;
+
+  /// No description provided for @bioMsgNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics are not available on this device.'**
+  String get bioMsgNotAvailable;
+
+  /// No description provided for @bioMsgNoneEnrolled.
+  ///
+  /// In en, this message translates to:
+  /// **'No biometrics are enrolled. Use password instead.'**
+  String get bioMsgNoneEnrolled;
+
+  /// No description provided for @bioMsgLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics are locked. Unlock your device and try again.'**
+  String get bioMsgLocked;
+
+  /// No description provided for @bioMsgError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to verify biometrics right now. Try again.'**
+  String get bioMsgError;
+
+  /// No description provided for @scenarioRecSubBurdenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription burden is high'**
+  String get scenarioRecSubBurdenTitle;
+
+  /// No description provided for @scenarioRecSubBurdenReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions consume {pct}% of recurring obligations.'**
+  String scenarioRecSubBurdenReason(String pct);
+
+  /// No description provided for @scenarioRecSubBurdenAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel or pause low-priority subscriptions.'**
+  String get scenarioRecSubBurdenAction;
+
+  /// No description provided for @scenarioRecFoodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimize food spending'**
+  String get scenarioRecFoodTitle;
+
+  /// No description provided for @scenarioRecFoodReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reducing food spend by 15% can recover {amount} per month.'**
+  String scenarioRecFoodReason(String amount);
+
+  /// No description provided for @scenarioRecFoodAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a food budget cap and track weekly variance.'**
+  String get scenarioRecFoodAction;
+
+  /// No description provided for @scenarioRecBreakEvenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Break-even income gap detected'**
+  String get scenarioRecBreakEvenTitle;
+
+  /// No description provided for @scenarioRecBreakEvenReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase recurring income by {amount} to avoid a monthly deficit.'**
+  String scenarioRecBreakEvenReason(String amount);
+
+  /// No description provided for @scenarioRecBreakEvenAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a recurring income goal or reduce variable spending.'**
+  String get scenarioRecBreakEvenAction;
+
+  /// No description provided for @scenarioRecRunwayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency runway is low'**
+  String get scenarioRecRunwayTitle;
+
+  /// No description provided for @scenarioRecRunwayReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Current emergency runway is below 30 days.'**
+  String get scenarioRecRunwayReason;
+
+  /// No description provided for @scenarioRecRunwayAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase emergency allocation and reduce optional spend.'**
+  String get scenarioRecRunwayAction;
+
+  /// No description provided for @scenarioRecDebtTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt repayment acceleration available'**
+  String get scenarioRecDebtTitle;
+
+  /// No description provided for @scenarioRecDebtReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt obligations are taking a significant share of cashflow.'**
+  String get scenarioRecDebtReason;
+
+  /// No description provided for @scenarioRecDebtAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Route {amount} extra monthly to debt repayment.'**
+  String scenarioRecDebtAction(String amount);
+
+  /// No description provided for @scenarioRecDeficitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'High next-month deficit probability'**
+  String get scenarioRecDeficitTitle;
+
+  /// No description provided for @scenarioRecDeficitReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Deficit likelihood is {pct}%.'**
+  String scenarioRecDeficitReason(String pct);
+
+  /// No description provided for @scenarioRecDeficitAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review transactions by category and apply targeted reductions.'**
+  String get scenarioRecDeficitAction;
+
+  /// No description provided for @scenarioEstimatedImpact.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated impact: {amount}'**
+  String scenarioEstimatedImpact(String amount);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

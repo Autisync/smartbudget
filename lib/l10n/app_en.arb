@@ -1746,5 +1746,75 @@
   "authReqUppercase": "Uppercase",
   "authReqLowercase": "Lowercase",
   "authReqNumber": "Number",
-  "authReqPasswordsMatch": "Passwords match"
+  "authReqPasswordsMatch": "Passwords match",
+  "bioMsgOpeningPrompt": "Opening biometric prompt…",
+  "bioMsgWaiting": "Waiting for biometric verification…",
+  "bioMsgUsePassword": "Use your password to continue.",
+  "bioMsgVerified": "Verified. Unlocking your session…",
+  "bioMsgCancelled": "Biometric verification was cancelled or denied.",
+  "bioMsgNotAvailable": "Biometrics are not available on this device.",
+  "bioMsgNoneEnrolled": "No biometrics are enrolled. Use password instead.",
+  "bioMsgLocked": "Biometrics are locked. Unlock your device and try again.",
+  "bioMsgError": "Unable to verify biometrics right now. Try again.",
+  "scenarioRecSubBurdenTitle": "Subscription burden is high",
+  "scenarioRecSubBurdenReason": "Subscriptions consume {pct}% of recurring obligations.",
+  "scenarioRecSubBurdenAction": "Cancel or pause low-priority subscriptions.",
+  "scenarioRecFoodTitle": "Optimize food spending",
+  "scenarioRecFoodReason": "Reducing food spend by 15% can recover {amount} per month.",
+  "scenarioRecFoodAction": "Set a food budget cap and track weekly variance.",
+  "scenarioRecBreakEvenTitle": "Break-even income gap detected",
+  "scenarioRecBreakEvenReason": "Increase recurring income by {amount} to avoid a monthly deficit.",
+  "scenarioRecBreakEvenAction": "Create a recurring income goal or reduce variable spending.",
+  "scenarioRecRunwayTitle": "Emergency runway is low",
+  "scenarioRecRunwayReason": "Current emergency runway is below 30 days.",
+  "scenarioRecRunwayAction": "Increase emergency allocation and reduce optional spend.",
+  "scenarioRecDebtTitle": "Debt repayment acceleration available",
+  "scenarioRecDebtReason": "Debt obligations are taking a significant share of cashflow.",
+  "scenarioRecDebtAction": "Route {amount} extra monthly to debt repayment.",
+  "scenarioRecDeficitTitle": "High next-month deficit probability",
+  "scenarioRecDeficitReason": "Deficit likelihood is {pct}%.",
+  "scenarioRecDeficitAction": "Review transactions by category and apply targeted reductions.",
+  "scenarioEstimatedImpact": "Estimated impact: {amount}",
+  "@scenarioRecSubBurdenReason": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioRecFoodReason": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioRecBreakEvenReason": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioRecDebtAction": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioRecDeficitReason": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioEstimatedImpact": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -2953,4 +2953,100 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get authReqPasswordsMatch => 'Passwörter stimmen überein';
+
+  @override
+  String get bioMsgOpeningPrompt => 'Biometrische Abfrage wird geöffnet…';
+
+  @override
+  String get bioMsgWaiting => 'Warten auf biometrische Verifizierung…';
+
+  @override
+  String get bioMsgUsePassword => 'Verwenden Sie Ihr Passwort, um fortzufahren.';
+
+  @override
+  String get bioMsgVerified => 'Verifiziert. Sitzung wird entsperrt…';
+
+  @override
+  String get bioMsgCancelled => 'Die biometrische Verifizierung wurde abgebrochen oder abgelehnt.';
+
+  @override
+  String get bioMsgNotAvailable => 'Biometrie ist auf diesem Gerät nicht verfügbar.';
+
+  @override
+  String get bioMsgNoneEnrolled => 'Keine Biometrie eingerichtet. Verwenden Sie das Passwort.';
+
+  @override
+  String get bioMsgLocked => 'Biometrie ist gesperrt. Entsperren Sie Ihr Gerät und versuchen Sie es erneut.';
+
+  @override
+  String get bioMsgError => 'Biometrie kann derzeit nicht verifiziert werden. Versuchen Sie es erneut.';
+
+  @override
+  String get scenarioRecSubBurdenTitle => 'Die Abo-Last ist hoch';
+
+  @override
+  String scenarioRecSubBurdenReason(String pct) {
+    return 'Abos machen $pct% der wiederkehrenden Verpflichtungen aus.';
+  }
+
+  @override
+  String get scenarioRecSubBurdenAction => 'Kündige oder pausiere unwichtige Abos.';
+
+  @override
+  String get scenarioRecFoodTitle => 'Lebensmittelausgaben optimieren';
+
+  @override
+  String scenarioRecFoodReason(String amount) {
+    return '15% weniger Lebensmittelausgaben können $amount pro Monat einsparen.';
+  }
+
+  @override
+  String get scenarioRecFoodAction => 'Lege ein Lebensmittelbudget fest und verfolge die wöchentliche Abweichung.';
+
+  @override
+  String get scenarioRecBreakEvenTitle => 'Einkommenslücke zum Break-even erkannt';
+
+  @override
+  String scenarioRecBreakEvenReason(String amount) {
+    return 'Erhöhe das wiederkehrende Einkommen um $amount, um ein monatliches Defizit zu vermeiden.';
+  }
+
+  @override
+  String get scenarioRecBreakEvenAction => 'Erstelle ein Ziel für wiederkehrendes Einkommen oder senke variable Ausgaben.';
+
+  @override
+  String get scenarioRecRunwayTitle => 'Notgroschen-Reichweite ist niedrig';
+
+  @override
+  String get scenarioRecRunwayReason => 'Die aktuelle Notgroschen-Reichweite liegt unter 30 Tagen.';
+
+  @override
+  String get scenarioRecRunwayAction => 'Erhöhe die Notfallrücklage und senke optionale Ausgaben.';
+
+  @override
+  String get scenarioRecDebtTitle => 'Beschleunigte Schuldentilgung möglich';
+
+  @override
+  String get scenarioRecDebtReason => 'Schulden beanspruchen einen erheblichen Teil des Cashflows.';
+
+  @override
+  String scenarioRecDebtAction(String amount) {
+    return 'Leite $amount zusätzlich pro Monat in die Schuldentilgung.';
+  }
+
+  @override
+  String get scenarioRecDeficitTitle => 'Hohe Defizitwahrscheinlichkeit nächsten Monat';
+
+  @override
+  String scenarioRecDeficitReason(String pct) {
+    return 'Die Defizitwahrscheinlichkeit beträgt $pct%.';
+  }
+
+  @override
+  String get scenarioRecDeficitAction => 'Überprüfe Transaktionen nach Kategorie und nimm gezielte Kürzungen vor.';
+
+  @override
+  String scenarioEstimatedImpact(String amount) {
+    return 'Geschätzte Auswirkung: $amount';
+  }
 }

@@ -23,15 +23,30 @@ enum BiometricUiPhase {
   fallback,
 }
 
+/// Localizable status messages for the biometric unlock flow. The provider has
+/// no BuildContext, so it sets a key here and the UI resolves it to a string.
+enum BiometricUiMessage {
+  none,
+  openingPrompt,
+  waiting,
+  usePassword,
+  verified,
+  cancelled,
+  notAvailable,
+  noneEnrolled,
+  locked,
+  error,
+}
+
 class BiometricAuthUiState {
   const BiometricAuthUiState({
     this.phase = BiometricUiPhase.idle,
-    this.message,
+    this.message = BiometricUiMessage.none,
     this.lastResult,
   });
 
   final BiometricUiPhase phase;
-  final String? message;
+  final BiometricUiMessage message;
   final AuthStatus? lastResult;
 
   bool get isBusy =>
@@ -40,7 +55,7 @@ class BiometricAuthUiState {
 
   BiometricAuthUiState copyWith({
     BiometricUiPhase? phase,
-    String? message,
+    BiometricUiMessage? message,
     AuthStatus? lastResult,
   }) {
     return BiometricAuthUiState(
@@ -71,13 +86,13 @@ class BiometricAuthUiController extends StateNotifier<BiometricAuthUiState> {
     _inFlight = true;
     state = const BiometricAuthUiState(
       phase: BiometricUiPhase.openingPrompt,
-      message: 'Opening biometric prompt...',
+      message: BiometricUiMessage.openingPrompt,
     );
 
     await Future<void>.delayed(const Duration(milliseconds: 120));
     state = const BiometricAuthUiState(
       phase: BiometricUiPhase.authenticating,
-      message: 'Waiting for biometric verification...',
+      message: BiometricUiMessage.waiting,
     );
 
     try {
@@ -96,7 +111,7 @@ class BiometricAuthUiController extends StateNotifier<BiometricAuthUiState> {
   void switchToPasswordFallback() {
     state = const BiometricAuthUiState(
       phase: BiometricUiPhase.fallback,
-      message: 'Use your password to continue.',
+      message: BiometricUiMessage.usePassword,
     );
   }
 
@@ -109,28 +124,28 @@ class BiometricAuthUiController extends StateNotifier<BiometricAuthUiState> {
       case AuthStatus.authenticated:
         state = const BiometricAuthUiState(
           phase: BiometricUiPhase.success,
-          message: 'Verified. Unlocking your session...',
+          message: BiometricUiMessage.verified,
           lastResult: AuthStatus.authenticated,
         );
         return;
       case AuthStatus.denied:
         state = const BiometricAuthUiState(
           phase: BiometricUiPhase.cancelled,
-          message: 'Biometric verification was cancelled or denied.',
+          message: BiometricUiMessage.cancelled,
           lastResult: AuthStatus.denied,
         );
         return;
       case AuthStatus.notAvailable:
         state = const BiometricAuthUiState(
           phase: BiometricUiPhase.fallback,
-          message: 'Biometrics are not available on this device.',
+          message: BiometricUiMessage.notAvailable,
           lastResult: AuthStatus.notAvailable,
         );
         return;
       case AuthStatus.noBiometricsEnrolled:
         state = const BiometricAuthUiState(
           phase: BiometricUiPhase.fallback,
-          message: 'No biometrics are enrolled. Use password instead.',
+          message: BiometricUiMessage.noneEnrolled,
           lastResult: AuthStatus.noBiometricsEnrolled,
         );
         return;
@@ -138,14 +153,14 @@ class BiometricAuthUiController extends StateNotifier<BiometricAuthUiState> {
       case AuthStatus.permanentlyLockedOut:
         state = const BiometricAuthUiState(
           phase: BiometricUiPhase.fallback,
-          message: 'Biometrics are locked. Unlock your device and try again.',
+          message: BiometricUiMessage.locked,
           lastResult: AuthStatus.lockedOut,
         );
         return;
       case AuthStatus.error:
         state = const BiometricAuthUiState(
           phase: BiometricUiPhase.failed,
-          message: 'Unable to verify biometrics right now. Try again.',
+          message: BiometricUiMessage.error,
           lastResult: AuthStatus.error,
         );
         return;
