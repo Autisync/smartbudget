@@ -137,9 +137,9 @@ def resend_verification(
 ):
     if user is None:
         raise errors.unauthorized("Not authenticated")
-    # Throttle to prevent verification-email bombing (3 per hour per user).
+    # Throttle to prevent verification-email bombing (1 per hour per user).
     if not rate_limiter.check_action(
-        "resend_verification", str(user.id), max_attempts=3, window_seconds=3600
+        "resend_verification", str(user.id), max_attempts=1, window_seconds=3600
     ):
         raise errors.bad_request(
             "Too many requests. Please wait a while before requesting another email."

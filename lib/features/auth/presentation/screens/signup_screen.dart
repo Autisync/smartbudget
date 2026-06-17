@@ -341,9 +341,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       lastName: form.lastName,
     );
 
-    formController.setSubmitting(false);
-
     if (!mounted) return;
+    formController.setSubmitting(false);
 
     final session = ref.read(sessionControllerProvider);
     if (!ok) {

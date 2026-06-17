@@ -398,9 +398,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       password: form.password,
     );
 
-    formController.setSubmitting(false);
-
     if (!mounted) return;
+    formController.setSubmitting(false);
 
     final sessionAfter = ref.read(sessionControllerProvider);
     if (!ok) {
