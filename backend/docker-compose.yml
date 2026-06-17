@@ -83,6 +83,17 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/1}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      RESET_PASSWORD_DEEP_LINK_BASE: ${RESET_PASSWORD_DEEP_LINK_BASE:-https://api.smaartspend.com/r/reset-password}
+      VERIFY_EMAIL_DEEP_LINK_BASE: ${VERIFY_EMAIL_DEEP_LINK_BASE:-https://api.smaartspend.com/r/verify-email}
+      SMTP_ENABLED: ${SMTP_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      SMTP_USE_SSL: ${SMTP_USE_SSL:-false}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-no-reply@smaartspend.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-SmartBudget}
     command:
       [
         "celery",
@@ -112,6 +123,17 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/1}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      RESET_PASSWORD_DEEP_LINK_BASE: ${RESET_PASSWORD_DEEP_LINK_BASE:-https://api.smaartspend.com/r/reset-password}
+      VERIFY_EMAIL_DEEP_LINK_BASE: ${VERIFY_EMAIL_DEEP_LINK_BASE:-https://api.smaartspend.com/r/verify-email}
+      SMTP_ENABLED: ${SMTP_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      SMTP_USE_SSL: ${SMTP_USE_SSL:-false}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-no-reply@smaartspend.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-SmartBudget}
     command:
       [
         "celery",
