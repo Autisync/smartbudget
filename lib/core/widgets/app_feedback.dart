@@ -9,7 +9,9 @@ class AppFeedback {
     required String message,
     AppFeedbackType type = AppFeedbackType.info,
     bool replaceCurrent = true,
-    Duration duration = const Duration(seconds: 3),
+    // Null => the toast picks a reading-time-aware duration (longer messages
+    // stay longer). Pass an explicit value only to override.
+    Duration? duration,
   }) {
     if (message.trim().isEmpty) {
       return;

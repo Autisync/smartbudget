@@ -20,12 +20,20 @@ class AppFeedbackToast {
     return false;
   }
 
+  /// Reading-time-aware display duration: long enough to comfortably read the
+  /// message rather than a fixed 3s that vanished before users finished. ~4s
+  /// floor + ~55ms/char, capped at 8s. Callers can still override explicitly.
+  static Duration _durationFor(String message) {
+    final ms = message.trim().length * 55 + 2600;
+    return Duration(milliseconds: ms.clamp(4000, 8000));
+  }
+
   static void show(
     BuildContext context, {
     required String message,
     required Color backgroundColor,
     required IconData icon,
-    Duration duration = const Duration(seconds: 3),
+    Duration? duration,
     bool replaceCurrent = true,
   }) {
     if (message.trim().isEmpty || shouldSuppressDuplicate(message)) {
@@ -34,6 +42,8 @@ class AppFeedbackToast {
 
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return;
+
+    final effectiveDuration = duration ?? _durationFor(message);
 
     // Read the bottom safe-area inset WITHOUT registering an inherited
     // dependency. This method is frequently invoked from async event handlers
@@ -55,7 +65,7 @@ class AppFeedbackToast {
     messenger.showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
-        duration: duration,
+        duration: effectiveDuration,
         margin: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
         backgroundColor: backgroundColor,
         elevation: 0,
