@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -30,6 +31,21 @@ from app.tasks.email import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
+def _safe_delay(task, **kwargs) -> None:
+    """Enqueue a Celery email task without letting a broker/transport outage
+    break the calling auth flow. Transactional email is best-effort by design —
+    a down broker must never turn signup/login/resend into a 500."""
+    try:
+        task.delay(**kwargs)
+    except Exception:
+        logger.exception(
+            "Failed to enqueue %s; continuing without sending email", task.name
+        )
+
+
 class AuthService:
     _apple_jwk_client = jwt.PyJWKClient("https://appleid.apple.com/auth/keys")
 
@@ -50,7 +66,7 @@ class AuthService:
             # We do notify the legitimate owner out-of-band (async, no latency)
             # so they know the attempt happened and can act if it wasn't them.
             attempt_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
-            send_duplicate_signup_alert_email_task.delay(
+            _safe_delay(send_duplicate_signup_alert_email_task, 
                 email=existing.email,
                 user_name=existing.first_name,
                 attempt_time=attempt_time,
@@ -70,7 +86,7 @@ class AuthService:
             ttl_seconds=settings.verify_email_ttl_seconds,
         )
         # Fire-and-forget via Celery — never blocks the signup response.
-        send_verification_email_task.delay(
+        _safe_delay(send_verification_email_task, 
             email=user.email, token=verification_token, user_name=user.first_name
         )
         return self._issue_tokens(user_id=str(user.id), device_name=device_name, platform=platform, user=user)
@@ -101,7 +117,7 @@ class AuthService:
         login_location = request_ip or "Unknown location"
         login_time = datetime.now(timezone.utc).isoformat()
         # M-1 FIX: Use HTTPS App Link instead of custom scheme (not hijackable).
-        send_login_alert_email_task.delay(
+        _safe_delay(send_login_alert_email_task, 
             email=user.email,
             user_name=user.first_name,
             action_url="https://smaartspend.com/app/security",
@@ -162,7 +178,7 @@ class AuthService:
         login_device = device_name or platform or "Unknown device"
         login_location = request_ip or "Unknown location"
         login_time = datetime.now(timezone.utc).isoformat()
-        send_login_alert_email_task.delay(
+        _safe_delay(send_login_alert_email_task, 
             email=user.email,
             user_name=user.first_name,
             action_url="https://smaartspend.com/app/security",
@@ -207,7 +223,7 @@ class AuthService:
             token_type="verify_email",
             ttl_seconds=settings.verify_email_ttl_seconds,
         )
-        send_verification_email_task.delay(
+        _safe_delay(send_verification_email_task, 
             email=user.email,
             token=verification_token,
             user_name=user.first_name,
@@ -225,7 +241,7 @@ class AuthService:
         token = create_short_lived_token(
             subject=str(user.id), token_type="reset_password", ttl_seconds=settings.password_reset_ttl_seconds
         )
-        send_password_reset_email_task.delay(
+        _safe_delay(send_password_reset_email_task, 
             email=user.email, token=token, user_name=user.first_name
         )
 
@@ -246,7 +262,7 @@ class AuthService:
         self.db.add(user)
         self.db.commit()
 
-        send_welcome_email_task.delay(
+        _safe_delay(send_welcome_email_task, 
             email=user.email,
             user_name=user.first_name,
             action_url="https://smaartspend.com/app/dashboard",
