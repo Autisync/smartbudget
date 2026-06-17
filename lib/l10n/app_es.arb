@@ -1583,5 +1583,21 @@
   "legalTermsDocSubtitle": "Tus derechos y responsabilidades al usar SmartSpend.",
   "simLabelProjectedMonthlySpend": "Gasto mensual previsto",
   "simLabelProjectedEndBalance": "Saldo final previsto",
-  "simLabelPotentialSavings": "Ahorro potencial"
+  "simLabelPotentialSavings": "Ahorro potencial",
+  "scenarioNoSavingsGoals": "No se encontraron metas de ahorro activas.",
+  "scenarioNoBehavioralRisks": "No se detectaron riesgos de comportamiento para este escenario.",
+  "scenarioNoRecommendations": "Aún no hay recomendaciones para este escenario.",
+  "scenarioActionAdjustBudget": "Ajustar presupuesto",
+  "scenarioActionSavingsRule": "Regla de ahorro",
+  "scenarioActionReviewSubs": "Revisar suscripciones",
+  "scenarioActionOpenBalanceSheet": "Abrir balance",
+  "scenarioActionTxByCategory": "Transacciones por categoría",
+  "scenarioActionOpenSavingsGoal": "Abrir meta de ahorro",
+  "scenarioSim": "Sim.: {value}",
+  "scenarioEmergencyRunway": "Reserva de emergencia: {days} días",
+  "scenarioStatus": "Estado: {status}",
+  "scenarioScore": "Puntuación {score}/100",
+  "scenarioPressure": "Presión {value}",
+  "scenarioBurnRateRisk": "Riesgo de gasto {value}",
+  "scenarioResilience": "Resiliencia {value}"
 }

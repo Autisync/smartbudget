@@ -5086,6 +5086,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Potential Savings'**
   String get simLabelPotentialSavings;
+
+  /// No description provided for @scenarioNoSavingsGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'No active savings goals found.'**
+  String get scenarioNoSavingsGoals;
+
+  /// No description provided for @scenarioNoBehavioralRisks.
+  ///
+  /// In en, this message translates to:
+  /// **'No behavioral risks detected for this scenario.'**
+  String get scenarioNoBehavioralRisks;
+
+  /// No description provided for @scenarioNoRecommendations.
+  ///
+  /// In en, this message translates to:
+  /// **'No recommendations for this scenario yet.'**
+  String get scenarioNoRecommendations;
+
+  /// No description provided for @scenarioActionAdjustBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust Budget'**
+  String get scenarioActionAdjustBudget;
+
+  /// No description provided for @scenarioActionSavingsRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings Rule'**
+  String get scenarioActionSavingsRule;
+
+  /// No description provided for @scenarioActionReviewSubs.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Subs'**
+  String get scenarioActionReviewSubs;
+
+  /// No description provided for @scenarioActionOpenBalanceSheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Balance Sheet'**
+  String get scenarioActionOpenBalanceSheet;
+
+  /// No description provided for @scenarioActionTxByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions by Category'**
+  String get scenarioActionTxByCategory;
+
+  /// No description provided for @scenarioActionOpenSavingsGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Savings Goal'**
+  String get scenarioActionOpenSavingsGoal;
+
+  /// No description provided for @scenarioSim.
+  ///
+  /// In en, this message translates to:
+  /// **'Sim: {value}'**
+  String scenarioSim(String value);
+
+  /// No description provided for @scenarioEmergencyRunway.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency runway: {days} days'**
+  String scenarioEmergencyRunway(String days);
+
+  /// No description provided for @scenarioStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status: {status}'**
+  String scenarioStatus(String status);
+
+  /// No description provided for @scenarioScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score {score}/100'**
+  String scenarioScore(String score);
+
+  /// No description provided for @scenarioPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure {value}'**
+  String scenarioPressure(String value);
+
+  /// No description provided for @scenarioBurnRateRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Burn-rate risk {value}'**
+  String scenarioBurnRateRisk(String value);
+
+  /// No description provided for @scenarioResilience.
+  ///
+  /// In en, this message translates to:
+  /// **'Resilience {value}'**
+  String scenarioResilience(String value);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

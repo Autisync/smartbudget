@@ -2696,4 +2696,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get simLabelPotentialSavings => 'Potential Savings';
+
+  @override
+  String get scenarioNoSavingsGoals => 'No active savings goals found.';
+
+  @override
+  String get scenarioNoBehavioralRisks => 'No behavioral risks detected for this scenario.';
+
+  @override
+  String get scenarioNoRecommendations => 'No recommendations for this scenario yet.';
+
+  @override
+  String get scenarioActionAdjustBudget => 'Adjust Budget';
+
+  @override
+  String get scenarioActionSavingsRule => 'Savings Rule';
+
+  @override
+  String get scenarioActionReviewSubs => 'Review Subs';
+
+  @override
+  String get scenarioActionOpenBalanceSheet => 'Open Balance Sheet';
+
+  @override
+  String get scenarioActionTxByCategory => 'Transactions by Category';
+
+  @override
+  String get scenarioActionOpenSavingsGoal => 'Open Savings Goal';
+
+  @override
+  String scenarioSim(String value) {
+    return 'Sim: $value';
+  }
+
+  @override
+  String scenarioEmergencyRunway(String days) {
+    return 'Emergency runway: $days days';
+  }
+
+  @override
+  String scenarioStatus(String status) {
+    return 'Status: $status';
+  }
+
+  @override
+  String scenarioScore(String score) {
+    return 'Score $score/100';
+  }
+
+  @override
+  String scenarioPressure(String value) {
+    return 'Pressure $value';
+  }
+
+  @override
+  String scenarioBurnRateRisk(String value) {
+    return 'Burn-rate risk $value';
+  }
+
+  @override
+  String scenarioResilience(String value) {
+    return 'Resilience $value';
+  }
 }

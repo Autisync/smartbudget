@@ -1597,5 +1597,70 @@
         "type": "String"
       }
     }
+  },
+  "scenarioNoSavingsGoals": "No active savings goals found.",
+  "scenarioNoBehavioralRisks": "No behavioral risks detected for this scenario.",
+  "scenarioNoRecommendations": "No recommendations for this scenario yet.",
+  "scenarioActionAdjustBudget": "Adjust Budget",
+  "scenarioActionSavingsRule": "Savings Rule",
+  "scenarioActionReviewSubs": "Review Subs",
+  "scenarioActionOpenBalanceSheet": "Open Balance Sheet",
+  "scenarioActionTxByCategory": "Transactions by Category",
+  "scenarioActionOpenSavingsGoal": "Open Savings Goal",
+  "scenarioSim": "Sim: {value}",
+  "scenarioEmergencyRunway": "Emergency runway: {days} days",
+  "scenarioStatus": "Status: {status}",
+  "scenarioScore": "Score {score}/100",
+  "scenarioPressure": "Pressure {value}",
+  "scenarioBurnRateRisk": "Burn-rate risk {value}",
+  "scenarioResilience": "Resilience {value}",
+  "@scenarioSim": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioEmergencyRunway": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioScore": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioPressure": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioBurnRateRisk": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@scenarioResilience": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
   }
 }

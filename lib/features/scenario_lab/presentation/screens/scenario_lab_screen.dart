@@ -473,6 +473,7 @@ class _TimelineForecast extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final selectedPoint = result.timeline.firstWhere(
       (point) => point.months == selectedMonths,
       orElse: () => result.timeline.first,
@@ -509,7 +510,7 @@ class _TimelineForecast extends StatelessWidget {
           ),
           Text(
               'Savings growth: ${currency.format(selectedPoint.savingsGrowth)}'),
-          Text('Emergency runway: ${selectedPoint.emergencyRunwayDays} days'),
+          Text(l10n.scenarioEmergencyRunway('${selectedPoint.emergencyRunwayDays}')),
           Text(
               'Debt pressure: ${(selectedPoint.debtPressure * 100).toStringAsFixed(1)}%'),
           Text(
@@ -527,6 +528,7 @@ class _FinancialStressMeter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final score = result.stressScore;
     final color = switch (score.status) {
       FinancialStressState.low => Colors.green,
@@ -548,7 +550,7 @@ class _FinancialStressMeter extends StatelessWidget {
                 ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
-          Text('Status: ${score.status.name.toUpperCase()}'),
+          Text(l10n.scenarioStatus(score.status.name.toUpperCase())),
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: score.score / 100,
@@ -557,12 +559,12 @@ class _FinancialStressMeter extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
           ),
           const SizedBox(height: 8),
-          Text('Score ${score.score}/100'),
-          Text('Pressure ${score.financialPressure.toStringAsFixed(1)}'),
-          Text('Burn-rate risk ${score.burnRateRisk.toStringAsFixed(1)}'),
+          Text(l10n.scenarioScore('${score.score}')),
+          Text(l10n.scenarioPressure(score.financialPressure.toStringAsFixed(1))),
+          Text(l10n.scenarioBurnRateRisk(score.burnRateRisk.toStringAsFixed(1))),
           Text(
               'Obligation burden ${score.obligationBurden.toStringAsFixed(1)}'),
-          Text('Resilience ${score.cashflowResilience.toStringAsFixed(1)}'),
+          Text(l10n.scenarioResilience(score.cashflowResilience.toStringAsFixed(1))),
         ],
       ),
     );
@@ -577,10 +579,11 @@ class _GoalImpact extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (result.goalForecasts.isEmpty) {
-      return const SmartCard(
+      return SmartCard(
         radius: 24,
-        child: Text('No active savings goals found.'),
+        child: Text(l10n.scenarioNoSavingsGoals),
       );
     }
 
@@ -719,6 +722,7 @@ class _BehavioralNudgesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SmartCard(
       radius: 24,
       child: Column(
@@ -733,7 +737,7 @@ class _BehavioralNudgesSection extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           if (result.behavioralAnalysis.nudges.isEmpty)
-            const Text('No behavioral risks detected for this scenario.')
+            Text(l10n.scenarioNoBehavioralRisks)
           else
             ...result.behavioralAnalysis.nudges.map(
               (nudge) => Padding(
@@ -760,6 +764,7 @@ class _Recommendations extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SmartCard(
       radius: 24,
       child: Column(
@@ -774,7 +779,7 @@ class _Recommendations extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           if (result.recommendations.isEmpty)
-            const Text('No recommendations for this scenario yet.')
+            Text(l10n.scenarioNoRecommendations)
           else
             ...result.recommendations.map(
               (rec) => Container(
@@ -808,7 +813,7 @@ class _Recommendations extends StatelessWidget {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () => onActionTap(rec.actionType),
-                        child: const Text('Open'),
+                        child: Text(l10n.commonOpen),
                       ),
                     ),
                   ],
@@ -828,6 +833,7 @@ class _SmartActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SmartCard(
       radius: 24,
       child: Column(
@@ -847,29 +853,29 @@ class _SmartActions extends StatelessWidget {
             children: [
               OutlinedButton(
                 onPressed: () => onTap(ScenarioActionType.openBudgetAdjustment),
-                child: const Text('Adjust Budget'),
+                child: Text(l10n.scenarioActionAdjustBudget),
               ),
               OutlinedButton(
                 onPressed: () => onTap(ScenarioActionType.createSavingsRule),
-                child: const Text('Savings Rule'),
+                child: Text(l10n.scenarioActionSavingsRule),
               ),
               OutlinedButton(
                 onPressed: () => onTap(ScenarioActionType.reviewSubscriptions),
-                child: const Text('Review Subs'),
+                child: Text(l10n.scenarioActionReviewSubs),
               ),
               OutlinedButton(
                 onPressed: () =>
                     onTap(ScenarioActionType.openRecurringBalanceSheet),
-                child: const Text('Open Balance Sheet'),
+                child: Text(l10n.scenarioActionOpenBalanceSheet),
               ),
               OutlinedButton(
                 onPressed: () =>
                     onTap(ScenarioActionType.openTransactionsByCategory),
-                child: const Text('Transactions by Category'),
+                child: Text(l10n.scenarioActionTxByCategory),
               ),
               OutlinedButton(
                 onPressed: () => onTap(ScenarioActionType.openSavingsGoal),
-                child: const Text('Open Savings Goal'),
+                child: Text(l10n.scenarioActionOpenSavingsGoal),
               ),
             ],
           ),
