@@ -55,14 +55,28 @@ class EmailService:
                 with smtplib.SMTP_SSL(settings.smtp_host, settings.smtp_port, timeout=20) as server:
                     if settings.smtp_username:
                         server.login(settings.smtp_username, settings.smtp_password)
-                    server.send_message(message)
+                    refused = server.send_message(message)
             else:
                 with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=20) as server:
                     if settings.smtp_use_tls:
                         server.starttls()
                     if settings.smtp_username:
                         server.login(settings.smtp_username, settings.smtp_password)
-                    server.send_message(message)
+                    refused = server.send_message(message)
+            # send_message returns a dict of recipients the server REFUSED.
+            # Empty == the relay accepted the message for delivery. (Acceptance
+            # is not proof of inbox delivery — SPF/DKIM/DMARC on the From domain
+            # still govern whether the recipient keeps it.)
+            if refused:
+                logger.error(
+                    "SMTP relay refused recipient(s) for to=%s subject=%s refused=%s",
+                    to_email, subject, refused,
+                )
+            else:
+                logger.info(
+                    "SMTP relay accepted message: to=%s from=%s host=%s subject=%s",
+                    to_email, settings.smtp_from_email, settings.smtp_host, subject,
+                )
         except Exception:
             logger.exception("SMTP send failed for to=%s subject=%s", to_email, subject)
             # Email delivery must not break core auth flows (login/signup/reset).
