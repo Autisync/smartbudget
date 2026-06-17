@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:smartbudget/components/feedback/app_feedback_service.dart';
+import 'package:smartbudget/core/utils/resend_cooldown.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 
 /// Soft-blocks write operations for unverified users.
@@ -58,6 +61,30 @@ class _VerificationSheet extends StatefulWidget {
 
 class _VerificationSheetState extends State<_VerificationSheet> {
   bool _sending = false;
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    if (ResendCooldown.active) _startTicker();
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  /// Rebuild once per second while a cooldown is counting down, then stop.
+  void _startTicker() {
+    _ticker?.cancel();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted || !ResendCooldown.active) {
+        t.cancel();
+      }
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,10 +162,14 @@ class _VerificationSheetState extends State<_VerificationSheet> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: _sending ? null : _resend,
+                onPressed:
+                    (_sending || ResendCooldown.active) ? null : _resend,
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFF97316),
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor:
+                      const Color(0xFFF97316).withValues(alpha: 0.4),
+                  disabledForegroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(52),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -154,13 +185,24 @@ class _VerificationSheetState extends State<_VerificationSheet> {
                               AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Text(
-                        'Resend verification email',
-                        style: TextStyle(
+                    : Text(
+                        ResendCooldown.active
+                            ? 'Resend available in ${ResendCooldown.formatRemaining()}'
+                            : 'Resend verification email',
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
                         ),
                       ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: Text(
+                'You can request a new email once per hour.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -200,12 +242,21 @@ class _VerificationSheetState extends State<_VerificationSheet> {
     setState(() => _sending = false);
     final errorMsg = widget.container.read(sessionControllerProvider).errorMessage
         ?? 'Could not send email. Please try again.';
+    final rateLimited =
+        !ok && errorMsg.toLowerCase().contains('too many');
+    // Start the 1-hour cooldown when the email was sent, or when the server
+    // says we've already hit the hourly limit.
+    if (ok || rateLimited) {
+      ResendCooldown.start();
+      _startTicker();
+    }
     AppFeedbackToast.show(
       context,
       message: ok ? 'Verification email sent — check your inbox.' : errorMsg,
       backgroundColor: ok ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
       icon: ok ? Icons.check_circle_outline : Icons.error_outline,
     );
-    if (ok && mounted) Navigator.of(context).pop();
+    // Keep the sheet open on success now so the user sees the cooldown state.
+    // (Auto-dismiss removed — they can tap "I'll verify later".)
   }
 }

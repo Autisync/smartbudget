@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:smartbudget/components/feedback/app_feedback_service.dart';
+import 'package:smartbudget/core/utils/resend_cooldown.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 
 /// A dismissible in-app banner that reminds unverified users to check their
@@ -25,6 +28,29 @@ class _AppEmailVerificationBannerState
     extends ConsumerState<AppEmailVerificationBanner> {
   bool _dismissed = false;
   bool _sending = false;
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    if (ResendCooldown.active) _startTicker();
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  void _startTicker() {
+    _ticker?.cancel();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted || !ResendCooldown.active) {
+        t.cancel();
+      }
+      if (mounted) setState(() {});
+    });
+  }
 
   static const _orange = Color(0xFFF97316); // semantic warning
   static const _orangeBg = Color(0xFFFFF7ED); // orange-50
@@ -85,6 +111,17 @@ class _AppEmailVerificationBannerState
                     valueColor: AlwaysStoppedAnimation<Color>(_orange),
                   ),
                 )
+              else if (ResendCooldown.active)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Text(
+                    'Resend in ${ResendCooldown.formatRemaining()}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: _orangeMid,
+                        ),
+                  ),
+                )
               else
                 GestureDetector(
                   onTap: _resend,
@@ -140,6 +177,11 @@ class _AppEmailVerificationBannerState
     // to check their network or try again later.
     final errorMsg = ref.read(sessionControllerProvider).errorMessage
         ?? 'Could not send email. Please try again.';
+    final rateLimited = !ok && errorMsg.toLowerCase().contains('too many');
+    if (ok || rateLimited) {
+      ResendCooldown.start();
+      _startTicker();
+    }
     AppFeedbackToast.show(
       context,
       message: ok ? 'Verification email sent — check your inbox.' : errorMsg,
