@@ -10,6 +10,7 @@ import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/locale_service.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/balance_sheet/presentation/screens/recurring_balance_sheet_screen.dart';
@@ -36,11 +37,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _sendSupportFeedbackEmail() async {
     final emailUri = Uri(
       scheme: 'mailto',
-      path: 'support@autisync.com',
+      path: 'support@smaartspend.com',
       queryParameters: {
         'subject': 'SmartSpend Feedback (Tech & General)',
         'body':
-            'Hi Autisync team,%0A%0AI would like to share feedback:%0A%0A- Technical feedback:%0A- General feedback:%0A%0AThanks!',
+            'Hi SmartSpend team,%0A%0AI would like to share feedback:%0A%0A- Technical feedback:%0A- General feedback:%0A%0AThanks!',
       },
     );
 
@@ -68,6 +69,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         context,
         'Unable to open email app right now.',
       );
+    }
+  }
+
+  /// Master notifications toggle: enabling requests both push and local OS
+  /// permissions and turns them on together; disabling switches everything off.
+  Future<void> _toggleAllNotifications() async {
+    final notifier =
+        ref.read(notificationPreferencesControllerProvider.notifier);
+    final prefs = ref.read(notificationPreferencesControllerProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final enabling = !prefs.enabled;
+
+    if (enabling) {
+      final service = ref.read(notificationServiceProvider);
+      final push = await service.requestPushPermission();
+      final pushOk = push == PushPermissionState.granted ||
+          push == PushPermissionState.provisional;
+      final localOk = await service.requestLocalPermission();
+      await notifier.setEnabled(true);
+      await notifier.setPushEnabled(pushOk);
+      await notifier.setLocalEnabled(localOk);
+      if (!mounted) return;
+      if (!pushOk && !localOk) {
+        AppFeedbackService.showInfo(context, l10n.settingsNotifPermissionHint);
+      } else {
+        AppFeedbackService.showSuccess(context, l10n.settingsNotifEnabled);
+      }
+    } else {
+      await notifier.setEnabled(false);
+      if (!mounted) return;
+      AppFeedbackService.showSuccess(context, l10n.settingsNotifDisabled);
     }
   }
 
@@ -346,6 +378,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: const EdgeInsets.all(16),
               decoration: AppSurfaces.elevated(context, radius: 18),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,34 +399,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "What's included",
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        const _IncludedItem(
-                            label: 'Transactions and recurring entries'),
-                        const _IncludedItem(
-                            label: 'Budgets, savings goals, and subscriptions'),
-                        const _IncludedItem(
-                            label: 'Insights, forecasts, and anomaly alerts'),
-                      ],
-                    ),
+                  const SizedBox(height: 16),
+                  // Flattened (was a nested tinted card inside this card — a
+                  // nested-card anti-pattern). A hairline now separates the
+                  // intro from the included-features list.
+                  Divider(
+                    height: 1,
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                   ),
+                  const SizedBox(height: 14),
+                  const _IncludedItem(
+                      label: 'Transactions and recurring entries'),
+                  const _IncludedItem(
+                      label: 'Budgets, savings goals, and subscriptions'),
+                  const _IncludedItem(
+                      label: 'Insights, forecasts, and anomaly alerts'),
                 ],
               ),
             ),
@@ -402,16 +422,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SizedBox(height: 22),
             Text(
               'Explore features',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 12),
-            const Row(
-              children: [
-                Expanded(
-                  child: AspectRatio(
-                    aspectRatio: 0.82,
+            const IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
                     child: _FeatureCard(
                       icon: Icons.description_outlined,
                       title: 'Fin Simulator',
@@ -420,11 +438,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       tag: 'Coming soon',
                     ),
                   ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: AspectRatio(
-                    aspectRatio: 0.82,
+                  SizedBox(width: 12),
+                  Expanded(
                     child: _FeatureCard(
                       icon: Icons.auto_awesome_mosaic_rounded,
                       title: 'AI Budget Coach',
@@ -433,8 +448,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       tag: 'Coming soon',
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 14),
             const _SectionDivider(),
@@ -621,6 +636,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     await _handleCurrencyChange(selected);
                   },
                 ),
+                // Single master notifications toggle. Turning it on requests
+                // both push and local OS permissions and enables them together,
+                // replacing the previous three separate rows (Notifications /
+                // Push / Local) with one control.
                 _MoreActionTile(
                   icon: Icons.notifications_active_outlined,
                   title: l10n.settingsNotifications,
@@ -628,194 +647,61 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   showLeading: false,
                   showChevron: false,
                   tileVerticalPadding: 10,
-                  onTap: () async {
-                    await ref
-                        .read(
-                            notificationPreferencesControllerProvider.notifier)
-                        .setEnabled(!notificationPrefs.enabled);
-                    if (!mounted) return;
-                    AppFeedbackService.showSuccess(
-                      this.context,
-                      notificationPrefs.enabled
-                          ? 'Notifications disabled.'
-                          : 'Notifications enabled.',
-                    );
-                  },
+                  trailing: Switch(
+                    value: notificationPrefs.enabled,
+                    onChanged: (_) => _toggleAllNotifications(),
+                  ),
+                  onTap: _toggleAllNotifications,
                 ),
-                _MoreActionTile(
-                  icon: Icons.notifications_rounded,
-                  title: 'Push notifications',
-                  subtitle:
-                      notificationPrefs.pushEnabled ? 'Enabled' : 'Disabled',
-                  showLeading: false,
-                  showChevron: false,
-                  tileVerticalPadding: 10,
-                  onTap: () async {
-                    final service = ref.read(notificationServiceProvider);
-                    final requested = await service.requestPushPermission();
-                    final enabled = requested == PushPermissionState.granted ||
-                        requested == PushPermissionState.provisional;
-                    await ref
-                        .read(
-                            notificationPreferencesControllerProvider.notifier)
-                        .setPushEnabled(enabled);
-                    if (!context.mounted) return;
-                    AppFeedbackService.showInfo(
-                      context,
-                      enabled
-                          ? 'Push notifications permission granted.'
-                          : 'Push notifications permission not granted.',
-                    );
-                  },
-                ),
-                _MoreActionTile(
-                  icon: Icons.phone_android_rounded,
-                  title: 'Local notifications',
-                  subtitle:
-                      notificationPrefs.localEnabled ? 'Enabled' : 'Disabled',
-                  showLeading: false,
-                  showChevron: false,
-                  tileVerticalPadding: 10,
-                  onTap: () async {
-                    final enabling = !notificationPrefs.localEnabled;
-                    // When turning on, make sure the OS-level permission is
-                    // actually granted (Android 13+/iOS) so notifications show.
-                    var granted = true;
-                    if (enabling) {
-                      granted = await ref
-                          .read(notificationServiceProvider)
-                          .requestLocalPermission();
-                    }
-                    await ref
-                        .read(
-                            notificationPreferencesControllerProvider.notifier)
-                        .setLocalEnabled(enabling && granted);
-                    if (!context.mounted) return;
-                    if (enabling && !granted) {
-                      AppFeedbackService.showInfo(
-                        context,
-                        'Enable notifications for SmartBudget in your device '
-                        'settings to receive local alerts.',
-                      );
-                    } else {
-                      AppFeedbackService.showSuccess(
-                        context,
-                        enabling
-                            ? 'Local notifications enabled.'
-                            : 'Local notifications disabled.',
-                      );
-                    }
-                  },
-                ),
-                _MoreActionTile(
-                  icon: Icons.account_balance_wallet_outlined,
-                  title: 'Budget alerts',
-                  subtitle:
-                      (notificationPrefs.categories['budgetAlerts'] ?? true)
-                          ? 'On'
-                          : 'Off',
-                  showLeading: false,
-                  showChevron: false,
-                  tileVerticalPadding: 10,
-                  onTap: () => ref
-                      .read(notificationPreferencesControllerProvider.notifier)
-                      .setCategoryEnabled(
-                        'budgetAlerts',
-                        !(notificationPrefs.categories['budgetAlerts'] ?? true),
-                      ),
-                ),
-                _MoreActionTile(
-                  icon: Icons.subscriptions_outlined,
-                  title: 'Subscription reminders',
-                  subtitle:
-                      (notificationPrefs.categories['subscriptionReminders'] ??
-                              true)
-                          ? 'On'
-                          : 'Off',
-                  showLeading: false,
-                  showChevron: false,
-                  tileVerticalPadding: 10,
-                  onTap: () => ref
-                      .read(notificationPreferencesControllerProvider.notifier)
-                      .setCategoryEnabled(
-                        'subscriptionReminders',
-                        !(notificationPrefs
-                                .categories['subscriptionReminders'] ??
-                            true),
-                      ),
-                ),
-                _MoreActionTile(
-                  icon: Icons.savings_outlined,
-                  title: 'Savings reminders',
-                  subtitle:
-                      (notificationPrefs.categories['savingsReminders'] ?? true)
-                          ? 'On'
-                          : 'Off',
-                  showLeading: false,
-                  showChevron: false,
-                  tileVerticalPadding: 10,
-                  onTap: () => ref
-                      .read(notificationPreferencesControllerProvider.notifier)
-                      .setCategoryEnabled(
-                        'savingsReminders',
-                        !(notificationPrefs.categories['savingsReminders'] ??
-                            true),
-                      ),
-                ),
-                _MoreActionTile(
-                  icon: Icons.description_outlined,
-                  title: 'Report completion',
-                  subtitle:
-                      (notificationPrefs.categories['reportCompletion'] ?? true)
-                          ? 'On'
-                          : 'Off',
-                  showLeading: false,
-                  showChevron: false,
-                  tileVerticalPadding: 10,
-                  onTap: () => ref
-                      .read(notificationPreferencesControllerProvider.notifier)
-                      .setCategoryEnabled(
-                        'reportCompletion',
-                        !(notificationPrefs.categories['reportCompletion'] ??
-                            true),
-                      ),
-                ),
-                _MoreActionTile(
-                  icon: Icons.security_rounded,
-                  title: 'Security alerts',
-                  subtitle:
-                      (notificationPrefs.categories['securityAlerts'] ?? true)
-                          ? 'On (recommended)'
-                          : 'Off',
-                  showLeading: false,
-                  showChevron: false,
-                  tileVerticalPadding: 10,
-                  onTap: () => ref
-                      .read(notificationPreferencesControllerProvider.notifier)
-                      .setCategoryEnabled(
-                        'securityAlerts',
-                        !(notificationPrefs.categories['securityAlerts'] ??
-                            true),
-                      ),
-                ),
-                _MoreActionTile(
-                  icon: Icons.calendar_month_rounded,
-                  title: 'Monthly summaries',
-                  subtitle:
-                      (notificationPrefs.categories['monthlySummaries'] ?? true)
-                          ? 'On'
-                          : 'Off',
-                  showLeading: false,
-                  showChevron: false,
-                  tileVerticalPadding: 10,
-                  onTap: () => ref
-                      .read(notificationPreferencesControllerProvider.notifier)
-                      .setCategoryEnabled(
-                        'monthlySummaries',
-                        !(notificationPrefs.categories['monthlySummaries'] ??
-                            true),
-                      ),
-                ),
+                // Per-category switches, gated by the master toggle above.
+                for (final cat in <(IconData, String, String)>[
+                  (
+                    Icons.account_balance_wallet_outlined,
+                    l10n.settingsNotifBudgetAlerts,
+                    'budgetAlerts'
+                  ),
+                  (
+                    Icons.subscriptions_outlined,
+                    l10n.settingsNotifSubscriptionReminders,
+                    'subscriptionReminders'
+                  ),
+                  (
+                    Icons.savings_outlined,
+                    l10n.settingsNotifSavingsReminders,
+                    'savingsReminders'
+                  ),
+                  (
+                    Icons.description_outlined,
+                    l10n.settingsNotifReportCompletion,
+                    'reportCompletion'
+                  ),
+                  (
+                    Icons.security_rounded,
+                    l10n.settingsNotifSecurityAlerts,
+                    'securityAlerts'
+                  ),
+                  (
+                    Icons.calendar_month_rounded,
+                    l10n.settingsNotifMonthlySummaries,
+                    'monthlySummaries'
+                  ),
+                ])
+                  _MoreActionTile(
+                    icon: cat.$1,
+                    title: cat.$2,
+                    showLeading: false,
+                    showChevron: false,
+                    tileVerticalPadding: 10,
+                    trailing: Switch(
+                      value: notificationPrefs.categories[cat.$3] ?? true,
+                      onChanged: notificationPrefs.enabled
+                          ? (v) => ref
+                              .read(notificationPreferencesControllerProvider
+                                  .notifier)
+                              .setCategoryEnabled(cat.$3, v)
+                          : null,
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 12),
@@ -1062,7 +948,8 @@ class _FeatureCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.35),
+                          color: AppColors.statusTint(
+                              colorScheme.brightness, AppStatus.warning),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
@@ -1070,8 +957,10 @@ class _FeatureCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style:
-                              Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    color: Colors.brown.shade700,
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    color: AppColors.statusFor(
+                                        colorScheme.brightness,
+                                        AppStatus.warning),
                                     fontWeight: FontWeight.w700,
                                   ),
                         ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/providers/quick_add_provider.dart';
 import 'package:smartbudget/core/utils/money_utils.dart';
 import 'package:smartbudget/core/widgets/animated_count_text.dart';
@@ -51,6 +53,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     ref.listen<QuickAddTarget?>(pendingQuickAddProvider, (_, next) {
       _maybeHandleQuickAdd(next);
     });
@@ -60,13 +63,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? null
-          : const Color(0xFFF8F8FA),
       appBar: AppBar(
         title: buildFrostedAppBarTitle(
           context: context,
-          title: 'Accounts',
+          title: l10n.accountsTitle,
           isScrolled: _isAppBarScrolled,
         ),
         backgroundColor: colorScheme.surface.withValues(
@@ -101,7 +101,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             if (accounts.isEmpty) {
               return AppEmptyState(
                 icon: Icons.account_balance_wallet_outlined,
-                title: 'No accounts yet',
+                title: l10n.accountsEmptyTitle,
                 message:
                     'Add your first account to start tracking your money '
                     'across wallets and banks.',
@@ -365,7 +365,7 @@ class _AccountTile extends StatelessWidget {
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.2,
-                color: negative ? const Color(0xFFC94B2A) : null,
+                color: negative ? AppColors.expense(theme.brightness) : null,
               ),
             ),
             PopupMenuButton<String>(
@@ -451,6 +451,7 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isEdit = widget.existing != null;
     // Use the existing account's currency when editing; fall back to the
     // app default for new accounts (currency is resolved on save from the
@@ -460,7 +461,10 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final liveName = _name.text.trim();
-    final liveBalance = double.tryParse(_opening.text.trim()) ?? 0.0;
+    // Use MoneyUtils.parse so formatted values like "2,000" (produced by the
+    // CurrencyInput formatter) resolve to 2000.0 rather than null / 0.0.
+    // double.tryParse cannot handle comma-formatted strings.
+    final liveBalance = MoneyUtils.parse(_opening.text.trim()) ?? 0.0;
 
     final typeIcon = switch (_type) {
       AccountType.cash => Icons.payments_outlined,
@@ -534,7 +538,7 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
           const SizedBox(height: 20),
           ModernInput(
             controller: _name,
-            label: 'Account name',
+            label: l10n.accountsNameLabel,
             hintText: 'e.g. Main Wallet, HSBC Savings',
             prefixIcon: Icons.label_rounded,
             onChanged: (_) => setState(() {}),
@@ -550,7 +554,7 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
           const SizedBox(height: 16),
           CurrencyInput(
             controller: _opening,
-            label: 'Opening balance',
+            label: l10n.accountsOpeningBalanceLabel,
             currencySymbol: CurrencyUtils.symbol(effectiveCurrency),
             decimalDigits: MoneyUtils.decimalDigits(effectiveCurrency),
             // Liability accounts (e.g. credit cards) can carry a negative

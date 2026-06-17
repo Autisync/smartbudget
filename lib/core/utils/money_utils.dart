@@ -95,9 +95,16 @@ class MoneyUtils {
   /// well as currency symbols and whitespace. Returns null if no number can be
   /// read.
   ///
-  /// Heuristic: whichever of `.`/`,` appears **last** is treated as the decimal
-  /// separator and the other as the thousands separator — the widely used,
-  /// locale-agnostic disambiguation.
+  /// Disambiguation rules (applied in order):
+  /// 1. **Both separators present** — whichever appears *last* is the decimal
+  ///    separator (the standard heuristic for `1,234.56` vs `1.234,56`).
+  /// 2. **Only one separator type, appearing more than once** — it's a
+  ///    grouping separator (e.g. `1,000,000` or `1.000.000`).
+  /// 3. **Exactly one separator followed by exactly three digits at end** —
+  ///    treat as grouping separator (`2,000` → 2000, `2.000` → 2000). This
+  ///    resolves the ambiguity between `2,000` (two thousand) and `2,00`
+  ///    (two point zero zero in some locales).
+  /// 4. **Otherwise** — treat the single separator as the decimal separator.
   static double? parse(String raw) {
     if (raw.trim().isEmpty) return null;
     var s = raw.replaceAll(RegExp(r'[^0-9.,-]'), '');
@@ -110,14 +117,33 @@ class MoneyUtils {
 
     final lastComma = s.lastIndexOf(',');
     final lastDot = s.lastIndexOf('.');
+    final hasComma = lastComma != -1;
+    final hasDot = lastDot != -1;
 
-    if (lastComma == -1 && lastDot == -1) {
-      // Pure digits.
-    } else {
+    if (!hasComma && !hasDot) {
+      // Pure digits — fall through.
+    } else if (hasComma && hasDot) {
+      // Rule 1: both present — last one is the decimal separator.
       final decimalSep = lastComma > lastDot ? ',' : '.';
       final groupSep = decimalSep == ',' ? '.' : ',';
       s = s.replaceAll(groupSep, '');
       if (decimalSep == ',') s = s.replaceAll(',', '.');
+    } else {
+      // Only one separator type present.
+      final sep = hasComma ? ',' : '.';
+      final sepCount = hasComma
+          ? ','.allMatches(s).length
+          : '.'.allMatches(s).length;
+      final afterSep = s.substring(s.lastIndexOf(sep) + 1);
+
+      final isGrouping = sepCount > 1 || afterSep.length == 3;
+      if (isGrouping) {
+        // Rule 2 or 3: strip the grouping separator; result is an integer.
+        s = s.replaceAll(sep, '');
+      } else {
+        // Rule 4: treat as decimal separator.
+        if (sep == ',') s = s.replaceAll(',', '.');
+      }
     }
 
     final value = double.tryParse(s);

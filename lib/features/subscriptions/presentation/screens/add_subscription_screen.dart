@@ -5,6 +5,7 @@ import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/components/sheets/app_sheet_container.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
@@ -323,16 +324,21 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF2CC),
+                // Critical importance maps to the danger ramp, so its callout
+                // tint matches rather than using an unrelated warning yellow.
+                color: AppColors.statusTint(theme.brightness, AppStatus.danger),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: colorScheme.outlineVariant,
+                  color: AppColors.statusFor(theme.brightness, AppStatus.danger)
+                      .withValues(alpha: 0.35),
                 ),
               ),
               child: Text(
-                'Essential Subscription',
+                AppLocalizations.of(context)?.subscriptionEssential ??
+                    'Essential Subscription',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
+                  color: AppColors.statusFor(theme.brightness, AppStatus.danger),
                 ),
               ),
             ),
@@ -728,11 +734,12 @@ class _ImportanceChipSelector extends StatelessWidget {
   final AppLocalizations? l10n;
   final ValueChanged<SubscriptionImportance> onChanged;
 
-  static Color _color(SubscriptionImportance imp) => switch (imp) {
-        SubscriptionImportance.low => const Color(0xFF3A7A2A),
-        SubscriptionImportance.medium => const Color(0xFF3B5FBB),
-        SubscriptionImportance.high => const Color(0xFFB2710D),
-        SubscriptionImportance.critical => const Color(0xFFC94B2A),
+  static Color _color(SubscriptionImportance imp, Brightness b) => switch (imp) {
+        SubscriptionImportance.low => AppColors.statusFor(b, AppStatus.success),
+        SubscriptionImportance.medium => AppColors.statusFor(b, AppStatus.info),
+        SubscriptionImportance.high => AppColors.statusFor(b, AppStatus.warning),
+        SubscriptionImportance.critical =>
+          AppColors.statusFor(b, AppStatus.danger),
       };
 
   static String _shortLabel(SubscriptionImportance imp) => switch (imp) {
@@ -759,7 +766,7 @@ class _ImportanceChipSelector extends StatelessWidget {
         Row(
           children: SubscriptionImportance.values.map((imp) {
             final selected = value == imp;
-            final color = _color(imp);
+            final color = _color(imp, Theme.of(context).brightness);
             return Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(right: 6),

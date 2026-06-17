@@ -6,6 +6,7 @@ import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
 import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
@@ -227,7 +228,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       ),
                       loading: () => AppSkeletonLoader(
                         child: TransactionInsightCard(
-                          message: 'Preparing insights...',
+                          message: l10n.transactionsPreparingInsights,
                           monthIncome: 0,
                           monthExpense: 0,
                           recurringCount: 0,
@@ -270,12 +271,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       runSpacing: 8,
                       children: [
                         _FilterChip(
-                          label: 'All',
+                          label: l10n.commonAll,
                           selected: _activeFilter == null,
                           onTap: () => setState(() => _activeFilter = null),
                         ),
                         _FilterChip(
-                          label: 'This Month',
+                          label: l10n.transactionsFilterThisMonth,
                           selected:
                               _activeFilter == _TransactionFilter.thisMonth,
                           onTap: () => setState(() {
@@ -286,7 +287,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                           }),
                         ),
                         _FilterChip(
-                          label: 'Income',
+                          label: l10n.income,
                           selected: _activeFilter == _TransactionFilter.income,
                           onTap: () => setState(() {
                             _activeFilter =
@@ -296,7 +297,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                           }),
                         ),
                         _FilterChip(
-                          label: 'Expense',
+                          label: l10n.expense,
                           selected: _activeFilter == _TransactionFilter.spent,
                           onTap: () => setState(() {
                             _activeFilter =
@@ -306,7 +307,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                           }),
                         ),
                         _FilterChip(
-                          label: 'Recurring',
+                          label: l10n.commonRecurring,
                           selected:
                               _activeFilter == _TransactionFilter.recurring,
                           onTap: () => setState(() {
@@ -373,9 +374,10 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       itemBuilder: (context, index) {
                         final tx = displayedTransactions[index];
                         final isExpense = tx.type == TransactionType.expense;
-                        final amountColor = isExpense
-                            ? Theme.of(context).colorScheme.error
-                            : const Color(0xFF059669);
+                        final amountColor = AppColors.amount(
+                          Theme.of(context).brightness,
+                          isExpense: isExpense,
+                        );
                         return AnimatedListItem(
                           index: index,
                           child: Slidable(
@@ -400,7 +402,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                     Theme.of(context).colorScheme.error,
                                 foregroundColor: Colors.white,
                                 icon: Icons.delete_outline_rounded,
-                                label: 'Delete',
+                                label: l10n.delete,
                                 borderRadius:
                                     BorderRadius.circular(UiTokens.radiusXl),
                               ),
@@ -635,6 +637,7 @@ class _TransactionSearchFieldState extends State<_TransactionSearchField> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return TextField(
       controller: _controller,
@@ -673,7 +676,7 @@ class _TransactionSearchFieldState extends State<_TransactionSearchField> {
         suffixIcon: widget.value.isEmpty
             ? null
             : IconButton(
-                tooltip: 'Clear search',
+                tooltip: l10n.commonClearSearch,
                 onPressed: () {
                   _controller.clear();
                   widget.onChanged('');

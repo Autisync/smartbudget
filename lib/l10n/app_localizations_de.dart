@@ -189,58 +189,58 @@ class AppLocalizationsDe extends AppLocalizations {
   String get legalPrivacyControlBody => 'Sie können App-Daten dort prüfen, bearbeiten oder löschen, wo dies unterstützt wird. Außerdem können Sie die biometrische Authentifizierung und damit verbundene Sicherheitsfunktionen jederzeit deaktivieren.';
 
   @override
-  String get legalCenterTitle => 'Legal Center';
+  String get legalCenterTitle => 'Rechtszentrum';
 
   @override
-  String get legalCenterIntro => 'Review all legal documents that govern SmartSpend, including terms, privacy, security, and data handling policies.';
+  String get legalCenterIntro => 'Lesen Sie alle Rechtsdokumente, die SmartSpend regeln, einschließlich Bedingungen, Datenschutz, Sicherheit und Richtlinien zur Datenverarbeitung.';
 
   @override
-  String get legalAllDocuments => 'All legal documents';
+  String get legalAllDocuments => 'Alle Rechtsdokumente';
 
   @override
-  String get legalAllDocumentsSubtitle => 'Open the complete legal center with all policies.';
+  String get legalAllDocumentsSubtitle => 'Öffnen Sie das vollständige Rechtszentrum mit allen Richtlinien.';
 
   @override
-  String get legalCookiesTitle => 'Cookies & Tracking Notice';
+  String get legalCookiesTitle => 'Cookie- und Tracking-Hinweis';
 
   @override
-  String get legalCookiesSubtitle => 'How tracking technologies and analytics are used in the app.';
+  String get legalCookiesSubtitle => 'Wie Tracking-Technologien und Analysen in der App verwendet werden.';
 
   @override
-  String get legalAupTitle => 'Acceptable Use Policy';
+  String get legalAupTitle => 'Richtlinie zur akzeptablen Nutzung';
 
   @override
-  String get legalAupSubtitle => 'Rules and prohibited behavior when using SmartSpend.';
+  String get legalAupSubtitle => 'Regeln und verbotenes Verhalten bei der Nutzung von SmartSpend.';
 
   @override
-  String get legalDataRetentionTitle => 'Data Retention Policy';
+  String get legalDataRetentionTitle => 'Richtlinie zur Datenaufbewahrung';
 
   @override
-  String get legalDataRetentionSubtitle => 'How long data is retained and when it is deleted.';
+  String get legalDataRetentionSubtitle => 'Wie lange Daten gespeichert werden und wann sie gelöscht werden.';
 
   @override
-  String get legalSecurityDisclosureTitle => 'Security Disclosure Policy';
+  String get legalSecurityDisclosureTitle => 'Richtlinie zur Sicherheitsoffenlegung';
 
   @override
-  String get legalSecurityDisclosureSubtitle => 'How to report vulnerabilities and how we respond.';
+  String get legalSecurityDisclosureSubtitle => 'Wie man Schwachstellen meldet und wie wir reagieren.';
 
   @override
-  String get legalThirdPartyServicesTitle => 'Third-Party Services Notice';
+  String get legalThirdPartyServicesTitle => 'Hinweis zu Drittanbieterdiensten';
 
   @override
-  String get legalThirdPartyServicesSubtitle => 'Which external services process data for SmartSpend.';
+  String get legalThirdPartyServicesSubtitle => 'Welche externen Dienste Daten für SmartSpend verarbeiten.';
 
   @override
-  String get legalDisclaimersTitle => 'Disclaimers';
+  String get legalDisclaimersTitle => 'Haftungsausschlüsse';
 
   @override
-  String get legalDisclaimersSubtitle => 'Important limitations and non-advice statements.';
+  String get legalDisclaimersSubtitle => 'Wichtige Einschränkungen und Hinweise, dass keine Beratung erfolgt.';
 
   @override
-  String get legalLoadError => 'We could not load this legal document.';
+  String get legalLoadError => 'Dieses Rechtsdokument konnte nicht geladen werden.';
 
   @override
-  String get legalTryAgain => 'Try again';
+  String get legalTryAgain => 'Erneut versuchen';
 
   @override
   String get legalAndOnboarding => 'Rechtliches und Onboarding';
@@ -2101,8 +2101,211 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get balanceSheetOptional => 'Optional';
+
+  @override
+  String get commonRetry => 'Erneut versuchen';
+
+  @override
+  String get dashboardGreetingMorning => 'Guten Morgen';
+
+  @override
+  String get dashboardGreetingAfternoon => 'Guten Tag';
+
+  @override
+  String get dashboardGreetingEvening => 'Guten Abend';
+
+  @override
+  String get dashboardDefaultUserName => 'SmartSpend-Nutzer';
+
+  @override
+  String get dashboardOverallScore => 'Gesamtpunktzahl';
+
+  @override
+  String get dashboardSyncing => 'Dashboard-Daten werden synchronisiert…';
+
+  @override
+  String get dashboardBurnRateErrorTitle => 'Verbrauchsrate konnte nicht geladen werden';
+
+  @override
+  String get dashboardBurnRateErrorMessage => 'Versuchen Sie es gleich erneut, um das Ausgabentempo zu sehen.';
+
+  @override
+  String get dashboardRecentTransactionsErrorTitle => 'Letzte Transaktionen konnten nicht geladen werden';
+
+  @override
+  String get burnRateStatusCritical => 'Kritisch';
+
+  @override
+  String get burnRateStatusHigh => 'Hoch';
+
+  @override
+  String get burnRateStatusWatch => 'Achtung';
+
+  @override
+  String get burnRateStatusHealthy => 'Gesund';
+
+  @override
+  String get subscriptionEssential => 'Unverzichtbares Abo';
+
+  @override
+  String get scenarioLabTitle => 'Szenario-Labor';
+
+  @override
+  String get scenarioRunError => 'Dieses Szenario konnte nicht ausgeführt werden';
+
+  @override
+  String get scenarioRunErrorMessage => 'Bei der Simulation ist ein Fehler aufgetreten. Bitte versuchen Sie es gleich erneut.';
+
+  @override
+  String get scenarioMetricMonthlyCashflow => 'Monatlicher Cashflow';
+
+  @override
+  String get scenarioMetricSavingsRate => 'Sparquote';
+
+  @override
+  String get scenarioMetricSubscriptionBurden => 'Abo-Last';
+
+  @override
+  String get scenarioMetricEmergencyRunway => 'Notgroschen-Reichweite';
+
+  @override
+  String get transactionsPreparingInsights => 'Erkenntnisse werden vorbereitet…';
+
+  @override
+  String get commonAll => 'Alle';
+
+  @override
+  String get transactionsFilterThisMonth => 'Diesen Monat';
+
+  @override
+  String get commonRecurring => 'Wiederkehrend';
+
+  @override
+  String get commonClearSearch => 'Suche löschen';
+
+  @override
+  String get subscriptionsActionsTitle => 'Abo-Aktionen';
+
+  @override
+  String get accountsTitle => 'Konten';
+
+  @override
+  String get accountsEmptyTitle => 'Noch keine Konten';
+
+  @override
+  String get accountsNameLabel => 'Kontoname';
+
+  @override
+  String get accountsOpeningBalanceLabel => 'Anfangssaldo';
+
+  @override
+  String get insightsFocus => 'Fokus';
+
+  @override
+  String get insightsNoRecommendations => 'Noch keine Empfehlungen';
+
+  @override
+  String get insightsConfidenceModel => 'Konfidenzmodell';
+
+  @override
+  String get insightsNoForecastTitle => 'Noch keine Prognosedaten';
+
+  @override
+  String get insightsNoForecastMessage => 'Nutzen Sie SmartSpend weiter, um Prognosetrends freizuschalten.';
+
+  @override
+  String get insightsNoCopilotTitle => 'Noch keine Copilot-Aktivität';
+
+  @override
+  String get insightsNoCopilotMessage => 'Intelligente Erkenntnisse erscheinen hier, während Sie die App nutzen.';
+
+  @override
+  String get insightsActivityActions => 'Aktionen zur Erkenntnis-Aktivität';
+
+  @override
+  String get insightsOpenDetails => 'Details öffnen';
+
+  @override
+  String get subscriptionsPause => 'Pausieren';
+
+  @override
+  String get subscriptionsResume => 'Fortsetzen';
+
+  @override
+  String get settingsNotifBudgetAlerts => 'Budgetwarnungen';
+
+  @override
+  String get settingsNotifSubscriptionReminders => 'Abo-Erinnerungen';
+
+  @override
+  String get settingsNotifSavingsReminders => 'Spar-Erinnerungen';
+
+  @override
+  String get settingsNotifReportCompletion => 'Bericht abgeschlossen';
+
+  @override
+  String get settingsNotifSecurityAlerts => 'Sicherheitswarnungen';
+
+  @override
+  String get settingsNotifMonthlySummaries => 'Monatsübersichten';
+
+  @override
+  String get settingsNotifPermissionHint => 'Erlaube Benachrichtigungen in den Geräteeinstellungen, um Hinweise zu erhalten.';
+
+  @override
+  String get settingsNotifEnabled => 'Benachrichtigungen aktiviert.';
+
+  @override
+  String get settingsNotifDisabled => 'Benachrichtigungen deaktiviert.';
+
+  @override
+  String get budgetsRolloverCompleted => 'Budget-Übertrag abgeschlossen.';
+
+  @override
+  String get budgetsNoActive => 'Keine aktiven Budgets';
+
+  @override
+  String get commonIncrease => 'Erhöhen';
+
+  @override
+  String get commonDecrease => 'Verringern';
+
+  @override
+  String get budgetsArchiveTitle => 'Budget archivieren?';
+
+  @override
+  String get budgetsDeleteTitle => 'Budget löschen?';
+
+  @override
+  String get budgetsActionCompleted => 'Budget-Aktion abgeschlossen.';
+
+  @override
+  String get budgetsMetricUsed => 'Verbraucht';
+
+  @override
+  String get commonStatus => 'Status';
+
+  @override
+  String get budgetsMetricAlertAt => 'Warnung bei';
+
+  @override
+  String get budgetsMetricDelta => 'Differenz';
+
+  @override
+  String get budgetsActions => 'Budget-Aktionen';
+
+  @override
+  String get budgetsViewTransactions => 'Transaktionen anzeigen';
+
+  @override
+  String get budgetsIncrease10 => 'Um 10 % erhöhen';
+
+  @override
+  String get budgetsReduce10 => 'Um 10 % senken';
+
+  @override
+  String get commonDuplicate => 'Duplizieren';
+
+  @override
+  String get commonArchive => 'Archivieren';
 }
-
-
-
-

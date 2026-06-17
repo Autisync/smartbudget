@@ -7,6 +7,8 @@ import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
+import 'package:smartbudget/core/utils/verification_gate.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
@@ -51,6 +53,21 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
   Future<void> _refresh() async {
     ref.invalidate(subscriptionListProvider);
     await ref.read(subscriptionListProvider.future);
+  }
+
+  Future<void> _openAddSubscriptionModal() async {
+    if (!await VerificationGate.allow(
+        context, ProviderScope.containerOf(context))) {
+      return;
+    }
+    if (!mounted) return;
+    await AppFormSheet.show<void>(
+      context,
+      builder: (_) => const SubscriptionFormSheet(
+        mode: SubscriptionFormMode.create,
+        asModal: true,
+      ),
+    );
   }
 
   Future<void> _openEditSubscriptionModal(Subscription subscription) async {
@@ -303,43 +320,16 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
               );
 
               if (subscriptions.isEmpty) {
+                // Show only the empty state — no snapshot card or filter chips.
+                // Previously the snapshot card + chips consumed the visible area,
+                // pushing SmartEmptyState below the fold and making it invisible.
                 return CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _SubscriptionSearchHeaderDelegate(
-                        backgroundColor:
-                            Theme.of(context).scaffoldBackgroundColor,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                          child: _SubscriptionSearchField(
-                            value: _searchQuery,
-                            onChanged: (v) =>
-                                setState(() => _searchQuery = v),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                      sliver: SliverToBoxAdapter(child: snapshotCard),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                      sliver: SliverToBoxAdapter(
-                        child: _SubscriptionFilterChipRow(
-                          filters: SubscriptionFilter.values,
-                          activeFilter: _activeFilter,
-                          filterLabelBuilder: (f) => _filterLabel(f, l10n),
-                          onFilterSelected: (f) =>
-                              setState(() => _activeFilter = f),
-                        ),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 160),
-                      sliver: SliverToBoxAdapter(
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 96),
                         child: SmartEmptyState(
                           icon: Icons.subscriptions_outlined,
                           title: l10n?.subscriptionsEmpty ??
@@ -348,6 +338,18 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                               'Add your first subscription to start tracking',
                           lottieAsset:
                               'assets/animations/empty_subscriptions.json',
+                          action: SizedBox(
+                            width: (MediaQuery.sizeOf(context).width - 48)
+                                .clamp(220.0, 320.0)
+                                .toDouble(),
+                            child: FilledButton.icon(
+                              onPressed: _openAddSubscriptionModal,
+                              icon: const Icon(Icons.add_rounded),
+                              label: Text(
+                                l10n?.subscriptionsAdd ?? 'Add subscription',
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -646,14 +648,19 @@ class SubscriptionItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final amountFormat = CurrencyUtils.getFormat(currencyCode);
     final dateFormat = DateFormat('MMM d');
 
     final importanceColor = switch (subscription.importance) {
-      SubscriptionImportance.low => const Color(0xFF3A7A2A),
-      SubscriptionImportance.medium => const Color(0xFF5A5F73),
-      SubscriptionImportance.high => const Color(0xFFB2710D),
-      SubscriptionImportance.critical => const Color(0xFFC94B2A),
+      SubscriptionImportance.low =>
+        AppColors.statusFor(theme.brightness, AppStatus.success),
+      SubscriptionImportance.medium =>
+        AppColors.statusFor(theme.brightness, AppStatus.info),
+      SubscriptionImportance.high =>
+        AppColors.statusFor(theme.brightness, AppStatus.warning),
+      SubscriptionImportance.critical =>
+        AppColors.statusFor(theme.brightness, AppStatus.danger),
     };
 
     return Material(
@@ -748,24 +755,27 @@ class SubscriptionItemCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   AppActionMenu(
-                    title: 'Subscription actions',
+                    title: l10n?.subscriptionsActionsTitle ??
+                        'Subscription actions',
                     onSelected: onMenuAction,
                     items: [
-                      const AppActionItem(
+                      AppActionItem(
                         value: 'edit',
-                        label: 'Edit',
+                        label: l10n?.edit ?? 'Edit',
                         icon: Icons.edit_rounded,
                       ),
                       AppActionItem(
                         value: 'toggle',
-                        label: subscription.isActive ? 'Pause' : 'Resume',
+                        label: subscription.isActive
+                            ? (l10n?.subscriptionsPause ?? 'Pause')
+                            : (l10n?.subscriptionsResume ?? 'Resume'),
                         icon: subscription.isActive
                             ? Icons.pause_circle_outline_rounded
                             : Icons.play_circle_outline_rounded,
                       ),
-                      const AppActionItem(
+                      AppActionItem(
                         value: 'delete',
-                        label: 'Delete',
+                        label: l10n?.delete ?? 'Delete',
                         icon: Icons.delete_outline_rounded,
                         destructive: true,
                       ),
@@ -864,6 +874,7 @@ class _SubscriptionSearchFieldState extends State<_SubscriptionSearchField> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return TextField(
       controller: _controller,
@@ -902,7 +913,7 @@ class _SubscriptionSearchFieldState extends State<_SubscriptionSearchField> {
         suffixIcon: widget.value.isEmpty
             ? null
             : IconButton(
-                tooltip: 'Clear search',
+                tooltip: l10n?.commonClearSearch ?? 'Clear search',
                 onPressed: () {
                   _controller.clear();
                   widget.onChanged('');
@@ -931,12 +942,13 @@ class _SubscriptionFilterChipRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
         _SubFilterChip(
-          label: 'All',
+          label: l10n?.commonAll ?? 'All',
           selected: activeFilter == null,
           onTap: () => onFilterSelected(null),
         ),

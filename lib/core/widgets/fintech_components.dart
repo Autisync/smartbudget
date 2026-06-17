@@ -8,6 +8,7 @@ import 'package:smartbudget/core/theme/app_icons.dart';
 import 'package:smartbudget/core/theme/app_shadows.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 const BoxShadow _smartShadow = BoxShadow(
   color: Color.fromRGBO(0, 0, 0, 0.04),
@@ -35,10 +36,10 @@ class SmartSpendScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor:
-          backgroundColor ?? (isDark ? null : const Color(0xFFF8F8FA)),
+      // Inherit the themed scaffold background by default so every screen
+      // shares one canvas color instead of a per-screen near-match hex.
+      backgroundColor: backgroundColor,
       appBar: appBar,
       body: body,
       bottomNavigationBar: bottomNavigationBar,
@@ -838,8 +839,8 @@ class AppBottomNavigation extends StatelessWidget {
 
   final int currentIndex;
 
-  /// Invoked with the destination index for the five capsule items
-  /// (Home, Transactions, Budgets, Savings, More).
+  /// Invoked with the destination index for the four capsule items
+  /// (Transactions, Home, Savings, More).
   final ValueChanged<int> onTabSelected;
 
   /// Invoked when the detached round button is tapped. It opens the quick-add
@@ -861,45 +862,36 @@ class AppBottomNavigation extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final l10n = AppLocalizations.of(context)!;
 
-    // Six primary destinations live inside the floating capsule; the detached
-    // "+" circle to the right opens the quick-add menu.
-    const items = <_AppNavItemData>[
+    // Four focused destinations live inside the floating capsule; Budgets and
+    // Subscriptions now live under More. The detached "+" circle to the right
+    // opens the quick-add menu. Indices match the router's semantic scheme
+    // (0 Transactions, 1 Home, 2 Savings, 3 More).
+    final items = <_AppNavItemData>[
       _AppNavItemData(
         icon: AppIcons.homeOutline,
         activeIcon: AppIcons.home,
-        label: 'Home',
-        index: 2,
+        label: l10n.navHome,
+        index: 1,
       ),
       _AppNavItemData(
         icon: AppIcons.transactions,
         activeIcon: AppIcons.transactionsFilled,
-        label: 'Transactions',
+        label: l10n.transactionsTitle,
         index: 0,
-      ),
-      _AppNavItemData(
-        icon: AppIcons.budgets,
-        activeIcon: AppIcons.budgetsFilled,
-        label: 'Budgets',
-        index: 1,
       ),
       _AppNavItemData(
         icon: AppIcons.savings,
         activeIcon: AppIcons.savingsFilled,
-        label: 'Savings',
-        index: 3,
-      ),
-      _AppNavItemData(
-        icon: AppIcons.subscriptions,
-        activeIcon: AppIcons.subscriptionsFilled,
-        label: 'Subscriptions',
-        index: 5,
+        label: l10n.navSavings,
+        index: 2,
       ),
       _AppNavItemData(
         icon: AppIcons.moreGrid,
         activeIcon: AppIcons.moreGridFilled,
-        label: 'More',
-        index: 4,
+        label: l10n.navMore,
+        index: 3,
       ),
     ];
 
@@ -938,8 +930,8 @@ class AppBottomNavigation extends StatelessWidget {
                             Expanded(
                               child: _CapsuleNavItem(
                                 item: item,
-                                selected: item.index == 4
-                                    ? (moreActive || currentIndex == 4)
+                                selected: item.index == 3
+                                    ? (moreActive || currentIndex == 3)
                                     : currentIndex == item.index,
                                 onTap: () => onTabSelected(item.index),
                               ),

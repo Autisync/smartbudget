@@ -57,3 +57,4 @@ test_output.txt
 test_result.txt
 test_results.txt
 analysis_report.txt
+.gstack/

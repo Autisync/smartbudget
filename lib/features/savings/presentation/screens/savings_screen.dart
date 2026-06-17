@@ -11,6 +11,7 @@ import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
 import 'package:smartbudget/components/sheets/app_bottom_action_sheet.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/providers/quick_add_provider.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/theme/input_styles.dart';
 import 'package:smartbudget/core/widgets/app_feedback.dart';
@@ -260,7 +261,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         builder: (context) => AlertDialog(
           title: Row(
             children: [
-              const Icon(Icons.celebration_outlined, color: Color(0xFF16A34A)),
+              Icon(Icons.celebration_outlined,
+                  color: AppColors.income(Theme.of(context).brightness)),
               const SizedBox(width: 8),
               Expanded(child: Text(event.title)),
             ],
@@ -421,9 +423,6 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? null
-          : const Color(0xFFF8F8FA),
       appBar: AppBar(
         title: buildFrostedAppBarTitle(
           context: context,
@@ -542,7 +541,10 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                     : l10n.savingsSteadyProgress;
 
             return ListView(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
+              // Clear the floating bottom nav + safe area so the last goal card
+              // and its "Suggested / month" line are never hidden behind it.
+              padding: EdgeInsets.fromLTRB(
+                  12, 12, 12, 120 + MediaQuery.paddingOf(context).bottom),
               children: [
                 // Savings Portfolio Card
                 SavingsPortfolioCard(
@@ -1389,10 +1391,16 @@ class _SavingsGoalCard extends StatelessWidget {
   final AppLocalizations l10n;
   final ValueChanged<String> onActionSelected;
 
-  Color _milestoneProgressColor(double progress) {
-    if (progress >= 0.75) return const Color(0xFF16A34A);
-    if (progress >= 0.50) return const Color(0xFFF59E0B);
-    return const Color(0xFFDC2626);
+  // Savings fill ramp — more progress is good, so it greens up as it fills,
+  // using the same shared status tokens as every other meter in the app.
+  Color _milestoneProgressColor(double progress, Brightness brightness) {
+    if (progress >= 0.75) {
+      return AppColors.statusFor(brightness, AppStatus.success);
+    }
+    if (progress >= 0.50) {
+      return AppColors.statusFor(brightness, AppStatus.warning);
+    }
+    return AppColors.statusFor(brightness, AppStatus.danger);
   }
 
   @override
@@ -1534,7 +1542,7 @@ class _SavingsGoalCard extends StatelessWidget {
               minHeight: 6,
               backgroundColor: Colors.grey.withValues(alpha: 0.15),
               valueColor: AlwaysStoppedAnimation<Color>(
-                _milestoneProgressColor(progress),
+                _milestoneProgressColor(progress, Theme.of(context).brightness),
               ),
             ),
           ),
@@ -2326,11 +2334,14 @@ class _GoalPriorityChipSelector extends StatelessWidget {
   final AppLocalizations l10n;
   final ValueChanged<GoalPriority> onChanged;
 
-  static Color _color(GoalPriority p) => switch (p) {
-        GoalPriority.low => const Color(0xFF3A7A2A),
-        GoalPriority.medium => const Color(0xFF3B5FBB),
-        GoalPriority.high => const Color(0xFFB2710D),
-        GoalPriority.critical => const Color(0xFFC94B2A),
+  // Shared priority ramp: low → success, medium → info, high → warning,
+  // critical → danger. Identical mapping to subscription importance so the two
+  // concepts read the same everywhere.
+  static Color _color(GoalPriority p, Brightness b) => switch (p) {
+        GoalPriority.low => AppColors.statusFor(b, AppStatus.success),
+        GoalPriority.medium => AppColors.statusFor(b, AppStatus.info),
+        GoalPriority.high => AppColors.statusFor(b, AppStatus.warning),
+        GoalPriority.critical => AppColors.statusFor(b, AppStatus.danger),
       };
 
   static String _shortLabel(GoalPriority p) => switch (p) {
@@ -2357,7 +2368,7 @@ class _GoalPriorityChipSelector extends StatelessWidget {
         Row(
           children: GoalPriority.values.map((p) {
             final selected = value == p;
-            final color = _color(p);
+            final color = _color(p, Theme.of(context).brightness);
             return Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(right: 6),

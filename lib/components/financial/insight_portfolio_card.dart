@@ -189,12 +189,13 @@ class MinimalInsightCard extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           _MinimalMetricGrid(metrics: metrics),
           if (footer != null) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             footer!,
           ],
+          const SizedBox(height: 4),
         ],
       ),
     );
@@ -397,7 +398,7 @@ class _MinimalMetricGrid extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 12,
             mainAxisSpacing: 10,
-            mainAxisExtent: 54,
+            mainAxisExtent: 50,
           ),
           itemBuilder: (context, index) {
             return _MinimalMetricItem(metric: metrics[index]);

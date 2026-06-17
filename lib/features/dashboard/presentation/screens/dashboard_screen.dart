@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
+import 'package:smartbudget/core/theme/app_gradients.dart';
+import 'package:smartbudget/core/theme/app_radius.dart';
+import 'package:smartbudget/core/theme/app_shadows.dart';
 import 'package:smartbudget/core/widgets/animated_list_item.dart';
 import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
@@ -49,13 +53,10 @@ final _dashboardBurnRateProvider = FutureProvider<BurnRateInsight>((ref) async {
   );
 });
 
-const List<BoxShadow> _cardShadow = [
-  BoxShadow(
-    color: Color.fromRGBO(0, 0, 0, 0.04),
-    blurRadius: 18,
-    offset: Offset(0, 6),
-  ),
-];
+// Single shared card elevation, routed through the design tokens so every
+// surface on this screen lifts off the canvas identically (and adapts to dark).
+List<BoxShadow> _cardShadow(BuildContext context) =>
+    AppShadows.card(Theme.of(context).colorScheme.shadow);
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -101,20 +102,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     setState(() => _isAppBarScrolled = shouldShowFill);
   }
 
-  String _buildGreeting() {
+  String _buildGreeting(AppLocalizations l10n) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return l10n.dashboardGreetingMorning;
+    if (hour < 18) return l10n.dashboardGreetingAfternoon;
+    return l10n.dashboardGreetingEvening;
   }
 
-  String _buildDisplayName() {
+  String _buildDisplayName(AppLocalizations l10n) {
     final session = ref.read(sessionControllerProvider);
     final name = [
       session.user?.firstName ?? '',
       session.user?.lastName ?? '',
     ].where((part) => part.trim().isNotEmpty).join(' ').trim();
-    return name.isEmpty ? 'SmartSpend User' : name;
+    return name.isEmpty ? l10n.dashboardDefaultUserName : name;
   }
 
   @override
@@ -211,12 +212,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           .fold(0.0, (sum, t) => sum + t.amount),
       orElse: () => 0.0,
     );
-    final greeting = _buildGreeting();
-    final displayName = _buildDisplayName();
+    // Real running-balance trend for the hero spark line (was previously a
+    // fake 3-point [income, expenses, balance] curve that meant nothing).
+    final balanceTrend = allTxAsync.maybeWhen(
+      data: (transactions) {
+        final sorted = [...transactions]
+          ..sort((a, b) => a.date.compareTo(b.date));
+        if (sorted.length < 2) return const <double>[];
+        var running = 0.0;
+        final series = <double>[];
+        for (final tx in sorted) {
+          running +=
+              tx.type == TransactionType.income ? tx.amount : -tx.amount;
+          series.add(running);
+        }
+        return series.length > 30
+            ? series.sublist(series.length - 30)
+            : series;
+      },
+      orElse: () => const <double>[],
+    );
+    final greeting = _buildGreeting(l10n);
+    final displayName = _buildDisplayName(l10n);
 
-    final isDashboardDark = Theme.of(context).brightness == Brightness.dark;
     return AppScaffold(
-      backgroundColor: isDashboardDark ? null : const Color(0xFFF8F8FA),
+      // Inherit the themed scaffold background instead of a one-off hex so the
+      // dashboard canvas matches every other screen exactly.
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           if (notification.metrics.axis == Axis.vertical) {
@@ -284,6 +305,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       currencyCode: appCurrency,
                       income: income,
                       expenses: expenses,
+                      balanceTrend: balanceTrend,
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -296,8 +318,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               data: (tx) => '${tx.length}',
                               orElse: () => '\u2014',
                             ),
-                            iconColor: const Color(0xFF1E88E5),
-                            iconBg: const Color(0xFFE3F0FF),
+                            status: AppStatus.info,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -309,8 +330,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               data: (a) => '${a.length}',
                               orElse: () => '\u2014',
                             ),
-                            iconColor: const Color(0xFFF57C00),
-                            iconBg: const Color(0xFFFFF3E0),
+                            status: AppStatus.warning,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -322,8 +342,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               data: (h) => h.totalScore.toStringAsFixed(0),
                               orElse: () => '\u2014',
                             ),
-                            iconColor: const Color(0xFF2E7D32),
-                            iconBg: const Color(0xFFE8F5E9),
+                            status: AppStatus.success,
                           ),
                         ),
                       ],
@@ -355,10 +374,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       loading: () => const _LoadingCard(),
                       error: (_, __) => AppErrorState(
-                        title: 'Unable to load burn rate',
-                        message:
-                            'Try again in a moment to view spending pace insights.',
-                        actionLabel: 'Retry',
+                        title: l10n.dashboardBurnRateErrorTitle,
+                        message: l10n.dashboardBurnRateErrorMessage,
+                        actionLabel: l10n.commonRetry,
                         onAction: () =>
                             ref.invalidate(_dashboardBurnRateProvider),
                       ),
@@ -421,9 +439,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     (context, index) {
                       final tx = items[index];
                       final isExpense = tx.type == TransactionType.expense;
-                      final amountColor = isExpense
-                          ? const Color(0xFFE53935)
-                          : const Color(0xFF2E7D32);
+                      final amountColor = AppColors.amount(
+                        Theme.of(context).brightness,
+                        isExpense: isExpense,
+                      );
                       final recurrenceLabel =
                           tx.recurrence == TransactionRecurrence.none
                               ? null
@@ -466,9 +485,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                   child: AppErrorState(
-                    title: 'Could not load recent transactions',
+                    title: l10n.dashboardRecentTransactionsErrorTitle,
                     message: l10n.dashboardErrorLoadingTransactions,
-                    actionLabel: 'Retry',
+                    actionLabel: l10n.commonRetry,
                     onAction: () => ref.invalidate(recentTransactionsProvider),
                   ),
                 ),
@@ -504,6 +523,7 @@ class HomeBalanceCard extends StatelessWidget {
     required this.currencyCode,
     required this.income,
     required this.expenses,
+    this.balanceTrend = const [],
   });
 
   final AppLocalizations l10n;
@@ -512,29 +532,24 @@ class HomeBalanceCard extends StatelessWidget {
   final double income;
   final double expenses;
 
+  /// Running-balance series over time. When fewer than two points exist the
+  /// spark line is omitted rather than drawing a meaningless flat/synthetic line.
+  final List<double> balanceTrend;
+
   @override
   Widget build(BuildContext context) {
     final balance = income - expenses;
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Deep indigo hero — the one bold surface on the screen. White type on the
+    // brand gradient reads premium and clears contrast easily; the pastel
+    // lavender it replaced was both low-contrast and an "AI default" tell.
+    const onHero = Colors.white;
+    final onHeroMuted = Colors.white.withValues(alpha: 0.72);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? const [Color(0xFF1E1A40), Color(0xFF2D1545)]
-              : const [Color(0xFFD4D5FF), Color(0xFFEDD5FF)],
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(120, 100, 200, 0.10),
-            blurRadius: 24,
-            offset: Offset(0, 8),
-          ),
-        ],
+        gradient: AppGradients.hero,
+        borderRadius: BorderRadius.circular(AppRadius.hero),
+        boxShadow: AppShadows.floating(AppColors.brandDeep),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -545,7 +560,7 @@ class HomeBalanceCard extends StatelessWidget {
                 child: Text(
                   l10n.totalBalance,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF6B6B8A),
+                        color: onHeroMuted,
                         fontWeight: FontWeight.w500,
                       ),
                 ),
@@ -554,13 +569,13 @@ class HomeBalanceCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: cs.primary.withValues(alpha: 0.12),
+                  color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   currencyCode,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: cs.primary,
+                        color: onHero,
                         fontWeight: FontWeight.w700,
                       ),
                 ),
@@ -572,20 +587,22 @@ class HomeBalanceCard extends StatelessWidget {
             currencyFormat.format(balance),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 42,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.5,
-              color: isDark ? Colors.white : const Color(0xFF1A1A2E),
-              fontFeatures: const [FontFeature.tabularFigures()],
+              color: onHero,
+              fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),
-          const SizedBox(height: 10),
-          AppLineSparkChart(
-            values: [income, expenses, balance],
-            color: const Color(0xFF5C6BFF),
-            height: 64,
-          ),
+          if (balanceTrend.length >= 2) ...[
+            const SizedBox(height: 10),
+            AppLineSparkChart(
+              values: balanceTrend,
+              color: Colors.white.withValues(alpha: 0.92),
+              height: 64,
+            ),
+          ],
           const SizedBox(height: 24),
           Row(
             children: [
@@ -595,8 +612,7 @@ class HomeBalanceCard extends StatelessWidget {
                   label: l10n.income,
                   value: CurrencyUtils.getCompactFormat(currencyCode)
                       .format(income),
-                  iconColor: const Color(0xFF2E7D32),
-                  iconBg: const Color(0xFFD0F0DA),
+                  accent: const Color(0xFF5EEAAA),
                 ),
               ),
               const SizedBox(width: 16),
@@ -606,8 +622,7 @@ class HomeBalanceCard extends StatelessWidget {
                   label: l10n.expense,
                   value: CurrencyUtils.getCompactFormat(currencyCode)
                       .format(expenses),
-                  iconColor: const Color(0xFFB71C1C),
-                  iconBg: const Color(0xFFFFE4E4),
+                  accent: const Color(0xFFFF9DA0),
                 ),
               ),
             ],
@@ -623,28 +638,28 @@ class _BalanceMetric extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    required this.iconColor,
-    required this.iconBg,
+    required this.accent,
   });
 
   final IconData icon;
   final String label;
   final String value;
-  final Color iconColor;
-  final Color iconBg;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) {
+    // Rendered on the indigo hero gradient: white type, translucent-white chip,
+    // accent reserved for the directional icon only.
     return Row(
       children: [
         Container(
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: iconBg,
+            color: Colors.white.withValues(alpha: 0.14),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: iconColor, size: 18),
+          child: Icon(icon, color: accent, size: 18),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -654,7 +669,7 @@ class _BalanceMetric extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: Colors.white.withValues(alpha: 0.72),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -664,11 +679,11 @@ class _BalanceMetric extends StatelessWidget {
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+                  color: Colors.white,
+                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
             ],
@@ -685,26 +700,25 @@ class HomeMetricCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    required this.iconColor,
-    required this.iconBg,
+    required this.status,
   });
 
   final IconData icon;
   final String label;
   final String value;
-  final Color iconColor;
-  final Color iconBg;
+  final AppStatus status;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final adaptedIconBg = isDark ? iconColor.withValues(alpha: 0.2) : iconBg;
+    final brightness = Theme.of(context).brightness;
+    final iconColor = AppColors.statusFor(brightness, status);
+    final iconBg = AppColors.statusTint(brightness, status);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: _cardShadow,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        boxShadow: _cardShadow(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -713,8 +727,8 @@ class HomeMetricCard extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: adaptedIconBg,
-              borderRadius: BorderRadius.circular(10),
+              color: iconBg,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Icon(icon, color: iconColor, size: 18),
           ),
@@ -765,31 +779,29 @@ class HomeFinancialHealthCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final roundedScore = score.round();
     final isStrong = roundedScore >= 80;
     final isOk = roundedScore >= 60;
-    final statusColor = isStrong
-        ? const Color(0xFF2E7D32)
+    final status = isStrong
+        ? AppStatus.success
         : isOk
-            ? const Color(0xFFF57C00)
-            : const Color(0xFFB71C1C);
+            ? AppStatus.warning
+            : AppStatus.danger;
+    final statusColor = AppColors.statusFor(brightness, status);
     final statusLabel = isStrong
         ? l10n.financialHealthStatusStrong
         : isOk
             ? l10n.financialHealthStatusNeedsAttention
             : l10n.financialHealthStatusAtRisk;
-    final barColor = isStrong
-        ? const Color(0xFF43A047)
-        : isOk
-            ? const Color(0xFFFB8C00)
-            : const Color(0xFFE53935);
+    final barColor = statusColor;
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: _cardShadow,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        boxShadow: _cardShadow(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,7 +847,7 @@ class HomeFinancialHealthCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Overall score',
+                l10n.dashboardOverallScore,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
@@ -919,23 +931,16 @@ class HomeRecurringBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+    // A neutral navigation card. It used to be styled entirely in danger-red,
+    // which falsely signalled "something is wrong" for a routine shortcut.
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C1A1A) : const Color(0xFFFFF5F5),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: isDark ? const Color(0xFF5C2020) : const Color(0xFFFFCDD2),
-          width: 1,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(229, 57, 53, 0.06),
-            blurRadius: 18,
-            offset: Offset(0, 6),
-          ),
-        ],
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.9), width: 1),
+        boxShadow: _cardShadow(context),
       ),
       child: Column(
         children: [
@@ -946,14 +951,12 @@ class HomeRecurringBalanceCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF4A1A1A)
-                      : const Color(0xFFFFE4E4),
+                  color: cs.primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.account_balance_rounded,
-                  color: Color(0xFFB71C1C),
+                  color: cs.primary,
                   size: 20,
                 ),
               ),
@@ -967,7 +970,7 @@ class HomeRecurringBalanceCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: cs.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -975,7 +978,7 @@ class HomeRecurringBalanceCard extends StatelessWidget {
                       l10n.dashboardBalanceSheetSubtitle,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: cs.onSurfaceVariant,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -990,22 +993,19 @@ class HomeRecurringBalanceCard extends StatelessWidget {
             child: OutlinedButton(
               onPressed: onOpen,
               style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 side: BorderSide(
-                  color: isDark
-                      ? const Color(0xFF5C2020)
-                      : const Color(0xFFFFCDD2),
+                  color: cs.outline.withValues(alpha: 0.7),
                   width: 1,
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               child: Text(
                 l10n.commonOpen,
-                style: const TextStyle(
-                  color: Color(0xFFEF5350),
+                style: TextStyle(
+                  color: cs.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -1033,13 +1033,14 @@ class _HomeSpendingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _getStatusColor(burnRate.status);
+    final statusColor =
+        AppColors.statusFor(Theme.of(context).brightness, _statusLevel());
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: _cardShadow,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        boxShadow: _cardShadow(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1121,29 +1122,28 @@ class _HomeSpendingCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(BurnRateStatus status) {
-    switch (status) {
+  AppStatus _statusLevel() {
+    switch (burnRate.status) {
       case BurnRateStatus.critical:
-        return const Color(0xFFC62828);
+        return AppStatus.danger;
       case BurnRateStatus.high:
-        return const Color(0xFFEF6C00);
       case BurnRateStatus.watch:
-        return const Color(0xFFB28704);
+        return AppStatus.warning;
       case BurnRateStatus.healthy:
-        return const Color(0xFF2E7D32);
+        return AppStatus.success;
     }
   }
 
   String _statusLabel(BurnRateStatus status) {
     switch (status) {
       case BurnRateStatus.critical:
-        return 'Critical';
+        return l10n.burnRateStatusCritical;
       case BurnRateStatus.high:
-        return 'High';
+        return l10n.burnRateStatusHigh;
       case BurnRateStatus.watch:
-        return 'Watch';
+        return l10n.burnRateStatusWatch;
       case BurnRateStatus.healthy:
-        return 'Healthy';
+        return l10n.burnRateStatusHealthy;
     }
   }
 
@@ -1233,7 +1233,7 @@ class _DashboardLiveRateCard extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: _cardShadow,
+        boxShadow: _cardShadow(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1405,9 +1405,9 @@ class _LoadingCard extends StatelessWidget {
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          AppLottieView(
+          const AppLottieView(
             assetPath: 'assets/animations/loading.json',
             width: 44,
             height: 44,
@@ -1416,10 +1416,10 @@ class _LoadingCard extends StatelessWidget {
             semanticLabel: 'Loading dashboard',
             fallbackIcon: Icons.sync,
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Syncing dashboard data...',
+              AppLocalizations.of(context)!.dashboardSyncing,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

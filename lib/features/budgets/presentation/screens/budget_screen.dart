@@ -8,6 +8,7 @@ import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/providers/quick_add_provider.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/app_feedback.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
@@ -84,7 +85,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
     AppFeedback.show(
       context,
-      message: 'Budget rollover completed.',
+      message: AppLocalizations.of(context)!.budgetsRolloverCompleted,
       type: AppFeedbackType.success,
     );
   }
@@ -97,11 +98,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     return 0;
   }
 
-  Color _budgetMilestoneColor(double progress) {
-    if (progress >= 0.90) return const Color(0xFFB91C1C);
-    if (progress >= 0.75) return const Color(0xFFDC2626);
-    if (progress >= 0.50) return const Color(0xFFF59E0B);
-    return const Color(0xFF16A34A);
+  // Budget fill ramp routed through the shared status tokens so "over / near /
+  // on-track" reads in the exact same green-amber-red as every other meter.
+  Color _budgetMilestoneColor(double progress, Brightness brightness) {
+    if (progress >= 0.75) return AppColors.statusFor(brightness, AppStatus.danger);
+    if (progress >= 0.50) {
+      return AppColors.statusFor(brightness, AppStatus.warning);
+    }
+    return AppColors.statusFor(brightness, AppStatus.success);
   }
 
   void _trackBudgetMilestone(
@@ -131,9 +135,6 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? null
-          : const Color(0xFFF8F8FA),
       appBar: AppBar(
         title: buildFrostedAppBarTitle(
           context: context,
@@ -323,12 +324,12 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                 ],
                 const SliverToBoxAdapter(child: SizedBox(height: 16)),
                 if (activeBudgets.isEmpty)
-                  const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(12, 0, 12, 16),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
                     sliver: SliverToBoxAdapter(
                       child: SmartEmptyState(
                         icon: Icons.pause_circle_outline,
-                        title: 'No active budgets',
+                        title: l10n.budgetsNoActive,
                         message:
                             'All budgets are paused or archived. Resume one below to continue tracking.',
                         lottieAsset: 'assets/animations/empty_budgets.json',
@@ -380,7 +381,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                         Theme.of(context).colorScheme.secondary,
                                     foregroundColor: Colors.white,
                                     icon: Icons.swipe_right_alt,
-                                    label: 'Increase',
+                                    label: l10n.commonIncrease,
                                     borderRadius: BorderRadius.circular(
                                       UiTokens.radiusXl,
                                     ),
@@ -404,7 +405,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                         Theme.of(context).colorScheme.tertiary,
                                     foregroundColor: Colors.white,
                                     icon: Icons.swipe_left_alt,
-                                    label: 'Decrease',
+                                    label: l10n.commonDecrease,
                                     borderRadius: BorderRadius.circular(
                                       UiTokens.radiusXl,
                                     ),
@@ -491,8 +492,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                       budget: budget,
                                       status: status,
                                       statusColor: statusColor,
-                                      progressColor:
-                                          _budgetMilestoneColor(progress),
+                                      progressColor: _budgetMilestoneColor(
+                                          progress, Theme.of(context).brightness),
                                       progress: progress,
                                       spent: spent,
                                       daysLeft: daysLeft,
@@ -629,6 +630,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     required List<Transaction> transactions,
     required NumberFormat currencyFormat,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     switch (action) {
       case 'viewTransactions':
         await _showOverspendTransactions(
@@ -666,11 +668,11 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
       case 'archive':
         final shouldArchive = await showDialog<bool>(
               context: context,
-              builder: (context) => const ConfirmActionDialog(
-                title: 'Archive budget?',
+              builder: (context) => ConfirmActionDialog(
+                title: l10n.budgetsArchiveTitle,
                 message:
                     'This budget will be paused and hidden from active planning until you re-enable it.',
-                confirmLabel: 'Archive',
+                confirmLabel: l10n.commonArchive,
               ),
             ) ??
             false;
@@ -682,11 +684,11 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
       case 'delete':
         final shouldDelete = await showDialog<bool>(
               context: context,
-              builder: (context) => const ConfirmActionDialog(
-                title: 'Delete budget?',
+              builder: (context) => ConfirmActionDialog(
+                title: l10n.budgetsDeleteTitle,
                 message:
                     'This permanently removes the budget. Transactions are not deleted.',
-                confirmLabel: 'Delete',
+                confirmLabel: l10n.delete,
               ),
             ) ??
             false;
@@ -700,7 +702,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     if (!mounted) return;
     AppFeedback.show(
       context,
-      message: 'Budget action completed.',
+      message: l10n.budgetsActionCompleted,
       type: AppFeedbackType.success,
     );
   }
@@ -996,6 +998,7 @@ class _BudgetInsightCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     final progressPercent = (alert.progress * 100).toStringAsFixed(0);
     final isCritical = alert.overLimit;
     final isWarning = !isCritical && alert.nearLimit;
@@ -1114,9 +1117,9 @@ class _BudgetInsightCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _InsightMetric(label: 'Used', value: '$progressPercent%'),
+                    _InsightMetric(label: l10n.budgetsMetricUsed, value: '$progressPercent%'),
                     const SizedBox(height: 12),
-                    _InsightMetric(label: 'Status', value: statusLabel),
+                    _InsightMetric(label: l10n.commonStatus, value: statusLabel),
                   ],
                 ),
               ),
@@ -1126,10 +1129,10 @@ class _BudgetInsightCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _InsightMetric(
-                        label: 'Alert At', value: '${alert.threshold}%'),
+                        label: l10n.budgetsMetricAlertAt, value: '${alert.threshold}%'),
                     const SizedBox(height: 12),
                     _InsightMetric(
-                      label: 'Delta',
+                      label: l10n.budgetsMetricDelta,
                       value:
                           '${(alert.progress * 100 - alert.threshold).toStringAsFixed(0)}%',
                       tone: tone,
@@ -1281,6 +1284,7 @@ class _BudgetCategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1344,12 +1348,12 @@ class _BudgetCategoryCard extends StatelessWidget {
               ),
               AppActionMenu(
                 title: budget.category,
-                tooltip: 'Budget actions',
+                tooltip: l10n.budgetsActions,
                 onSelected: onActionSelected,
                 items: [
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'viewTransactions',
-                    label: 'View transactions',
+                    label: l10n.budgetsViewTransactions,
                     icon: Icons.receipt_long_outlined,
                   ),
                   AppActionItem(
@@ -1357,14 +1361,14 @@ class _BudgetCategoryCard extends StatelessWidget {
                     label: l10n.budgetEdit,
                     icon: Icons.edit_outlined,
                   ),
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'increase10',
-                    label: 'Increase 10%',
+                    label: l10n.budgetsIncrease10,
                     icon: Icons.trending_up,
                   ),
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'decrease10',
-                    label: 'Reduce 10%',
+                    label: l10n.budgetsReduce10,
                     icon: Icons.trending_down,
                   ),
                   AppActionItem(
@@ -1379,14 +1383,14 @@ class _BudgetCategoryCard extends StatelessWidget {
                     label: l10n.budgetRolloverNow,
                     icon: Icons.autorenew,
                   ),
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'duplicate',
-                    label: 'Duplicate',
+                    label: l10n.commonDuplicate,
                     icon: Icons.copy_outlined,
                   ),
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'archive',
-                    label: 'Archive',
+                    label: l10n.commonArchive,
                     icon: Icons.archive_outlined,
                   ),
                   AppActionItem(

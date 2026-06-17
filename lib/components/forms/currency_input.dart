@@ -66,7 +66,11 @@ class _CurrencyTextFormatter extends TextInputFormatter {
   final int decimalDigits;
   final bool allowNegative;
 
-  final NumberFormat _formatter = NumberFormat('#,##0.##');
+  // Always use en_US locale so the formatter produces a consistent
+  // comma-thousands / dot-decimal output regardless of the device locale.
+  // Without this, European-locale devices format 2000 as "2.000" which
+  // MoneyUtils.parse then reads as 2.0, silently corrupting saved amounts.
+  final NumberFormat _formatter = NumberFormat('#,##0.##', 'en_US');
 
   @override
   TextEditingValue formatEditUpdate(

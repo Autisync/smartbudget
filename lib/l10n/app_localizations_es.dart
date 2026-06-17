@@ -2101,8 +2101,211 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get balanceSheetOptional => 'Optional';
+
+  @override
+  String get commonRetry => 'Reintentar';
+
+  @override
+  String get dashboardGreetingMorning => 'Buenos días';
+
+  @override
+  String get dashboardGreetingAfternoon => 'Buenas tardes';
+
+  @override
+  String get dashboardGreetingEvening => 'Buenas noches';
+
+  @override
+  String get dashboardDefaultUserName => 'Usuario de SmartSpend';
+
+  @override
+  String get dashboardOverallScore => 'Puntuación general';
+
+  @override
+  String get dashboardSyncing => 'Sincronizando datos del panel…';
+
+  @override
+  String get dashboardBurnRateErrorTitle => 'No se pudo cargar la tasa de gasto';
+
+  @override
+  String get dashboardBurnRateErrorMessage => 'Inténtalo de nuevo en un momento para ver el ritmo de gasto.';
+
+  @override
+  String get dashboardRecentTransactionsErrorTitle => 'No se pudieron cargar las transacciones recientes';
+
+  @override
+  String get burnRateStatusCritical => 'Crítico';
+
+  @override
+  String get burnRateStatusHigh => 'Alto';
+
+  @override
+  String get burnRateStatusWatch => 'Atención';
+
+  @override
+  String get burnRateStatusHealthy => 'Saludable';
+
+  @override
+  String get subscriptionEssential => 'Suscripción esencial';
+
+  @override
+  String get scenarioLabTitle => 'Laboratorio de escenarios';
+
+  @override
+  String get scenarioRunError => 'No se pudo ejecutar este escenario';
+
+  @override
+  String get scenarioRunErrorMessage => 'Algo salió mal durante la simulación. Inténtalo de nuevo en un momento.';
+
+  @override
+  String get scenarioMetricMonthlyCashflow => 'Flujo mensual';
+
+  @override
+  String get scenarioMetricSavingsRate => 'Tasa de ahorro';
+
+  @override
+  String get scenarioMetricSubscriptionBurden => 'Carga de suscripciones';
+
+  @override
+  String get scenarioMetricEmergencyRunway => 'Fondo de emergencia';
+
+  @override
+  String get transactionsPreparingInsights => 'Preparando información…';
+
+  @override
+  String get commonAll => 'Todos';
+
+  @override
+  String get transactionsFilterThisMonth => 'Este mes';
+
+  @override
+  String get commonRecurring => 'Recurrente';
+
+  @override
+  String get commonClearSearch => 'Borrar búsqueda';
+
+  @override
+  String get subscriptionsActionsTitle => 'Acciones de suscripción';
+
+  @override
+  String get accountsTitle => 'Cuentas';
+
+  @override
+  String get accountsEmptyTitle => 'Aún no hay cuentas';
+
+  @override
+  String get accountsNameLabel => 'Nombre de la cuenta';
+
+  @override
+  String get accountsOpeningBalanceLabel => 'Saldo inicial';
+
+  @override
+  String get insightsFocus => 'Enfoque';
+
+  @override
+  String get insightsNoRecommendations => 'Aún no hay recomendaciones';
+
+  @override
+  String get insightsConfidenceModel => 'Modelo de confianza';
+
+  @override
+  String get insightsNoForecastTitle => 'Aún no hay datos de pronóstico';
+
+  @override
+  String get insightsNoForecastMessage => 'Sigue usando SmartSpend para desbloquear tendencias de predicción.';
+
+  @override
+  String get insightsNoCopilotTitle => 'Aún no hay actividad de Copilot';
+
+  @override
+  String get insightsNoCopilotMessage => 'La información inteligente aparecerá aquí a medida que uses la app.';
+
+  @override
+  String get insightsActivityActions => 'Acciones de actividad de información';
+
+  @override
+  String get insightsOpenDetails => 'Abrir detalles';
+
+  @override
+  String get subscriptionsPause => 'Pausar';
+
+  @override
+  String get subscriptionsResume => 'Reanudar';
+
+  @override
+  String get settingsNotifBudgetAlerts => 'Alertas de presupuesto';
+
+  @override
+  String get settingsNotifSubscriptionReminders => 'Recordatorios de suscripciones';
+
+  @override
+  String get settingsNotifSavingsReminders => 'Recordatorios de ahorro';
+
+  @override
+  String get settingsNotifReportCompletion => 'Informe completado';
+
+  @override
+  String get settingsNotifSecurityAlerts => 'Alertas de seguridad';
+
+  @override
+  String get settingsNotifMonthlySummaries => 'Resúmenes mensuales';
+
+  @override
+  String get settingsNotifPermissionHint => 'Permite las notificaciones en los ajustes de tu dispositivo para recibir alertas.';
+
+  @override
+  String get settingsNotifEnabled => 'Notificaciones activadas.';
+
+  @override
+  String get settingsNotifDisabled => 'Notificaciones desactivadas.';
+
+  @override
+  String get budgetsRolloverCompleted => 'Renovación de presupuesto completada.';
+
+  @override
+  String get budgetsNoActive => 'No hay presupuestos activos';
+
+  @override
+  String get commonIncrease => 'Aumentar';
+
+  @override
+  String get commonDecrease => 'Disminuir';
+
+  @override
+  String get budgetsArchiveTitle => '¿Archivar presupuesto?';
+
+  @override
+  String get budgetsDeleteTitle => '¿Eliminar presupuesto?';
+
+  @override
+  String get budgetsActionCompleted => 'Acción de presupuesto completada.';
+
+  @override
+  String get budgetsMetricUsed => 'Usado';
+
+  @override
+  String get commonStatus => 'Estado';
+
+  @override
+  String get budgetsMetricAlertAt => 'Alerta en';
+
+  @override
+  String get budgetsMetricDelta => 'Diferencia';
+
+  @override
+  String get budgetsActions => 'Acciones de presupuesto';
+
+  @override
+  String get budgetsViewTransactions => 'Ver transacciones';
+
+  @override
+  String get budgetsIncrease10 => 'Aumentar 10 %';
+
+  @override
+  String get budgetsReduce10 => 'Reducir 10 %';
+
+  @override
+  String get commonDuplicate => 'Duplicar';
+
+  @override
+  String get commonArchive => 'Archivar';
 }
-
-
-
-

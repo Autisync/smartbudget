@@ -362,17 +362,14 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
             selectedIndex: _calculateRailSelectedIndex(context),
             onDestinationSelected: _onRailItemTapped,
             labelType: NavigationRailLabelType.all,
+            // Order matches the semantic index scheme exactly
+            // (0 Transactions, 1 Home, 2 Savings, 3 More) so a tapped position
+            // maps straight through _onBottomTabSelected without translation.
             destinations: [
               NavigationRailDestination(
                 icon: const Icon(Icons.receipt_long_outlined),
                 selectedIcon: const Icon(Icons.receipt_long_rounded),
                 label: Text(l10n.transactionsTitle),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.account_balance_wallet_outlined),
-                selectedIcon:
-                    const Icon(Icons.account_balance_wallet_rounded),
-                label: Text(l10n.navBudgets),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.home_outlined),
@@ -385,14 +382,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                 label: Text(l10n.navSavings),
               ),
               NavigationRailDestination(
-                icon: const Icon(AppIcons.subscriptions),
-                selectedIcon: const Icon(AppIcons.subscriptionsFilled),
-                label: Text(l10n.navSubscriptions),
-              ),
-              const NavigationRailDestination(
-                icon: Icon(AppIcons.moreGrid),
-                selectedIcon: Icon(AppIcons.moreGridFilled),
-                label: Text('More'),
+                icon: const Icon(AppIcons.moreGrid),
+                selectedIcon: const Icon(AppIcons.moreGridFilled),
+                label: Text(l10n.navMore),
               ),
             ],
           ),
@@ -514,14 +506,6 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     final router = GoRouter.of(context);
     final container = ProviderScope.containerOf(context);
 
-    void openModalAdd(QuickAddTarget target, String route) {
-      _closePanel();
-      // Raise the in-screen add form via a pending request the destination
-      // screen consumes, then navigate there.
-      container.read(pendingQuickAddProvider.notifier).state = target;
-      router.go(route);
-    }
-
     // Wraps a write-action tap with the email-verification gate.
     // Panel is closed first so the verification sheet is never rendered on
     // top of an open quick-add panel. If the user is unverified the gate
@@ -548,10 +532,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         onTap: () => gatedPush('/transactions/add'),
       ),
       NavActionItem(
-        icon: Icons.account_balance_wallet_rounded,
-        label: 'Account',
-        // Accounts are not blocked — adding an account has no financial data.
-        onTap: () => openModalAdd(QuickAddTarget.account, '/accounts'),
+        icon: AppIcons.subscriptionsFilled,
+        label: 'Subscription',
+        onTap: () => gatedPush('/subscriptions/add'),
       ),
       NavActionItem(
         icon: AppIcons.savingsFilled,
@@ -608,6 +591,19 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     }
 
     return [
+      // Budgets & Subscriptions moved here from the primary nav bar to keep the
+      // bar to four focused destinations; they lead the More menu as the most
+      // important of the secondary features.
+      NavActionItem(
+        icon: AppIcons.budgetsFilled,
+        label: l10n.navBudgets,
+        onTap: () => goTo('/budgets'),
+      ),
+      NavActionItem(
+        icon: AppIcons.subscriptionsFilled,
+        label: l10n.navSubscriptions,
+        onTap: () => goTo('/subscriptions'),
+      ),
       NavActionItem(
         icon: AppIcons.settingsFilled,
         label: l10n.settings,
@@ -644,11 +640,6 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         onTap: () => goTo('/scenario-lab'),
       ),
       NavActionItem(
-        icon: Icons.lock_outline_rounded,
-        label: 'Security',
-        onTap: () => goTo('/security'),
-      ),
-      NavActionItem(
         icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
         label: isDark ? 'Light mode' : 'Dark mode',
         onTap: toggleTheme,
@@ -675,12 +666,14 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         .currentConfiguration
         .uri
         .path;
+    // Four primary destinations: Transactions(0), Home(1), Savings(2), More(3).
+    // Budgets, Subscriptions and every secondary surface now live under More.
     if (location.startsWith('/transactions')) return 0;
-    if (location.startsWith('/budgets')) return 1;
-    if (location == '/' || location.startsWith('/health')) return 2;
-    if (location.startsWith('/savings')) return 3;
-    if (location.startsWith('/subscriptions')) return 5;
-    if (location.startsWith('/reports') ||
+    if (location == '/' || location.startsWith('/health')) return 1;
+    if (location.startsWith('/savings')) return 2;
+    if (location.startsWith('/budgets') ||
+        location.startsWith('/subscriptions') ||
+        location.startsWith('/reports') ||
         location.startsWith('/settings') ||
         location.startsWith('/security') ||
         location.startsWith('/legal') ||
@@ -690,9 +683,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         location.startsWith('/balance-sheet') ||
         location.startsWith('/accounts') ||
         location.startsWith('/scenario-lab')) {
-      return 4;
+      return 3;
     }
-    return 2;
+    return 1;
   }
 
   int _calculateRailSelectedIndex(BuildContext context) {
@@ -703,9 +696,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   void _onRailItemTapped(int index) => _onBottomTabSelected(index);
 
   void _onBottomTabSelected(int index) {
-    // The "More" item (4) toggles its expandable panel; the rest navigate and
+    // The "More" item (3) toggles its expandable panel; the rest navigate and
     // dismiss any open panel.
-    if (index == 4) {
+    if (index == 3) {
       HapticFeedback.lightImpact();
       setState(() {
         _panel = _panel == _NavPanel.more ? _NavPanel.none : _NavPanel.more;
@@ -715,10 +708,8 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     _closePanel();
     const routes = {
       0: '/transactions',
-      1: '/budgets',
-      2: '/',
-      3: '/savings',
-      5: '/subscriptions',
+      1: '/',
+      2: '/savings',
     };
     GoRouter.of(context).go(routes[index]!);
   }

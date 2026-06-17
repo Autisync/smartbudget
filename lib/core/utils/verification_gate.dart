@@ -198,11 +198,11 @@ class _VerificationSheetState extends State<_VerificationSheet> {
         .resendVerificationEmail();
     if (!mounted) return;
     setState(() => _sending = false);
+    final errorMsg = widget.container.read(sessionControllerProvider).errorMessage
+        ?? 'Could not send email. Please try again.';
     AppFeedbackToast.show(
       context,
-      message: ok
-          ? 'Verification email sent — check your inbox.'
-          : 'Could not send email. Please try again.',
+      message: ok ? 'Verification email sent — check your inbox.' : errorMsg,
       backgroundColor: ok ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
       icon: ok ? Icons.check_circle_outline : Icons.error_outline,
     );

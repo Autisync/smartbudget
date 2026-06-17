@@ -738,81 +738,81 @@
     }
   },
   "financialHealthRecommendations": "Recommendations",
-    "financialHealthRecommendationExceeded": "Reduce discretionary spending in categories that already exceeded budget.",
-    "financialHealthRecommendationNearLimit": "Rebalance near-limit budgets before the period ends.",
-    "financialHealthRecommendationBehindGoals": "Increase monthly contributions for {count} goal(s) behind schedule.",
-    "@financialHealthRecommendationBehindGoals": {
-      "placeholders": {
-        "count": {
-          "type": "int"
-        }
+  "financialHealthRecommendationExceeded": "Reduce discretionary spending in categories that already exceeded budget.",
+  "financialHealthRecommendationNearLimit": "Rebalance near-limit budgets before the period ends.",
+  "financialHealthRecommendationBehindGoals": "Increase monthly contributions for {count} goal(s) behind schedule.",
+  "@financialHealthRecommendationBehindGoals": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
-    },
-    "financialHealthRecommendationEnableAutoAllocation": "Enable auto-allocation for at least one savings goal to improve consistency.",
-    "financialHealthRecommendationStable": "Keep your current pace and review your health score weekly.",
-    "financialHealthWeeklyNoteNoIncome": "No income recorded this week; spending pressure increased.",
-    "financialHealthWeeklyNoteImproved": "Health improved with stronger weekly cashflow balance.",
-    "financialHealthWeeklyNoteDropped": "Health dropped this week due to higher spending pressure.",
-    "financialHealthWeeklyNoteStable": "Stable week with limited change in financial behavior.",
-    "financialHealthWeeklyTrajectory": "Weekly health trajectory",
-    "financialHealthOverallChange": "Overall change: {delta} points over {weeks} weeks.",
-    "@financialHealthOverallChange": {
-      "placeholders": {
-        "delta": {
-          "type": "String"
-        },
-        "weeks": {
-          "type": "int"
-        }
+    }
+  },
+  "financialHealthRecommendationEnableAutoAllocation": "Enable auto-allocation for at least one savings goal to improve consistency.",
+  "financialHealthRecommendationStable": "Keep your current pace and review your health score weekly.",
+  "financialHealthWeeklyNoteNoIncome": "No income recorded this week; spending pressure increased.",
+  "financialHealthWeeklyNoteImproved": "Health improved with stronger weekly cashflow balance.",
+  "financialHealthWeeklyNoteDropped": "Health dropped this week due to higher spending pressure.",
+  "financialHealthWeeklyNoteStable": "Stable week with limited change in financial behavior.",
+  "financialHealthWeeklyTrajectory": "Weekly health trajectory",
+  "financialHealthOverallChange": "Overall change: {delta} points over {weeks} weeks.",
+  "@financialHealthOverallChange": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      },
+      "weeks": {
+        "type": "int"
       }
-    },
-    "financialHealthBiggestGain": "Biggest gain: {delta} on {date}.",
-    "@financialHealthBiggestGain": {
-      "placeholders": {
-        "delta": {
-          "type": "String"
-        },
-        "date": {
-          "type": "String"
-        }
+    }
+  },
+  "financialHealthBiggestGain": "Biggest gain: {delta} on {date}.",
+  "@financialHealthBiggestGain": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
       }
-    },
-    "financialHealthBiggestDrop": "Biggest drop: {delta} on {date}.",
-    "@financialHealthBiggestDrop": {
-      "placeholders": {
-        "delta": {
-          "type": "String"
-        },
-        "date": {
-          "type": "String"
-        }
+    }
+  },
+  "financialHealthBiggestDrop": "Biggest drop: {delta} on {date}.",
+  "@financialHealthBiggestDrop": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
       }
-    },
-    "savingsNudgeBehindTitle": "You are behind on {goal}",
-    "@savingsNudgeBehindTitle": {
-      "placeholders": {
-        "goal": {
-          "type": "String"
-        }
+    }
+  },
+  "savingsNudgeBehindTitle": "You are behind on {goal}",
+  "@savingsNudgeBehindTitle": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
       }
-    },
-    "savingsNudgeBehindMessage": "You are about {amount} behind schedule. Consider increasing monthly savings.",
-    "@savingsNudgeBehindMessage": {
-      "placeholders": {
-        "amount": {
-          "type": "String"
-        }
+    }
+  },
+  "savingsNudgeBehindMessage": "You are about {amount} behind schedule. Consider increasing monthly savings.",
+  "@savingsNudgeBehindMessage": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
       }
-    },
-    "savingsNudgeAutoAllocateTitle": "Enable auto-allocation for {goal}",
-    "@savingsNudgeAutoAllocateTitle": {
-      "placeholders": {
-        "goal": {
-          "type": "String"
-        }
+    }
+  },
+  "savingsNudgeAutoAllocateTitle": "Enable auto-allocation for {goal}",
+  "@savingsNudgeAutoAllocateTitle": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
       }
-    },
-    "savingsNudgeAutoAllocateMessage": "Auto-allocation can help keep contributions consistent each month.",
+    }
+  },
+  "savingsNudgeAutoAllocateMessage": "Auto-allocation can help keep contributions consistent each month.",
   "commonOpen": "Open",
   "commonSeeAll": "See All",
   "commonViewDetails": "View details",
@@ -1386,5 +1386,74 @@
       }
     }
   },
-  "balanceSheetOptional": "Optional"
+  "balanceSheetOptional": "Optional",
+  "commonRetry": "Retry",
+  "dashboardGreetingMorning": "Good morning",
+  "dashboardGreetingAfternoon": "Good afternoon",
+  "dashboardGreetingEvening": "Good evening",
+  "dashboardDefaultUserName": "SmartSpend User",
+  "dashboardOverallScore": "Overall score",
+  "dashboardSyncing": "Syncing dashboard data…",
+  "dashboardBurnRateErrorTitle": "Unable to load burn rate",
+  "dashboardBurnRateErrorMessage": "Try again in a moment to view spending pace insights.",
+  "dashboardRecentTransactionsErrorTitle": "Could not load recent transactions",
+  "burnRateStatusCritical": "Critical",
+  "burnRateStatusHigh": "High",
+  "burnRateStatusWatch": "Watch",
+  "burnRateStatusHealthy": "Healthy",
+  "subscriptionEssential": "Essential Subscription",
+  "scenarioLabTitle": "Scenario Lab",
+  "scenarioRunError": "Unable to run this scenario",
+  "scenarioRunErrorMessage": "Something went wrong while simulating. Please try again in a moment.",
+  "scenarioMetricMonthlyCashflow": "Monthly cashflow",
+  "scenarioMetricSavingsRate": "Savings rate",
+  "scenarioMetricSubscriptionBurden": "Subscription burden",
+  "scenarioMetricEmergencyRunway": "Emergency runway",
+  "transactionsPreparingInsights": "Preparing insights…",
+  "commonAll": "All",
+  "transactionsFilterThisMonth": "This month",
+  "commonRecurring": "Recurring",
+  "commonClearSearch": "Clear search",
+  "subscriptionsActionsTitle": "Subscription actions",
+  "accountsTitle": "Accounts",
+  "accountsEmptyTitle": "No accounts yet",
+  "accountsNameLabel": "Account name",
+  "accountsOpeningBalanceLabel": "Opening balance",
+  "insightsFocus": "Focus",
+  "insightsNoRecommendations": "No recommendations yet",
+  "insightsConfidenceModel": "Confidence model",
+  "insightsNoForecastTitle": "No forecast data yet",
+  "insightsNoForecastMessage": "Keep using SmartSpend to unlock prediction trends.",
+  "insightsNoCopilotTitle": "No Copilot activity yet",
+  "insightsNoCopilotMessage": "Smart insights will appear here as you use the app.",
+  "insightsActivityActions": "Insight activity actions",
+  "insightsOpenDetails": "Open details",
+  "subscriptionsPause": "Pause",
+  "subscriptionsResume": "Resume",
+  "settingsNotifBudgetAlerts": "Budget alerts",
+  "settingsNotifSubscriptionReminders": "Subscription reminders",
+  "settingsNotifSavingsReminders": "Savings reminders",
+  "settingsNotifReportCompletion": "Report completion",
+  "settingsNotifSecurityAlerts": "Security alerts",
+  "settingsNotifMonthlySummaries": "Monthly summaries",
+  "settingsNotifPermissionHint": "Allow notifications in your device settings to receive alerts.",
+  "settingsNotifEnabled": "Notifications enabled.",
+  "settingsNotifDisabled": "Notifications disabled.",
+  "budgetsRolloverCompleted": "Budget rollover completed.",
+  "budgetsNoActive": "No active budgets",
+  "commonIncrease": "Increase",
+  "commonDecrease": "Decrease",
+  "budgetsArchiveTitle": "Archive budget?",
+  "budgetsDeleteTitle": "Delete budget?",
+  "budgetsActionCompleted": "Budget action completed.",
+  "budgetsMetricUsed": "Used",
+  "commonStatus": "Status",
+  "budgetsMetricAlertAt": "Alert at",
+  "budgetsMetricDelta": "Delta",
+  "budgetsActions": "Budget actions",
+  "budgetsViewTransactions": "View transactions",
+  "budgetsIncrease10": "Increase 10%",
+  "budgetsReduce10": "Reduce 10%",
+  "commonDuplicate": "Duplicate",
+  "commonArchive": "Archive"
 }

@@ -2101,8 +2101,211 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get balanceSheetOptional => 'Optional';
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
+  String get dashboardGreetingMorning => 'Good morning';
+
+  @override
+  String get dashboardGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get dashboardGreetingEvening => 'Good evening';
+
+  @override
+  String get dashboardDefaultUserName => 'SmartSpend User';
+
+  @override
+  String get dashboardOverallScore => 'Overall score';
+
+  @override
+  String get dashboardSyncing => 'Syncing dashboard data…';
+
+  @override
+  String get dashboardBurnRateErrorTitle => 'Unable to load burn rate';
+
+  @override
+  String get dashboardBurnRateErrorMessage => 'Try again in a moment to view spending pace insights.';
+
+  @override
+  String get dashboardRecentTransactionsErrorTitle => 'Could not load recent transactions';
+
+  @override
+  String get burnRateStatusCritical => 'Critical';
+
+  @override
+  String get burnRateStatusHigh => 'High';
+
+  @override
+  String get burnRateStatusWatch => 'Watch';
+
+  @override
+  String get burnRateStatusHealthy => 'Healthy';
+
+  @override
+  String get subscriptionEssential => 'Essential Subscription';
+
+  @override
+  String get scenarioLabTitle => 'Scenario Lab';
+
+  @override
+  String get scenarioRunError => 'Unable to run this scenario';
+
+  @override
+  String get scenarioRunErrorMessage => 'Something went wrong while simulating. Please try again in a moment.';
+
+  @override
+  String get scenarioMetricMonthlyCashflow => 'Monthly cashflow';
+
+  @override
+  String get scenarioMetricSavingsRate => 'Savings rate';
+
+  @override
+  String get scenarioMetricSubscriptionBurden => 'Subscription burden';
+
+  @override
+  String get scenarioMetricEmergencyRunway => 'Emergency runway';
+
+  @override
+  String get transactionsPreparingInsights => 'Preparing insights…';
+
+  @override
+  String get commonAll => 'All';
+
+  @override
+  String get transactionsFilterThisMonth => 'This month';
+
+  @override
+  String get commonRecurring => 'Recurring';
+
+  @override
+  String get commonClearSearch => 'Clear search';
+
+  @override
+  String get subscriptionsActionsTitle => 'Subscription actions';
+
+  @override
+  String get accountsTitle => 'Accounts';
+
+  @override
+  String get accountsEmptyTitle => 'No accounts yet';
+
+  @override
+  String get accountsNameLabel => 'Account name';
+
+  @override
+  String get accountsOpeningBalanceLabel => 'Opening balance';
+
+  @override
+  String get insightsFocus => 'Focus';
+
+  @override
+  String get insightsNoRecommendations => 'No recommendations yet';
+
+  @override
+  String get insightsConfidenceModel => 'Confidence model';
+
+  @override
+  String get insightsNoForecastTitle => 'No forecast data yet';
+
+  @override
+  String get insightsNoForecastMessage => 'Keep using SmartSpend to unlock prediction trends.';
+
+  @override
+  String get insightsNoCopilotTitle => 'No Copilot activity yet';
+
+  @override
+  String get insightsNoCopilotMessage => 'Smart insights will appear here as you use the app.';
+
+  @override
+  String get insightsActivityActions => 'Insight activity actions';
+
+  @override
+  String get insightsOpenDetails => 'Open details';
+
+  @override
+  String get subscriptionsPause => 'Pause';
+
+  @override
+  String get subscriptionsResume => 'Resume';
+
+  @override
+  String get settingsNotifBudgetAlerts => 'Budget alerts';
+
+  @override
+  String get settingsNotifSubscriptionReminders => 'Subscription reminders';
+
+  @override
+  String get settingsNotifSavingsReminders => 'Savings reminders';
+
+  @override
+  String get settingsNotifReportCompletion => 'Report completion';
+
+  @override
+  String get settingsNotifSecurityAlerts => 'Security alerts';
+
+  @override
+  String get settingsNotifMonthlySummaries => 'Monthly summaries';
+
+  @override
+  String get settingsNotifPermissionHint => 'Allow notifications in your device settings to receive alerts.';
+
+  @override
+  String get settingsNotifEnabled => 'Notifications enabled.';
+
+  @override
+  String get settingsNotifDisabled => 'Notifications disabled.';
+
+  @override
+  String get budgetsRolloverCompleted => 'Budget rollover completed.';
+
+  @override
+  String get budgetsNoActive => 'No active budgets';
+
+  @override
+  String get commonIncrease => 'Increase';
+
+  @override
+  String get commonDecrease => 'Decrease';
+
+  @override
+  String get budgetsArchiveTitle => 'Archive budget?';
+
+  @override
+  String get budgetsDeleteTitle => 'Delete budget?';
+
+  @override
+  String get budgetsActionCompleted => 'Budget action completed.';
+
+  @override
+  String get budgetsMetricUsed => 'Used';
+
+  @override
+  String get commonStatus => 'Status';
+
+  @override
+  String get budgetsMetricAlertAt => 'Alert at';
+
+  @override
+  String get budgetsMetricDelta => 'Delta';
+
+  @override
+  String get budgetsActions => 'Budget actions';
+
+  @override
+  String get budgetsViewTransactions => 'View transactions';
+
+  @override
+  String get budgetsIncrease10 => 'Increase 10%';
+
+  @override
+  String get budgetsReduce10 => 'Reduce 10%';
+
+  @override
+  String get commonDuplicate => 'Duplicate';
+
+  @override
+  String get commonArchive => 'Archive';
 }
-
-
-
-

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 
@@ -451,8 +452,8 @@ class PasswordStrengthIndicator extends StatelessWidget {
     };
     final levelColor = switch (passed) {
       0 || 1 => colorScheme.error,
-      2 || 3 => const Color(0xFFCA8A04),
-      _ => const Color(0xFF15803D),
+      2 || 3 => AppColors.statusFor(colorScheme.brightness, AppStatus.warning),
+      _ => AppColors.statusFor(colorScheme.brightness, AppStatus.success),
     };
 
     return Container(
@@ -535,7 +536,9 @@ class _RuleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final tone = met ? const Color(0xFF15803D) : colorScheme.onSurfaceVariant;
+    final tone = met
+        ? AppColors.statusFor(colorScheme.brightness, AppStatus.success)
+        : colorScheme.onSurfaceVariant;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -597,7 +600,9 @@ class AuthMessageBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final tone = isError ? colorScheme.error : const Color(0xFF0F9D58);
+    final tone = isError
+        ? colorScheme.error
+        : AppColors.statusFor(colorScheme.brightness, AppStatus.success);
 
     return Container(
       width: double.infinity,

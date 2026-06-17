@@ -6,6 +6,7 @@ import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:smartbudget/features/scenario_lab/engines/scenario_engine.dart';
 import 'package:smartbudget/features/scenario_lab/models/scenario_models.dart';
 import 'package:smartbudget/features/scenario_lab/presentation/providers/scenario_lab_controller.dart';
@@ -30,6 +31,7 @@ class _ScenarioLabScreenState extends ConsumerState<ScenarioLabScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final resultAsync = ref.watch(scenarioLabResultProvider);
     final baseDataAsync = ref.watch(scenarioLabBaseDataProvider);
     final controller = ref.read(scenarioLabControllerProvider.notifier);
@@ -38,7 +40,7 @@ class _ScenarioLabScreenState extends ConsumerState<ScenarioLabScreen> {
       appBar: AppBar(
         title: buildFrostedAppBarTitle(
           context: context,
-          title: 'Scenario Lab',
+          title: l10n.scenarioLabTitle,
           isScrolled: _isAppBarScrolled,
         ),
         backgroundColor: Theme.of(context).colorScheme.surface.withValues(
@@ -59,8 +61,21 @@ class _ScenarioLabScreenState extends ConsumerState<ScenarioLabScreen> {
         ),
       ),
       body: resultAsync.when(
-        loading: () => const AppShimmerSkeleton(variant: AppShimmerVariant.dashboard),
-        error: (error, _) => Center(child: Text('Scenario error: $error')),
+        loading: () =>
+            const AppShimmerSkeleton(variant: AppShimmerVariant.dashboard),
+        // Was a raw developer string ("Scenario error: $error"). Now a calm,
+        // user-facing error state with a retry instead of leaking the exception.
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: AppErrorState(
+              title: l10n.scenarioRunError,
+              message: l10n.scenarioRunErrorMessage,
+              actionLabel: l10n.commonRetry,
+              onAction: () => ref.invalidate(scenarioLabResultProvider),
+            ),
+          ),
+        ),
         data: (result) {
           final input = ref.watch(scenarioLabControllerProvider);
           final currency = NumberFormat.currency(
@@ -254,6 +269,7 @@ class _CurrentVsSimulatedSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final delta = result.comparison.simulatedMonthlyCashflow -
         result.comparison.currentMonthlyCashflow;
     return SmartCard(
@@ -296,28 +312,28 @@ class _CurrentVsSimulatedSummary extends StatelessWidget {
             runSpacing: 10,
             children: [
               _CompactMetric(
-                label: 'Monthly cashflow',
+                label: l10n.scenarioMetricMonthlyCashflow,
                 currentValue:
                     currency.format(result.comparison.currentMonthlyCashflow),
                 simulatedValue:
                     currency.format(result.comparison.simulatedMonthlyCashflow),
               ),
               _CompactMetric(
-                label: 'Savings rate',
+                label: l10n.scenarioMetricSavingsRate,
                 currentValue:
                     '${(result.comparison.currentSavingsRate * 100).toStringAsFixed(1)}%',
                 simulatedValue:
                     '${(result.comparison.simulatedSavingsRate * 100).toStringAsFixed(1)}%',
               ),
               _CompactMetric(
-                label: 'Subscription burden',
+                label: l10n.scenarioMetricSubscriptionBurden,
                 currentValue:
                     '${(result.comparison.currentSubscriptionBurden * 100).toStringAsFixed(1)}%',
                 simulatedValue:
                     '${(result.comparison.simulatedSubscriptionBurden * 100).toStringAsFixed(1)}%',
               ),
               _CompactMetric(
-                label: 'Emergency runway',
+                label: l10n.scenarioMetricEmergencyRunway,
                 currentValue:
                     '${result.comparison.currentEmergencyRunwayDays} days',
                 simulatedValue:

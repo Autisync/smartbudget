@@ -3904,6 +3904,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional'**
   String get balanceSheetOptional;
+
+  /// No description provided for @commonRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get commonRetry;
+
+  /// No description provided for @dashboardGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get dashboardGreetingMorning;
+
+  /// No description provided for @dashboardGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get dashboardGreetingAfternoon;
+
+  /// No description provided for @dashboardGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get dashboardGreetingEvening;
+
+  /// No description provided for @dashboardDefaultUserName.
+  ///
+  /// In en, this message translates to:
+  /// **'SmartSpend User'**
+  String get dashboardDefaultUserName;
+
+  /// No description provided for @dashboardOverallScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall score'**
+  String get dashboardOverallScore;
+
+  /// No description provided for @dashboardSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing dashboard data…'**
+  String get dashboardSyncing;
+
+  /// No description provided for @dashboardBurnRateErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load burn rate'**
+  String get dashboardBurnRateErrorTitle;
+
+  /// No description provided for @dashboardBurnRateErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again in a moment to view spending pace insights.'**
+  String get dashboardBurnRateErrorMessage;
+
+  /// No description provided for @dashboardRecentTransactionsErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load recent transactions'**
+  String get dashboardRecentTransactionsErrorTitle;
+
+  /// No description provided for @burnRateStatusCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get burnRateStatusCritical;
+
+  /// No description provided for @burnRateStatusHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get burnRateStatusHigh;
+
+  /// No description provided for @burnRateStatusWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch'**
+  String get burnRateStatusWatch;
+
+  /// No description provided for @burnRateStatusHealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy'**
+  String get burnRateStatusHealthy;
+
+  /// No description provided for @subscriptionEssential.
+  ///
+  /// In en, this message translates to:
+  /// **'Essential Subscription'**
+  String get subscriptionEssential;
+
+  /// No description provided for @scenarioLabTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario Lab'**
+  String get scenarioLabTitle;
+
+  /// No description provided for @scenarioRunError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to run this scenario'**
+  String get scenarioRunError;
+
+  /// No description provided for @scenarioRunErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while simulating. Please try again in a moment.'**
+  String get scenarioRunErrorMessage;
+
+  /// No description provided for @scenarioMetricMonthlyCashflow.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly cashflow'**
+  String get scenarioMetricMonthlyCashflow;
+
+  /// No description provided for @scenarioMetricSavingsRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings rate'**
+  String get scenarioMetricSavingsRate;
+
+  /// No description provided for @scenarioMetricSubscriptionBurden.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription burden'**
+  String get scenarioMetricSubscriptionBurden;
+
+  /// No description provided for @scenarioMetricEmergencyRunway.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency runway'**
+  String get scenarioMetricEmergencyRunway;
+
+  /// No description provided for @transactionsPreparingInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing insights…'**
+  String get transactionsPreparingInsights;
+
+  /// No description provided for @commonAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get commonAll;
+
+  /// No description provided for @transactionsFilterThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get transactionsFilterThisMonth;
+
+  /// No description provided for @commonRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring'**
+  String get commonRecurring;
+
+  /// No description provided for @commonClearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get commonClearSearch;
+
+  /// No description provided for @subscriptionsActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription actions'**
+  String get subscriptionsActionsTitle;
+
+  /// No description provided for @accountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get accountsTitle;
+
+  /// No description provided for @accountsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts yet'**
+  String get accountsEmptyTitle;
+
+  /// No description provided for @accountsNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account name'**
+  String get accountsNameLabel;
+
+  /// No description provided for @accountsOpeningBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening balance'**
+  String get accountsOpeningBalanceLabel;
+
+  /// No description provided for @insightsFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get insightsFocus;
+
+  /// No description provided for @insightsNoRecommendations.
+  ///
+  /// In en, this message translates to:
+  /// **'No recommendations yet'**
+  String get insightsNoRecommendations;
+
+  /// No description provided for @insightsConfidenceModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence model'**
+  String get insightsConfidenceModel;
+
+  /// No description provided for @insightsNoForecastTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No forecast data yet'**
+  String get insightsNoForecastTitle;
+
+  /// No description provided for @insightsNoForecastMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep using SmartSpend to unlock prediction trends.'**
+  String get insightsNoForecastMessage;
+
+  /// No description provided for @insightsNoCopilotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Copilot activity yet'**
+  String get insightsNoCopilotTitle;
+
+  /// No description provided for @insightsNoCopilotMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart insights will appear here as you use the app.'**
+  String get insightsNoCopilotMessage;
+
+  /// No description provided for @insightsActivityActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Insight activity actions'**
+  String get insightsActivityActions;
+
+  /// No description provided for @insightsOpenDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Open details'**
+  String get insightsOpenDetails;
+
+  /// No description provided for @subscriptionsPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get subscriptionsPause;
+
+  /// No description provided for @subscriptionsResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get subscriptionsResume;
+
+  /// No description provided for @settingsNotifBudgetAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget alerts'**
+  String get settingsNotifBudgetAlerts;
+
+  /// No description provided for @settingsNotifSubscriptionReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription reminders'**
+  String get settingsNotifSubscriptionReminders;
+
+  /// No description provided for @settingsNotifSavingsReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings reminders'**
+  String get settingsNotifSavingsReminders;
+
+  /// No description provided for @settingsNotifReportCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Report completion'**
+  String get settingsNotifReportCompletion;
+
+  /// No description provided for @settingsNotifSecurityAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Security alerts'**
+  String get settingsNotifSecurityAlerts;
+
+  /// No description provided for @settingsNotifMonthlySummaries.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly summaries'**
+  String get settingsNotifMonthlySummaries;
+
+  /// No description provided for @settingsNotifPermissionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications in your device settings to receive alerts.'**
+  String get settingsNotifPermissionHint;
+
+  /// No description provided for @settingsNotifEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications enabled.'**
+  String get settingsNotifEnabled;
+
+  /// No description provided for @settingsNotifDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications disabled.'**
+  String get settingsNotifDisabled;
+
+  /// No description provided for @budgetsRolloverCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget rollover completed.'**
+  String get budgetsRolloverCompleted;
+
+  /// No description provided for @budgetsNoActive.
+  ///
+  /// In en, this message translates to:
+  /// **'No active budgets'**
+  String get budgetsNoActive;
+
+  /// No description provided for @commonIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get commonIncrease;
+
+  /// No description provided for @commonDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get commonDecrease;
+
+  /// No description provided for @budgetsArchiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive budget?'**
+  String get budgetsArchiveTitle;
+
+  /// No description provided for @budgetsDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete budget?'**
+  String get budgetsDeleteTitle;
+
+  /// No description provided for @budgetsActionCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget action completed.'**
+  String get budgetsActionCompleted;
+
+  /// No description provided for @budgetsMetricUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get budgetsMetricUsed;
+
+  /// No description provided for @commonStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get commonStatus;
+
+  /// No description provided for @budgetsMetricAlertAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert at'**
+  String get budgetsMetricAlertAt;
+
+  /// No description provided for @budgetsMetricDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Delta'**
+  String get budgetsMetricDelta;
+
+  /// No description provided for @budgetsActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget actions'**
+  String get budgetsActions;
+
+  /// No description provided for @budgetsViewTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'View transactions'**
+  String get budgetsViewTransactions;
+
+  /// No description provided for @budgetsIncrease10.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase 10%'**
+  String get budgetsIncrease10;
+
+  /// No description provided for @budgetsReduce10.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce 10%'**
+  String get budgetsReduce10;
+
+  /// No description provided for @commonDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get commonDuplicate;
+
+  /// No description provided for @commonArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get commonArchive;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -3940,7 +4354,3 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     'that was used.'
   );
 }
-
-
-
-

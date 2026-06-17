@@ -1,4 +1,4 @@
-import 'dart:async' show unawaited;
+import 'dart:async' show unawaited, runZonedGuarded;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +15,21 @@ import 'package:smartbudget/core/services/locale_service.dart';
 import 'package:smartbudget/core/theme/app_theme.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
-void main() async {
+void main() {
+  runZonedGuarded(_boot, _handleUncaughtError);
+}
+
+Future<void> _boot() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Catch Flutter framework errors (widget build failures, etc.) so they show
+  // a visible error widget instead of a black screen.
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    if (kDebugMode) {
+      debugPrint('[SmartSpend] Flutter error: ${details.exceptionAsString()}');
+    }
+  };
 
   // Lock orientation
   await SystemChrome.setPreferredOrientations([
@@ -34,16 +47,13 @@ void main() async {
   await container.read(encryptionServiceProvider).initialize();
 
   // L-3 FIX: Log Firebase init failures so they don't silently disappear.
-  // In debug mode we print the error; in release mode we swallow it gracefully
-  // (Firebase is optional for local-first operation) but this guard ensures
-  // we at least see failures during development and CI.
+  // Firebase is optional — the app operates fully offline without it.
   try {
     await Firebase.initializeApp();
   } catch (e, st) {
     if (kDebugMode) {
       debugPrint('[SmartSpend] Firebase init failed: $e\n$st');
     }
-    // In release mode: continue without Firebase. Core app is local-first.
   }
 
   await container.read(notificationServiceProvider).initialize();
@@ -55,8 +65,7 @@ void main() async {
       .read(accountRepositoryProvider)
       .ensureDefaultAccounts(currency: appCurrency);
 
-  // M-4 FIX: Prune auth logs older than 90 days on every startup to prevent
-  // unbounded growth of the local auth log table.
+  // M-4 FIX: Prune auth logs older than 90 days on every startup.
   unawaited(
     container.read(securityServiceProvider).pruneAuthLogs(),
   );
@@ -67,6 +76,82 @@ void main() async {
       child: const SmartSpendApp(),
     ),
   );
+}
+
+/// Top-level handler for unhandled async errors (e.g. network failures,
+/// database errors) that escape all try/catch blocks. Without this, these
+/// produce a silent black screen. We log in debug and show a recovery UI in
+/// release so the user is never left staring at a blank screen.
+void _handleUncaughtError(Object error, StackTrace stack) {
+  if (kDebugMode) {
+    debugPrint('[SmartSpend] Uncaught error: $error\n$stack');
+  }
+  // Only attempt runApp if the Flutter binding is already initialised.
+  // If the error occurred before WidgetsFlutterBinding.ensureInitialized()
+  // completed (e.g. in DatabaseCipher.setupSqlCipher()), calling runApp
+  // would throw a secondary ServicesBinding error and produce the same
+  // black screen we are trying to prevent. We swallow that silently.
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    runApp(const _FatalErrorApp());
+  } catch (_) {
+    // Binding not ready or runApp failed — nothing more we can do.
+  }
+}
+
+/// Minimal recovery app shown when an unrecoverable error prevents the main
+/// app from launching. Instructs the user to restart rather than leaving
+/// a black screen with no feedback.
+class _FatalErrorApp extends StatelessWidget {
+  const _FatalErrorApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Color(0xFF1A1A2E),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 64,
+                  color: Color(0xFFEF5350),
+                ),
+                SizedBox(height: 24),
+                Text(
+                  'Something went wrong',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'SmartSpend encountered an unexpected error. '
+                  'Please close and reopen the app. '
+                  'If the problem persists, reinstalling will reset the app to a clean state.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFFB0B0C8),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class SmartSpendApp extends ConsumerWidget {

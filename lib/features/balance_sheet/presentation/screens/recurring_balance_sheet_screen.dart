@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/data/models/tables.dart'
@@ -561,7 +562,6 @@ class _RecurringBalanceSheetScreenState
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: isDark ? null : const Color(0xFFF8F8FA),
       appBar: AppBar(
         title: buildFrostedAppBarTitle(
           context: context,
@@ -670,13 +670,12 @@ class _RecurringBalanceSheetScreenState
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF3B82F6)
-                                  .withValues(alpha: 0.12),
+                              color: colorScheme.primary.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.account_balance_rounded,
-                              color: Color(0xFF3B82F6),
+                              color: colorScheme.primary,
                               size: 18,
                             ),
                           ),
@@ -780,7 +779,9 @@ class _RecurringBalanceSheetScreenState
                       _PremiumSectionHeader(
                         icon: Icons.wb_incandescent_rounded,
                         title: l10n.balanceSheetWaysToMakeEndsMeet,
-                        tone: const Color(0xFFF97316),
+                        tone: AppColors.statusFor(
+                            isDark ? Brightness.dark : Brightness.light,
+                            AppStatus.warning),
                       ),
                       const SizedBox(height: 16),
                       ...(scenarioActive
@@ -793,7 +794,8 @@ class _RecurringBalanceSheetScreenState
                       _PremiumSectionHeader(
                         icon: Icons.arrow_downward_rounded,
                         title: l10n.balanceSheetRecurringIncome,
-                        tone: const Color(0xFF059669),
+                        tone: AppColors.income(
+                            isDark ? Brightness.dark : Brightness.light),
                       ),
                       const SizedBox(height: 16),
                       _PremiumEntriesCard(
@@ -886,12 +888,9 @@ class _HeroSummaryCard extends StatelessWidget {
         ),
         border: Border.all(
           color: isPositive
-              ? isDark
-                  ? const Color(0xFF059669).withValues(alpha: 0.25)
-                  : const Color(0xFF86EFAC)
-              : isDark
-                  ? colorScheme.error.withValues(alpha: 0.25)
-                  : const Color(0xFFFFD6DB),
+              ? AppColors.income(colorScheme.brightness)
+                  .withValues(alpha: isDark ? 0.25 : 0.45)
+              : colorScheme.error.withValues(alpha: isDark ? 0.25 : 0.45),
           width: 1,
         ),
         boxShadow: [
@@ -913,7 +912,8 @@ class _HeroSummaryCard extends StatelessWidget {
                 height: 38,
                 decoration: BoxDecoration(
                   color: isPositive
-                      ? const Color(0xFF059669).withValues(alpha: 0.14)
+                      ? AppColors.income(colorScheme.brightness)
+                          .withValues(alpha: 0.14)
                       : colorScheme.error.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -921,8 +921,9 @@ class _HeroSummaryCard extends StatelessWidget {
                   isPositive
                       ? Icons.verified_rounded
                       : Icons.warning_amber_rounded,
-                  color:
-                      isPositive ? const Color(0xFF059669) : colorScheme.error,
+                  color: isPositive
+                      ? AppColors.income(colorScheme.brightness)
+                      : colorScheme.error,
                   size: 20,
                 ),
               ),
@@ -950,7 +951,9 @@ class _HeroSummaryCard extends StatelessWidget {
               fontWeight: FontWeight.w900,
               fontSize: 28,
               height: 1.0,
-              color: isPositive ? const Color(0xFF047857) : colorScheme.error,
+              color: isPositive
+                  ? AppColors.income(colorScheme.brightness)
+                  : colorScheme.error,
             ),
           ),
           const SizedBox(height: 10),
@@ -973,7 +976,8 @@ class _HeroSummaryCard extends StatelessWidget {
                   icon: Icons.arrow_downward_rounded,
                   label: l10n.balanceSheetIncomePerMonth,
                   value: currencyFormat.format(snapshot.recurringIncomeTotal),
-                  tone: const Color(0xFF059669),
+                  tone: AppColors.income(
+                      isDark ? Brightness.dark : Brightness.light),
                   isDark: isDark,
                 ),
               ),
@@ -1008,7 +1012,9 @@ class _HeroSummaryCard extends StatelessWidget {
                   icon: Icons.schedule_rounded,
                   label: l10n.balanceSheetDueIn14Days,
                   value: currencyFormat.format(snapshot.nearTermCommitments),
-                  tone: const Color(0xFFF97316),
+                  tone: AppColors.statusFor(
+                      isDark ? Brightness.dark : Brightness.light,
+                      AppStatus.warning),
                   isDark: isDark,
                 ),
               ),
@@ -1102,9 +1108,9 @@ class _CoverageOutlookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final barColor = snapshot.coverageRatio >= 1.1
-        ? const Color(0xFF059669)
+        ? AppColors.statusFor(colorScheme.brightness, AppStatus.success)
         : snapshot.coverageRatio >= 1
-            ? Colors.orange
+            ? AppColors.statusFor(colorScheme.brightness, AppStatus.warning)
             : colorScheme.error;
 
     return Container(
@@ -1297,7 +1303,7 @@ class _ScenarioLabCard extends StatelessWidget {
                 .clamp(100, 5000)
                 .toDouble(),
             formattedValue: currencyFormat.format(extraRecurringIncome),
-            activeColor: const Color(0xFF059669),
+            activeColor: AppColors.income(colorScheme.brightness),
             onChanged: onIncomeChanged,
           ),
           const SizedBox(height: 16),
@@ -1347,12 +1353,14 @@ class _ScenarioLabCard extends StatelessWidget {
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: simulatedNetBalance >= 0
-                    ? const Color(0xFF059669).withValues(alpha: 0.1)
+                    ? AppColors.income(colorScheme.brightness)
+                        .withValues(alpha: 0.1)
                     : colorScheme.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: simulatedNetBalance >= 0
-                      ? const Color(0xFF059669).withValues(alpha: 0.25)
+                      ? AppColors.income(colorScheme.brightness)
+                          .withValues(alpha: 0.25)
                       : colorScheme.error.withValues(alpha: 0.25),
                 ),
               ),
@@ -1530,8 +1538,10 @@ class _PremiumInsightCard extends StatelessWidget {
   Color _toneForSeverity(InsightSeverity severity, ColorScheme cs) {
     return switch (severity) {
       InsightSeverity.high => cs.error,
-      InsightSeverity.medium => const Color(0xFFF97316),
-      InsightSeverity.low => const Color(0xFF059669),
+      InsightSeverity.medium =>
+        AppColors.statusFor(cs.brightness, AppStatus.warning),
+      InsightSeverity.low =>
+        AppColors.statusFor(cs.brightness, AppStatus.success),
     };
   }
 
@@ -1732,7 +1742,8 @@ class _PremiumEntryCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final currencyFormat = CurrencyUtils.getFormat(entry.currencyCode);
     final tone = switch (entry.kind) {
-      RecurringBalanceEntryKind.income => const Color(0xFF059669),
+      RecurringBalanceEntryKind.income =>
+        AppColors.income(colorScheme.brightness),
       RecurringBalanceEntryKind.expense => colorScheme.error,
       RecurringBalanceEntryKind.subscription => colorScheme.secondary,
     };
