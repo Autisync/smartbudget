@@ -719,7 +719,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 _MoreActionTile(
                   icon: Icons.verified_user_outlined,
-                  title: 'Legal review confirmation',
+                  title: l10n.settingsLegalReviewConfirmation,
                   subtitle: legalReviewedAtLabel,
                   showLeading: false,
                   showChevron: false,
@@ -1280,7 +1280,7 @@ class _PersonalDetailsSheetState extends ConsumerState<_PersonalDetailsSheet> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.check_rounded),
-        label: const Text('Save changes'),
+        label: Text(l10n.commonSaveChanges),
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(52),
         ),

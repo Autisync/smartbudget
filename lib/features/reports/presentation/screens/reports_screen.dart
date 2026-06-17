@@ -775,35 +775,35 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   const SizedBox(height: 10),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Include charts'),
+                    title: Text(l10n.reportsIncludeCharts),
                     value: includeCharts,
                     onChanged: (value) =>
                         setSheetState(() => includeCharts = value),
                   ),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Include detailed transactions'),
+                    title: Text(l10n.reportsIncludeTransactions),
                     value: includeDetailedTransactions,
                     onChanged: (value) => setSheetState(
                         () => includeDetailedTransactions = value),
                   ),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Include budgets'),
+                    title: Text(l10n.reportsIncludeBudgets),
                     value: includeBudgets,
                     onChanged: (value) =>
                         setSheetState(() => includeBudgets = value),
                   ),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Include subscriptions'),
+                    title: Text(l10n.reportsIncludeSubscriptions),
                     value: includeSubscriptions,
                     onChanged: (value) =>
                         setSheetState(() => includeSubscriptions = value),
                   ),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Include savings goals'),
+                    title: Text(l10n.reportsIncludeSavings),
                     value: includeSavingsGoals,
                     onChanged: (value) =>
                         setSheetState(() => includeSavingsGoals = value),
@@ -987,6 +987,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   void _openExportWorkflowSheet() {
+    final l10n = AppLocalizations.of(context)!;
     AppFormSheet.show(
       context,
       builder: (sheetContext) => AppFormSheet(
@@ -996,7 +997,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.picture_as_pdf),
-              title: const Text('Export Financial Summary (PDF)'),
+              title: Text(l10n.reportsExportFinancialSummaryPdf),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 AppFeedbackService.showInfo(context, 'Export started');
@@ -1005,7 +1006,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.table_chart_rounded),
-              title: const Text('Export Complete Data (CSV)'),
+              title: Text(l10n.reportsExportCompleteCsv),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 AppFeedbackService.showInfo(context, 'Export started');
@@ -1327,15 +1328,17 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   /// Financial exports contain sensitive data; users should be reminded
   /// before the OS share sheet hands the file to a third-party app.
   Future<bool> _confirmShare(BuildContext ctx) async {
+    final l10n = AppLocalizations.of(ctx)!;
     final confirmed = await showDialog<bool>(
       context: ctx,
       builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 22),
-            SizedBox(width: 8),
-            Text('Share Financial Data?'),
+            const Icon(Icons.warning_amber_rounded,
+                color: Colors.orange, size: 22),
+            const SizedBox(width: 8),
+            Text(l10n.reportsShareDataTitle),
           ],
         ),
         content: const Text(
@@ -1345,7 +1348,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogCtx).pop(true),
@@ -1355,7 +1358,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Share'),
+            child: Text(l10n.commonShare),
           ),
         ],
       ),

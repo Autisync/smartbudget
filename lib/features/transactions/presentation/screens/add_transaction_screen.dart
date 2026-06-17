@@ -103,6 +103,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   /// choose how money came in / went out (Cash, Bank Transfer, Credit Card, or
   /// any custom account). Persisted to the transaction's accountId.
   Widget _buildAccountPicker() {
+    final l10n = AppLocalizations.of(context)!;
     final accountsAsync = ref.watch(accountsListProvider);
     return accountsAsync.when(
       loading: () => const SizedBox.shrink(),
@@ -124,7 +125,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         }
         return ModernSelect<String>(
           value: selected!,
-          label: 'Account',
+          label: l10n.commonAccount,
           prefixIcon: Icons.account_balance_wallet_rounded,
           items: accounts
               .map(

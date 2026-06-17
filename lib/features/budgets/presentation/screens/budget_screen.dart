@@ -1200,6 +1200,7 @@ class _BudgetDormantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1236,7 +1237,7 @@ class _BudgetDormantCard extends StatelessWidget {
           const SizedBox(width: 8),
           TextButton(
             onPressed: onResume,
-            child: const Text('Resume'),
+            child: Text(l10n.commonResume),
           ),
           IconButton(
             onPressed: onDelete,
@@ -1373,7 +1374,7 @@ class _BudgetCategoryCard extends StatelessWidget {
                   ),
                   AppActionItem(
                     value: 'toggleActive',
-                    label: budget.isActive ? 'Pause budget' : 'Resume budget',
+                    label: budget.isActive ? l10n.budgetsPauseBudget : l10n.budgetsResumeBudget,
                     icon: budget.isActive
                         ? Icons.pause_circle_outline
                         : Icons.play_circle_outline,

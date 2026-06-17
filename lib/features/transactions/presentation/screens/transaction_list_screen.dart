@@ -648,7 +648,7 @@ class _TransactionSearchFieldState extends State<_TransactionSearchField> {
         fillColor: isDark
             ? scheme.surfaceContainerHigh
             : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
-        hintText: 'Search transactions, notes, or dates',
+        hintText: l10n.transactionsSearchHint,
         prefixIcon: Icon(
           Icons.search_rounded,
           color: scheme.onSurfaceVariant,

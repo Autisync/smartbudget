@@ -5182,6 +5182,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resilience {value}'**
   String scenarioResilience(String value);
+
+  /// No description provided for @tourWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to SmartSpend'**
+  String get tourWelcomeTitle;
+
+  /// No description provided for @tourWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your all-in-one personal finance app. Track spending, build budgets, and grow savings — all in one place.'**
+  String get tourWelcomeSubtitle;
+
+  /// No description provided for @tourTrackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track every transaction'**
+  String get tourTrackTitle;
+
+  /// No description provided for @tourTrackSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log cash, bank transfers and credit card payments. See exactly where your money goes in real time.'**
+  String get tourTrackSubtitle;
+
+  /// No description provided for @tourBudgetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set budgets & goals'**
+  String get tourBudgetsTitle;
+
+  /// No description provided for @tourBudgetsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create category budgets and savings goals. SmartSpend tracks your progress and warns you before you overspend.'**
+  String get tourBudgetsSubtitle;
+
+  /// No description provided for @tourAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add anything in one tap'**
+  String get tourAddTitle;
+
+  /// No description provided for @tourAddSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The \"+\" button launches a quick-add menu. The grid icon opens navigation — reports, accounts, AI insights and more.'**
+  String get tourAddSubtitle;
+
+  /// No description provided for @commonResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get commonResume;
+
+  /// No description provided for @commonAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get commonAccount;
+
+  /// No description provided for @budgetsPauseBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause budget'**
+  String get budgetsPauseBudget;
+
+  /// No description provided for @budgetsResumeBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume budget'**
+  String get budgetsResumeBudget;
+
+  /// No description provided for @legalPrivacyDocSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How personal and financial data is handled in SmartSpend.'**
+  String get legalPrivacyDocSubtitle;
+
+  /// No description provided for @reportsIncludeCharts.
+  ///
+  /// In en, this message translates to:
+  /// **'Include charts'**
+  String get reportsIncludeCharts;
+
+  /// No description provided for @reportsIncludeTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Include detailed transactions'**
+  String get reportsIncludeTransactions;
+
+  /// No description provided for @reportsIncludeBudgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Include budgets'**
+  String get reportsIncludeBudgets;
+
+  /// No description provided for @reportsIncludeSubscriptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Include subscriptions'**
+  String get reportsIncludeSubscriptions;
+
+  /// No description provided for @reportsIncludeSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Include savings goals'**
+  String get reportsIncludeSavings;
+
+  /// No description provided for @reportsExportFinancialSummaryPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Financial Summary (PDF)'**
+  String get reportsExportFinancialSummaryPdf;
+
+  /// No description provided for @reportsExportCompleteCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Complete Data (CSV)'**
+  String get reportsExportCompleteCsv;
+
+  /// No description provided for @reportsShareDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Financial Data?'**
+  String get reportsShareDataTitle;
+
+  /// No description provided for @commonShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get commonShare;
+
+  /// No description provided for @transactionsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search transactions, notes, or dates'**
+  String get transactionsSearchHint;
+
+  /// No description provided for @authForgotPasswordQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get authForgotPasswordQ;
+
+  /// No description provided for @commonTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms'**
+  String get commonTerms;
+
+  /// No description provided for @commonPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get commonPrivacy;
+
+  /// No description provided for @addSubscriptionOptionalDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional Details'**
+  String get addSubscriptionOptionalDetails;
+
+  /// No description provided for @settingsLegalReviewConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal review confirmation'**
+  String get settingsLegalReviewConfirmation;
+
+  /// No description provided for @commonSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get commonSaveChanges;
+
+  /// No description provided for @savingsKeepGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going'**
+  String get savingsKeepGoing;
+
+  /// No description provided for @savingsSimulateCustomAllocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulate custom allocation'**
+  String get savingsSimulateCustomAllocation;
+
+  /// No description provided for @savingsSimulationOutput.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulation output'**
+  String get savingsSimulationOutput;
+
+  /// No description provided for @savingsSimulate.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulate'**
+  String get savingsSimulate;
+
+  /// No description provided for @savingsConfirmAndApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm and apply'**
+  String get savingsConfirmAndApply;
+
+  /// No description provided for @scenarioCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {value}'**
+  String scenarioCurrent(String value);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -360,6 +360,7 @@ class _CompactMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: 185,
       padding: const EdgeInsets.all(12),
@@ -373,14 +374,14 @@ class _CompactMetric extends StatelessWidget {
           Text(label, style: Theme.of(context).textTheme.labelSmall),
           const SizedBox(height: 6),
           Text(
-            'Current: $currentValue',
+            l10n.scenarioCurrent(currentValue),
             style: Theme.of(context)
                 .textTheme
                 .bodySmall
                 ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 2),
-          Text('Sim: $simulatedValue',
+          Text(l10n.scenarioSim(simulatedValue),
               style: Theme.of(context).textTheme.bodySmall),
         ],
       ),

@@ -149,7 +149,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 onPressed: form.submitting
                     ? null
                     : () => context.push('/forgot-password'),
-                child: const Text('Forgot password?'),
+                child: Text(l10n.authForgotPasswordQ),
               ),
             ),
             if (form.errorMessage != null) ...[
@@ -229,7 +229,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 TextButton(
                   onPressed: () => context.push('/legal/terms'),
-                  child: const Text('Terms'),
+                  child: Text(l10n.commonTerms),
                 ),
                 Text(
                   '•',
@@ -239,7 +239,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 TextButton(
                   onPressed: () => context.push('/legal/privacy'),
-                  child: const Text('Privacy'),
+                  child: Text(l10n.commonPrivacy),
                 ),
               ],
             ),

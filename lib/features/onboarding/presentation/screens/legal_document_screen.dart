@@ -62,7 +62,7 @@ LegalDocumentDefinition legalDocumentForType(
     case LegalDocumentType.privacy:
       return LegalDocumentDefinition(
         title: l10n.legalPrivacyTitle,
-        subtitle: 'How personal and financial data is handled in SmartSpend.',
+        subtitle: l10n.legalPrivacyDocSubtitle,
         assetPath: 'legal/PRIVACY_POLICY.md',
       );
     case LegalDocumentType.cookies:

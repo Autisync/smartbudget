@@ -132,7 +132,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           const SizedBox(height: 8),
           TextButton(
             onPressed: _submitting ? null : () => context.go('/login'),
-            child: const Text('Return to sign in'),
+            child: Text(l10n.authBackToSignIn),
           ),
         ],
       ),

@@ -445,7 +445,7 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
             onChanged: (value) => setState(() => _isActive = value),
           ),
           const SizedBox(height: 16),
-          const _FormSectionLabel(label: 'Optional Details'),
+          _FormSectionLabel(label: l10n?.addSubscriptionOptionalDetails ?? 'Optional Details'),
           const SizedBox(height: 8),
           ModernInput(
             controller: _paymentMethodController,

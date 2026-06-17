@@ -254,6 +254,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
   Future<void> _drainMilestoneQueue() async {
     if (_isShowingMilestonePopup || !mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     _isShowingMilestonePopup = true;
     while (_milestoneQueue.isNotEmpty && mounted) {
       final event = _milestoneQueue.removeAt(0);
@@ -285,7 +286,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           actions: [
             FilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Keep going'),
+              child: Text(l10n.savingsKeepGoing),
             ),
           ],
         ),
@@ -1310,6 +1311,7 @@ class _SavingsSurplusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1352,7 +1354,7 @@ class _SavingsSurplusCard extends StatelessWidget {
           FilledButton.icon(
             onPressed: onOpenAllocator,
             icon: const Icon(Icons.auto_graph),
-            label: const Text('Simulate custom allocation'),
+            label: Text(l10n.savingsSimulateCustomAllocation),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
               backgroundColor: Colors.green,
@@ -1663,6 +1665,7 @@ class _SavingsDormantGoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1699,7 +1702,7 @@ class _SavingsDormantGoalCard extends StatelessWidget {
           const SizedBox(width: 8),
           TextButton(
             onPressed: onRestore,
-            child: const Text('Resume'),
+            child: Text(l10n.commonResume),
           ),
           IconButton(
             onPressed: onDelete,
@@ -1931,7 +1934,7 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Simulation output',
+                    Text(l10n.savingsSimulationOutput,
                         style: Theme.of(context).textTheme.labelLarge),
                     const SizedBox(height: 8),
                     Text(
@@ -1957,17 +1960,17 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
             const SizedBox(height: 14),
             FilledButton(
               onPressed: _simulate,
-              child: const Text('Simulate'),
+              child: Text(l10n.savingsSimulate),
             ),
             const SizedBox(height: 8),
             FilledButton.tonal(
               onPressed: _state == _SimulationState.simulated ? _apply : null,
-              child: const Text('Confirm and apply'),
+              child: Text(l10n.savingsConfirmAndApply),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: _cancel,
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
           ],
         ),

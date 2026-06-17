@@ -206,7 +206,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           const SizedBox(height: 6),
           TextButton(
             onPressed: () => context.go('/login'),
-            child: const Text('Back to sign in'),
+            child: Text(l10n.authBackToSignIn),
           ),
         ],
       ),

@@ -2758,4 +2758,111 @@ class AppLocalizationsFr extends AppLocalizations {
   String scenarioResilience(String value) {
     return 'Résilience $value';
   }
+
+  @override
+  String get tourWelcomeTitle => 'Bienvenue sur SmartSpend';
+
+  @override
+  String get tourWelcomeSubtitle => 'Votre application de finances personnelles tout-en-un. Suivez vos dépenses, créez des budgets et augmentez votre épargne, le tout au même endroit.';
+
+  @override
+  String get tourTrackTitle => 'Suivez chaque transaction';
+
+  @override
+  String get tourTrackSubtitle => 'Enregistrez espèces, virements et paiements par carte. Voyez exactement où va votre argent en temps réel.';
+
+  @override
+  String get tourBudgetsTitle => 'Définissez budgets et objectifs';
+
+  @override
+  String get tourBudgetsSubtitle => 'Créez des budgets par catégorie et des objectifs d\'épargne. SmartSpend suit votre progression et vous avertit avant tout dépassement.';
+
+  @override
+  String get tourAddTitle => 'Ajoutez tout en un seul geste';
+
+  @override
+  String get tourAddSubtitle => 'Le bouton « + » ouvre un menu d\'ajout rapide. L\'icône en grille ouvre la navigation : rapports, comptes, analyses IA et plus.';
+
+  @override
+  String get commonResume => 'Reprendre';
+
+  @override
+  String get commonAccount => 'Compte';
+
+  @override
+  String get budgetsPauseBudget => 'Suspendre le budget';
+
+  @override
+  String get budgetsResumeBudget => 'Reprendre le budget';
+
+  @override
+  String get legalPrivacyDocSubtitle => 'Comment les données personnelles et financières sont gérées dans SmartSpend.';
+
+  @override
+  String get reportsIncludeCharts => 'Inclure les graphiques';
+
+  @override
+  String get reportsIncludeTransactions => 'Inclure les transactions détaillées';
+
+  @override
+  String get reportsIncludeBudgets => 'Inclure les budgets';
+
+  @override
+  String get reportsIncludeSubscriptions => 'Inclure les abonnements';
+
+  @override
+  String get reportsIncludeSavings => 'Inclure les objectifs d\'épargne';
+
+  @override
+  String get reportsExportFinancialSummaryPdf => 'Exporter le résumé financier (PDF)';
+
+  @override
+  String get reportsExportCompleteCsv => 'Exporter toutes les données (CSV)';
+
+  @override
+  String get reportsShareDataTitle => 'Partager les données financières ?';
+
+  @override
+  String get commonShare => 'Partager';
+
+  @override
+  String get transactionsSearchHint => 'Rechercher transactions, notes ou dates';
+
+  @override
+  String get authForgotPasswordQ => 'Mot de passe oublié ?';
+
+  @override
+  String get commonTerms => 'Conditions';
+
+  @override
+  String get commonPrivacy => 'Confidentialité';
+
+  @override
+  String get addSubscriptionOptionalDetails => 'Détails facultatifs';
+
+  @override
+  String get settingsLegalReviewConfirmation => 'Confirmation de l\'examen juridique';
+
+  @override
+  String get commonSaveChanges => 'Enregistrer les modifications';
+
+  @override
+  String get savingsKeepGoing => 'Continuez';
+
+  @override
+  String get savingsSimulateCustomAllocation => 'Simuler une affectation personnalisée';
+
+  @override
+  String get savingsSimulationOutput => 'Résultat de la simulation';
+
+  @override
+  String get savingsSimulate => 'Simuler';
+
+  @override
+  String get savingsConfirmAndApply => 'Confirmer et appliquer';
+
+  @override
+  String scenarioCurrent(String value) {
+    return 'Actuel : $value';
+  }
 }

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
@@ -280,7 +281,7 @@ class _TourFlowState extends State<_TourFlow> with TickerProviderStateMixin {
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.white60,
                           ),
-                          child: const Text('Skip'),
+                          child: Text(AppLocalizations.of(context)!.onboardingSkip),
                         )
                       : const SizedBox.shrink(),
                 );
@@ -385,6 +386,22 @@ class _BottomPanel extends StatelessWidget {
     final bottom = MediaQuery.paddingOf(context).bottom;
     final data = _steps[step];
     final isLast = step == totalSteps - 1;
+    final l10n = AppLocalizations.of(context)!;
+    final titles = [
+      l10n.tourWelcomeTitle,
+      l10n.tourTrackTitle,
+      l10n.tourBudgetsTitle,
+      l10n.tourAddTitle,
+    ];
+    final subtitles = [
+      l10n.tourWelcomeSubtitle,
+      l10n.tourTrackSubtitle,
+      l10n.tourBudgetsSubtitle,
+      l10n.tourAddSubtitle,
+    ];
+    final stepTitle = step < titles.length ? titles[step] : data.title;
+    final stepSubtitle =
+        step < subtitles.length ? subtitles[step] : data.subtitle;
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -456,7 +473,7 @@ class _BottomPanel extends StatelessWidget {
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   child: Text(
-                    data.title,
+                    stepTitle,
                     key: ValueKey(step),
                     style: const TextStyle(
                       color: Colors.white,
@@ -487,7 +504,7 @@ class _BottomPanel extends StatelessWidget {
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   child: Text(
-                    data.subtitle,
+                    stepSubtitle,
                     key: ValueKey(step),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.75),

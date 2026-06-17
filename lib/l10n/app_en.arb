@@ -1662,5 +1662,47 @@
         "type": "String"
       }
     }
+  },
+  "tourWelcomeTitle": "Welcome to SmartSpend",
+  "tourWelcomeSubtitle": "Your all-in-one personal finance app. Track spending, build budgets, and grow savings — all in one place.",
+  "tourTrackTitle": "Track every transaction",
+  "tourTrackSubtitle": "Log cash, bank transfers and credit card payments. See exactly where your money goes in real time.",
+  "tourBudgetsTitle": "Set budgets & goals",
+  "tourBudgetsSubtitle": "Create category budgets and savings goals. SmartSpend tracks your progress and warns you before you overspend.",
+  "tourAddTitle": "Add anything in one tap",
+  "tourAddSubtitle": "The \"+\" button launches a quick-add menu. The grid icon opens navigation — reports, accounts, AI insights and more.",
+  "commonResume": "Resume",
+  "commonAccount": "Account",
+  "budgetsPauseBudget": "Pause budget",
+  "budgetsResumeBudget": "Resume budget",
+  "legalPrivacyDocSubtitle": "How personal and financial data is handled in SmartSpend.",
+  "reportsIncludeCharts": "Include charts",
+  "reportsIncludeTransactions": "Include detailed transactions",
+  "reportsIncludeBudgets": "Include budgets",
+  "reportsIncludeSubscriptions": "Include subscriptions",
+  "reportsIncludeSavings": "Include savings goals",
+  "reportsExportFinancialSummaryPdf": "Export Financial Summary (PDF)",
+  "reportsExportCompleteCsv": "Export Complete Data (CSV)",
+  "reportsShareDataTitle": "Share Financial Data?",
+  "commonShare": "Share",
+  "transactionsSearchHint": "Search transactions, notes, or dates",
+  "authForgotPasswordQ": "Forgot password?",
+  "commonTerms": "Terms",
+  "commonPrivacy": "Privacy",
+  "addSubscriptionOptionalDetails": "Optional Details",
+  "settingsLegalReviewConfirmation": "Legal review confirmation",
+  "commonSaveChanges": "Save changes",
+  "savingsKeepGoing": "Keep going",
+  "savingsSimulateCustomAllocation": "Simulate custom allocation",
+  "savingsSimulationOutput": "Simulation output",
+  "savingsSimulate": "Simulate",
+  "savingsConfirmAndApply": "Confirm and apply",
+  "scenarioCurrent": "Current: {value}",
+  "@scenarioCurrent": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
   }
 }
