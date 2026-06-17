@@ -210,6 +210,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
   void _trackGoalMilestone(SavingsGoal goal, double progress) {
     if (!_goalMilestonesLoaded) return;
+    final l10n = AppLocalizations.of(context)!;
     final reachedMilestone = _milestoneForProgress(progress);
     if (reachedMilestone <= 0) return;
 
@@ -224,7 +225,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
     _enqueueMilestonePopup(
       _MilestonePopupEvent(
-        title: 'Savings milestone reached',
+        title: l10n.savingsMilestoneReached,
         headline: '${goal.title}: $reachedMilestone% complete',
         message: _savingsMilestoneMessage(reachedMilestone),
       ),
@@ -605,11 +606,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
                 // Savings Goals
                 if (activeGoals.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
                     child: SmartEmptyState(
                       icon: Icons.pause_circle_outline,
-                      title: 'No active savings goals',
+                      title: l10n.savingsNoActiveGoals,
                       message:
                           'All savings plans are paused or archived. Resume one below to continue.',
                       lottieAsset: 'assets/animations/empty_savings.json',
@@ -664,7 +665,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                                 Theme.of(context).colorScheme.secondary,
                             foregroundColor: Colors.white,
                             icon: Icons.pause_circle_outline_rounded,
-                            label: 'Pause',
+                            label: l10n.commonPause,
                             borderRadius:
                                 BorderRadius.circular(UiTokens.radiusXl),
                           ),
@@ -684,7 +685,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                                 Theme.of(context).colorScheme.tertiary,
                             foregroundColor: Colors.white,
                             icon: Icons.archive_outlined,
-                            label: 'Archive',
+                            label: l10n.commonArchive,
                             borderRadius:
                                 BorderRadius.circular(UiTokens.radiusXl),
                           ),
@@ -837,6 +838,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     required String currencyCode,
   }) async {
     if (goals.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
     final result = await AppFormSheet.show<_SurplusSimulationResult>(
       context,
       builder: (_) => Padding(
@@ -856,7 +858,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     if (result == null) {
       AppFeedback.show(
         context,
-        message: 'Surplus allocation cancelled.',
+        message: l10n.savingsSurplusCancelled,
         type: AppFeedbackType.info,
       );
       return;
@@ -865,7 +867,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     if (!result.confirmed) {
       AppFeedback.show(
         context,
-        message: 'Simulation saved without applying changes.',
+        message: l10n.savingsSimulationSavedNoApply,
         type: AppFeedbackType.info,
       );
       return;
@@ -874,7 +876,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     if (result.amount <= 0) {
       AppFeedback.show(
         context,
-        message: 'Enter an amount above 0 to allocate.',
+        message: l10n.savingsEnterAmountAboveZero,
         type: AppFeedbackType.error,
       );
       return;
@@ -895,6 +897,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     required SavingsGoal goal,
     required NumberFormat currencyFormat,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     switch (action) {
       case 'addFunds':
         await _openContributionDialog(context, ref, goal);
@@ -933,11 +936,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       case 'archive':
         final confirm = await showDialog<bool>(
               context: context,
-              builder: (context) => const ConfirmActionDialog(
-                title: 'Archive goal?',
+              builder: (context) => ConfirmActionDialog(
+                title: l10n.savingsArchiveGoalTitle,
                 message:
                     'This goal will move to Archived plans until you restore it.',
-                confirmLabel: 'Archive',
+                confirmLabel: l10n.commonArchive,
               ),
             ) ??
             false;
@@ -961,11 +964,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       case 'delete':
         final deleteConfirm = await showDialog<bool>(
               context: context,
-              builder: (context) => const ConfirmActionDialog(
-                title: 'Delete goal?',
+              builder: (context) => ConfirmActionDialog(
+                title: l10n.savingsDeleteGoalTitle,
                 message:
                     'This permanently removes the goal and cannot be undone.',
-                confirmLabel: 'Delete',
+                confirmLabel: l10n.delete,
               ),
             ) ??
             false;
@@ -986,29 +989,30 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     if (!mounted) return;
     AppFeedback.show(
       context,
-      message: 'Savings goal updated.',
+      message: l10n.savingsGoalUpdated,
       type: AppFeedbackType.success,
     );
   }
 
   Future<void> _pickGoalPriority(SavingsGoal goal) async {
+    final l10n = AppLocalizations.of(context)!;
     final selected = await AppBottomActionSheet.show(
       context,
-      title: 'Set goal priority',
-      actions: const [
+      title: l10n.savingsSetPriorityTitle,
+      actions: [
         AppBottomAction(
           value: 'high',
-          label: 'High priority',
+          label: l10n.savingsPriorityHigh,
           icon: Icons.priority_high,
         ),
         AppBottomAction(
           value: 'medium',
-          label: 'Medium priority',
+          label: l10n.savingsPriorityMedium,
           icon: Icons.drag_indicator,
         ),
         AppBottomAction(
           value: 'low',
-          label: 'Low priority',
+          label: l10n.savingsPriorityLow,
           icon: Icons.south,
         ),
       ],
@@ -1026,7 +1030,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     if (!mounted) return;
     AppFeedback.show(
       context,
-      message: 'Goal priority updated.',
+      message: l10n.savingsPriorityUpdated,
       type: AppFeedbackType.success,
     );
   }
@@ -1474,7 +1478,7 @@ class _SavingsGoalCard extends StatelessWidget {
               ),
               AppActionMenu(
                 title: goal.title,
-                tooltip: 'Savings goal actions',
+                tooltip: l10n.savingsGoalActions,
                 onSelected: onActionSelected,
                 items: [
                   AppActionItem(
@@ -1482,14 +1486,14 @@ class _SavingsGoalCard extends StatelessWidget {
                     label: l10n.savingsAddFunds,
                     icon: Icons.add_circle_outline,
                   ),
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'simulate',
-                    label: 'Simulate contribution',
+                    label: l10n.savingsSimulateContribution,
                     icon: Icons.auto_graph,
                   ),
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'setPriority',
-                    label: 'Set priority',
+                    label: l10n.savingsSetPriority,
                     icon: Icons.flag_outlined,
                   ),
                   AppActionItem(
@@ -1497,19 +1501,19 @@ class _SavingsGoalCard extends StatelessWidget {
                     label: l10n.savingsEditGoal,
                     icon: Icons.edit_outlined,
                   ),
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'pause',
-                    label: 'Pause auto-allocation',
+                    label: l10n.savingsPauseAutoAllocation,
                     icon: Icons.pause_circle_outline,
                   ),
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'complete',
-                    label: 'Mark complete',
+                    label: l10n.savingsMarkComplete,
                     icon: Icons.check_circle_outline,
                   ),
-                  const AppActionItem(
+                  AppActionItem(
                     value: 'archive',
-                    label: 'Archive',
+                    label: l10n.commonArchive,
                     icon: Icons.archive_outlined,
                   ),
                   AppActionItem(
@@ -1769,6 +1773,7 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
   }
 
   Future<void> _simulate() async {
+    final l10n = AppLocalizations.of(context)!;
     final parsed = FormValidation.parseDecimal(_controller.text);
     if (parsed == null || parsed <= 0) {
       setState(() {
@@ -1781,11 +1786,11 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
     if (parsed > widget.monthlySurplus) {
       final confirmOver = await showDialog<bool>(
             context: context,
-            builder: (context) => const ConfirmActionDialog(
-              title: 'Use more than monthly surplus?',
+            builder: (context) => ConfirmActionDialog(
+              title: l10n.savingsUseMoreThanSurplusTitle,
               message:
                   'This amount is above the available monthly surplus. Continue with simulation?',
-              confirmLabel: 'Continue',
+              confirmLabel: l10n.commonContinue,
             ),
           ) ??
           false;
@@ -1824,6 +1829,7 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final topGoal = _topGoal;
     final amount = _simulatedAmount ?? 0;
     final remainingToGoal =
@@ -1872,7 +1878,7 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
             const SizedBox(height: 12),
             CurrencyInput(
               controller: _controller,
-              label: 'Custom monthly allocation',
+              label: l10n.savingsCustomMonthlyAllocation,
               currencySymbol: widget.currencyFormat.currencySymbol,
               helperText:
                   'Available surplus: ${widget.currencyFormat.format(widget.monthlySurplus)}',

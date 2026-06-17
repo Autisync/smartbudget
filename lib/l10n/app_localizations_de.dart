@@ -2308,4 +2308,345 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get commonArchive => 'Archivieren';
+
+  @override
+  String get savingsMilestoneReached => 'Sparmeilenstein erreicht';
+
+  @override
+  String get savingsNoActiveGoals => 'Keine aktiven Sparziele';
+
+  @override
+  String get commonPause => 'Pausieren';
+
+  @override
+  String get commonContinue => 'Weiter';
+
+  @override
+  String get savingsSurplusCancelled => 'Überschuss-Zuweisung abgebrochen.';
+
+  @override
+  String get savingsSimulationSavedNoApply => 'Simulation gespeichert, ohne Änderungen anzuwenden.';
+
+  @override
+  String get savingsEnterAmountAboveZero => 'Geben Sie einen Betrag über 0 ein, um zuzuweisen.';
+
+  @override
+  String get savingsArchiveGoalTitle => 'Ziel archivieren?';
+
+  @override
+  String get savingsDeleteGoalTitle => 'Ziel löschen?';
+
+  @override
+  String get savingsGoalUpdated => 'Sparziel aktualisiert.';
+
+  @override
+  String get savingsSetPriorityTitle => 'Zielpriorität festlegen';
+
+  @override
+  String get savingsPriorityHigh => 'Hohe Priorität';
+
+  @override
+  String get savingsPriorityMedium => 'Mittlere Priorität';
+
+  @override
+  String get savingsPriorityLow => 'Niedrige Priorität';
+
+  @override
+  String get savingsPriorityUpdated => 'Zielpriorität aktualisiert.';
+
+  @override
+  String get savingsGoalActions => 'Aktionen für Sparziel';
+
+  @override
+  String get savingsSimulateContribution => 'Beitrag simulieren';
+
+  @override
+  String get savingsSetPriority => 'Priorität festlegen';
+
+  @override
+  String get savingsPauseAutoAllocation => 'Auto-Zuweisung pausieren';
+
+  @override
+  String get savingsMarkComplete => 'Als erledigt markieren';
+
+  @override
+  String get savingsUseMoreThanSurplusTitle => 'Mehr als den monatlichen Überschuss verwenden?';
+
+  @override
+  String get savingsCustomMonthlyAllocation => 'Individuelle monatliche Zuweisung';
+
+  @override
+  String get reportsTitleExport => 'Berichte & Export';
+
+  @override
+  String get reportsOverviewTitle => 'Berichtsübersicht';
+
+  @override
+  String get reportsLastExport => 'Letzter Export';
+
+  @override
+  String get reportsAvailableTypes => 'Verfügbare Typen';
+
+  @override
+  String get commonGenerate => 'Erstellen';
+
+  @override
+  String get reportsActions => 'Bericht-Aktionen';
+
+  @override
+  String get reportsScheduleRun => 'Ausführung planen';
+
+  @override
+  String get reportsNoActivityTitle => 'Noch keine Berichtsaktivität';
+
+  @override
+  String get reportsNoActivityMessage => 'Erstellte und exportierte Berichte erscheinen hier.';
+
+  @override
+  String get reportsGenerateReport => 'Bericht erstellen';
+
+  @override
+  String get reportsNoGeneratedTitle => 'Noch keine erstellten Berichte';
+
+  @override
+  String get commonDownload => 'Herunterladen';
+
+  @override
+  String get reportsActivityActions => 'Aktionen zur Berichtsaktivität';
+
+  @override
+  String get reportsShareExport => 'Teilen / Exportieren';
+
+  @override
+  String get commonFormat => 'Format';
+
+  @override
+  String get reportTypeFinancialSummary => 'Finanzübersicht';
+
+  @override
+  String get reportTypeTransactionHistory => 'Transaktionsverlauf';
+
+  @override
+  String get reportTypeBudgetAnalysis => 'Budgetanalyse';
+
+  @override
+  String get reportTypeSubscriptionCosts => 'Abo-Kosten';
+
+  @override
+  String get reportTypeSavingsProgress => 'Sparfortschritt';
+
+  @override
+  String get reportTypeCashflowForecast => 'Cashflow-Prognose';
+
+  @override
+  String get reportTypeCategoryInsights => 'Kategorie-Einblicke';
+
+  @override
+  String get reportTypeTaxReady => 'Steuerfertiger Export';
+
+  @override
+  String get reportTypeCompleteExport => 'Vollständiger Export';
+
+  @override
+  String reportShared(String name) {
+    return '$name geteilt';
+  }
+
+  @override
+  String get authWelcomeBack => 'Willkommen zurück';
+
+  @override
+  String get authLoginSubtitle => 'Verwalten Sie Ihre Finanzen mit Zuversicht.';
+
+  @override
+  String get authNewHere => 'Neu hier?';
+
+  @override
+  String get authCreateAccount => 'Konto erstellen';
+
+  @override
+  String get authEmail => 'E-Mail';
+
+  @override
+  String get authPassword => 'Passwort';
+
+  @override
+  String get authEnterPassword => 'Passwort eingeben';
+
+  @override
+  String get authContinueApple => 'Mit Apple fortfahren';
+
+  @override
+  String get authContinueGoogle => 'Mit Google fortfahren';
+
+  @override
+  String get authUnlockSession => 'Sitzung entsperren';
+
+  @override
+  String get authUnlockSubtitle => 'Bestätigen Sie Ihre Identität, um sicher fortzufahren.';
+
+  @override
+  String get authSignupSubtitle => 'Bauen Sie gesündere Finanzgewohnheiten auf.';
+
+  @override
+  String get authAlreadyHaveAccount => 'Schon ein Konto?';
+
+  @override
+  String get authSignIn => 'Anmelden';
+
+  @override
+  String get authFirstName => 'Vorname';
+
+  @override
+  String get authFirstNameHint => 'Vorname';
+
+  @override
+  String get authLastName => 'Nachname';
+
+  @override
+  String get authLastNameHint => 'Nachname';
+
+  @override
+  String get authCreatePassword => 'Passwort erstellen';
+
+  @override
+  String get authConfirmPassword => 'Passwort bestätigen';
+
+  @override
+  String get authRepeatPassword => 'Passwort wiederholen';
+
+  @override
+  String get authForgotPassword => 'Passwort vergessen';
+
+  @override
+  String get authForgotSubtitle => 'Stellen Sie den Kontozugang in wenigen Schritten wieder her.';
+
+  @override
+  String get authBackToSignIn => 'Zurück zur Anmeldung';
+
+  @override
+  String get authSetNewPassword => 'Neues Passwort festlegen';
+
+  @override
+  String get authResetSubtitle => 'Schützen Sie Ihr Konto mit einem starken neuen Passwort.';
+
+  @override
+  String get authNewPassword => 'Neues Passwort';
+
+  @override
+  String get authNewPasswordHint => 'Neues Passwort erstellen';
+
+  @override
+  String get authReEnterPasswordHint => 'Passwort erneut eingeben';
+
+  @override
+  String get authConfirmEmail => 'Bestätigen Sie Ihre E-Mail';
+
+  @override
+  String get securityTimeout => 'Zeitlimit';
+
+  @override
+  String get securityAttempts => 'Versuche';
+
+  @override
+  String get settingsItems => 'Einträge';
+
+  @override
+  String get settingsMainFeatures => 'Hauptfunktionen';
+
+  @override
+  String get settingsMainFeaturesSubtitle => 'Wesentliche Werkzeuge, um Ausgaben zu verwalten, vorauszuplanen und die finanzielle Gesundheit zu verbessern.';
+
+  @override
+  String get settingsIncludedTransactions => 'Transaktionen und wiederkehrende Einträge';
+
+  @override
+  String get settingsIncludedBudgets => 'Budgets, Sparziele und Abos';
+
+  @override
+  String get settingsIncludedInsights => 'Einblicke, Prognosen und Anomalie-Warnungen';
+
+  @override
+  String get settingsExploreFeatures => 'Funktionen entdecken';
+
+  @override
+  String get settingsFeatureFinSimulator => 'Fin Simulator';
+
+  @override
+  String get settingsFeatureFinSimulatorDesc => 'Führen Sie Was-wäre-wenn-Finanzszenarien mit prognostizierten Ergebnissen aus.';
+
+  @override
+  String get settingsFeatureAiCoach => 'AI Budget Coach';
+
+  @override
+  String get settingsFeatureAiCoachDesc => 'Erhalten Sie wöchentlich personalisierte Ausgaben- und Spartipps.';
+
+  @override
+  String get commonComingSoon => 'Demnächst';
+
+  @override
+  String get settingsOthers => 'Sonstiges';
+
+  @override
+  String get settingsAccountsSubtitle => 'Verwalten Sie Bargeld, Überweisungen und Kreditquellen';
+
+  @override
+  String get settingsTellFriend => 'Freund empfehlen';
+
+  @override
+  String get settingsSendFeedback => 'Feedback senden';
+
+  @override
+  String get settingsSendFeedbackSubtitle => 'Technisches und allgemeines Feedback per E-Mail';
+
+  @override
+  String get settingsPreferences => 'Einstellungen';
+
+  @override
+  String get settingsLegalOnboarding => 'Rechtliches & Einführung';
+
+  @override
+  String get settingsSignOut => 'Abmelden';
+
+  @override
+  String get settingsProfileUpdated => 'Profil aktualisiert.';
+
+  @override
+  String get settingsOnboardingRestarted => 'Einführung neu gestartet.';
+
+  @override
+  String get settingsReferralComingSoon => 'Empfehlungen kommen bald.';
+
+  @override
+  String get settingsNotSignedIn => 'Nicht angemeldet';
+
+  @override
+  String get settingsNoTimestamp => 'Noch kein Zeitstempel erfasst.';
+
+  @override
+  String get insightsCopilotTitle => 'Finanz-Copilot';
+
+  @override
+  String get insightsTimeframeFocus => 'Zeitraum & Fokus';
+
+  @override
+  String get insightsRecommendedActions => 'Empfohlene Aktionen';
+
+  @override
+  String get insightsForecast => 'Prognose';
+
+  @override
+  String get insightsActualVsPredicted => 'Tatsächliche vs. prognostizierte Ausgaben';
+
+  @override
+  String get insightsRecentActivity => 'Letzte Copilot-Aktivität';
+
+  @override
+  String get insightsQuickActions => 'Schnellaktionen';
+
+  @override
+  String get insightsAnalyzing => 'Finanzmuster werden analysiert…';
+
+  @override
+  String get insightsAnalysisFailed => 'Analyse fehlgeschlagen';
 }

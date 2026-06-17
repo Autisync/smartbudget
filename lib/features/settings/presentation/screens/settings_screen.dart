@@ -222,18 +222,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final notificationsLabel = notificationPrefs.enabled
         ? l10n.settingsNotificationsEnabled
         : l10n.settingsNotificationsPaused;
-    final userEmail = session.user?.email ?? 'Not signed in';
+    final userEmail = session.user?.email ?? l10n.settingsNotSignedIn;
     final isActive = session.user?.isActive ?? false;
     final displayName = [
       session.user?.firstName ?? '',
       session.user?.lastName ?? '',
     ].where((part) => part.trim().isNotEmpty).join(' ').trim();
     final userDisplayName =
-        displayName.isEmpty ? 'SmartSpend User' : displayName;
+        displayName.isEmpty ? l10n.dashboardDefaultUserName : displayName;
     final isVerified = session.user?.isVerified ?? false;
     final legalReviewedAt = onboardingStatus?.legalReviewedAt;
     final legalReviewedAtLabel = legalReviewedAt == null
-        ? 'No timestamp recorded yet.'
+        ? l10n.settingsNoTimestamp
         : DateFormat.yMMMd(appLocale.languageCode)
             .add_jm()
             .format(legalReviewedAt.toLocal());
@@ -351,7 +351,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: _StatsTile(
                       icon: Icons.receipt_long_rounded,
                       value: '$transactionsCount',
-                      label: 'Transactions',
+                      label: l10n.transactionsTitle,
                     ),
                   ),
                   SizedBox(
@@ -365,7 +365,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: _StatsTile(
                       icon: Icons.inventory_2_outlined,
                       value: '$itemsCount',
-                      label: 'Items',
+                      label: l10n.settingsItems,
                     ),
                   ),
                 ],
@@ -384,7 +384,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Main Features',
+                        l10n.settingsMainFeatures,
                         style: Theme.of(context)
                             .textTheme
                             .titleLarge
@@ -392,7 +392,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Essential tools to manage spending, plan ahead, and improve financial health.',
+                        l10n.settingsMainFeaturesSubtitle,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -408,12 +408,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: 14),
-                  const _IncludedItem(
-                      label: 'Transactions and recurring entries'),
-                  const _IncludedItem(
-                      label: 'Budgets, savings goals, and subscriptions'),
-                  const _IncludedItem(
-                      label: 'Insights, forecasts, and anomaly alerts'),
+                  _IncludedItem(
+                      label: l10n.settingsIncludedTransactions),
+                  _IncludedItem(
+                      label: l10n.settingsIncludedBudgets),
+                  _IncludedItem(
+                      label: l10n.settingsIncludedInsights),
                 ],
               ),
             ),
@@ -421,31 +421,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const _SectionDivider(),
             const SizedBox(height: 22),
             Text(
-              'Explore features',
+              l10n.settingsExploreFeatures,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 12),
-            const IntrinsicHeight(
+            IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(
                     child: _FeatureCard(
                       icon: Icons.description_outlined,
-                      title: 'Fin Simulator',
+                      title: l10n.settingsFeatureFinSimulator,
                       subtitle:
-                          'Run what-if financial scenarios with projected outcomes.',
-                      tag: 'Coming soon',
+                          l10n.settingsFeatureFinSimulatorDesc,
+                      tag: l10n.commonComingSoon,
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: _FeatureCard(
                       icon: Icons.auto_awesome_mosaic_rounded,
-                      title: 'AI Budget Coach',
+                      title: l10n.settingsFeatureAiCoach,
                       subtitle:
-                          'Get weekly personalized spending and savings guidance.',
-                      tag: 'Coming soon',
+                          l10n.settingsFeatureAiCoachDesc,
+                      tag: l10n.commonComingSoon,
                     ),
                   ),
                 ],
@@ -455,7 +455,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const _SectionDivider(),
             const SizedBox(height: 26),
             Text(
-              'Others',
+              l10n.settingsOthers,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 10),
@@ -465,27 +465,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   _MoreActionTile(
                     icon: Icons.account_balance_wallet_outlined,
-                    title: 'Accounts',
-                    subtitle: 'Manage cash, transfer, and credit sources',
+                    title: l10n.accountsTitle,
+                    subtitle: l10n.settingsAccountsSubtitle,
                     tileVerticalPadding: 12,
                     showChevron: true,
                     onTap: () => context.push('/accounts'),
                   ),
                   _MoreActionTile(
                     icon: Icons.people_alt_outlined,
-                    title: 'Tell a friend',
+                    title: l10n.settingsTellFriend,
                     tileVerticalPadding: 12,
                     onTap: () {
                       AppFeedbackService.showInfo(
                         context,
-                        'Referral sharing coming soon.',
+                        l10n.settingsReferralComingSoon,
                       );
                     },
                   ),
                   _MoreActionTile(
                     icon: Icons.mail_outline,
-                    title: 'Send feedback',
-                    subtitle: 'Email tech and general feedback',
+                    title: l10n.settingsSendFeedback,
+                    subtitle: l10n.settingsSendFeedbackSubtitle,
                     tileVerticalPadding: 12,
                     showChevron: true,
                     onTap: _sendSupportFeedbackEmail,
@@ -502,7 +502,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const SizedBox(height: 10),
             _ModernSettingsGroup(
-              title: 'Preferences',
+              title: l10n.settingsPreferences,
               children: [
                 _MoreActionTile(
                   icon: Icons.palette_outlined,
@@ -706,7 +706,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             _ModernSettingsGroup(
-              title: 'Legal & Onboarding',
+              title: l10n.settingsLegalOnboarding,
               children: [
                 _MoreActionTile(
                   icon: Icons.gavel_rounded,
@@ -739,7 +739,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     if (!mounted) return;
                     AppFeedbackService.showSuccess(
                       this.context,
-                      'Onboarding restarted.',
+                      l10n.settingsOnboardingRestarted,
                     );
                     router.go('/onboarding');
                   },
@@ -748,7 +748,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             _ModernSettingsGroup(
-              title: 'Security',
+              title: l10n.settingsSecurity,
               children: [
                 _MoreActionTile(
                   icon: Icons.lock_outline,
@@ -779,7 +779,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       router.go('/login');
                     },
                     icon: const Icon(Icons.logout),
-                    label: const Text('Sign out'),
+                    label: Text(l10n.settingsSignOut),
                   ),
                 ),
               ],
@@ -1117,6 +1117,7 @@ class _PersonalDetailsSheetState extends ConsumerState<_PersonalDetailsSheet> {
 
   Future<void> _save() async {
     if (_saving || !_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context)!;
     if (!_isDirty) {
       Navigator.of(context).pop();
       return;
@@ -1130,7 +1131,7 @@ class _PersonalDetailsSheetState extends ConsumerState<_PersonalDetailsSheet> {
     setState(() => _saving = false);
     if (ok) {
       Navigator.of(context).pop();
-      AppFeedbackService.showSuccess(context, 'Profile updated.');
+      AppFeedbackService.showSuccess(context, l10n.settingsProfileUpdated);
     } else {
       final message = ref.read(sessionControllerProvider).errorMessage ??
           'Unable to update your profile right now.';
@@ -1142,6 +1143,7 @@ class _PersonalDetailsSheetState extends ConsumerState<_PersonalDetailsSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final liveName = [_first.text.trim(), _last.text.trim()]
         .where((p) => p.isNotEmpty)
         .join(' ')
@@ -1231,7 +1233,7 @@ class _PersonalDetailsSheetState extends ConsumerState<_PersonalDetailsSheet> {
           const SizedBox(height: 20),
           ModernInput(
             controller: _first,
-            label: 'First name',
+            label: l10n.authFirstName,
             hintText: 'e.g. Alex',
             prefixIcon: Icons.person_outline_rounded,
             onChanged: (_) => setState(() {}),
@@ -1241,7 +1243,7 @@ class _PersonalDetailsSheetState extends ConsumerState<_PersonalDetailsSheet> {
           const SizedBox(height: 16),
           ModernInput(
             controller: _last,
-            label: 'Last name',
+            label: l10n.authLastName,
             hintText: 'e.g. Morgan',
             prefixIcon: Icons.person_outline_rounded,
             onChanged: (_) => setState(() {}),
@@ -1255,7 +1257,7 @@ class _PersonalDetailsSheetState extends ConsumerState<_PersonalDetailsSheet> {
               opacity: 0.7,
               child: ModernInput(
                 controller: TextEditingController(text: widget.userEmail),
-                label: 'Email',
+                label: l10n.authEmail,
                 prefixIcon: Icons.alternate_email_rounded,
                 helperText: 'Contact support to change your email address.',
               ),

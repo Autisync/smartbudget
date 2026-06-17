@@ -4318,6 +4318,684 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Archive'**
   String get commonArchive;
+
+  /// No description provided for @savingsMilestoneReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings milestone reached'**
+  String get savingsMilestoneReached;
+
+  /// No description provided for @savingsNoActiveGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'No active savings goals'**
+  String get savingsNoActiveGoals;
+
+  /// No description provided for @commonPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get commonPause;
+
+  /// No description provided for @commonContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get commonContinue;
+
+  /// No description provided for @savingsSurplusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Surplus allocation cancelled.'**
+  String get savingsSurplusCancelled;
+
+  /// No description provided for @savingsSimulationSavedNoApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulation saved without applying changes.'**
+  String get savingsSimulationSavedNoApply;
+
+  /// No description provided for @savingsEnterAmountAboveZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount above 0 to allocate.'**
+  String get savingsEnterAmountAboveZero;
+
+  /// No description provided for @savingsArchiveGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive goal?'**
+  String get savingsArchiveGoalTitle;
+
+  /// No description provided for @savingsDeleteGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete goal?'**
+  String get savingsDeleteGoalTitle;
+
+  /// No description provided for @savingsGoalUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goal updated.'**
+  String get savingsGoalUpdated;
+
+  /// No description provided for @savingsSetPriorityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set goal priority'**
+  String get savingsSetPriorityTitle;
+
+  /// No description provided for @savingsPriorityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High priority'**
+  String get savingsPriorityHigh;
+
+  /// No description provided for @savingsPriorityMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium priority'**
+  String get savingsPriorityMedium;
+
+  /// No description provided for @savingsPriorityLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low priority'**
+  String get savingsPriorityLow;
+
+  /// No description provided for @savingsPriorityUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal priority updated.'**
+  String get savingsPriorityUpdated;
+
+  /// No description provided for @savingsGoalActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goal actions'**
+  String get savingsGoalActions;
+
+  /// No description provided for @savingsSimulateContribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulate contribution'**
+  String get savingsSimulateContribution;
+
+  /// No description provided for @savingsSetPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Set priority'**
+  String get savingsSetPriority;
+
+  /// No description provided for @savingsPauseAutoAllocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause auto-allocation'**
+  String get savingsPauseAutoAllocation;
+
+  /// No description provided for @savingsMarkComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark complete'**
+  String get savingsMarkComplete;
+
+  /// No description provided for @savingsUseMoreThanSurplusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use more than monthly surplus?'**
+  String get savingsUseMoreThanSurplusTitle;
+
+  /// No description provided for @savingsCustomMonthlyAllocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom monthly allocation'**
+  String get savingsCustomMonthlyAllocation;
+
+  /// No description provided for @reportsTitleExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports & Export'**
+  String get reportsTitleExport;
+
+  /// No description provided for @reportsOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reporting Overview'**
+  String get reportsOverviewTitle;
+
+  /// No description provided for @reportsLastExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Last export'**
+  String get reportsLastExport;
+
+  /// No description provided for @reportsAvailableTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Available types'**
+  String get reportsAvailableTypes;
+
+  /// No description provided for @commonGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate'**
+  String get commonGenerate;
+
+  /// No description provided for @reportsActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Report actions'**
+  String get reportsActions;
+
+  /// No description provided for @reportsScheduleRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule run'**
+  String get reportsScheduleRun;
+
+  /// No description provided for @reportsNoActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No report activity yet'**
+  String get reportsNoActivityTitle;
+
+  /// No description provided for @reportsNoActivityMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated and exported reports will appear here.'**
+  String get reportsNoActivityMessage;
+
+  /// No description provided for @reportsGenerateReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate report'**
+  String get reportsGenerateReport;
+
+  /// No description provided for @reportsNoGeneratedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No generated reports yet'**
+  String get reportsNoGeneratedTitle;
+
+  /// No description provided for @commonDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get commonDownload;
+
+  /// No description provided for @reportsActivityActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Report activity actions'**
+  String get reportsActivityActions;
+
+  /// No description provided for @reportsShareExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Share / Export'**
+  String get reportsShareExport;
+
+  /// No description provided for @commonFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get commonFormat;
+
+  /// No description provided for @reportTypeFinancialSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Summary'**
+  String get reportTypeFinancialSummary;
+
+  /// No description provided for @reportTypeTransactionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction History'**
+  String get reportTypeTransactionHistory;
+
+  /// No description provided for @reportTypeBudgetAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget Analysis'**
+  String get reportTypeBudgetAnalysis;
+
+  /// No description provided for @reportTypeSubscriptionCosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Costs'**
+  String get reportTypeSubscriptionCosts;
+
+  /// No description provided for @reportTypeSavingsProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings Progress'**
+  String get reportTypeSavingsProgress;
+
+  /// No description provided for @reportTypeCashflowForecast.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashflow Forecast'**
+  String get reportTypeCashflowForecast;
+
+  /// No description provided for @reportTypeCategoryInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Category Insights'**
+  String get reportTypeCategoryInsights;
+
+  /// No description provided for @reportTypeTaxReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax-ready Export'**
+  String get reportTypeTaxReady;
+
+  /// No description provided for @reportTypeCompleteExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Export'**
+  String get reportTypeCompleteExport;
+
+  /// No description provided for @reportShared.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} shared'**
+  String reportShared(String name);
+
+  /// No description provided for @authWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get authWelcomeBack;
+
+  /// No description provided for @authLoginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your finances with confidence.'**
+  String get authLoginSubtitle;
+
+  /// No description provided for @authNewHere.
+  ///
+  /// In en, this message translates to:
+  /// **'New here?'**
+  String get authNewHere;
+
+  /// No description provided for @authCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get authCreateAccount;
+
+  /// No description provided for @authEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get authEmail;
+
+  /// No description provided for @authPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get authPassword;
+
+  /// No description provided for @authEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter password'**
+  String get authEnterPassword;
+
+  /// No description provided for @authContinueApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get authContinueApple;
+
+  /// No description provided for @authContinueGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get authContinueGoogle;
+
+  /// No description provided for @authUnlockSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock your session'**
+  String get authUnlockSession;
+
+  /// No description provided for @authUnlockSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your identity to continue securely.'**
+  String get authUnlockSubtitle;
+
+  /// No description provided for @authSignupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start building healthier financial habits.'**
+  String get authSignupSubtitle;
+
+  /// No description provided for @authAlreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get authAlreadyHaveAccount;
+
+  /// No description provided for @authSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get authSignIn;
+
+  /// No description provided for @authFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get authFirstName;
+
+  /// No description provided for @authFirstNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'First'**
+  String get authFirstNameHint;
+
+  /// No description provided for @authLastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get authLastName;
+
+  /// No description provided for @authLastNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Last'**
+  String get authLastNameHint;
+
+  /// No description provided for @authCreatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Create password'**
+  String get authCreatePassword;
+
+  /// No description provided for @authConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get authConfirmPassword;
+
+  /// No description provided for @authRepeatPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat password'**
+  String get authRepeatPassword;
+
+  /// No description provided for @authForgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password'**
+  String get authForgotPassword;
+
+  /// No description provided for @authForgotSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover account access in a few quick steps.'**
+  String get authForgotSubtitle;
+
+  /// No description provided for @authBackToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get authBackToSignIn;
+
+  /// No description provided for @authSetNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a new password'**
+  String get authSetNewPassword;
+
+  /// No description provided for @authResetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect your account with a strong replacement password.'**
+  String get authResetSubtitle;
+
+  /// No description provided for @authNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get authNewPassword;
+
+  /// No description provided for @authNewPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new password'**
+  String get authNewPasswordHint;
+
+  /// No description provided for @authReEnterPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter the password'**
+  String get authReEnterPasswordHint;
+
+  /// No description provided for @authConfirmEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your email'**
+  String get authConfirmEmail;
+
+  /// No description provided for @securityTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeout'**
+  String get securityTimeout;
+
+  /// No description provided for @securityAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Attempts'**
+  String get securityAttempts;
+
+  /// No description provided for @settingsItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get settingsItems;
+
+  /// No description provided for @settingsMainFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Main features'**
+  String get settingsMainFeatures;
+
+  /// No description provided for @settingsMainFeaturesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Essential tools to manage spending, plan ahead, and improve financial health.'**
+  String get settingsMainFeaturesSubtitle;
+
+  /// No description provided for @settingsIncludedTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions and recurring entries'**
+  String get settingsIncludedTransactions;
+
+  /// No description provided for @settingsIncludedBudgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets, savings goals, and subscriptions'**
+  String get settingsIncludedBudgets;
+
+  /// No description provided for @settingsIncludedInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights, forecasts, and anomaly alerts'**
+  String get settingsIncludedInsights;
+
+  /// No description provided for @settingsExploreFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore features'**
+  String get settingsExploreFeatures;
+
+  /// No description provided for @settingsFeatureFinSimulator.
+  ///
+  /// In en, this message translates to:
+  /// **'Fin Simulator'**
+  String get settingsFeatureFinSimulator;
+
+  /// No description provided for @settingsFeatureFinSimulatorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Run what-if financial scenarios with projected outcomes.'**
+  String get settingsFeatureFinSimulatorDesc;
+
+  /// No description provided for @settingsFeatureAiCoach.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Budget Coach'**
+  String get settingsFeatureAiCoach;
+
+  /// No description provided for @settingsFeatureAiCoachDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get weekly personalized spending and savings guidance.'**
+  String get settingsFeatureAiCoachDesc;
+
+  /// No description provided for @commonComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get commonComingSoon;
+
+  /// No description provided for @settingsOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'Others'**
+  String get settingsOthers;
+
+  /// No description provided for @settingsAccountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage cash, transfer, and credit sources'**
+  String get settingsAccountsSubtitle;
+
+  /// No description provided for @settingsTellFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell a friend'**
+  String get settingsTellFriend;
+
+  /// No description provided for @settingsSendFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get settingsSendFeedback;
+
+  /// No description provided for @settingsSendFeedbackSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Email tech and general feedback'**
+  String get settingsSendFeedbackSubtitle;
+
+  /// No description provided for @settingsPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get settingsPreferences;
+
+  /// No description provided for @settingsLegalOnboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal & Onboarding'**
+  String get settingsLegalOnboarding;
+
+  /// No description provided for @settingsSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get settingsSignOut;
+
+  /// No description provided for @settingsProfileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated.'**
+  String get settingsProfileUpdated;
+
+  /// No description provided for @settingsOnboardingRestarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Onboarding restarted.'**
+  String get settingsOnboardingRestarted;
+
+  /// No description provided for @settingsReferralComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral sharing coming soon.'**
+  String get settingsReferralComingSoon;
+
+  /// No description provided for @settingsNotSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed in'**
+  String get settingsNotSignedIn;
+
+  /// No description provided for @settingsNoTimestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'No timestamp recorded yet.'**
+  String get settingsNoTimestamp;
+
+  /// No description provided for @insightsCopilotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Copilot'**
+  String get insightsCopilotTitle;
+
+  /// No description provided for @insightsTimeframeFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeframe & Focus'**
+  String get insightsTimeframeFocus;
+
+  /// No description provided for @insightsRecommendedActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended actions'**
+  String get insightsRecommendedActions;
+
+  /// No description provided for @insightsForecast.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast'**
+  String get insightsForecast;
+
+  /// No description provided for @insightsActualVsPredicted.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual vs predicted spending'**
+  String get insightsActualVsPredicted;
+
+  /// No description provided for @insightsRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Copilot Activity'**
+  String get insightsRecentActivity;
+
+  /// No description provided for @insightsQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get insightsQuickActions;
+
+  /// No description provided for @insightsAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing financial patterns…'**
+  String get insightsAnalyzing;
+
+  /// No description provided for @insightsAnalysisFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis failed'**
+  String get insightsAnalysisFailed;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

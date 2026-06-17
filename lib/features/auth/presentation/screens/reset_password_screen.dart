@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
@@ -41,6 +42,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final tokenMissing = widget.token.isEmpty;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -54,15 +56,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         : null;
 
     return AuthScaffold(
-      title: 'Set a new password',
-      subtitle: 'Protect your account with a strong replacement password.',
+      title: l10n.authSetNewPassword,
+      subtitle: l10n.authResetSubtitle,
       icon: Icons.password_rounded,
       cardWidth: 520,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuthBackButton(
-            label: 'Back to sign in',
+            label: l10n.authBackToSignIn,
             onPressed: () => popOrGoToLogin(context),
           ),
           Text(
@@ -82,8 +84,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           ),
           const SizedBox(height: 16),
           AuthTextField(
-            label: 'New password',
-            hint: 'Create a new password',
+            label: l10n.authNewPassword,
+            hint: l10n.authNewPasswordHint,
             controller: _passwordController,
             obscureText: _obscurePassword,
             enabled: !tokenMissing,
@@ -116,8 +118,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           ),
           const SizedBox(height: 12),
           AuthTextField(
-            label: 'Confirm password',
-            hint: 'Re-enter the password',
+            label: l10n.authConfirmPassword,
+            hint: l10n.authReEnterPasswordHint,
             controller: _confirmPasswordController,
             obscureText: _obscureConfirmPassword,
             enabled: !tokenMissing,

@@ -44,12 +44,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         : null;
 
     return AuthScaffold(
-      title: 'Create account',
-      subtitle: 'Start building healthier financial habits.',
+      title: l10n.authCreateAccount,
+      subtitle: l10n.authSignupSubtitle,
       icon: Icons.person_add_alt_1_rounded,
       footer: AuthInlinePrompt(
-        label: 'Already have an account?',
-        actionLabel: 'Sign in',
+        label: l10n.authAlreadyHaveAccount,
+        actionLabel: l10n.authSignIn,
         onPressed: form.submitting ? () {} : () => context.go('/login'),
       ),
       child: AutofillGroup(
@@ -74,8 +74,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               children: [
                 Expanded(
                   child: AuthTextField(
-                    label: 'First name',
-                    hint: 'First',
+                    label: l10n.authFirstName,
+                    hint: l10n.authFirstNameHint,
                     textInputAction: TextInputAction.next,
                     autofillHints: const [AutofillHints.givenName],
                     prefixIcon: const Icon(Icons.badge_outlined, size: 19),
@@ -91,8 +91,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: AuthTextField(
-                    label: 'Last name',
-                    hint: 'Last',
+                    label: l10n.authLastName,
+                    hint: l10n.authLastNameHint,
                     textInputAction: TextInputAction.next,
                     autofillHints: const [AutofillHints.familyName],
                     prefixIcon:
@@ -110,7 +110,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ),
             const SizedBox(height: 12),
             AuthTextField(
-              label: 'Email',
+              label: l10n.authEmail,
               hint: 'name@example.com',
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
@@ -128,8 +128,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ),
             const SizedBox(height: 12),
             AuthTextField(
-              label: 'Password',
-              hint: 'Create password',
+              label: l10n.authPassword,
+              hint: l10n.authCreatePassword,
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.newPassword],
@@ -159,8 +159,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ),
             const SizedBox(height: 12),
             AuthTextField(
-              label: 'Confirm password',
-              hint: 'Repeat password',
+              label: l10n.authConfirmPassword,
+              hint: l10n.authRepeatPassword,
               obscureText: _obscureConfirmPassword,
               textInputAction: TextInputAction.done,
               autofillHints: const [AutofillHints.newPassword],

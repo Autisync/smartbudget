@@ -76,8 +76,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       <_GeneratedReportEntry>[];
   final List<_ReportActivityEntry> _activities = <_ReportActivityEntry>[];
 
-  late final List<_AvailableReportTemplate> _availableReports =
-      _buildAvailableReportTemplates();
+  late List<_AvailableReportTemplate> _availableReports =
+      const <_AvailableReportTemplate>[];
 
   _ReportsSummary _summary = const _ReportsSummary.empty();
 
@@ -98,12 +98,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    _availableReports = _buildAvailableReportTemplates(l10n);
 
     return AppScaffold(
       appBar: AppBar(
         title: buildFrostedAppBarTitle(
           context: context,
-          title: 'Reports & Export',
+          title: l10n.reportsTitleExport,
           isScrolled: _isAppBarScrolled,
         ),
         backgroundColor: colorScheme.surface.withValues(
@@ -148,8 +150,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AppHeader(
-                title: 'Reports & Export',
+              AppHeader(
+                title: l10n.reportsTitleExport,
                 subtitle:
                     'Generate, export, and review your financial reports.',
               ),
@@ -172,6 +174,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildOverviewInsightCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final insightText = _summary.generatedThisMonth > 0
         ? 'You have generated ${_summary.generatedThisMonth} reports this month. Export your latest summary for a clearer monthly view.'
@@ -179,7 +182,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     return MinimalInsightCard(
       key: const ValueKey('reports-overview-card'),
-      title: 'Reporting Overview',
+      title: l10n.reportsOverviewTitle,
       icon: Icons.assessment_rounded,
       insightText: insightText,
       semanticTone: InsightCardSemanticTone.general,
@@ -193,21 +196,21 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       metrics: [
         MinimalInsightMetric(
-          label: 'Generated',
+          label: l10n.reportsGenerated,
           value: '${_summary.totalGenerated}',
         ),
         MinimalInsightMetric(
-          label: 'This Month',
+          label: l10n.transactionsFilterThisMonth,
           value: '${_summary.generatedThisMonth}',
         ),
         MinimalInsightMetric(
-          label: 'Last Export',
+          label: l10n.reportsLastExport,
           value: _summary.lastExportAt == null
               ? 'None'
               : DateFormat('MMM dd').format(_summary.lastExportAt!),
         ),
         MinimalInsightMetric(
-          label: 'Available Types',
+          label: l10n.reportsAvailableTypes,
           value: '${_availableReports.length}',
         ),
       ],
@@ -286,6 +289,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildAvailableReportsSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -320,7 +324,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       AppButton(
-                        label: 'Generate',
+                        label: l10n.commonGenerate,
                         icon: Icons.auto_graph_rounded,
                         onPressed: _isGenerating
                             ? null
@@ -329,7 +333,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       ),
                       AppActionMenu(
                         title: '${template.title} actions',
-                        tooltip: 'Report actions',
+                        tooltip: l10n.reportsActions,
                         onSelected: (value) {
                           if (value == 'schedule') {
                             _trackActivity(
@@ -344,10 +348,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             );
                           }
                         },
-                        items: const [
+                        items: [
                           AppActionItem(
                             value: 'schedule',
-                            label: 'Schedule run',
+                            label: l10n.reportsScheduleRun,
                             icon: Icons.schedule_rounded,
                           ),
                         ],
@@ -471,6 +475,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildRecentActivitySection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final filtered = _filteredActivities();
 
     return AppCard(
@@ -509,11 +514,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           if (filtered.isEmpty)
             AppAnimatedEmptyState(
               icon: Icons.history_toggle_off_rounded,
-              title: 'No report activity yet',
-              message: 'Generated and exported reports will appear here.',
+              title: l10n.reportsNoActivityTitle,
+              message: l10n.reportsNoActivityMessage,
               lottieAsset: 'assets/animations/empty_reports.json',
               action: AppButton(
-                label: 'Generate report',
+                label: l10n.reportsGenerateReport,
                 icon: Icons.auto_graph_rounded,
                 onPressed: _availableReports.isEmpty
                     ? null
@@ -593,6 +598,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildGeneratedReportsSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AppCard(
       key: const ValueKey('generated-reports-card'),
       radius: 28,
@@ -609,12 +615,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           if (_generatedReports.isEmpty)
             AppAnimatedEmptyState(
               icon: Icons.description_outlined,
-              title: 'No generated reports yet',
+              title: l10n.reportsNoGeneratedTitle,
               message:
                   'Generate your first report to build a reusable export history.',
               lottieAsset: 'assets/animations/empty_reports.json',
               action: AppButton(
-                label: 'Generate report',
+                label: l10n.reportsGenerateReport,
                 icon: Icons.add_chart_rounded,
                 onPressed: _availableReports.isEmpty
                     ? null
@@ -676,7 +682,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         ),
                       ),
                       IconButton(
-                        tooltip: 'Download',
+                        tooltip: l10n.commonDownload,
                         icon: const Icon(Icons.download_rounded),
                         onPressed: () {
                           _trackActivity(
@@ -691,7 +697,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       ),
                       AppActionMenu(
                         title: '${entry.title} actions',
-                        tooltip: 'Report activity actions',
+                        tooltip: l10n.reportsActivityActions,
                         onSelected: (value) {
                           if (value == 'share') {
                             _trackActivity(
@@ -704,10 +710,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                                 context, 'Export completed');
                           }
                         },
-                        items: const [
+                        items: [
                           AppActionItem(
                             value: 'share',
-                            label: 'Share / Export',
+                            label: l10n.reportsShareExport,
                             icon: Icons.share_rounded,
                           ),
                         ],
@@ -723,6 +729,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Future<void> _openGenerationSheet(_AvailableReportTemplate template) async {
+    final l10n = AppLocalizations.of(context)!;
     var selectedFormat = template.formats.first;
     var includeCharts = true;
     var includeDetailedTransactions = true;
@@ -750,7 +757,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   AppDropdown<String>(
                     key: const ValueKey('report-format-dropdown'),
                     value: selectedFormat,
-                    label: 'Format',
+                    label: l10n.commonFormat,
                     prefixIcon: Icons.file_present_rounded,
                     items: template.formats
                         .map(
@@ -821,7 +828,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   children: [
                     Expanded(
                       child: AppButton(
-                        label: 'Cancel',
+                        label: l10n.cancel,
                         style: AppButtonStyle.secondary,
                         onPressed: () => Navigator.of(sheetContext).pop(),
                       ),
@@ -830,7 +837,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     Expanded(
                       child: AppButton(
                         key: const ValueKey('confirm-generate-report'),
-                        label: 'Generate',
+                        label: l10n.commonGenerate,
                         icon: Icons.play_arrow_rounded,
                         onPressed: _isGenerating
                             ? null
@@ -1196,11 +1203,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     }
   }
 
-  List<_AvailableReportTemplate> _buildAvailableReportTemplates() {
-    return const [
+  List<_AvailableReportTemplate> _buildAvailableReportTemplates(
+      AppLocalizations l10n) {
+    return [
       _AvailableReportTemplate(
         reportKey: 'financial_summary',
-        title: 'Financial Summary',
+        title: l10n.reportTypeFinancialSummary,
         description:
             'High-level financial performance with balances and trends.',
         icon: Icons.analytics_rounded,
@@ -1209,7 +1217,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       _AvailableReportTemplate(
         reportKey: 'transaction_history',
-        title: 'Transaction History',
+        title: l10n.reportTypeTransactionHistory,
         description: 'Full transaction timeline with categories and notes.',
         icon: Icons.receipt_long_rounded,
         formats: ['CSV', 'PDF', 'XLSX'],
@@ -1217,7 +1225,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       _AvailableReportTemplate(
         reportKey: 'budget_analysis',
-        title: 'Budget Analysis',
+        title: l10n.reportTypeBudgetAnalysis,
         description: 'Budget utilization and over/under allocation insights.',
         icon: Icons.pie_chart_rounded,
         formats: ['PDF', 'CSV', 'XLSX'],
@@ -1225,7 +1233,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       _AvailableReportTemplate(
         reportKey: 'subscription_costs',
-        title: 'Subscription Costs',
+        title: l10n.reportTypeSubscriptionCosts,
         description: 'Recurring services cost review and renewal overview.',
         icon: Icons.subscriptions_rounded,
         formats: ['PDF', 'CSV', 'XLSX'],
@@ -1233,7 +1241,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       _AvailableReportTemplate(
         reportKey: 'savings_progress',
-        title: 'Savings Progress',
+        title: l10n.reportTypeSavingsProgress,
         description: 'Savings trajectory against targets and monthly cadence.',
         icon: Icons.savings_rounded,
         formats: ['PDF', 'CSV', 'XLSX'],
@@ -1241,7 +1249,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       _AvailableReportTemplate(
         reportKey: 'cashflow_forecast',
-        title: 'Cashflow Forecast',
+        title: l10n.reportTypeCashflowForecast,
         description: 'Projected short-term inflow and outflow forecast.',
         icon: Icons.show_chart_rounded,
         formats: ['PDF', 'CSV', 'XLSX'],
@@ -1249,7 +1257,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       _AvailableReportTemplate(
         reportKey: 'category_insights',
-        title: 'Category Insights',
+        title: l10n.reportTypeCategoryInsights,
         description: 'Category-level spend concentration and changes.',
         icon: Icons.grid_view_rounded,
         formats: ['PDF', 'CSV', 'XLSX'],
@@ -1257,7 +1265,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       _AvailableReportTemplate(
         reportKey: 'tax_ready_export',
-        title: 'Tax-ready Export',
+        title: l10n.reportTypeTaxReady,
         description:
             'Consolidated export package for tax preparation workflows.',
         icon: Icons.request_page_rounded,
@@ -1462,7 +1470,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await _warnAndShare(XFile(output.path), text: l10n.reportsShareFinancialSummary);
 
       _trackActivity(
-        title: 'Financial Summary shared',
+        title: l10n.reportShared(l10n.reportTypeFinancialSummary),
         status: _ReportActivityStatus.exported,
         format: 'PDF',
         icon: Icons.share_rounded,
@@ -1537,7 +1545,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await _warnAndShare(XFile(output.path), text: l10n.reportsShareTransactionHistory);
 
       _trackActivity(
-        title: 'Transaction History shared',
+        title: l10n.reportShared(l10n.reportTypeTransactionHistory),
         status: _ReportActivityStatus.exported,
         format: 'CSV',
         icon: Icons.share_rounded,
@@ -1673,7 +1681,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await _warnAndShare(XFile(output.path), text: l10n.reportsShareBudgetAnalysis);
 
       _trackActivity(
-        title: 'Budget Analysis shared',
+        title: l10n.reportShared(l10n.reportTypeBudgetAnalysis),
         status: _ReportActivityStatus.exported,
         format: 'PDF',
         icon: Icons.share_rounded,
@@ -1783,7 +1791,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await _warnAndShare(XFile(output.path), text: l10n.reportsShareSubscriptionReport);
 
       _trackActivity(
-        title: 'Subscription Costs shared',
+        title: l10n.reportShared(l10n.reportTypeSubscriptionCosts),
         status: _ReportActivityStatus.exported,
         format: 'PDF',
         icon: Icons.share_rounded,
@@ -1863,7 +1871,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       await _warnAndShare(XFile(output.path), text: l10n.reportsShareCompleteDataExport);
 
       _trackActivity(
-        title: 'Complete Export shared',
+        title: l10n.reportShared(l10n.reportTypeCompleteExport),
         status: _ReportActivityStatus.exported,
         format: 'CSV',
         icon: Icons.share_rounded,

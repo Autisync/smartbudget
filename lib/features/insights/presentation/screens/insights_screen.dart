@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:flutter/material.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/components/feedback/app_feedback_service.dart';
@@ -61,13 +62,14 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final insightsAsync = ref.watch(insightsProvider);
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
       backgroundColor: colors.surfaceContainerLowest,
       appBar: AppBar(
-        title: const Text('Financial Copilot'),
+        title: Text(l10n.insightsCopilotTitle),
         backgroundColor: colors.surfaceContainerLowest,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -81,6 +83,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
   }
 
   Widget _buildContent(BuildContext context, List<Insight> insights) {
+    final l10n = AppLocalizations.of(context)!;
     final filteredInsights = _filteredInsights(insights);
     final model = _CopilotViewModel.fromInsights(filteredInsights);
     final activities = _buildActivities(filteredInsights);
@@ -90,7 +93,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Financial Copilot', style: _titleStyle(context)),
+          Text(l10n.insightsCopilotTitle, style: _titleStyle(context)),
           const SizedBox(height: 8),
           Text(
             'Personalized financial guidance based on your spending, subscriptions, and goals.',
@@ -223,12 +226,13 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
   }
 
   Widget _buildFilterSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return _SurfacePanel(
       key: const ValueKey<String>('copilot-filter-card'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Timeframe & Focus', style: _sectionTitleStyle(context)),
+          Text(l10n.insightsTimeframeFocus, style: _sectionTitleStyle(context)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -250,7 +254,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           const SizedBox(height: 12),
           ModernSelect<_CopilotFocus>(
             key: const ValueKey<String>('copilot-focus-dropdown'),
-            label: 'Focus',
+            label: l10n.insightsFocus,
             value: _focus,
             items: _CopilotFocus.values
                 .map(
@@ -275,16 +279,17 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
     BuildContext context,
     List<Insight> insights,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Recommended actions', style: _sectionTitleStyle(context)),
+        Text(l10n.insightsRecommendedActions, style: _sectionTitleStyle(context)),
         const SizedBox(height: 12),
         if (insights.isEmpty)
           _buildEmptyState(
             context,
             key: const ValueKey<String>('copilot-empty-insights'),
-            title: 'No recommendations yet',
+            title: l10n.insightsNoRecommendations,
             message:
                 'Copilot will suggest actions after enough activity is analyzed.',
           )
@@ -310,6 +315,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
   }
 
   Widget _buildInsightActionCard(BuildContext context, Insight insight) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
     final tone = _impactColor(context, insight.impact);
     final confidence = (insight.metadata?['confidence'] as num?)?.toDouble() ??
@@ -395,7 +401,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                   _showInfoOnce('Recommendation opened');
                   _navigate(insight.route);
                 },
-                child: const Text('Open'),
+                child: Text(l10n.commonOpen),
               ),
             ],
           ),
@@ -405,6 +411,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
   }
 
   Widget _buildForecastSection(BuildContext context, List<Insight> insights) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
 
     return _SurfacePanel(
@@ -412,13 +419,13 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Forecast', style: _sectionTitleStyle(context)),
+          Text(l10n.insightsForecast, style: _sectionTitleStyle(context)),
           const SizedBox(height: 4),
-          Text('Actual vs predicted spending',
+          Text(l10n.insightsActualVsPredicted,
               style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 12),
           ModernSelect<_ForecastConfidence>(
-            label: 'Confidence model',
+            label: l10n.insightsConfidenceModel,
             value: _forecastConfidence,
             items: _ForecastConfidence.values
                 .map(
@@ -439,8 +446,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             _buildEmptyState(
               context,
               key: const ValueKey<String>('copilot-empty-forecast'),
-              title: 'No forecast data yet',
-              message: 'Keep using SmartSpend to unlock prediction trends.',
+              title: l10n.insightsNoForecastTitle,
+              message: l10n.insightsNoForecastMessage,
             )
           else
             ChartEntrance(
@@ -498,6 +505,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
     BuildContext context,
     List<_CopilotActivity> activities,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
 
     return _SurfacePanel(
@@ -505,14 +513,14 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Recent Copilot Activity', style: _sectionTitleStyle(context)),
+          Text(l10n.insightsRecentActivity, style: _sectionTitleStyle(context)),
           const SizedBox(height: 12),
           if (activities.isEmpty)
             _buildEmptyState(
               context,
               key: const ValueKey<String>('copilot-empty-activity'),
-              title: 'No Copilot activity yet',
-              message: 'Smart insights will appear here as you use the app.',
+              title: l10n.insightsNoCopilotTitle,
+              message: l10n.insightsNoCopilotMessage,
             )
           else
             ...activities.map(
@@ -540,12 +548,12 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                         ),
                         AppActionMenu(
                           title: '${activity.title} actions',
-                          tooltip: 'Insight activity actions',
+                          tooltip: l10n.insightsActivityActions,
                           onSelected: (_) => _showInfoOnce('Action completed'),
-                          items: const [
+                          items: [
                             AppActionItem(
                               value: 'open',
-                              label: 'Open details',
+                              label: l10n.insightsOpenDetails,
                               icon: Icons.open_in_new_rounded,
                             ),
                           ],
@@ -574,12 +582,13 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
   }
 
   Widget _buildQuickActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Quick actions', style: _sectionTitleStyle(context)),
+        Text(l10n.insightsQuickActions, style: _sectionTitleStyle(context)),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -648,13 +657,14 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
   }
 
   Widget _buildLoadingState() {
+    final l10n = AppLocalizations.of(context)!;
     return Stack(
       children: [
-        const Center(
+        Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AppLottieView(
+              const AppLottieView(
                 assetPath: 'assets/animations/copilot_loading.json',
                 width: 84,
                 height: 84,
@@ -662,8 +672,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 animate: false,
                 fallbackIcon: Icons.auto_awesome_rounded,
               ),
-              SizedBox(height: 12),
-              Text('Analyzing financial patterns...'),
+              const SizedBox(height: 12),
+              Text(l10n.insightsAnalyzing),
             ],
           ),
         ),
@@ -680,6 +690,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
   }
 
   Widget _buildErrorState(String message) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
 
     return Center(
@@ -690,7 +701,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           children: [
             Icon(Icons.error_outline_rounded, color: colors.error, size: 46),
             const SizedBox(height: 10),
-            Text('Analysis failed', style: _sectionTitleStyle(context)),
+            Text(l10n.insightsAnalysisFailed, style: _sectionTitleStyle(context)),
             const SizedBox(height: 6),
             Text(
               message,
@@ -703,7 +714,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 ref.invalidate(insightsProvider);
                 _showInfoOnce('Insights refreshed');
               },
-              child: const Text('Retry'),
+              child: Text(l10n.commonRetry),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
@@ -30,6 +31,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isError = _isError;
@@ -37,8 +39,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         _emailTouched ? _emailValidation(_emailController.text) : null;
 
     return AuthScaffold(
-      title: 'Forgot password',
-      subtitle: 'Recover account access in a few quick steps.',
+      title: l10n.authForgotPassword,
+      subtitle: l10n.authForgotSubtitle,
       icon: Icons.mark_email_read_rounded,
       cardWidth: 500,
       footer: const SizedBox.shrink(),
@@ -46,7 +48,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuthBackButton(
-            label: 'Back to sign in',
+            label: l10n.authBackToSignIn,
             onPressed: () => popOrGoToLogin(context),
           ),
           Text(
@@ -64,7 +66,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           ),
           const SizedBox(height: 16),
           AuthTextField(
-            label: 'Email',
+            label: l10n.authEmail,
             hint: 'name@example.com',
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,

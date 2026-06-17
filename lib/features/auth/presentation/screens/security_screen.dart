@@ -165,7 +165,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                               width: 148,
                               child: AppDropdown<int>(
                                 value: settings.sessionTimeout,
-                                label: 'Timeout',
+                                label: l10n.securityTimeout,
                                 items: const [300, 600, 900, 1800]
                                     .map(
                                       (seconds) => DropdownMenuItem(
@@ -206,7 +206,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                               width: 110,
                               child: AppDropdown<int>(
                                 value: settings.maxFailedAttempts,
-                                label: 'Attempts',
+                                label: l10n.securityAttempts,
                                 items: const [3, 5, 7, 10]
                                     .map(
                                       (attempts) => DropdownMenuItem(

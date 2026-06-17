@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
@@ -74,6 +75,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isVerifying = _phase == _VerifyPhase.verifying;
@@ -87,7 +89,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final canResend = !isSuccess && !isVerifying;
 
     return AuthScaffold(
-      title: 'Confirm your email',
+      title: l10n.authConfirmEmail,
       subtitle:
           'Secure your account by confirming the email you signed up with.',
       icon: Icons.verified_user_rounded,
@@ -96,7 +98,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuthBackButton(
-            label: 'Back to sign in',
+            label: l10n.authBackToSignIn,
             onPressed: () => popOrGoToLogin(context),
           ),
           Text(

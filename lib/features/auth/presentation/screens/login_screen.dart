@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -27,6 +28,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final session = ref.watch(sessionControllerProvider);
     final biometricUi = ref.watch(biometricAuthUiProvider);
 
@@ -64,12 +66,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _passwordTouched ? _passwordValidation(form.password) : null;
 
     return AuthScaffold(
-      title: 'Welcome back',
-      subtitle: 'Manage your finances with confidence.',
+      title: l10n.authWelcomeBack,
+      subtitle: l10n.authLoginSubtitle,
       icon: Icons.lock_open_rounded,
       footer: AuthInlinePrompt(
-        label: 'New here?',
-        actionLabel: 'Create account',
+        label: l10n.authNewHere,
+        actionLabel: l10n.authCreateAccount,
         onPressed: form.submitting ? () {} : () => context.push('/signup'),
       ),
       child: AutofillGroup(
@@ -91,7 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             const SizedBox(height: 16),
             AuthTextField(
-              label: 'Email',
+              label: l10n.authEmail,
               hint: 'name@example.com',
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
@@ -112,8 +114,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             const SizedBox(height: 14),
             AuthTextField(
-              label: 'Password',
-              hint: 'Enter password',
+              label: l10n.authPassword,
+              hint: l10n.authEnterPassword,
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
               autofillHints: const [AutofillHints.password],
@@ -188,7 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: 14),
             SocialButton(
               icon: Icons.apple,
-              label: 'Continue with Apple',
+              label: l10n.authContinueApple,
               onPressed: (_socialSubmitting || form.submitting)
                   ? () {}
                   : () => _signInWithApple(context),
@@ -196,7 +198,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: 10),
             SocialButton(
               icon: Icons.g_mobiledata_rounded,
-              label: 'Continue with Google',
+              label: l10n.authContinueGoogle,
               onPressed: (_socialSubmitting || form.submitting)
                   ? () {}
                   : () => _signInWithGoogle(context),
@@ -436,10 +438,11 @@ class _BiometricUnlockView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return AuthScaffold(
-      title: 'Unlock your session',
-      subtitle: 'Verify your identity to continue securely.',
+      title: l10n.authUnlockSession,
+      subtitle: l10n.authUnlockSubtitle,
       icon: Icons.fingerprint_rounded,
       cardWidth: 460,
       child: Column(
