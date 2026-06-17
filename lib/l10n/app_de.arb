@@ -1568,5 +1568,20 @@
   "insightsRecentActivity": "Letzte Copilot-Aktivität",
   "insightsQuickActions": "Schnellaktionen",
   "insightsAnalyzing": "Finanzmuster werden analysiert…",
-  "insightsAnalysisFailed": "Analyse fehlgeschlagen"
+  "insightsAnalysisFailed": "Analyse fehlgeschlagen",
+  "accountsAdd": "Konto hinzufügen",
+  "commonRemove": "Entfernen",
+  "accountsLoadError": "Konten konnten nicht geladen werden.",
+  "accountsRemoveTitle": "{name} entfernen?",
+  "subscriptionsClearFilters": "Filter löschen",
+  "subscriptionsSearchHint": "Nach Name oder Kategorie suchen",
+  "notificationsMarkRead": "Gelesen",
+  "scenarioOpenFull": "Szenario-Labor öffnen",
+  "balanceSheetImpact": "Auswirkung",
+  "balanceSheetAction": "Aktion",
+  "commonMonthly": "Monatlich",
+  "legalTermsDocSubtitle": "Ihre Rechte und Pflichten bei der Nutzung von SmartSpend.",
+  "simLabelProjectedMonthlySpend": "Prognostizierte monatliche Ausgaben",
+  "simLabelProjectedEndBalance": "Prognostizierter Endsaldo",
+  "simLabelPotentialSavings": "Potenzielle Ersparnis"
 }

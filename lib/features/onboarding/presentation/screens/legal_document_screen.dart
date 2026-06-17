@@ -56,7 +56,7 @@ LegalDocumentDefinition legalDocumentForType(
     case LegalDocumentType.terms:
       return LegalDocumentDefinition(
         title: l10n.legalTermsTitle,
-        subtitle: 'Your rights and responsibilities when using SmartSpend.',
+        subtitle: l10n.legalTermsDocSubtitle,
         assetPath: 'legal/TERMS_OF_USE.md',
       );
     case LegalDocumentType.privacy:

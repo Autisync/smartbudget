@@ -4996,6 +4996,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Analysis failed'**
   String get insightsAnalysisFailed;
+
+  /// No description provided for @accountsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add account'**
+  String get accountsAdd;
+
+  /// No description provided for @commonRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get commonRemove;
+
+  /// No description provided for @accountsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load accounts.'**
+  String get accountsLoadError;
+
+  /// No description provided for @accountsRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String accountsRemoveTitle(String name);
+
+  /// No description provided for @subscriptionsClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get subscriptionsClearFilters;
+
+  /// No description provided for @subscriptionsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or category'**
+  String get subscriptionsSearchHint;
+
+  /// No description provided for @notificationsMarkRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get notificationsMarkRead;
+
+  /// No description provided for @scenarioOpenFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Open full Scenario Lab'**
+  String get scenarioOpenFull;
+
+  /// No description provided for @balanceSheetImpact.
+  ///
+  /// In en, this message translates to:
+  /// **'Impact'**
+  String get balanceSheetImpact;
+
+  /// No description provided for @balanceSheetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get balanceSheetAction;
+
+  /// No description provided for @commonMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get commonMonthly;
+
+  /// No description provided for @legalTermsDocSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rights and responsibilities when using SmartSpend.'**
+  String get legalTermsDocSubtitle;
+
+  /// No description provided for @simLabelProjectedMonthlySpend.
+  ///
+  /// In en, this message translates to:
+  /// **'Projected Monthly Spend'**
+  String get simLabelProjectedMonthlySpend;
+
+  /// No description provided for @simLabelProjectedEndBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Projected End Balance'**
+  String get simLabelProjectedEndBalance;
+
+  /// No description provided for @simLabelPotentialSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Potential Savings'**
+  String get simLabelPotentialSavings;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

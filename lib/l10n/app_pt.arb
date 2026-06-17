@@ -1568,5 +1568,20 @@
   "insightsRecentActivity": "Atividade recente do copiloto",
   "insightsQuickActions": "Ações rápidas",
   "insightsAnalyzing": "Analisando padrões financeiros…",
-  "insightsAnalysisFailed": "Falha na análise"
+  "insightsAnalysisFailed": "Falha na análise",
+  "accountsAdd": "Adicionar conta",
+  "commonRemove": "Remover",
+  "accountsLoadError": "Não foi possível carregar as contas.",
+  "accountsRemoveTitle": "Remover {name}?",
+  "subscriptionsClearFilters": "Limpar filtros",
+  "subscriptionsSearchHint": "Pesquisar por nome ou categoria",
+  "notificationsMarkRead": "Lido",
+  "scenarioOpenFull": "Abrir o Laboratório de cenários",
+  "balanceSheetImpact": "Impacto",
+  "balanceSheetAction": "Ação",
+  "commonMonthly": "Mensal",
+  "legalTermsDocSubtitle": "Seus direitos e responsabilidades ao usar o SmartSpend.",
+  "simLabelProjectedMonthlySpend": "Gasto mensal previsto",
+  "simLabelProjectedEndBalance": "Saldo final previsto",
+  "simLabelPotentialSavings": "Economia potencial"
 }

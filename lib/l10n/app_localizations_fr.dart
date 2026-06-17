@@ -2649,4 +2649,51 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insightsAnalysisFailed => 'Échec de l\'analyse';
+
+  @override
+  String get accountsAdd => 'Ajouter un compte';
+
+  @override
+  String get commonRemove => 'Supprimer';
+
+  @override
+  String get accountsLoadError => 'Impossible de charger les comptes.';
+
+  @override
+  String accountsRemoveTitle(String name) {
+    return 'Supprimer $name ?';
+  }
+
+  @override
+  String get subscriptionsClearFilters => 'Effacer les filtres';
+
+  @override
+  String get subscriptionsSearchHint => 'Rechercher par nom ou catégorie';
+
+  @override
+  String get notificationsMarkRead => 'Lu';
+
+  @override
+  String get scenarioOpenFull => 'Ouvrir le Laboratoire de scénarios';
+
+  @override
+  String get balanceSheetImpact => 'Impact';
+
+  @override
+  String get balanceSheetAction => 'Action';
+
+  @override
+  String get commonMonthly => 'Mensuel';
+
+  @override
+  String get legalTermsDocSubtitle => 'Vos droits et responsabilités lors de l\'utilisation de SmartSpend.';
+
+  @override
+  String get simLabelProjectedMonthlySpend => 'Dépenses mensuelles prévues';
+
+  @override
+  String get simLabelProjectedEndBalance => 'Solde final prévu';
+
+  @override
+  String get simLabelPotentialSavings => 'Économies potentielles';
 }

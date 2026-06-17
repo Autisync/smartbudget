@@ -1575,5 +1575,27 @@
   "insightsRecentActivity": "Recent Copilot Activity",
   "insightsQuickActions": "Quick actions",
   "insightsAnalyzing": "Analyzing financial patterns…",
-  "insightsAnalysisFailed": "Analysis failed"
+  "insightsAnalysisFailed": "Analysis failed",
+  "accountsAdd": "Add account",
+  "commonRemove": "Remove",
+  "accountsLoadError": "Couldn't load accounts.",
+  "accountsRemoveTitle": "Remove {name}?",
+  "subscriptionsClearFilters": "Clear filters",
+  "subscriptionsSearchHint": "Search by name or category",
+  "notificationsMarkRead": "Read",
+  "scenarioOpenFull": "Open full Scenario Lab",
+  "balanceSheetImpact": "Impact",
+  "balanceSheetAction": "Action",
+  "commonMonthly": "Monthly",
+  "legalTermsDocSubtitle": "Your rights and responsibilities when using SmartSpend.",
+  "simLabelProjectedMonthlySpend": "Projected Monthly Spend",
+  "simLabelProjectedEndBalance": "Projected End Balance",
+  "simLabelPotentialSavings": "Potential Savings",
+  "@accountsRemoveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

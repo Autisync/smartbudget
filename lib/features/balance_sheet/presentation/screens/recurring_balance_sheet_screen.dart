@@ -1292,7 +1292,7 @@ class _ScenarioLabCard extends StatelessWidget {
             child: TextButton.icon(
               onPressed: () => context.push('/scenario-lab'),
               icon: const Icon(Icons.open_in_new_rounded, size: 16),
-              label: const Text('Open full Scenario Lab'),
+              label: Text(l10n.scenarioOpenFull),
             ),
           ),
           const SizedBox(height: 20),
@@ -1549,6 +1549,7 @@ class _PremiumInsightCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     final tone = _toneForSeverity(insight.severity, colorScheme);
     final confidencePct = '${(insight.confidence * 100).toStringAsFixed(0)}%';
 
@@ -1625,9 +1626,9 @@ class _PremiumInsightCard extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 12),
-          _InsightSection(label: 'Impact', text: insight.impact),
+          _InsightSection(label: l10n.balanceSheetImpact, text: insight.impact),
           const SizedBox(height: 8),
-          _InsightSection(label: 'Action', text: insight.action),
+          _InsightSection(label: l10n.balanceSheetAction, text: insight.action),
         ],
       ),
     );

@@ -96,7 +96,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
         child: accountsAsync.when(
           loading: () => const AppShimmerSkeleton(
               variant: AppShimmerVariant.cards, itemCount: 4),
-          error: (e, _) => Center(child: Text('Failed to load accounts: $e')),
+          error: (e, _) => Center(child: Text(l10n.accountsLoadError)),
           data: (accounts) {
             if (accounts.isEmpty) {
               return AppEmptyState(
@@ -112,7 +112,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                   child: FilledButton.icon(
                     onPressed: () => _openEditor(context, ref, null),
                     icon: const Icon(Icons.add),
-                    label: const Text('Add account'),
+                    label: Text(l10n.accountsAdd),
                     style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(52),
                     ),
@@ -176,21 +176,22 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     WidgetRef ref,
     Account account,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Remove ${account.name}?'),
+        title: Text(l10n.accountsRemoveTitle(account.name)),
         content: const Text(
           'The account will be hidden. Existing transactions are kept.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Remove'),
+            child: Text(l10n.commonRemove),
           ),
         ],
       ),
@@ -316,6 +317,7 @@ class _AccountTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final fmt = CurrencyUtils.getFormat(account.currency);
     final color = _accountColor(account.type);
     final negative = account.currentBalance < 0;
@@ -376,9 +378,9 @@ class _AccountTile extends StatelessWidget {
                 if (v == 'delete') onDelete?.call();
               },
               itemBuilder: (_) => [
-                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
                 if (onDelete != null)
-                  const PopupMenuItem(value: 'delete', child: Text('Remove')),
+                  PopupMenuItem(value: 'delete', child: Text(l10n.commonRemove)),
               ],
             ),
           ],

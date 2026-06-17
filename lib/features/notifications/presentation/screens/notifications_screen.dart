@@ -134,14 +134,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                               icon: Icons.mark_email_read_rounded,
                               alignment: Alignment.centerLeft,
                               color: const Color(0xFF0F9D58),
-                              label: 'Read',
+                              label: l10n.notificationsMarkRead,
                             ),
                             secondaryBackground: _swipeBackground(
                               context,
                               icon: Icons.archive_rounded,
                               alignment: Alignment.centerRight,
                               color: colorScheme.error,
-                              label: 'Archive',
+                              label: l10n.commonArchive,
                             ),
                             confirmDismiss: (direction) async {
                               if (direction == DismissDirection.startToEnd) {

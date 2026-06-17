@@ -431,7 +431,8 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
                                   _activeFilter = null;
                                   _searchQuery = '';
                                 }),
-                                child: const Text('Clear filters'),
+                                child: Text(l10n?.subscriptionsClearFilters ??
+                                    'Clear filters'),
                               ),
                             ],
                           ),
@@ -885,7 +886,8 @@ class _SubscriptionSearchFieldState extends State<_SubscriptionSearchField> {
         fillColor: isDark
             ? scheme.surfaceContainerHigh
             : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
-        hintText: 'Search by name or category',
+        hintText:
+            l10n?.subscriptionsSearchHint ?? 'Search by name or category',
         prefixIcon: Icon(
           Icons.search_rounded,
           color: scheme.onSurfaceVariant,

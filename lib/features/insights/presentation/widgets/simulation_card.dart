@@ -48,7 +48,7 @@ class _SimulationCardState extends State<SimulationCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SmartSpendHeader(
-            title: 'Scenario Lab',
+            title: l10n.scenarioLabTitle,
             subtitle: l10n.simulationSpendReductionSubtitle,
             trailing: AppBadge(
               label: '${(_reduction * 100).round()}% cut',
@@ -90,17 +90,17 @@ class _SimulationCardState extends State<SimulationCard> {
           ),
           const SizedBox(height: 12),
           _ScenarioMetricRow(
-            label: 'Projected Monthly Spend',
+            label: l10n.simLabelProjectedMonthlySpend,
             value: currencyFormat.format(scenarioSpend),
           ),
           const SizedBox(height: 8),
           _ScenarioMetricRow(
-            label: 'Projected End Balance',
+            label: l10n.simLabelProjectedEndBalance,
             value: currencyFormat.format(scenarioEndBalance),
           ),
           const SizedBox(height: 8),
           _ScenarioMetricRow(
-            label: 'Potential Savings',
+            label: l10n.simLabelPotentialSavings,
             value: currencyFormat.format(improvement),
             tone: Theme.of(context).colorScheme.tertiary,
           ),
@@ -112,7 +112,7 @@ class _SimulationCardState extends State<SimulationCard> {
             child: TextButton.icon(
               onPressed: () => context.push('/scenario-lab'),
               icon: const Icon(Icons.open_in_new_rounded, size: 16),
-              label: const Text('Open full Scenario Lab'),
+              label: Text(l10n.scenarioOpenFull),
             ),
           ),
         ],
