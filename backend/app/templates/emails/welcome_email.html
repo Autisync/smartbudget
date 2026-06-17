@@ -3,67 +3,64 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="supported-color-schemes" content="light dark" />
-    <title>Welcome to {{app_name}}</title>
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <title>Welcome to SmartBudget</title>
+    <!--[if mso]><style>* {font-family: Arial, sans-serif !important;}</style><![endif]-->
+    <style>
+      /* Gmail strips <style>, so all critical styling is also inline. Where
+         supported (Apple/iOS Mail) these add subtle motion; elsewhere static. */
+      @media (prefers-reduced-motion: no-preference) {
+        @keyframes emRise { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: none; } }
+        @keyframes emPop { 0% { transform: scale(.6); opacity:0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity:1; } }
+        @keyframes emGlow { 0%,100% { box-shadow: 0 8px 24px -10px rgba(76,87,214,.45); } 50% { box-shadow: 0 12px 34px -8px rgba(76,87,214,.78); } }
+        .em-card { animation: emRise .6s cubic-bezier(.2,.8,.2,1) both; }
+        .em-badge { animation: emPop .5s cubic-bezier(.2,.8,.2,1) both; }
+        .em-btn { animation: emGlow 2.6s ease-in-out infinite; }
+      }
+      a.em-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+    </style>
   </head>
-  <body style="margin:0; padding:0; background-color:#F9FAFB;">
-    <!-- Preheader -->
-    <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
-      Welcome to {{app_name}}. Your account is ready.
-    </div>
-
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#F9FAFB;">
+  <body style="margin:0; padding:0; background-color:#F4F5FB; -webkit-text-size-adjust:100%;">
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">Welcome to SmartBudget &mdash; let's get started.</div>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#F4F5FB;">
       <tr>
-        <td align="center" style="padding:24px 12px;">
-          <!-- Container -->
+        <td align="center" style="padding:28px 12px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;">
             <tr>
-              <td style="background-color:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px; box-shadow:0 1px 3px rgba(17,24,39,0.06); padding:32px 28px;">
-                <!-- Logo -->
-                <p style="margin:0 0 20px 0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:16px; line-height:24px; color:#111827; font-weight:700;">
-                  {{app_name}}
-                </p>
-
-                <!-- Title -->
-                <h1 style="margin:0 0 12px 0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:28px; line-height:34px; color:#111827; font-weight:700;">
-                  Welcome to {{app_name}}
-                </h1>
-
-                <!-- Message body -->
-                <p style="margin:0 0 20px 0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:16px; line-height:26px; color:#374151;">
-                  Hi {{user_name}},<br />
-                  Thanks for joining. Your account is ready, and you can get started in seconds.
-                </p>
-
-                <!-- CTA button -->
+              <td style="padding:0 4px 18px 4px;">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                   <tr>
-                    <td style="border-radius:8px; background-color:#2563EB;">
-                      <a href="{{action_url}}" style="display:inline-block; padding:12px 20px; font-family:Inter,Arial,Helvetica,sans-serif; font-size:15px; line-height:20px; color:#FFFFFF; text-decoration:none; font-weight:600; border-radius:8px;">
-                        Get Started
-                      </a>
-                    </td>
+                    <td class="em-badge" style="background-color:#4C57D6; border-radius:11px; width:42px; height:42px; text-align:center; vertical-align:middle; font-family:Inter,Arial,sans-serif; font-size:21px; font-weight:800; color:#FFFFFF;">S</td>
+                    <td style="padding-left:11px; font-family:Inter,Arial,sans-serif; font-size:19px; font-weight:800; letter-spacing:-0.3px; color:#14161D;">SmartBudget</td>
                   </tr>
                 </table>
-
-                <!-- Secondary info / fallback link -->
-                <p style="margin:16px 0 0 0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:13px; line-height:20px; color:#6B7280;">
-                  If the button does not work, use this link:<br />
-                  <a href="{{action_url}}" style="color:#2563EB; text-decoration:underline; word-break:break-all;">{{action_url}}</a>
-                </p>
-
-                <!-- Divider -->
-                <hr style="border:0; border-top:1px solid #E5E7EB; margin:24px 0;" />
-
-                <!-- Footer -->
-                <p style="margin:0; font-family:Inter,Arial,Helvetica,sans-serif; font-size:12px; line-height:20px; color:#6B7280;">
-                  Need help? Contact <a href="mailto:{{support_email}}" style="color:#2563EB; text-decoration:none;">{{support_email}}</a><br />
-                  <a href="{{action_url}}" style="color:#6B7280; text-decoration:underline;">Unsubscribe</a><br />
-                  © {{year}} {{company_name}}. All rights reserved.
-                </p>
               </td>
             </tr>
+            <tr>
+              <td class="em-card" style="background-color:#FFFFFF; border:1px solid #E6E8F2; border-radius:18px; box-shadow:0 10px 30px -16px rgba(36,40,90,.28); overflow:hidden;">
+                <div style="height:4px; background-color:#4C57D6; background-image:linear-gradient(90deg,#2B2F63,#5258D9); line-height:4px; font-size:0;">&nbsp;</div>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr><td style="padding:34px 32px 32px 32px;">
+<h1 style="margin:0 0 14px 0; font-family:Inter,Arial,sans-serif; font-size:26px; line-height:32px; color:#14161D; font-weight:800; letter-spacing:-0.4px;">Welcome to SmartBudget</h1><p style="margin:0px 0 18px 0; font-family:Inter,Arial,sans-serif; font-size:16px; line-height:26px; color:#374151;">Hi {{user_name}}, your account is ready. Track spending, set budgets and savings goals, and stay ahead of every bill &mdash; all in one calm place.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 4px 0;"><tr><td align="left">
+                      <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{action_url}}" style="height:50px;v-text-anchor:middle;width:260px;" arcsize="24%" strokecolor="#4C57D6" fillcolor="#4C57D6"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">Open SmartBudget</center></v:roundrect><![endif]-->
+                      <!--[if !mso]><!-- -->
+                      <a class="em-btn" href="{{action_url}}" style="background-color:#4C57D6; border-radius:14px; color:#FFFFFF; display:inline-block; font-family:Inter,Arial,sans-serif; font-size:16px; font-weight:700; line-height:50px; height:50px; text-align:center; text-decoration:none; width:260px; -webkit-text-size-adjust:none;">Open SmartBudget</a>
+                      <!--<![endif]-->
+                    </td></tr></table>
+                    <hr style="border:0; border-top:1px solid #E6E8F2; margin:26px 0 18px 0;" />
+                    <p style="margin:0; font-family:Inter,Arial,sans-serif; font-size:12px; line-height:20px; color:#5B6270;">
+                      Need help? Contact <a href="mailto:{{support_email}}" style="color:#4C57D6; text-decoration:none;">{{support_email}}</a><br />
+                      &copy; {{year}} {{company_name}}. All rights reserved.
+                    </p>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+            <tr><td style="padding:16px 8px 0 8px; font-family:Inter,Arial,sans-serif; font-size:11px; line-height:18px; color:#9AA0AE; text-align:center;">
+              You're receiving this because you have a SmartBudget account.
+            </td></tr>
           </table>
         </td>
       </tr>
