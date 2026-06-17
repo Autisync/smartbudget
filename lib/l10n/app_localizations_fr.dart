@@ -2865,4 +2865,92 @@ class AppLocalizationsFr extends AppLocalizations {
   String scenarioCurrent(String value) {
     return 'Actuel : $value';
   }
+
+  @override
+  String get portfolioSpent => 'Dépensé';
+
+  @override
+  String get portfolioNetFlow => 'Flux net';
+
+  @override
+  String get portfolioTopCategory => 'Catégorie principale';
+
+  @override
+  String get portfolioDecisionSnapshot => 'Aperçu décisionnel';
+
+  @override
+  String get portfolioCaptionSpent => 'dépensé';
+
+  @override
+  String get portfolioOnTrack => 'Sur la bonne voie';
+
+  @override
+  String get portfolioAtRisk => 'À risque';
+
+  @override
+  String get portfolioDaysLeft => 'Jours restants';
+
+  @override
+  String get portfolioCaptionUsed => 'utilisé';
+
+  @override
+  String get portfolioHealthyPace => 'Rythme sain';
+
+  @override
+  String get portfolioSaved => 'Épargné';
+
+  @override
+  String get portfolioTarget => 'Objectif';
+
+  @override
+  String get portfolioMonthlySurplus => 'Excédent mensuel';
+
+  @override
+  String get portfolioCaptionSaved => 'épargné';
+
+  @override
+  String get portfolioStable => 'Stable';
+
+  @override
+  String get portfolioMonthlyLoad => 'Charge mensuelle';
+
+  @override
+  String get portfolioActive => 'Actifs';
+
+  @override
+  String get portfolioNextRenewal => 'Prochain renouvellement';
+
+  @override
+  String get portfolioOptionalSavings => 'Économies optionnelles';
+
+  @override
+  String get subscriptionPortfolioTitle => 'Portefeuille d\'abonnements';
+
+  @override
+  String get portfolioCaptionOptional => 'optionnel';
+
+  @override
+  String portfolioAtRiskCount(String count) {
+    return '$count à risque';
+  }
+
+  @override
+  String portfolioCriticalCount(String count) {
+    return '$count critique(s)';
+  }
+
+  @override
+  String get authReq8Chars => '8+ caractères';
+
+  @override
+  String get authReqUppercase => 'Majuscule';
+
+  @override
+  String get authReqLowercase => 'Minuscule';
+
+  @override
+  String get authReqNumber => 'Chiffre';
+
+  @override
+  String get authReqPasswordsMatch => 'Les mots de passe correspondent';
 }

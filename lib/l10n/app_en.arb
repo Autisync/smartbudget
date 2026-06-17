@@ -1704,5 +1704,47 @@
         "type": "String"
       }
     }
-  }
+  },
+  "portfolioSpent": "Spent",
+  "portfolioNetFlow": "Net Flow",
+  "portfolioTopCategory": "Top Category",
+  "portfolioDecisionSnapshot": "Decision Snapshot",
+  "portfolioCaptionSpent": "spent",
+  "portfolioOnTrack": "On track",
+  "portfolioAtRisk": "At Risk",
+  "portfolioDaysLeft": "Days Left",
+  "portfolioCaptionUsed": "used",
+  "portfolioHealthyPace": "Healthy pace",
+  "portfolioSaved": "Saved",
+  "portfolioTarget": "Target",
+  "portfolioMonthlySurplus": "Monthly Surplus",
+  "portfolioCaptionSaved": "saved",
+  "portfolioStable": "Stable",
+  "portfolioMonthlyLoad": "Monthly Load",
+  "portfolioActive": "Active",
+  "portfolioNextRenewal": "Next Renewal",
+  "portfolioOptionalSavings": "Optional Savings",
+  "subscriptionPortfolioTitle": "Subscription Portfolio",
+  "portfolioCaptionOptional": "optional",
+  "portfolioAtRiskCount": "{count} at risk",
+  "portfolioCriticalCount": "{count} critical",
+  "@portfolioAtRiskCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "@portfolioCriticalCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "authReq8Chars": "8+ chars",
+  "authReqUppercase": "Uppercase",
+  "authReqLowercase": "Lowercase",
+  "authReqNumber": "Number",
+  "authReqPasswordsMatch": "Passwords match"
 }

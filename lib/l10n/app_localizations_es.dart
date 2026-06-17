@@ -2865,4 +2865,92 @@ class AppLocalizationsEs extends AppLocalizations {
   String scenarioCurrent(String value) {
     return 'Actual: $value';
   }
+
+  @override
+  String get portfolioSpent => 'Gastado';
+
+  @override
+  String get portfolioNetFlow => 'Flujo neto';
+
+  @override
+  String get portfolioTopCategory => 'Categoría principal';
+
+  @override
+  String get portfolioDecisionSnapshot => 'Resumen de decisión';
+
+  @override
+  String get portfolioCaptionSpent => 'gastado';
+
+  @override
+  String get portfolioOnTrack => 'En camino';
+
+  @override
+  String get portfolioAtRisk => 'En riesgo';
+
+  @override
+  String get portfolioDaysLeft => 'Días restantes';
+
+  @override
+  String get portfolioCaptionUsed => 'usado';
+
+  @override
+  String get portfolioHealthyPace => 'Ritmo saludable';
+
+  @override
+  String get portfolioSaved => 'Ahorrado';
+
+  @override
+  String get portfolioTarget => 'Objetivo';
+
+  @override
+  String get portfolioMonthlySurplus => 'Excedente mensual';
+
+  @override
+  String get portfolioCaptionSaved => 'ahorrado';
+
+  @override
+  String get portfolioStable => 'Estable';
+
+  @override
+  String get portfolioMonthlyLoad => 'Carga mensual';
+
+  @override
+  String get portfolioActive => 'Activas';
+
+  @override
+  String get portfolioNextRenewal => 'Próxima renovación';
+
+  @override
+  String get portfolioOptionalSavings => 'Ahorro opcional';
+
+  @override
+  String get subscriptionPortfolioTitle => 'Cartera de suscripciones';
+
+  @override
+  String get portfolioCaptionOptional => 'opcional';
+
+  @override
+  String portfolioAtRiskCount(String count) {
+    return '$count en riesgo';
+  }
+
+  @override
+  String portfolioCriticalCount(String count) {
+    return '$count crítico(s)';
+  }
+
+  @override
+  String get authReq8Chars => '8+ caracteres';
+
+  @override
+  String get authReqUppercase => 'Mayúscula';
+
+  @override
+  String get authReqLowercase => 'Minúscula';
+
+  @override
+  String get authReqNumber => 'Número';
+
+  @override
+  String get authReqPasswordsMatch => 'Las contraseñas coinciden';
 }

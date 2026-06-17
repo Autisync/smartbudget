@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 
@@ -438,6 +439,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final checks = <bool>[
       password.length >= 8,
       RegExp(r'[A-Z]').hasMatch(password),
@@ -507,13 +509,13 @@ class PasswordStrengthIndicator extends StatelessWidget {
             spacing: 8,
             runSpacing: 6,
             children: [
-              _RuleChip(label: '8+ chars', met: checks[0]),
-              _RuleChip(label: 'Uppercase', met: checks[1]),
-              _RuleChip(label: 'Lowercase', met: checks[2]),
-              _RuleChip(label: 'Number', met: checks[3]),
+              _RuleChip(label: l10n.authReq8Chars, met: checks[0]),
+              _RuleChip(label: l10n.authReqUppercase, met: checks[1]),
+              _RuleChip(label: l10n.authReqLowercase, met: checks[2]),
+              _RuleChip(label: l10n.authReqNumber, met: checks[3]),
               if (confirmPassword != null && confirmPassword!.isNotEmpty)
                 _RuleChip(
-                  label: 'Passwords match',
+                  label: l10n.authReqPasswordsMatch,
                   met: confirmPassword == password,
                 ),
             ],

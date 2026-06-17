@@ -2865,4 +2865,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String scenarioCurrent(String value) {
     return 'Current: $value';
   }
+
+  @override
+  String get portfolioSpent => 'Spent';
+
+  @override
+  String get portfolioNetFlow => 'Net Flow';
+
+  @override
+  String get portfolioTopCategory => 'Top Category';
+
+  @override
+  String get portfolioDecisionSnapshot => 'Decision Snapshot';
+
+  @override
+  String get portfolioCaptionSpent => 'spent';
+
+  @override
+  String get portfolioOnTrack => 'On track';
+
+  @override
+  String get portfolioAtRisk => 'At Risk';
+
+  @override
+  String get portfolioDaysLeft => 'Days Left';
+
+  @override
+  String get portfolioCaptionUsed => 'used';
+
+  @override
+  String get portfolioHealthyPace => 'Healthy pace';
+
+  @override
+  String get portfolioSaved => 'Saved';
+
+  @override
+  String get portfolioTarget => 'Target';
+
+  @override
+  String get portfolioMonthlySurplus => 'Monthly Surplus';
+
+  @override
+  String get portfolioCaptionSaved => 'saved';
+
+  @override
+  String get portfolioStable => 'Stable';
+
+  @override
+  String get portfolioMonthlyLoad => 'Monthly Load';
+
+  @override
+  String get portfolioActive => 'Active';
+
+  @override
+  String get portfolioNextRenewal => 'Next Renewal';
+
+  @override
+  String get portfolioOptionalSavings => 'Optional Savings';
+
+  @override
+  String get subscriptionPortfolioTitle => 'Subscription Portfolio';
+
+  @override
+  String get portfolioCaptionOptional => 'optional';
+
+  @override
+  String portfolioAtRiskCount(String count) {
+    return '$count at risk';
+  }
+
+  @override
+  String portfolioCriticalCount(String count) {
+    return '$count critical';
+  }
+
+  @override
+  String get authReq8Chars => '8+ chars';
+
+  @override
+  String get authReqUppercase => 'Uppercase';
+
+  @override
+  String get authReqLowercase => 'Lowercase';
+
+  @override
+  String get authReqNumber => 'Number';
+
+  @override
+  String get authReqPasswordsMatch => 'Passwords match';
 }

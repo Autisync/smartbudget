@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/core/widgets/animated_count_text.dart';
 import 'package:smartbudget/intelligence/utils/currency_utils.dart';
@@ -555,10 +556,11 @@ class TransactionDecisionSnapshot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final formatter = CurrencyUtils.getFormat(currencyCode);
     final metrics = [
       MinimalInsightMetric(
-        label: 'Income',
+        label: l10n.income,
         value: formatter.format(monthIncome),
         animatedValue: monthIncome,
         valueFormatter: formatter.format,
@@ -568,7 +570,7 @@ class TransactionDecisionSnapshot extends StatelessWidget {
         isSelected: isIncomeSelected,
       ),
       MinimalInsightMetric(
-        label: 'Spent',
+        label: l10n.portfolioSpent,
         value: formatter.format(monthExpense),
         animatedValue: monthExpense,
         valueFormatter: formatter.format,
@@ -578,7 +580,7 @@ class TransactionDecisionSnapshot extends StatelessWidget {
         isSelected: isSpentSelected,
       ),
       MinimalInsightMetric(
-        label: 'Recurring',
+        label: l10n.commonRecurring,
         value: '$recurringCount',
         tone: const Color(0xFF5A3FC0),
         emphasis: MinimalInsightMetricEmphasis.prominent,
@@ -586,7 +588,7 @@ class TransactionDecisionSnapshot extends StatelessWidget {
         isSelected: isRecurringSelected,
       ),
       MinimalInsightMetric(
-        label: 'Net Flow',
+        label: l10n.portfolioNetFlow,
         value: formatter.format(netFlow),
         animatedValue: netFlow,
         valueFormatter: formatter.format,
@@ -594,14 +596,14 @@ class TransactionDecisionSnapshot extends StatelessWidget {
         emphasis: MinimalInsightMetricEmphasis.prominent,
       ),
       MinimalInsightMetric(
-        label: 'Top Category',
+        label: l10n.portfolioTopCategory,
         value: topCategory ?? emptyFallback,
         emphasis: MinimalInsightMetricEmphasis.standard,
       ),
     ];
 
     return MinimalInsightCard(
-      title: 'Decision Snapshot',
+      title: l10n.portfolioDecisionSnapshot,
       icon: Icons.insights_rounded,
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
@@ -626,7 +628,7 @@ class TransactionDecisionSnapshot extends StatelessWidget {
         centerLabel: monthIncome > 0
             ? '${((monthExpense / monthIncome) * 100).round()}%'
             : '—',
-        caption: 'spent',
+        caption: l10n.portfolioCaptionSpent,
       ),
     );
   }
@@ -658,6 +660,7 @@ class BudgetPortfolioInsight extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final remainingLabel = projectedOverspend > 0 ? 'Overspend' : 'Remaining';
     final remainingValue =
         projectedOverspend > 0 ? projectedOverspend : totalRemaining;
@@ -667,13 +670,13 @@ class BudgetPortfolioInsight extends StatelessWidget {
 
     final statusChip = atRiskCount > 0
         ? MinimalStatusChip(
-            label: '$atRiskCount at risk',
+            label: l10n.portfolioAtRiskCount('$atRiskCount'),
             tone: const Color(0xFFB36A10),
             isSelected: true,
           )
-        : const MinimalStatusChip(
-            label: 'On track',
-            tone: Color(0xFF198754),
+        : MinimalStatusChip(
+            label: l10n.portfolioOnTrack,
+            tone: const Color(0xFF198754),
           );
 
     final metrics = [
@@ -687,27 +690,27 @@ class BudgetPortfolioInsight extends StatelessWidget {
         isSelected: projectedOverspend > 0,
       ),
       MinimalInsightMetric(
-        label: 'Spent',
+        label: l10n.portfolioSpent,
         value: currencyFormat.format(totalSpent),
         animatedValue: totalSpent,
         valueFormatter: currencyFormat.format,
         emphasis: MinimalInsightMetricEmphasis.prominent,
       ),
       MinimalInsightMetric(
-        label: 'At Risk',
+        label: l10n.portfolioAtRisk,
         value: atRiskCount.toString(),
         tone:
             atRiskCount > 0 ? const Color(0xFFB36A10) : const Color(0xFF198754),
         isSelected: atRiskCount > 0,
       ),
       MinimalInsightMetric(
-        label: 'Days Left',
+        label: l10n.portfolioDaysLeft,
         value: daysLeftLabel,
       ),
     ];
 
     return MinimalInsightCard(
-      title: 'Budget Portfolio',
+      title: l10n.budgetPortfolioTitle,
       icon: Icons.track_changes_rounded,
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
@@ -735,7 +738,7 @@ class BudgetPortfolioInsight extends StatelessWidget {
           fraction: projectedOverspend > 0 ? 1.0 : used,
           color: remainingTone,
           centerLabel: limit > 0 ? '${(used * 100).round()}%' : '—',
-          caption: 'used',
+          caption: l10n.portfolioCaptionUsed,
         );
       }),
       footer: Align(
@@ -769,22 +772,23 @@ class SavingsPortfolioInsight extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final surplusValue = monthlySurplus ?? 0;
     final surplusTone =
         surplusValue >= 0 ? const Color(0xFF198754) : const Color(0xFFC94B2A);
 
     final statusChip = atRiskGoals > 0
         ? MinimalStatusChip(
-            label: '$atRiskGoals at risk',
+            label: l10n.portfolioAtRiskCount('$atRiskGoals'),
             tone: const Color(0xFFB36A10),
             isSelected: true,
           )
-        : const MinimalStatusChip(
-            label: 'Healthy pace', tone: Color(0xFF198754));
+        : MinimalStatusChip(
+            label: l10n.portfolioHealthyPace, tone: const Color(0xFF198754));
 
     final metrics = [
       MinimalInsightMetric(
-        label: 'Saved',
+        label: l10n.portfolioSaved,
         value: currencyFormat.format(totalSaved),
         animatedValue: totalSaved,
         valueFormatter: currencyFormat.format,
@@ -792,20 +796,20 @@ class SavingsPortfolioInsight extends StatelessWidget {
         emphasis: MinimalInsightMetricEmphasis.monetary,
       ),
       MinimalInsightMetric(
-        label: 'Target',
+        label: l10n.portfolioTarget,
         value: currencyFormat.format(totalTarget),
         animatedValue: totalTarget,
         valueFormatter: currencyFormat.format,
         emphasis: MinimalInsightMetricEmphasis.prominent,
       ),
       MinimalInsightMetric(
-        label: 'Monthly Surplus',
+        label: l10n.portfolioMonthlySurplus,
         value: currencyFormat.format(surplusValue),
         tone: surplusTone,
         isSelected: surplusValue < 0,
       ),
       MinimalInsightMetric(
-        label: 'At Risk',
+        label: l10n.portfolioAtRisk,
         value: atRiskGoals.toString(),
         tone:
             atRiskGoals > 0 ? const Color(0xFFB36A10) : const Color(0xFF198754),
@@ -814,7 +818,7 @@ class SavingsPortfolioInsight extends StatelessWidget {
     ];
 
     return MinimalInsightCard(
-      title: 'Savings Portfolio',
+      title: l10n.savingsPortfolioTitle,
       icon: Icons.savings_outlined,
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
@@ -838,7 +842,7 @@ class SavingsPortfolioInsight extends StatelessWidget {
         centerLabel: totalTarget > 0
             ? '${((totalSaved / totalTarget) * 100).round()}%'
             : '—',
-        caption: 'saved',
+        caption: l10n.portfolioCaptionSaved,
       ),
     );
   }
@@ -878,37 +882,38 @@ class SubscriptionPortfolioInsight<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final formatter = NumberFormat.currency(symbol: currencySymbol);
 
     final statusChip = criticalCount > 0
         ? MinimalStatusChip(
-            label: '$criticalCount critical',
+            label: l10n.portfolioCriticalCount('$criticalCount'),
             tone: const Color(0xFFC94B2A),
             isSelected: true,
           )
-        : const MinimalStatusChip(
-            label: 'Stable',
-            tone: Color(0xFF198754),
+        : MinimalStatusChip(
+            label: l10n.portfolioStable,
+            tone: const Color(0xFF198754),
           );
 
     final metrics = [
       MinimalInsightMetric(
-        label: 'Monthly Load',
+        label: l10n.portfolioMonthlyLoad,
         value: formatter.format(monthlyLoad),
         emphasis: MinimalInsightMetricEmphasis.monetary,
       ),
       MinimalInsightMetric(
-        label: 'Active',
+        label: l10n.portfolioActive,
         value: activeCount.toString(),
       ),
       MinimalInsightMetric(
-        label: 'Next Renewal',
+        label: l10n.portfolioNextRenewal,
         value: '$renewingSoonCount due',
         tone: renewingSoonCount > 0 ? const Color(0xFFB36A10) : null,
         isSelected: renewingSoonCount > 0,
       ),
       MinimalInsightMetric(
-        label: 'Optional Savings',
+        label: l10n.portfolioOptionalSavings,
         value: formatter.format(lowPriorityMonthlyCost),
         tone: lowPriorityMonthlyCost > 0 ? const Color(0xFF198754) : null,
         isSelected: lowPriorityMonthlyCost > 0,
@@ -916,7 +921,7 @@ class SubscriptionPortfolioInsight<T> extends StatelessWidget {
     ];
 
     return MinimalInsightCard(
-      title: 'Subscription Portfolio',
+      title: l10n.subscriptionPortfolioTitle,
       icon: Icons.subscriptions_rounded,
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
@@ -944,7 +949,7 @@ class SubscriptionPortfolioInsight<T> extends StatelessWidget {
         centerLabel: monthlyLoad > 0
             ? '${((lowPriorityMonthlyCost / monthlyLoad) * 100).round()}%'
             : '—',
-        caption: 'optional',
+        caption: l10n.portfolioCaptionOptional,
       ),
       footer: showChipsInFooter
           ? SingleChildScrollView(
@@ -952,7 +957,7 @@ class SubscriptionPortfolioInsight<T> extends StatelessWidget {
               child: Row(
                 children: [
                   _SubscriptionFilterChip(
-                    label: 'All',
+                    label: l10n.commonAll,
                     selected: activeFilter == null,
                     onTap: () => onFilterSelected(null),
                   ),

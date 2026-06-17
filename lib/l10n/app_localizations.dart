@@ -5392,6 +5392,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Current: {value}'**
   String scenarioCurrent(String value);
+
+  /// No description provided for @portfolioSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent'**
+  String get portfolioSpent;
+
+  /// No description provided for @portfolioNetFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Flow'**
+  String get portfolioNetFlow;
+
+  /// No description provided for @portfolioTopCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Category'**
+  String get portfolioTopCategory;
+
+  /// No description provided for @portfolioDecisionSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision Snapshot'**
+  String get portfolioDecisionSnapshot;
+
+  /// No description provided for @portfolioCaptionSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'spent'**
+  String get portfolioCaptionSpent;
+
+  /// No description provided for @portfolioOnTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'On track'**
+  String get portfolioOnTrack;
+
+  /// No description provided for @portfolioAtRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'At Risk'**
+  String get portfolioAtRisk;
+
+  /// No description provided for @portfolioDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Days Left'**
+  String get portfolioDaysLeft;
+
+  /// No description provided for @portfolioCaptionUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'used'**
+  String get portfolioCaptionUsed;
+
+  /// No description provided for @portfolioHealthyPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy pace'**
+  String get portfolioHealthyPace;
+
+  /// No description provided for @portfolioSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get portfolioSaved;
+
+  /// No description provided for @portfolioTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get portfolioTarget;
+
+  /// No description provided for @portfolioMonthlySurplus.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Surplus'**
+  String get portfolioMonthlySurplus;
+
+  /// No description provided for @portfolioCaptionSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'saved'**
+  String get portfolioCaptionSaved;
+
+  /// No description provided for @portfolioStable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable'**
+  String get portfolioStable;
+
+  /// No description provided for @portfolioMonthlyLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Load'**
+  String get portfolioMonthlyLoad;
+
+  /// No description provided for @portfolioActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get portfolioActive;
+
+  /// No description provided for @portfolioNextRenewal.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Renewal'**
+  String get portfolioNextRenewal;
+
+  /// No description provided for @portfolioOptionalSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional Savings'**
+  String get portfolioOptionalSavings;
+
+  /// No description provided for @subscriptionPortfolioTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Portfolio'**
+  String get subscriptionPortfolioTitle;
+
+  /// No description provided for @portfolioCaptionOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'optional'**
+  String get portfolioCaptionOptional;
+
+  /// No description provided for @portfolioAtRiskCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} at risk'**
+  String portfolioAtRiskCount(String count);
+
+  /// No description provided for @portfolioCriticalCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} critical'**
+  String portfolioCriticalCount(String count);
+
+  /// No description provided for @authReq8Chars.
+  ///
+  /// In en, this message translates to:
+  /// **'8+ chars'**
+  String get authReq8Chars;
+
+  /// No description provided for @authReqUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Uppercase'**
+  String get authReqUppercase;
+
+  /// No description provided for @authReqLowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowercase'**
+  String get authReqLowercase;
+
+  /// No description provided for @authReqNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get authReqNumber;
+
+  /// No description provided for @authReqPasswordsMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords match'**
+  String get authReqPasswordsMatch;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

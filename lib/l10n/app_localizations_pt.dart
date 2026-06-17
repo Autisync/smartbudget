@@ -2865,4 +2865,92 @@ class AppLocalizationsPt extends AppLocalizations {
   String scenarioCurrent(String value) {
     return 'Atual: $value';
   }
+
+  @override
+  String get portfolioSpent => 'Gasto';
+
+  @override
+  String get portfolioNetFlow => 'Fluxo líquido';
+
+  @override
+  String get portfolioTopCategory => 'Categoria principal';
+
+  @override
+  String get portfolioDecisionSnapshot => 'Resumo de decisão';
+
+  @override
+  String get portfolioCaptionSpent => 'gasto';
+
+  @override
+  String get portfolioOnTrack => 'No caminho certo';
+
+  @override
+  String get portfolioAtRisk => 'Em risco';
+
+  @override
+  String get portfolioDaysLeft => 'Dias restantes';
+
+  @override
+  String get portfolioCaptionUsed => 'usado';
+
+  @override
+  String get portfolioHealthyPace => 'Ritmo saudável';
+
+  @override
+  String get portfolioSaved => 'Poupado';
+
+  @override
+  String get portfolioTarget => 'Meta';
+
+  @override
+  String get portfolioMonthlySurplus => 'Excedente mensal';
+
+  @override
+  String get portfolioCaptionSaved => 'poupado';
+
+  @override
+  String get portfolioStable => 'Estável';
+
+  @override
+  String get portfolioMonthlyLoad => 'Carga mensal';
+
+  @override
+  String get portfolioActive => 'Ativas';
+
+  @override
+  String get portfolioNextRenewal => 'Próxima renovação';
+
+  @override
+  String get portfolioOptionalSavings => 'Economia opcional';
+
+  @override
+  String get subscriptionPortfolioTitle => 'Carteira de assinaturas';
+
+  @override
+  String get portfolioCaptionOptional => 'opcional';
+
+  @override
+  String portfolioAtRiskCount(String count) {
+    return '$count em risco';
+  }
+
+  @override
+  String portfolioCriticalCount(String count) {
+    return '$count crítico(s)';
+  }
+
+  @override
+  String get authReq8Chars => '8+ caracteres';
+
+  @override
+  String get authReqUppercase => 'Maiúscula';
+
+  @override
+  String get authReqLowercase => 'Minúscula';
+
+  @override
+  String get authReqNumber => 'Número';
+
+  @override
+  String get authReqPasswordsMatch => 'As senhas coincidem';
 }
