@@ -35,6 +35,17 @@ class AppFeedbackToast {
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return;
 
+    // Read the bottom safe-area inset WITHOUT registering an inherited
+    // dependency. This method is frequently invoked from async event handlers
+    // (e.g. right before a bottom sheet is popped); using MediaQuery.of/paddingOf
+    // there would attach a late dependency to a subtree that is about to be torn
+    // down, tripping the framework's "InheritedElement.debugDeactivated:
+    // _dependents.isEmpty" assertion. getInheritedWidgetOfExactType reads the
+    // value without subscribing, so it is safe in any lifecycle state.
+    final bottomInset =
+        context.getInheritedWidgetOfExactType<MediaQuery>()?.data.padding.bottom ??
+            0.0;
+
     if (replaceCurrent) {
       messenger
         ..hideCurrentSnackBar()
@@ -45,12 +56,7 @@ class AppFeedbackToast {
       SnackBar(
         behavior: SnackBarBehavior.floating,
         duration: duration,
-        margin: EdgeInsets.fromLTRB(
-          16,
-          0,
-          16,
-          16 + MediaQuery.paddingOf(context).bottom,
-        ),
+        margin: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
         backgroundColor: backgroundColor,
         elevation: 0,
         shape: RoundedRectangleBorder(

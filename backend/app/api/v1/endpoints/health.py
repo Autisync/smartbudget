@@ -38,6 +38,21 @@ def _check_broker() -> dict[str, Any]:
     return info
 
 
+def _check_workers() -> dict[str, Any]:
+    """Ping live Celery workers. Broker reachability alone does NOT mean email
+    will send — a task enqueued with no worker consuming it sits forever. This
+    surfaces whether at least one worker is actually online."""
+    info: dict[str, Any] = {"online": 0, "responding": False, "error": None}
+    try:
+        replies = celery_app.control.ping(timeout=2)
+        info["online"] = len(replies or [])
+        info["responding"] = bool(replies)
+    except Exception as exc:
+        info["error"] = type(exc).__name__
+        logger.warning("Readiness: Celery worker ping failed (%s)", type(exc).__name__)
+    return info
+
+
 @router.get("/health/ready")
 def readiness() -> dict[str, Any]:
     """Deep readiness for ops/monitoring: reports the prerequisites for
@@ -49,6 +64,7 @@ def readiness() -> dict[str, Any]:
     never credentials.
     """
     broker = _check_broker()
+    workers = _check_workers()
     smtp_issues = settings.smtp_validation_issues()
     smtp = {
         "enabled": settings.smtp_enabled,
@@ -58,6 +74,7 @@ def readiness() -> dict[str, Any]:
     }
     email_ready = (
         broker["reachable"]
+        and workers["responding"]
         and settings.smtp_enabled
         and bool(settings.smtp_host)
         and not smtp_issues
@@ -66,5 +83,6 @@ def readiness() -> dict[str, Any]:
         "status": "ok" if email_ready else "degraded",
         "email_ready": email_ready,
         "celery_broker": broker,
+        "celery_workers": workers,
         "smtp": smtp,
     }
