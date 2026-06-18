@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/errors/app_error_mapper.dart';
+import 'package:smartbudget/core/monitoring/error_monitor.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart';
 import 'package:smartbudget/core/services/security_service.dart';
@@ -193,6 +194,7 @@ class SessionController extends StateNotifier<SessionState> {
 
   Future<void> _applyAuthenticated(AuthUser user) async {
     final requiresLocalUnlock = await _shouldRequireLocalUnlock();
+    ErrorMonitor.setUser(id: user.id);
     state = SessionState(
       initializing: false,
       authenticated: true,
@@ -208,6 +210,7 @@ class SessionController extends StateNotifier<SessionState> {
     final cached = await _repository.readCachedUser();
     if (cached == null) return false;
     final requiresLocalUnlock = await _shouldRequireLocalUnlock();
+    ErrorMonitor.setUser(id: cached.id);
     state = SessionState(
       initializing: false,
       authenticated: true,
@@ -519,6 +522,7 @@ class SessionController extends StateNotifier<SessionState> {
 
   Future<void> logout() async {
     await _repository.logout();
+    ErrorMonitor.clearUser();
     state = const SessionState(
       initializing: false,
       authenticated: false,
@@ -538,6 +542,7 @@ class SessionController extends StateNotifier<SessionState> {
 
   Future<void> forceLogoutFromRefreshFailure() async {
     await _repository.clearTokens();
+    ErrorMonitor.clearUser();
     state = const SessionState(
       initializing: false,
       authenticated: false,

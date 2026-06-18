@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
+import 'package:smartbudget/core/monitoring/error_monitor.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/data/datasources/local/database_cipher.dart';
 import 'package:smartbudget/features/accounts/presentation/providers/account_provider.dart';
@@ -23,16 +24,20 @@ import 'package:smartbudget/l10n/app_localizations.dart';
 bool _appLaunched = false;
 
 void main() {
-  runZonedGuarded(_boot, _handleUncaughtError);
+  // Run boot inside the error monitor (Sentry when a DSN is configured, a no-op
+  // otherwise). It installs its own error-capturing zone, and we still guard
+  // boot with runZonedGuarded so the fatal-screen recovery path is preserved.
+  ErrorMonitor.init(() => runZonedGuarded(_boot, _handleUncaughtError));
 }
 
 Future<void> _boot() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Catch Flutter framework errors (widget build failures, etc.) so they show
-  // a visible error widget instead of a black screen.
+  // Catch Flutter framework errors (widget build failures, etc.): show a visible
+  // error widget instead of a black screen AND report them to monitoring.
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
+    ErrorMonitor.captureFlutterError(details);
     if (kDebugMode) {
       debugPrint('[SmartSpend] Flutter error: ${details.exceptionAsString()}');
     }
@@ -102,13 +107,16 @@ Future<void> _boot() async {
 /// produce a silent black screen. We log in debug and show a recovery UI in
 /// release so the user is never left staring at a blank screen.
 void _handleUncaughtError(Object error, StackTrace stack) {
+  // Report every uncaught async error to monitoring, whether or not the app is
+  // already running.
+  ErrorMonitor.captureException(error, stack, context: 'uncaught zone error');
   if (kDebugMode) {
     debugPrint('[SmartSpend] Uncaught error: $error\n$stack');
   }
   // If the app is already running, this is a recoverable background error —
-  // log it (and report to crash analytics when wired) but DO NOT replace the
-  // live UI. Replacing it here is what turned transient async errors into a
-  // permanent "Something went wrong" screen in release.
+  // already reported above, but DO NOT replace the live UI. Replacing it here is
+  // what turned transient async errors into a permanent "Something went wrong"
+  // screen in release.
   if (_appLaunched) {
     return;
   }

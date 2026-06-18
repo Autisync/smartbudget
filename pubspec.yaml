@@ -90,6 +90,7 @@ dependencies:
   firebase_core: ^3.15.1
   firebase_messaging: ^15.2.6
   sqlcipher_flutter_libs: ^0.6.0
+  sentry_flutter: ^8.14.2
 
 dev_dependencies:
   flutter_test:
