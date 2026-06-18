@@ -21,6 +21,29 @@ class AuthUserModel extends AuthUser {
       isVerified: json['is_verified'] as bool? ?? false,
     );
   }
+
+  /// Snapshot persisted locally so the session can be restored offline
+  /// (see [AuthTokenStorage.saveUser]).
+  Map<String, dynamic> toStorageJson() => {
+        'id': id,
+        'email': email,
+        'first_name': firstName,
+        'last_name': lastName,
+        'is_active': isActive,
+        'is_verified': isVerified,
+      };
+
+  factory AuthUserModel.fromStorageJson(Map<String, dynamic> json) =>
+      AuthUserModel.fromJson(json);
+
+  factory AuthUserModel.fromEntity(AuthUser user) => AuthUserModel(
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isActive: user.isActive,
+        isVerified: user.isVerified,
+      );
 }
 
 class AuthTokensModel extends AuthTokens {

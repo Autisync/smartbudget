@@ -354,7 +354,12 @@ def create_application() -> FastAPI:
         except Exception:  # noqa: BLE001 - never leak a stack trace to the user
             logger.exception("verify-email link handling failed")
             ok = False
-        app_link = f"smartbudget://verify-email?token={quote(token, safe='')}"
+        # Verification is already complete, so the button just opens the app at
+        # sign-in via the Android App Link (https://<host>/app/*). On platforms
+        # without the app installed it harmlessly opens the website instead — far
+        # more reliable than the custom smartbudget:// scheme (unregistered on iOS).
+        base = settings.verify_email_deep_link_base
+        app_link = (base.rsplit("/", 1)[0] + "/login") if "/app/" in base else base
         return HTMLResponse(_verify_email_result_html(success=ok, app_link=app_link))
 
     return app

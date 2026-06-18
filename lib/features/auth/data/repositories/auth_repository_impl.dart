@@ -31,6 +31,7 @@ class AuthRepositoryImpl implements AuthRepository {
       platform: platform,
     );
     await _storage.saveTokens(response.tokens);
+    await _storage.saveUser(response.user);
     return (response.user, response.tokens);
   }
 
@@ -48,6 +49,7 @@ class AuthRepositoryImpl implements AuthRepository {
       platform: platform,
     );
     await _storage.saveTokens(response.tokens);
+    await _storage.saveUser(response.user);
     return (response.user, response.tokens);
   }
 
@@ -71,6 +73,7 @@ class AuthRepositoryImpl implements AuthRepository {
       platform: platform,
     );
     await _storage.saveTokens(response.tokens);
+    await _storage.saveUser(response.user);
     return (response.user, response.tokens);
   }
 
@@ -109,17 +112,24 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthUser> me() {
-    return _remoteClient.me();
+  Future<AuthUser> me() async {
+    final user = await _remoteClient.me();
+    await _storage.saveUser(AuthUserModel.fromEntity(user));
+    return user;
   }
 
   @override
-  Future<AuthUser> updateProfile({String? firstName, String? lastName}) {
-    return _remoteClient.updateProfile(
+  Future<AuthUser> updateProfile({String? firstName, String? lastName}) async {
+    final user = await _remoteClient.updateProfile(
       firstName: firstName,
       lastName: lastName,
     );
+    await _storage.saveUser(AuthUserModel.fromEntity(user));
+    return user;
   }
+
+  @override
+  Future<AuthUser?> readCachedUser() => _storage.readUser();
 
   @override
   Future<AuthTokens> refreshToken() async {

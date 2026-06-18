@@ -37,6 +37,10 @@ abstract class AuthRepository {
   Future<void> resendVerificationEmail();
   Future<AuthUser> me();
   Future<AuthUser> updateProfile({String? firstName, String? lastName});
+
+  /// Last-known user persisted locally, for offline session restore. Null if
+  /// the user has never been cached or was cleared on logout.
+  Future<AuthUser?> readCachedUser();
   Future<AuthTokens?> readStoredTokens();
   Future<void> storeTokens(AuthTokens tokens);
   Future<void> clearTokens();

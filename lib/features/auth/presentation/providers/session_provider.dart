@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -137,25 +138,24 @@ class SessionController extends StateNotifier<SessionState> {
 
     try {
       final user = await _repository.me().timeout(_bootCallTimeout);
-      final requiresLocalUnlock = await _shouldRequireLocalUnlock();
-      state = SessionState(
-        initializing: false,
-        authenticated: true,
-        localUnlockRequired: requiresLocalUnlock,
-        user: user,
-      );
-    } catch (_) {
+      await _applyAuthenticated(user);
+    } catch (e) {
+      // Offline-first: a connectivity failure (no network, timeout, captive
+      // wifi) must NOT log the user out. If we have a cached user, restore the
+      // session offline; the next successful request refreshes it.
+      if (_isConnectivityError(e) && await _restoreOffline()) {
+        return;
+      }
+      // Otherwise the access token is likely expired — try one refresh.
       try {
         await _repository.refreshToken().timeout(_bootCallTimeout);
         final user = await _repository.me().timeout(_bootCallTimeout);
-        final requiresLocalUnlock = await _shouldRequireLocalUnlock();
-        state = SessionState(
-          initializing: false,
-          authenticated: true,
-          localUnlockRequired: requiresLocalUnlock,
-          user: user,
-        );
-      } catch (_) {
+        await _applyAuthenticated(user);
+      } catch (e2) {
+        if (_isConnectivityError(e2) && await _restoreOffline()) {
+          return;
+        }
+        // Genuine auth failure (refresh token invalid/revoked): clear and exit.
         await _repository.clearTokens();
         state = const SessionState(
           initializing: false,
@@ -164,6 +164,53 @@ class SessionController extends StateNotifier<SessionState> {
         );
       }
     }
+  }
+
+  Future<void> _applyAuthenticated(AuthUser user) async {
+    final requiresLocalUnlock = await _shouldRequireLocalUnlock();
+    state = SessionState(
+      initializing: false,
+      authenticated: true,
+      localUnlockRequired: requiresLocalUnlock,
+      user: user,
+    );
+  }
+
+  /// Restores an authenticated session from the locally cached user when the
+  /// server is unreachable. Returns false if nothing is cached (caller then
+  /// falls back to the login screen).
+  Future<bool> _restoreOffline() async {
+    final cached = await _repository.readCachedUser();
+    if (cached == null) return false;
+    final requiresLocalUnlock = await _shouldRequireLocalUnlock();
+    state = SessionState(
+      initializing: false,
+      authenticated: true,
+      localUnlockRequired: requiresLocalUnlock,
+      user: cached,
+    );
+    return true;
+  }
+
+  /// True when [error] indicates the device couldn't reach the server (vs. an
+  /// auth/validation error), so the session should be preserved offline.
+  bool _isConnectivityError(Object error) {
+    if (error is TimeoutException) return true;
+    if (error is SocketException) return true;
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+        case DioExceptionType.connectionError:
+          return true;
+        case DioExceptionType.unknown:
+          return error.error is SocketException;
+        default:
+          return false;
+      }
+    }
+    return false;
   }
 
   Future<bool> login({required String email, required String password}) async {

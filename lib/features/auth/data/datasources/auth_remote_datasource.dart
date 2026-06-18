@@ -11,6 +11,7 @@ class AuthTokenStorage {
   AuthTokenStorage(this._secureStorage);
 
   static const _tokensKey = 'auth_tokens';
+  static const _userKey = 'auth_user';
   final FlutterSecureStorage _secureStorage;
 
   Future<void> saveTokens(AuthTokensModel tokens) async {
@@ -27,8 +28,29 @@ class AuthTokenStorage {
         jsonDecode(raw) as Map<String, dynamic>);
   }
 
+  /// Persists the last-known user so an offline cold start can restore the
+  /// session without reaching the server. Cleared together with tokens.
+  Future<void> saveUser(AuthUserModel user) async {
+    await _secureStorage.write(
+      key: _userKey,
+      value: jsonEncode(user.toStorageJson()),
+    );
+  }
+
+  Future<AuthUserModel?> readUser() async {
+    final raw = await _secureStorage.read(key: _userKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return AuthUserModel.fromStorageJson(
+          jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> clearTokens() async {
     await _secureStorage.delete(key: _tokensKey);
+    await _secureStorage.delete(key: _userKey);
   }
 }
 
