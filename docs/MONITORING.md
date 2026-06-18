@@ -54,8 +54,8 @@ Sentry dashboard.
 
 ## Privacy
 
-`sendDefaultPii = true` is currently set (attaches request headers and user IP
-for richer context), along with Session Replay (10% of sessions, 100% of error
-sessions). For a finance app you may want to set `sendDefaultPii = false` and/or
-disable replay in `error_monitor.dart` before public launch. Only an opaque user
-id is attached to events.
+`sendDefaultPii = false` — IP addresses and request headers are NOT sent; only
+an opaque user id is attached. Session Replay is on (10% of sessions, 100% of
+error sessions) but Sentry masks all text and images by default
+(`maskAllText`/`maskAllImages`), so on-screen balances/transactions are redacted.
+Review these settings in `error_monitor.dart` before public launch.

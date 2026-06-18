@@ -59,13 +59,13 @@ class ErrorMonitor {
         if (_release.isNotEmpty) options.release = _release;
         options.attachStacktrace = true;
         options.enableAutoSessionTracking = true;
-        // Adds request headers and user IP for richer context. Set to false to
-        // stop sending PII: https://docs.sentry.io/platforms/dart/data-management/data-collected/
-        options.sendDefaultPii = true;
-        // 100% sampling while validating; lower in production to control volume.
-        options.tracesSampleRate = 1.0;
+        // Privacy: this is a finance app, so do NOT attach PII (user IP,
+        // request headers). Only an opaque user id is set elsewhere.
+        options.sendDefaultPii = false;
+        // Sample lightly in production to control volume/cost; full in dev.
+        options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
         // ignore: experimental_member_use
-        options.profilesSampleRate = 1.0;
+        options.profilesSampleRate = kReleaseMode ? 0.2 : 1.0;
         // Session Replay (8.x: under `experimental`). Captures 10% of sessions
         // and 100% of sessions that hit an error.
         // ignore: experimental_member_use

@@ -40,6 +40,11 @@ abstract class AuthRepository {
 
   /// Last-known user persisted locally, for offline session restore. Null if
   /// the user has never been cached or was cleared on logout.
+  ///
+  /// NOTE: this snapshot can be stale (e.g. a user who verified their email on
+  /// the web then opens the app offline still reads `isVerified == false` here).
+  /// It is refreshed by the next successful [me] call once connectivity returns,
+  /// so any gate driven by it self-corrects when back online.
   Future<AuthUser?> readCachedUser();
   Future<AuthTokens?> readStoredTokens();
   Future<void> storeTokens(AuthTokens tokens);

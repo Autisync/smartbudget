@@ -31,6 +31,25 @@ class RateLimiterService:
             self.redis.expire(bucket_key, window_seconds)
         return value <= max_attempts
 
+    # Atomic two-tier limiter executed server-side so the cap check and the
+    # increment can't race across concurrent requests. Returns {status, ttl}.
+    _RESEND_LUA = """
+    local count = tonumber(redis.call('GET', KEYS[1]) or '0')
+    if count >= tonumber(ARGV[1]) then
+        local ttl = redis.call('TTL', KEYS[1])
+        if ttl < 0 then ttl = tonumber(ARGV[2]) end
+        return {'hour', ttl}
+    end
+    if not redis.call('SET', KEYS[2], '1', 'NX', 'EX', ARGV[3]) then
+        local ttl = redis.call('TTL', KEYS[2])
+        if ttl < 0 then ttl = tonumber(ARGV[3]) end
+        return {'minute', ttl}
+    end
+    local value = redis.call('INCR', KEYS[1])
+    if value == 1 then redis.call('EXPIRE', KEYS[1], ARGV[2]) end
+    return {'ok', 0}
+    """
+
     def check_resend(
         self,
         key: str,
@@ -43,21 +62,22 @@ class RateLimiterService:
         ``max_per_window`` per hour, with at least ``min_gap_seconds`` between
         each. Returns ('ok', 0) when allowed, ('minute', secs_left) when the
         per-send gap hasn't elapsed, or ('hour', secs_left) when the hourly cap
-        is hit. Only increments the hourly counter when the send is allowed."""
+        is hit. Only increments the hourly counter when the send is allowed.
+
+        Runs as a single Lua script so the read-check-increment sequence is
+        atomic — concurrent resend requests can't both slip past the cap."""
         hour_key = f"rate-limit:resend_verification:{key}"
         gap_key = f"rate-limit:resend_verification_gap:{key}"
-
-        count = int(self.redis.get(hour_key) or 0)
-        if count >= max_per_window:
-            ttl = self.redis.ttl(hour_key)
-            return ("hour", ttl if ttl and ttl > 0 else window_seconds)
-
-        # SET NX EX succeeds only if no gap key exists (>= min_gap since last send).
-        if not self.redis.set(gap_key, "1", nx=True, ex=min_gap_seconds):
-            ttl = self.redis.ttl(gap_key)
-            return ("minute", ttl if ttl and ttl > 0 else min_gap_seconds)
-
-        value = self.redis.incr(hour_key)
-        if value == 1:
-            self.redis.expire(hour_key, window_seconds)
-        return ("ok", 0)
+        status, ttl = self.redis.eval(
+            self._RESEND_LUA,
+            2,
+            hour_key,
+            gap_key,
+            max_per_window,
+            window_seconds,
+            min_gap_seconds,
+        )
+        # decode_responses may leave status as bytes depending on client config.
+        if isinstance(status, bytes):
+            status = status.decode()
+        return (status, int(ttl))

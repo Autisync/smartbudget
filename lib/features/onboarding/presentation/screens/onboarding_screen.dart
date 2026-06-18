@@ -222,7 +222,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   page: _page,
                   total: _pages.length,
                   stagger: _stagger,
-                  onSkip: () => context.go('/login'),
+                  // Skip jumps past the slides but must still COMPLETE
+                  // onboarding (and accept legal) like finishing — otherwise the
+                  // router bounces straight back to /onboarding because the
+                  // status is not "ready" (onboardingComplete && legalAccepted).
+                  onSkip: _finish,
                   isLast: isLast,
                 ),
               ),

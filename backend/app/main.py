@@ -343,6 +343,10 @@ def create_application() -> FastAPI:
         # device (desktop, a different phone) and never depends on the app being
         # installed or a custom-scheme deep link firing. The token is single-use
         # and short-lived; a verified user clicking again still lands on success.
+        # Trade-off: email security scanners/prefetchers may "click" the link and
+        # consume the token before the user does. Accepted here because the token
+        # is short-lived and the user can always request a fresh one; revisit
+        # with a confirm-button (POST) page if pre-fetch consumption is observed.
         ok = False
         try:
             token_payload = decode_token(token)
