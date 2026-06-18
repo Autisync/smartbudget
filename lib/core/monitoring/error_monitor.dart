@@ -36,6 +36,15 @@ class ErrorMonitor {
 
   static const String _release = String.fromEnvironment('SENTRY_RELEASE');
 
+  /// Optional `--dart-define=SENTRY_SAMPLE_RATE=0.5` override for traces/profiles
+  /// sampling. Falls back to 0.2 in release / 1.0 in debug. (Dart has no
+  /// double.fromEnvironment, so it's read as a string and parsed.)
+  static const String _sampleRateOverride =
+      String.fromEnvironment('SENTRY_SAMPLE_RATE');
+
+  static double get _sampleRate =>
+      double.tryParse(_sampleRateOverride) ?? (kReleaseMode ? 0.2 : 1.0);
+
   static bool _initialized = false;
 
   /// True when a DSN was provided and Sentry was initialized successfully.
@@ -63,9 +72,10 @@ class ErrorMonitor {
         // request headers). Only an opaque user id is set elsewhere.
         options.sendDefaultPii = false;
         // Sample lightly in production to control volume/cost; full in dev.
-        options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
+        // Overridable via --dart-define=SENTRY_SAMPLE_RATE.
+        options.tracesSampleRate = _sampleRate;
         // ignore: experimental_member_use
-        options.profilesSampleRate = kReleaseMode ? 0.2 : 1.0;
+        options.profilesSampleRate = _sampleRate;
         // Session Replay (8.x: under `experimental`). Captures 10% of sessions
         // and 100% of sessions that hit an error.
         // ignore: experimental_member_use
