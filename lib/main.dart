@@ -15,6 +15,7 @@ import 'package:smartbudget/core/router/app_router.dart';
 import 'package:smartbudget/core/services/locale_service.dart';
 import 'package:smartbudget/core/theme/app_theme.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// True once the real app has been handed to runApp. After this point an
 /// uncaught async error must NOT replace the running UI with the fatal screen —
@@ -24,9 +25,9 @@ import 'package:smartbudget/l10n/app_localizations.dart';
 bool _appLaunched = false;
 
 void main() {
-  // Run boot inside the error monitor (Sentry when a DSN is configured, a no-op
-  // otherwise). It installs its own error-capturing zone, and we still guard
-  // boot with runZonedGuarded so the fatal-screen recovery path is preserved.
+  // Single entry point: ErrorMonitor.init initializes Sentry (with the project
+  // DSN) and runs the app inside Sentry's error-capturing zone. We still nest
+  // runZonedGuarded so the boot-failure fatal-screen recovery path is preserved.
   ErrorMonitor.init(() => runZonedGuarded(_boot, _handleUncaughtError));
 }
 
@@ -92,10 +93,14 @@ Future<void> _boot() async {
     container.read(securityServiceProvider).pruneAuthLogs(),
   );
 
+  // Sentry is already initialized by ErrorMonitor.init (which wraps this boot).
+  // SentryWidget enables session replay / widget instrumentation for the app.
   runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const SmartSpendApp(),
+    SentryWidget(
+      child: UncontrolledProviderScope(
+        container: container,
+        child: const SmartSpendApp(),
+      ),
     ),
   );
   // From here on, uncaught async errors are recoverable — don't replace the UI.
@@ -121,10 +126,11 @@ void _handleUncaughtError(Object error, StackTrace stack) {
     return;
   }
   // Boot failure (before the real app exists): show the recovery screen so the
-  // user isn't left on a black screen.
+  // user isn't left on a black screen. (Sentry is already initialized by
+  // ErrorMonitor.init, and the error was reported above.)
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    runApp(const _FatalErrorApp());
+    runApp(SentryWidget(child: const _FatalErrorApp()));
   } catch (_) {
     // Binding not ready or runApp failed — nothing more we can do.
   }

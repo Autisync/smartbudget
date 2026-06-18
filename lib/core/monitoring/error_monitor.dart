@@ -20,8 +20,14 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 class ErrorMonitor {
   ErrorMonitor._();
 
-  /// Sentry DSN, injected at build time. Empty → monitoring disabled.
-  static const String _dsn = String.fromEnvironment('SENTRY_DSN');
+  /// Project DSN. A DSN is not a secret (it ships inside the client app), so it
+  /// is safe to embed as the default. A `--dart-define=SENTRY_DSN=…` build flag
+  /// overrides it (e.g. to point staging vs prod at different projects). Set the
+  /// default to empty to disable monitoring entirely.
+  static const String _dsnOverride = String.fromEnvironment('SENTRY_DSN');
+  static const String _defaultDsn =
+      'https://afd92e179fe1efbf47208adcf428a14e@o4511355600437248.ingest.de.sentry.io/4511588586422352';
+  static String get _dsn => _dsnOverride.isNotEmpty ? _dsnOverride : _defaultDsn;
 
   static const String _environment = String.fromEnvironment(
     'SENTRY_ENV',
@@ -51,12 +57,21 @@ class ErrorMonitor {
         options.dsn = _dsn;
         options.environment = _environment;
         if (_release.isNotEmpty) options.release = _release;
-        // Sample performance traces lightly in prod, fully in dev.
-        options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
         options.attachStacktrace = true;
         options.enableAutoSessionTracking = true;
-        // Privacy: never attach PII (IP, request bodies) unless we opt in.
-        options.sendDefaultPii = false;
+        // Adds request headers and user IP for richer context. Set to false to
+        // stop sending PII: https://docs.sentry.io/platforms/dart/data-management/data-collected/
+        options.sendDefaultPii = true;
+        // 100% sampling while validating; lower in production to control volume.
+        options.tracesSampleRate = 1.0;
+        // ignore: experimental_member_use
+        options.profilesSampleRate = 1.0;
+        // Session Replay (8.x: under `experimental`). Captures 10% of sessions
+        // and 100% of sessions that hit an error.
+        // ignore: experimental_member_use
+        options.experimental.replay.sessionSampleRate = 0.1;
+        // ignore: experimental_member_use
+        options.experimental.replay.onErrorSampleRate = 1.0;
         options.debug = false;
       },
       appRunner: () async {

@@ -243,6 +243,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ],
             ),
+            // TEMPORARY: verifies the Sentry integration end-to-end. Throwing
+            // here is caught by the framework and reported to Sentry. Remove
+            // once the first event is confirmed in the dashboard.
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () {
+                throw StateError('This is test exception');
+              },
+              child: const Text('Verify Sentry Setup'),
+            ),
           ],
         ),
       ),

@@ -6,20 +6,28 @@ of the app never imports Sentry directly.
 
 ## Enabling it
 
-Monitoring is **off by default** and turns on only when a DSN is provided at
-build time (so debug runs and tests need no setup):
+Monitoring is **on by default** — the project DSN is embedded in `ErrorMonitor`
+(a DSN is not a secret; it ships inside the client app). To point a build at a
+different Sentry project, or to set the environment/release, pass dart-defines:
 
 ```sh
-flutter run \
+flutter build ipa \
   --dart-define=SENTRY_DSN=https://<key>@<org>.ingest.sentry.io/<project> \
   --dart-define=SENTRY_ENV=production \
   --dart-define=SENTRY_RELEASE=1.0.0+1
 ```
 
-Get the DSN from **Sentry → Project Settings → Client Keys (DSN)**. For
-TestFlight/App Store builds, pass the same `--dart-define`s to
-`flutter build ipa` (and `flutter build appbundle` for Android). iOS also needs
-`pod install` after the first `pub get` (CI/Xcode does this automatically).
+To **disable** monitoring entirely, set `_defaultDsn` to an empty string in
+`error_monitor.dart`. iOS needs `pod install` after the first `pub get`
+(CI/Xcode does this automatically). Tests/debug never initialize Sentry unless
+`main()` runs, so they need no setup.
+
+## Verifying the setup
+
+The login screen has a temporary **"Verify Sentry Setup"** button that throws a
+`StateError`. Tap it, then confirm the event appears in the Sentry dashboard.
+**Remove that button** (in `login_screen.dart`, marked `TEMPORARY`) once
+confirmed.
 
 ## What it captures
 
@@ -46,5 +54,8 @@ Sentry dashboard.
 
 ## Privacy
 
-`sendDefaultPii = false` — IP addresses and request bodies are not sent. Only an
-opaque user id is attached. Review `error_monitor.dart` before enabling more.
+`sendDefaultPii = true` is currently set (attaches request headers and user IP
+for richer context), along with Session Replay (10% of sessions, 100% of error
+sessions). For a finance app you may want to set `sendDefaultPii = false` and/or
+disable replay in `error_monitor.dart` before public launch. Only an opaque user
+id is attached to events.
