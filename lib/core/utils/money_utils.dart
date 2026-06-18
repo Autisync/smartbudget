@@ -62,10 +62,13 @@ class MoneyUtils {
   static double quantize(double amount, String currencyCode) {
     if (amount.isNaN || amount.isInfinite) return 0;
     final factor = minorUnitFactor(currencyCode);
-    // Add a tiny epsilon in the magnitude direction before truncating so values
-    // such as 0.145 → 0.15 instead of 0.14 due to binary representation.
-    final scaled = amount * factor;
-    final rounded = scaled.abs().roundToDouble();
+    final scaled = amount.abs() * factor;
+    // Strip binary-representation noise before rounding so half-up behaves as
+    // expected: 1.005 * 100 is stored as 100.4999997, which would otherwise
+    // round DOWN to 100. Re-rounding the scaled value at a higher precision
+    // first restores the true decimal (100.5) so it rounds up to 101.
+    final denoised = double.parse(scaled.toStringAsFixed(6));
+    final rounded = denoised.roundToDouble();
     final signed = amount.isNegative ? -rounded : rounded;
     return signed / factor;
   }

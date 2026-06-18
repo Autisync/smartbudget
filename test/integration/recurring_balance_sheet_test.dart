@@ -190,13 +190,19 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    // DashboardScreen runs continuous animations (animated balances), so
+    // pumpAndSettle never settles — pump a bounded number of frames so the
+    // async providers resolve without waiting for animations to stop.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Recurring Balance Sheet'), findsOneWidget);
     final openButton =
         find.widgetWithText(OutlinedButton, 'Open').hitTestable().first;
     await tester.tap(openButton);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Balance Sheet Route Hit'), findsOneWidget);
   });

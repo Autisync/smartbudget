@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
@@ -26,6 +27,8 @@ void main() {
   testWidgets('Decision snapshot card renders key metrics', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SubscriptionDecisionSnapshotCard(
             activeCount: 6,
@@ -77,6 +80,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SizedBox(
             width: 330,
@@ -106,6 +111,8 @@ void main() {
           currencyServiceProvider.overrideWith((_) => _FakeCurrencyService()),
         ],
         child: const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: AddSubscriptionScreen(asModal: true),
           ),
@@ -134,11 +141,15 @@ void main() {
       final content = file.readAsStringSync();
       expect(content.contains('ModernInput('), isTrue,
           reason: 'Expected ModernInput in $path');
+      // A "selection" field may be a dropdown OR a chip selector — for small
+      // enums (e.g. a 3-way savings-goal priority) chips are the better,
+      // intentional UX, so accept either shared pattern.
       expect(
           content.contains('ModernSelect<') ||
-              content.contains('ModernDropdown<'),
+              content.contains('ModernDropdown<') ||
+              content.contains('ChipSelector('),
           isTrue,
-          reason: 'Expected modern select/dropdown in $path');
+          reason: 'Expected modern select/dropdown/chip selector in $path');
     }
   });
 }

@@ -16,8 +16,8 @@ void main() {
     await database.close();
   });
 
-  test('schema version is 6', () {
-    expect(database.schemaVersion, 6);
+  test('schema version is 7', () {
+    expect(database.schemaVersion, 7);
   });
 
   test('all core tables are created and queryable at the current schema',

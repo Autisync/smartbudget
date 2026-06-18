@@ -1590,7 +1590,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetDecisionStable => 'Your current budget setup is stable. Use rollover only after confirming categories still fit this month.';
 
   @override
-  String get budgetPortfolioTitle => 'Budget portfolio';
+  String get budgetPortfolioTitle => 'Budget Portfolio';
 
   @override
   String get budgetCategories => 'Categories';
@@ -1752,7 +1752,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get savingsSteadyProgress => 'Progress is steady. Keep contributions consistent to protect your deadlines.';
 
   @override
-  String get savingsPortfolioTitle => 'Savings portfolio';
+  String get savingsPortfolioTitle => 'Savings Portfolio';
 
   @override
   String get savingsSaved => 'Saved';

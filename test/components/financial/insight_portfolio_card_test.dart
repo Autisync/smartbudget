@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
 
@@ -10,6 +11,8 @@ void main() {
     return MediaQuery(
       data: MediaQueryData(size: size),
       child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: child),
       ),
     );

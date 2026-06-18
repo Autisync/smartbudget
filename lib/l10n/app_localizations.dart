@@ -3038,7 +3038,7 @@ abstract class AppLocalizations {
   /// No description provided for @budgetPortfolioTitle.
   ///
   /// In en, this message translates to:
-  /// **'Budget portfolio'**
+  /// **'Budget Portfolio'**
   String get budgetPortfolioTitle;
 
   /// No description provided for @budgetCategories.
@@ -3314,7 +3314,7 @@ abstract class AppLocalizations {
   /// No description provided for @savingsPortfolioTitle.
   ///
   /// In en, this message translates to:
-  /// **'Savings portfolio'**
+  /// **'Savings Portfolio'**
   String get savingsPortfolioTitle;
 
   /// No description provided for @savingsSaved.

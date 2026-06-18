@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/components/feedback/app_lottie_view.dart';
 import 'package:smartbudget/features/insights/domain/models/insight.dart';
@@ -51,6 +52,8 @@ void main() {
           ),
         ],
         child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
           home: InsightsScreen(onNavigate: onNavigate),
         ),
       ),
@@ -93,7 +96,7 @@ void main() {
   testWidgets('shows loading and error states with modern feedback', (tester) async {
     await pumpScreen(tester, state: const AsyncValue.loading());
     expect(find.byType(AppLottieView), findsOneWidget);
-    expect(find.text('Analyzing financial patterns...'), findsOneWidget);
+    expect(find.text('Analyzing financial patterns…'), findsOneWidget);
 
     await pumpScreen(
       tester,

@@ -936,7 +936,7 @@
     }
   },
   "budgetDecisionStable": "Your current budget setup is stable. Use rollover only after confirming categories still fit this month.",
-  "budgetPortfolioTitle": "Budget portfolio",
+  "budgetPortfolioTitle": "Budget Portfolio",
   "budgetCategories": "Categories",
   "budgetTotalLimit": "Total Limit",
   "budgetAtRisk": "At Risk",
@@ -1075,7 +1075,7 @@
     }
   },
   "savingsSteadyProgress": "Progress is steady. Keep contributions consistent to protect your deadlines.",
-  "savingsPortfolioTitle": "Savings portfolio",
+  "savingsPortfolioTitle": "Savings Portfolio",
   "savingsSaved": "Saved",
   "savingsTarget": "Target",
   "savingsNudgesLabel": "Nudges",
