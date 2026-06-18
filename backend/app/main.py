@@ -4,50 +4,67 @@ import asyncio
 from html import escape
 from urllib.parse import quote
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import jwt
+from fastapi import Depends, FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from sqlalchemy.orm import Session
 
+from app.api.deps import db_session
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.redis import get_async_redis
+from app.core.security import decode_token
+from app.services.auth_service import AuthService
 
 logger = logging.getLogger(__name__)
 
 
-def _deep_link_bridge_html(*, title: str, message: str, app_link: str) -> str:
-    safe_title = escape(title)
-    safe_message = escape(message)
+def _verify_email_result_html(*, success: bool, app_link: str) -> str:
+    """Final-state page shown after the verification link is opened. Verification
+    has already happened server-side, so this page never depends on the app."""
     safe_app_link = escape(app_link, quote=True)
-    app_link_js = json.dumps(app_link)
+    if success:
+        accent = "#16a34a"
+        glyph = "&#10003;"  # check
+        heading = "Email verified"
+        body = (
+            "Your SmartSpend email address is confirmed. "
+            "Return to the SmartSpend app and sign in to get started."
+        )
+    else:
+        accent = "#dc2626"
+        glyph = "&#33;"  # exclamation
+        heading = "Link expired or invalid"
+        body = (
+            "This verification link is no longer valid. Open the SmartSpend app "
+            "and tap &ldquo;Resend verification email&rdquo; to get a fresh link."
+        )
     return f"""<!doctype html>
 <html lang=\"en\">
     <head>
         <meta charset=\"utf-8\" />
         <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-        <title>{safe_title}</title>
+        <title>{heading} | SmartSpend</title>
         <style>
-            body {{ font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8fafc; color: #111827; }}
-            .wrap {{ max-width: 520px; margin: 0 auto; padding: 40px 20px; }}
-            .card {{ background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; }}
-            h1 {{ margin-top: 0; font-size: 24px; }}
-            p {{ line-height: 1.5; color: #374151; }}
-            .btn {{ display: inline-block; margin-top: 12px; background: #2563eb; color: #fff; text-decoration: none; padding: 12px 16px; border-radius: 8px; font-weight: 600; }}
-            .muted {{ margin-top: 16px; font-size: 12px; color: #6b7280; word-break: break-all; }}
+            body {{ font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: #f6f8fb; color: #14161d; }}
+            .wrap {{ max-width: 460px; margin: 0 auto; padding: 56px 20px; text-align: center; }}
+            .card {{ background: #fff; border: 1px solid #e6e9ef; border-radius: 18px; padding: 40px 28px; box-shadow: 0 8px 28px rgba(20,22,29,0.06); }}
+            .badge {{ width: 64px; height: 64px; border-radius: 50%; background: {accent}1a; color: {accent}; font-size: 34px; line-height: 64px; margin: 0 auto 20px; font-weight: 700; }}
+            h1 {{ margin: 0 0 10px; font-size: 23px; letter-spacing: -0.3px; }}
+            p {{ line-height: 1.55; color: #4b5563; font-size: 15px; margin: 0 0 22px; }}
+            .btn {{ display: inline-block; background: #2563eb; color: #fff; text-decoration: none; padding: 13px 22px; border-radius: 12px; font-weight: 600; font-size: 15px; }}
         </style>
     </head>
     <body>
         <div class=\"wrap\">
             <div class=\"card\">
-                <h1>{safe_title}</h1>
-                <p>{safe_message}</p>
-                <a id=\"open-app\" class=\"btn\" href=\"{safe_app_link}\">Open SmartSpend App</a>
-                <p class=\"muted\">If nothing happens, tap the button above again.<br/>Deep link: {safe_app_link}</p>
+                <div class=\"badge\">{glyph}</div>
+                <h1>{heading}</h1>
+                <p>{body}</p>
+                <a class=\"btn\" href=\"{safe_app_link}\">Open SmartSpend</a>
             </div>
         </div>
-        <script>
-            window.location.href = {app_link_js};
-        </script>
     </body>
 </html>
 """
@@ -321,13 +338,24 @@ def create_application() -> FastAPI:
         return _reset_password_page_html(token=token)
 
     @app.get("/r/verify-email", response_class=HTMLResponse)
-    def verify_email_redirect(token: str) -> str:
+    def verify_email_redirect(token: str, db: Session = Depends(db_session)) -> HTMLResponse:
+        # Verify server-side the moment the link is opened, so it works on ANY
+        # device (desktop, a different phone) and never depends on the app being
+        # installed or a custom-scheme deep link firing. The token is single-use
+        # and short-lived; a verified user clicking again still lands on success.
+        ok = False
+        try:
+            token_payload = decode_token(token)
+            if token_payload.get("type") == "verify_email":
+                AuthService(db).verify_email(token_payload=token_payload)
+                ok = True
+        except jwt.PyJWTError:
+            ok = False
+        except Exception:  # noqa: BLE001 - never leak a stack trace to the user
+            logger.exception("verify-email link handling failed")
+            ok = False
         app_link = f"smartbudget://verify-email?token={quote(token, safe='')}"
-        return _deep_link_bridge_html(
-            title="Verify Your Email",
-            message="We are opening SmartSpend so you can finish email verification.",
-            app_link=app_link,
-        )
+        return HTMLResponse(_verify_email_result_html(success=ok, app_link=app_link))
 
     return app
 

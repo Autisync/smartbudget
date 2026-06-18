@@ -115,9 +115,17 @@ class SessionController extends StateNotifier<SessionState> {
     );
   }
 
+  /// Hard ceiling on each network/storage call during cold-start. Without this,
+  /// a stalled connection (captive wifi, flaky signal) leaves [initializing]
+  /// true forever and the app is stuck on the splash screen. On timeout the call
+  /// throws and we fall through to the graceful offline/login fallback below.
+  static const Duration _bootCallTimeout = Duration(seconds: 8);
+
   Future<void> initialize() async {
     state = state.copyWith(initializing: true, errorMessage: null);
-    final tokens = await _repository.readStoredTokens();
+    final tokens = await _repository
+        .readStoredTokens()
+        .timeout(const Duration(seconds: 5), onTimeout: () => null);
     if (tokens == null) {
       state = const SessionState(
         initializing: false,
@@ -128,7 +136,7 @@ class SessionController extends StateNotifier<SessionState> {
     }
 
     try {
-      final user = await _repository.me();
+      final user = await _repository.me().timeout(_bootCallTimeout);
       final requiresLocalUnlock = await _shouldRequireLocalUnlock();
       state = SessionState(
         initializing: false,
@@ -138,8 +146,8 @@ class SessionController extends StateNotifier<SessionState> {
       );
     } catch (_) {
       try {
-        await _repository.refreshToken();
-        final user = await _repository.me();
+        await _repository.refreshToken().timeout(_bootCallTimeout);
+        final user = await _repository.me().timeout(_bootCallTimeout);
         final requiresLocalUnlock = await _shouldRequireLocalUnlock();
         state = SessionState(
           initializing: false,
