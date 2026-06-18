@@ -122,11 +122,36 @@ class SessionController extends StateNotifier<SessionState> {
   /// throws and we fall through to the graceful offline/login fallback below.
   static const Duration _bootCallTimeout = Duration(seconds: 8);
 
+  /// Absolute backstop for the whole boot sequence. Even if a secure-storage
+  /// (Keychain) read hangs — or any unforeseen error escapes — the splash must
+  /// be released within this window. This is what guarantees the app can never
+  /// get permanently stuck on "Getting things ready…".
+  static const Duration _bootOverallTimeout = Duration(seconds: 12);
+
   Future<void> initialize() async {
     state = state.copyWith(initializing: true, errorMessage: null);
-    final tokens = await _repository
-        .readStoredTokens()
-        .timeout(const Duration(seconds: 5), onTimeout: () => null);
+    try {
+      await _initializeInternal().timeout(_bootOverallTimeout);
+    } catch (_) {
+      // A hung Keychain read, overall timeout, or any unexpected failure must
+      // never strand the user on the splash. Drop to a clean unauthenticated
+      // state so the router can show the login screen.
+      state = const SessionState(
+        initializing: false,
+        authenticated: false,
+        localUnlockRequired: false,
+      );
+    } finally {
+      // Defence in depth: whatever path ran above, the boot gate is now open.
+      if (state.initializing) {
+        state = state.copyWith(initializing: false);
+      }
+    }
+  }
+
+  Future<void> _initializeInternal() async {
+    // Local secure-storage read — bounded by the overall boot timeout above.
+    final tokens = await _repository.readStoredTokens();
     if (tokens == null) {
       state = const SessionState(
         initializing: false,
@@ -547,7 +572,9 @@ final sessionControllerProvider =
   final apiClient = ref.watch(authApiClientProvider);
   apiClient.onRefreshFailed = controller.forceLogoutFromRefreshFailure;
 
-  controller.initialize();
+  // initialize() handles its own errors and always releases the boot gate, but
+  // guard the fire-and-forget future too so nothing can surface as unhandled.
+  controller.initialize().catchError((_) {});
   return controller;
 });
 

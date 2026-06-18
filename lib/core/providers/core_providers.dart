@@ -74,7 +74,19 @@ final onboardingServiceProvider = Provider<OnboardingService>((ref) {
 
 final onboardingStatusProvider = FutureProvider<OnboardingStatus>((ref) async {
   final onboardingService = ref.watch(onboardingServiceProvider);
-  return onboardingService.readStatus();
+  try {
+    // The router parks on the splash until this resolves, so a stalled
+    // secure-storage (Keychain) read could otherwise hang boot. Bound it and
+    // fall back to a safe default that keeps the user moving.
+    return await onboardingService
+        .readStatus()
+        .timeout(const Duration(seconds: 8));
+  } catch (_) {
+    return const OnboardingStatus(
+      onboardingComplete: false,
+      legalAccepted: false,
+    );
+  }
 });
 
 /// `true` once the user has completed the in-app feature tour.
