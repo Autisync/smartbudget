@@ -1,4 +1,4 @@
-import 'dart:async' show unawaited, runZonedGuarded;
+import 'dart:async' show unawaited;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,122 +17,109 @@ import 'package:smartbudget/core/theme/app_theme.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-/// True once the real app has been handed to runApp. After this point an
-/// uncaught async error must NOT replace the running UI with the fatal screen —
-/// it's almost always a recoverable background error (network, plugin, a
-/// provider future), and nuking the whole app over it is what caused the
-/// persistent "Something went wrong" screen in release/TestFlight.
-bool _appLaunched = false;
-
 void main() {
-  // Single entry point: ErrorMonitor.init initializes Sentry (with the project
-  // DSN) and runs the app inside Sentry's error-capturing zone. We still nest
-  // runZonedGuarded so the boot-failure fatal-screen recovery path is preserved.
-  ErrorMonitor.init(() => runZonedGuarded(_boot, _handleUncaughtError));
+  // Single entry point. ErrorMonitor.init initializes Sentry and runs _boot
+  // INSIDE Sentry's error-capturing zone. We must NOT nest another
+  // runZonedGuarded here: the Flutter bindings get initialized in Sentry's zone,
+  // so calling runApp in a different (nested) zone triggers a "Zone mismatch"
+  // and breaks zone-bound async/timers — which left the app stuck on the splash.
+  ErrorMonitor.init(_boot);
 }
 
 Future<void> _boot() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Catch Flutter framework errors (widget build failures, etc.): show a visible
-  // error widget instead of a black screen AND report them to monitoring.
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    ErrorMonitor.captureFlutterError(details);
-    if (kDebugMode) {
-      debugPrint('[SmartSpend] Flutter error: ${details.exceptionAsString()}');
-    }
-  };
-
-  // Lock orientation
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
-  // Route package:sqlite3 to the bundled SQLCipher native library and apply the
-  // old-Android workaround BEFORE the encrypted database is first opened.
-  DatabaseCipher.setupSqlCipher();
-  await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
-
-  // Initialize services
-  final container = ProviderContainer();
-  await container.read(encryptionServiceProvider).initialize();
-
-  // L-3 FIX: Log Firebase init failures so they don't silently disappear.
-  // Firebase is optional — the app operates fully offline without it.
-  try {
-    await Firebase.initializeApp();
-  } catch (e, st) {
-    if (kDebugMode) {
-      debugPrint('[SmartSpend] Firebase init failed: $e\n$st');
-    }
-  }
-
-  // Non-critical startup work: a failure here (e.g. notifications, account
-  // seeding) must never abort boot and drop the user onto the fatal screen.
-  try {
-    await container.read(notificationServiceProvider).initialize();
-  } catch (e, st) {
-    if (kDebugMode) debugPrint('[SmartSpend] Notification init failed: $e\n$st');
-  }
-
-  // Seed the default money-source accounts (Cash, Bank Transfer, Credit Card)
-  // and remap any legacy 'default' transactions. Idempotent — safe every run.
-  try {
-    final appCurrency = container.read(appCurrencyControllerProvider);
-    await container
-        .read(accountRepositoryProvider)
-        .ensureDefaultAccounts(currency: appCurrency);
-  } catch (e, st) {
-    if (kDebugMode) debugPrint('[SmartSpend] Account seeding failed: $e\n$st');
-  }
-
-  // M-4 FIX: Prune auth logs older than 90 days on every startup.
-  unawaited(
-    container.read(securityServiceProvider).pruneAuthLogs(),
-  );
-
-  // Sentry is already initialized by ErrorMonitor.init (which wraps this boot).
-  // SentryWidget enables session replay / widget instrumentation for the app.
-  runApp(
-    SentryWidget(
-      child: UncontrolledProviderScope(
-        container: container,
-        child: const SmartSpendApp(),
-      ),
-    ),
-  );
-  // From here on, uncaught async errors are recoverable — don't replace the UI.
-  _appLaunched = true;
-}
-
-/// Top-level handler for unhandled async errors (e.g. network failures,
-/// database errors) that escape all try/catch blocks. Without this, these
-/// produce a silent black screen. We log in debug and show a recovery UI in
-/// release so the user is never left staring at a blank screen.
-void _handleUncaughtError(Object error, StackTrace stack) {
-  // Report every uncaught async error to monitoring, whether or not the app is
-  // already running.
-  ErrorMonitor.captureException(error, stack, context: 'uncaught zone error');
-  if (kDebugMode) {
-    debugPrint('[SmartSpend] Uncaught error: $error\n$stack');
-  }
-  // If the app is already running, this is a recoverable background error —
-  // already reported above, but DO NOT replace the live UI. Replacing it here is
-  // what turned transient async errors into a permanent "Something went wrong"
-  // screen in release.
-  if (_appLaunched) {
-    return;
-  }
-  // Boot failure (before the real app exists): show the recovery screen so the
-  // user isn't left on a black screen. (Sentry is already initialized by
-  // ErrorMonitor.init, and the error was reported above.)
+  // Wrap the critical boot path: if any of it throws, show the recovery screen
+  // instead of a black/stuck splash. Non-critical steps below have their own
+  // try/catch and continue. Uncaught *async* errors after launch are reported by
+  // Sentry's zone and do not replace the live UI.
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    runApp(SentryWidget(child: const _FatalErrorApp()));
-  } catch (_) {
-    // Binding not ready or runApp failed — nothing more we can do.
+
+    // Catch Flutter framework errors (widget build failures, etc.): show a
+    // visible error widget instead of a black screen AND report to monitoring.
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      ErrorMonitor.captureFlutterError(details);
+      if (kDebugMode) {
+        debugPrint('[SmartSpend] Flutter error: ${details.exceptionAsString()}');
+      }
+    };
+
+    // Lock orientation
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
+    // Route package:sqlite3 to the bundled SQLCipher native library and apply
+    // the old-Android workaround BEFORE the encrypted database is first opened.
+    DatabaseCipher.setupSqlCipher();
+    await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
+
+    // Initialize services
+    final container = ProviderContainer();
+    await container.read(encryptionServiceProvider).initialize();
+
+    // L-3 FIX: Log Firebase init failures so they don't silently disappear.
+    // Firebase is optional — the app operates fully offline without it.
+    try {
+      await Firebase.initializeApp();
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[SmartSpend] Firebase init failed: $e\n$st');
+      }
+    }
+
+    // Non-critical startup work: a failure here (e.g. notifications, account
+    // seeding) must never abort boot and drop the user onto the fatal screen.
+    try {
+      await container.read(notificationServiceProvider).initialize();
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[SmartSpend] Notification init failed: $e\n$st');
+      }
+    }
+
+    // Seed the default money-source accounts (Cash, Bank Transfer, Credit Card)
+    // and remap any legacy 'default' transactions. Idempotent — safe every run.
+    try {
+      final appCurrency = container.read(appCurrencyControllerProvider);
+      await container
+          .read(accountRepositoryProvider)
+          .ensureDefaultAccounts(currency: appCurrency);
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[SmartSpend] Account seeding failed: $e\n$st');
+      }
+    }
+
+    // M-4 FIX: Prune auth logs older than 90 days on every startup.
+    unawaited(
+      container.read(securityServiceProvider).pruneAuthLogs(),
+    );
+
+    // Sentry is already initialized by ErrorMonitor.init (which wraps boot).
+    // SentryWidget enables session replay / widget instrumentation.
+    runApp(
+      SentryWidget(
+        child: UncontrolledProviderScope(
+          container: container,
+          child: const SmartSpendApp(),
+        ),
+      ),
+    );
+  } catch (error, stack) {
+    // A critical boot step failed before the app could launch. Report it and
+    // show the recovery screen instead of a black/stuck splash.
+    ErrorMonitor.captureException(error, stack, context: 'boot failure');
+    if (kDebugMode) {
+      debugPrint('[SmartSpend] Boot failed: $error\n$stack');
+    }
+    try {
+      WidgetsFlutterBinding.ensureInitialized();
+      runApp(SentryWidget(child: const _FatalErrorApp()));
+    } catch (_) {
+      // Binding not ready or runApp failed — nothing more we can do.
+    }
   }
 }
 
