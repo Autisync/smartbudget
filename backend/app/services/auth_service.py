@@ -5,7 +5,6 @@ from uuid import uuid4
 import jwt
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
-
 from sqlalchemy.orm import Session
 
 from app.core import errors
@@ -29,7 +28,6 @@ from app.tasks.email import (
     send_verification_email_task,
     send_welcome_email_task,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +64,7 @@ class AuthService:
             # We do notify the legitimate owner out-of-band (async, no latency)
             # so they know the attempt happened and can act if it wasn't them.
             attempt_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
-            _safe_delay(send_duplicate_signup_alert_email_task, 
+            _safe_delay(send_duplicate_signup_alert_email_task,
                 email=existing.email,
                 user_name=existing.first_name,
                 attempt_time=attempt_time,
@@ -86,7 +84,7 @@ class AuthService:
             ttl_seconds=settings.verify_email_ttl_seconds,
         )
         # Fire-and-forget via Celery — never blocks the signup response.
-        _safe_delay(send_verification_email_task, 
+        _safe_delay(send_verification_email_task,
             email=user.email, token=verification_token, user_name=user.first_name
         )
         return self._issue_tokens(user_id=str(user.id), device_name=device_name, platform=platform, user=user)
@@ -117,7 +115,7 @@ class AuthService:
         login_location = request_ip or "Unknown location"
         login_time = datetime.now(timezone.utc).isoformat()
         # M-1 FIX: Use HTTPS App Link instead of custom scheme (not hijackable).
-        _safe_delay(send_login_alert_email_task, 
+        _safe_delay(send_login_alert_email_task,
             email=user.email,
             user_name=user.first_name,
             action_url="https://smaartspend.com/app/security",
@@ -178,7 +176,7 @@ class AuthService:
         login_device = device_name or platform or "Unknown device"
         login_location = request_ip or "Unknown location"
         login_time = datetime.now(timezone.utc).isoformat()
-        _safe_delay(send_login_alert_email_task, 
+        _safe_delay(send_login_alert_email_task,
             email=user.email,
             user_name=user.first_name,
             action_url="https://smaartspend.com/app/security",
@@ -223,7 +221,7 @@ class AuthService:
             token_type="verify_email",
             ttl_seconds=settings.verify_email_ttl_seconds,
         )
-        _safe_delay(send_verification_email_task, 
+        _safe_delay(send_verification_email_task,
             email=user.email,
             token=verification_token,
             user_name=user.first_name,
@@ -241,7 +239,7 @@ class AuthService:
         token = create_short_lived_token(
             subject=str(user.id), token_type="reset_password", ttl_seconds=settings.password_reset_ttl_seconds
         )
-        _safe_delay(send_password_reset_email_task, 
+        _safe_delay(send_password_reset_email_task,
             email=user.email, token=token, user_name=user.first_name
         )
 
@@ -262,7 +260,7 @@ class AuthService:
         self.db.add(user)
         self.db.commit()
 
-        _safe_delay(send_welcome_email_task, 
+        _safe_delay(send_welcome_email_task,
             email=user.email,
             user_name=user.first_name,
             action_url="https://smaartspend.com/app/dashboard",

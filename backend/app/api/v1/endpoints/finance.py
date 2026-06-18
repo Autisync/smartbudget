@@ -11,7 +11,14 @@ from sqlalchemy.orm import Session
 from app.api.deps import current_user, db_session
 from app.core import errors
 from app.core.redis import get_redis
-from app.models.finance import AuditLog, Budget, MoneyDirection, SavingsGoal, Subscription, Transaction
+from app.models.finance import (
+    AuditLog,
+    Budget,
+    MoneyDirection,
+    SavingsGoal,
+    Subscription,
+    Transaction,
+)
 from app.schemas.finance import (
     AnalyticsSummary,
     BudgetCreate,

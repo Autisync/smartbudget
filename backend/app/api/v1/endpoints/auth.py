@@ -16,8 +16,8 @@ from app.schemas.auth import (
     MessageResponse,
     RefreshRequest,
     ResetPasswordRequest,
-    SocialLoginRequest,
     SignupRequest,
+    SocialLoginRequest,
     UpdateProfileRequest,
     VerifyEmailRequest,
 )

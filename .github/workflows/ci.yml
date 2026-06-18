@@ -96,7 +96,7 @@ jobs:
         run: mypy app --ignore-missing-imports
         continue-on-error: true
 
-      - name: Run tests
+      - name: Run tests (pytest + coverage)
         env:
           ENVIRONMENT: test
           DATABASE_URL: postgresql+psycopg://smartbudget_test:test_password@localhost:5432/smartbudget_test
@@ -104,7 +104,31 @@ jobs:
           CELERY_BROKER_URL: redis://localhost:6379/1
           CELERY_RESULT_BACKEND: redis://localhost:6379/2
           JWT_SECRET_KEY: ci-test-secret-key-not-for-production
-        run: pytest -q --tb=short
+        run: >-
+          pytest
+          --verbose
+          --strict-markers
+          --tb=short
+          --durations=10
+          --junitxml=pytest-report.xml
+          --cov=app
+          --cov-report=term-missing
+          --cov-report=xml
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-pytest-report
+          path: backend/pytest-report.xml
+        continue-on-error: true
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: backend/coverage.xml
+          flags: backend
+        continue-on-error: true
 
   # ─── Security ────────────────────────────────────────────────────────────────
   pin-drift:

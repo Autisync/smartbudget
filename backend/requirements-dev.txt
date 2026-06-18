@@ -3,7 +3,11 @@
 -r requirements.txt
 
 pytest==8.3.4
+pytest-cov==6.0.0
 # fakeredis + lupa let tests run the real Lua scripts (e.g. the resend limiter)
 # in-process, without a live Redis server.
 fakeredis==2.26.1
 lupa==2.2
+# Lint + type-check (used by the backend CI job).
+ruff==0.8.6
+mypy==1.14.1

@@ -1,0 +1,14 @@
+# Ruff configuration for the SmartSpend backend.
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[lint]
+# High-signal, low-noise set that's safe to gate CI on: pyflakes (F, real bugs
+# like unused/undefined names), pycodestyle errors (E) and warnings (W), and
+# import sorting (I). Broader style packs (B/UP) can be enabled later once the
+# codebase is brought up to them.
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",  # line length handled by formatting, not hard-enforced
+]

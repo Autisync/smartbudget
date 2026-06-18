@@ -1,8 +1,8 @@
 from collections.abc import Generator
 
+import jwt
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-import jwt
 from sqlalchemy.orm import Session
 
 from app.core.security import decode_access_token
