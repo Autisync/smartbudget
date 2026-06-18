@@ -131,6 +131,19 @@ GoRouter router(RouterRef ref) {
       final isPublicRoute =
           isSplashRoute || isAuthRoute || isOnboardingRoute || isLegalRoute;
 
+      // The splash route exists ONLY to cover the boot/loading window guarded
+      // above. Once session + onboarding have resolved we must always leave it —
+      // otherwise the app gets stuck on the splash. This notably happens right
+      // after onboarding: completeOnboarding() invalidates the status provider,
+      // which briefly flips isLoading true and bounces us here; without this
+      // rule an unverified/unauthenticated user would stay on /splash forever
+      // (splash counts as a "public" route, so the rule below never fires).
+      if (isSplashRoute) {
+        if (!onboardingComplete) return '/onboarding';
+        if (!isAuthenticated || localUnlockRequired) return '/login';
+        return '/';
+      }
+
       if (!onboardingComplete && !isOnboardingRoute && !isLegalRoute) {
         return '/onboarding';
       }

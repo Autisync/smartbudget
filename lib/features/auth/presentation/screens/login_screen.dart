@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -243,16 +244,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ],
             ),
-            // TEMPORARY: verifies the Sentry integration end-to-end. Throwing
-            // here is caught by the framework and reported to Sentry. Remove
-            // once the first event is confirmed in the dashboard.
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {
-                throw StateError('This is test exception');
-              },
-              child: const Text('Verify Sentry Setup'),
-            ),
+            // TEMPORARY (debug builds only): verifies the Sentry integration
+            // end-to-end. Throwing here is caught by the framework and reported
+            // to Sentry. Gated behind kDebugMode so it never ships to the store.
+            if (kDebugMode) ...[
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  throw StateError('This is test exception');
+                },
+                child: const Text('Verify Sentry Setup'),
+              ),
+            ],
           ],
         ),
       ),
