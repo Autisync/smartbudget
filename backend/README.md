@@ -1,4 +1,4 @@
-# SmartBudget Auth Backend
+# SmartSpend Auth Backend
 
 Production-ready authentication backend scaffold for SmartSpend/smartbudget.
 
@@ -176,6 +176,6 @@ Set in .env:
 - SMTP_USE_TLS=true
 - SMTP_USE_SSL=false
 - SMTP_FROM_EMAIL=noreply@your-domain
-- SMTP_FROM_NAME=SmartBudget
+- SMTP_FROM_NAME=SmartSpend
 
 If SMTP_ENABLED=false, emails are not sent and message details are logged for development.

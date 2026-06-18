@@ -1,8 +1,8 @@
-# SmartBudget — Beta Release Notes
+# SmartSpend — Beta Release Notes
 
 **Build:** 1.0.0 (beta) · **Date:** 17 Jun 2026
 
-Thanks for testing SmartBudget! This build is a big stability + polish pass. Below is what's new and what we fixed. Please report anything odd (steps to reproduce + a screenshot help a lot).
+Thanks for testing SmartSpend! This build is a big stability + polish pass. Below is what's new and what we fixed. Please report anything odd (steps to reproduce + a screenshot help a lot).
 
 ---
 
@@ -11,7 +11,7 @@ Thanks for testing SmartBudget! This build is a big stability + polish pass. Bel
 - **Refreshed, consistent design.** A unified color system across the app — income green, expense red, and status colors now match everywhere (Dashboard, Transactions, Budgets, Savings, Subscriptions, Accounts, Balance Sheet). The Home balance card has a bold new look and the spending trend line now reflects your **real** balance history.
 - **Simpler navigation.** The bottom bar is now four focused tabs — **Home, Transactions, Savings, More**. Budgets and Subscriptions moved into **More** to reduce clutter. Tap **+** to quickly add a transaction, subscription, savings goal, or budget.
 - **Full multi-language support.** The app is now fully translated across **English, Spanish, French, German, and Portuguese** — including insights, reports, scenario lab, settings, and all cards.
-- **Redesigned email templates.** Verification, password-reset, welcome, and alert emails have a new branded design with the SmartBudget logo and a working **Verify / action button**.
+- **Redesigned email templates.** Verification, password-reset, welcome, and alert emails have a new branded design with the SmartSpend logo and a working **Verify / action button**.
 - **Cleaner Settings.** Notifications are now a single master toggle (with per-category switches), and the Settings screen got a tidier layout.
 
 ---

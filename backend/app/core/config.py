@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    app_name: str = "smartbudget-auth"
+    app_name: str = "SmartSpend"
     environment: str = "development"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
@@ -45,8 +45,8 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
-    smtp_from_email: str = "noreply@smartbudget.local"
-    smtp_from_name: str = "SmartBudget"
+    smtp_from_email: str = "noreply@smartspend.local"
+    smtp_from_name: str = "SmartSpend"
 
     def production_secret_issues(self) -> list[str]:
         """Returns a list of critical misconfiguration issues that must block startup
