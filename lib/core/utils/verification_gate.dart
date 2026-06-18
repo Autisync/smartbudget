@@ -199,7 +199,9 @@ class _VerificationSheetState extends State<_VerificationSheet> {
             const SizedBox(height: 8),
             Center(
               child: Text(
-                'You can request a new email once per hour.',
+                ResendCooldown.isHourlyLock
+                    ? 'Hourly limit reached. Try again later.'
+                    : 'You can resend up to 3 times per hour.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -242,8 +244,9 @@ class _VerificationSheetState extends State<_VerificationSheet> {
     setState(() => _sending = false);
     final errorMsg = widget.container.read(sessionControllerProvider).errorMessage
         ?? 'Could not send email. Please try again.';
-    final rateLimited =
-        !ok && errorMsg.toLowerCase().contains('too many');
+    final lowerMsg = errorMsg.toLowerCase();
+    final rateLimited = !ok &&
+        (lowerMsg.contains('too many') || lowerMsg.contains('please wait'));
     // Start the 1-hour cooldown when the email was sent, or when the server
     // says we've already hit the hourly limit.
     if (ok || rateLimited) {

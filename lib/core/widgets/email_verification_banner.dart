@@ -177,7 +177,9 @@ class _AppEmailVerificationBannerState
     // to check their network or try again later.
     final errorMsg = ref.read(sessionControllerProvider).errorMessage
         ?? 'Could not send email. Please try again.';
-    final rateLimited = !ok && errorMsg.toLowerCase().contains('too many');
+    final lowerMsg = errorMsg.toLowerCase();
+    final rateLimited = !ok &&
+        (lowerMsg.contains('too many') || lowerMsg.contains('please wait'));
     if (ok || rateLimited) {
       ResendCooldown.start();
       _startTicker();

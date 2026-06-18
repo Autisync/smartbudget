@@ -15,6 +15,13 @@ import 'package:smartbudget/core/services/locale_service.dart';
 import 'package:smartbudget/core/theme/app_theme.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 
+/// True once the real app has been handed to runApp. After this point an
+/// uncaught async error must NOT replace the running UI with the fatal screen —
+/// it's almost always a recoverable background error (network, plugin, a
+/// provider future), and nuking the whole app over it is what caused the
+/// persistent "Something went wrong" screen in release/TestFlight.
+bool _appLaunched = false;
+
 void main() {
   runZonedGuarded(_boot, _handleUncaughtError);
 }
@@ -56,14 +63,24 @@ Future<void> _boot() async {
     }
   }
 
-  await container.read(notificationServiceProvider).initialize();
+  // Non-critical startup work: a failure here (e.g. notifications, account
+  // seeding) must never abort boot and drop the user onto the fatal screen.
+  try {
+    await container.read(notificationServiceProvider).initialize();
+  } catch (e, st) {
+    if (kDebugMode) debugPrint('[SmartSpend] Notification init failed: $e\n$st');
+  }
 
   // Seed the default money-source accounts (Cash, Bank Transfer, Credit Card)
   // and remap any legacy 'default' transactions. Idempotent — safe every run.
-  final appCurrency = container.read(appCurrencyControllerProvider);
-  await container
-      .read(accountRepositoryProvider)
-      .ensureDefaultAccounts(currency: appCurrency);
+  try {
+    final appCurrency = container.read(appCurrencyControllerProvider);
+    await container
+        .read(accountRepositoryProvider)
+        .ensureDefaultAccounts(currency: appCurrency);
+  } catch (e, st) {
+    if (kDebugMode) debugPrint('[SmartSpend] Account seeding failed: $e\n$st');
+  }
 
   // M-4 FIX: Prune auth logs older than 90 days on every startup.
   unawaited(
@@ -76,6 +93,8 @@ Future<void> _boot() async {
       child: const SmartSpendApp(),
     ),
   );
+  // From here on, uncaught async errors are recoverable — don't replace the UI.
+  _appLaunched = true;
 }
 
 /// Top-level handler for unhandled async errors (e.g. network failures,
@@ -86,11 +105,15 @@ void _handleUncaughtError(Object error, StackTrace stack) {
   if (kDebugMode) {
     debugPrint('[SmartSpend] Uncaught error: $error\n$stack');
   }
-  // Only attempt runApp if the Flutter binding is already initialised.
-  // If the error occurred before WidgetsFlutterBinding.ensureInitialized()
-  // completed (e.g. in DatabaseCipher.setupSqlCipher()), calling runApp
-  // would throw a secondary ServicesBinding error and produce the same
-  // black screen we are trying to prevent. We swallow that silently.
+  // If the app is already running, this is a recoverable background error —
+  // log it (and report to crash analytics when wired) but DO NOT replace the
+  // live UI. Replacing it here is what turned transient async errors into a
+  // permanent "Something went wrong" screen in release.
+  if (_appLaunched) {
+    return;
+  }
+  // Boot failure (before the real app exists): show the recovery screen so the
+  // user isn't left on a black screen.
   try {
     WidgetsFlutterBinding.ensureInitialized();
     runApp(const _FatalErrorApp());
