@@ -100,7 +100,12 @@ GoRouter router(RouterRef ref) {
         return query.isEmpty ? stripped : '$stripped?$query';
       }
 
-      if (sessionState.initializing || onboardingState.isLoading) {
+      // Stay on the splash while the session or onboarding status is still
+      // resolving (incl. mid-refresh after onboarding completes). Deciding on a
+      // half-loaded status is what caused the /onboarding<->/login redirect loop.
+      if (sessionState.initializing ||
+          onboardingState.isLoading ||
+          !onboardingState.hasValue) {
         return '/splash';
       }
 

@@ -126,6 +126,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           reviewedAt: DateTime.now().toUtc(),
         );
     ref.invalidate(onboardingStatusProvider);
+    // Wait for the refreshed onboarding status to SETTLE before navigating.
+    // Otherwise the router redirect can evaluate the half-refreshed provider
+    // (stale "not complete") and ping-pong /onboarding <-> /login until GoRouter
+    // throws "redirect loop detected". Once the future resolves, the status is
+    // ready and the redirect (which listens to this provider) moves us to /login
+    // deterministically — the go() below is just a fallback.
+    try {
+      await ref.read(onboardingStatusProvider.future);
+    } catch (_) {
+      // ignore — redirect/refresh will still react to the invalidation
+    }
     if (!mounted) return;
     context.go('/login');
   }
