@@ -334,30 +334,36 @@ def create_application() -> FastAPI:
             await redis_client.aclose()
 
     @app.get("/r/reset-password", response_class=HTMLResponse)
-    def reset_password_redirect(token: str) -> str:
+    def reset_password_redirect(token: str = "") -> str:
+        # token optional so a malformed link still renders the page (which shows
+        # an error in-page) rather than a raw 422 JSON body.
         return _reset_password_page_html(token=token)
 
     @app.get("/r/verify-email", response_class=HTMLResponse)
-    def verify_email_redirect(token: str, db: Session = Depends(db_session)) -> HTMLResponse:
+    def verify_email_redirect(
+        token: str | None = None, db: Session = Depends(db_session)
+    ) -> HTMLResponse:
         # Verify server-side the moment the link is opened, so it works on ANY
         # device (desktop, a different phone) and never depends on the app being
         # installed or a custom-scheme deep link firing. The token is single-use
         # and short-lived; a verified user clicking again still lands on success.
+        # `token` is OPTIONAL so a malformed/missing link renders the friendly
+        # HTML page below instead of a raw 422 JSON body (what users were seeing).
         # Trade-off: email security scanners/prefetchers may "click" the link and
         # consume the token before the user does. Accepted here because the token
-        # is short-lived and the user can always request a fresh one; revisit
-        # with a confirm-button (POST) page if pre-fetch consumption is observed.
+        # is short-lived and the user can always request a fresh one.
         ok = False
-        try:
-            token_payload = decode_token(token)
-            if token_payload.get("type") == "verify_email":
-                AuthService(db).verify_email(token_payload=token_payload)
-                ok = True
-        except jwt.PyJWTError:
-            ok = False
-        except Exception:  # noqa: BLE001 - never leak a stack trace to the user
-            logger.exception("verify-email link handling failed")
-            ok = False
+        if token:
+            try:
+                token_payload = decode_token(token)
+                if token_payload.get("type") == "verify_email":
+                    AuthService(db).verify_email(token_payload=token_payload)
+                    ok = True
+            except jwt.PyJWTError:
+                ok = False
+            except Exception:  # noqa: BLE001 - never leak a stack trace to the user
+                logger.exception("verify-email link handling failed")
+                ok = False
         # Verification is already complete, so the button just opens the app at
         # sign-in via the Android App Link (https://<host>/app/*). On platforms
         # without the app installed it harmlessly opens the website instead — far
