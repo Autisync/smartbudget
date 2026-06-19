@@ -59,7 +59,6 @@ dependencies:
   fl_chart: ^0.68.0
   flutter_slidable: ^3.1.0
   google_fonts: ^6.2.1
-  phosphor_flutter: ^2.1.0
   animations: ^2.0.11
   flutter_animate: ^4.5.0
   lottie: ^3.3.1
@@ -93,6 +92,7 @@ dependencies:
   sentry_flutter: ^8.14.2
 
 dev_dependencies:
+  sentry_dart_plugin: ^3.4.0
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
@@ -168,3 +168,9 @@ flutter_native_splash:
     color_dark: "#FFFFFF"
     image: assets/images/logo/app_logo.png
     image_dark: assets/images/logo/app_logo.png
+
+sentry:
+  upload_debug_symbols: true
+  upload_source_maps: true
+  project: smartspend
+  org: autisync

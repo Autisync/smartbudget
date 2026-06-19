@@ -10,22 +10,26 @@ import 'package:flutter/foundation.dart';
 ///
 /// Generate the leaf pin after Let's Encrypt issues the first cert:
 ///
-///   openssl s_client -connect api.smaartspend.com:443 -servername api.smaartspend.com \
-///     </dev/null 2>/dev/null \
-///     | openssl x509 -pubkey -noout \
-///     | openssl pkey -pubin -outform DER \
-///     | openssl dgst -sha256 -binary \
-///     | base64
+/// ```sh
+/// openssl s_client -connect api.smaartspend.com:443 -servername api.smaartspend.com \
+///   </dev/null 2>/dev/null \
+///   | openssl x509 -pubkey -noout \
+///   | openssl pkey -pubin -outform DER \
+///   | openssl dgst -sha256 -binary \
+///   | base64
+/// ```
 ///
 /// Generate the intermediate CA backup pin (Let's Encrypt E5/R10):
 ///
-///   openssl s_client -connect api.smaartspend.com:443 -servername api.smaartspend.com \
-///     -showcerts </dev/null 2>/dev/null \
-///     | awk '/-----BEGIN CERTIFICATE-----/{c++} c==2{print} /-----END CERTIFICATE-----/ && c==2{exit}' \
-///     | openssl x509 -pubkey -noout \
-///     | openssl pkey -pubin -outform DER \
-///     | openssl dgst -sha256 -binary \
-///     | base64
+/// ```sh
+/// openssl s_client -connect api.smaartspend.com:443 -servername api.smaartspend.com \
+///   -showcerts </dev/null 2>/dev/null \
+///   | awk '/-----BEGIN CERTIFICATE-----/{c++} c==2{print} /-----END CERTIFICATE-----/ && c==2{exit}' \
+///   | openssl x509 -pubkey -noout \
+///   | openssl pkey -pubin -outform DER \
+///   | openssl dgst -sha256 -binary \
+///   | base64
+/// ```
 ///
 /// Leaf pin: changes every ~90 days on Let's Encrypt renewal.
 /// Intermediate pin: stable for years (same LE key across renewals).

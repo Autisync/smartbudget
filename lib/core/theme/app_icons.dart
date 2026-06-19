@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+/// Centralized icon set. Uses Material icons (outlined for unselected, rounded
+/// for selected/filled) so there's no third-party icon dependency to break on
+/// Flutter SDK upgrades.
 class AppIcons {
   const AppIcons._();
 
-  static const IconData home = PhosphorIconsFill.house;
-  static const IconData homeOutline = PhosphorIconsRegular.house;
-  static const IconData reports = PhosphorIconsRegular.chartBar;
-  static const IconData reportsFilled = PhosphorIconsFill.chartBar;
-  static const IconData savings = PhosphorIconsRegular.piggyBank;
-  static const IconData savingsFilled = PhosphorIconsFill.piggyBank;
-  static const IconData subscriptions = PhosphorIconsRegular.stack;
-  static const IconData subscriptionsFilled = PhosphorIconsFill.stack;
-  static const IconData settings = PhosphorIconsRegular.gear;
-  static const IconData settingsFilled = PhosphorIconsFill.gear;
-  static const IconData moreGrid = PhosphorIconsRegular.squaresFour;
-  static const IconData moreGridFilled = PhosphorIconsFill.squaresFour;
-  static const IconData add = PhosphorIconsRegular.plus;
-  static const IconData transactions = PhosphorIconsRegular.receipt;
-  static const IconData transactionsFilled = PhosphorIconsFill.receipt;
-  static const IconData budgets = PhosphorIconsRegular.wallet;
-  static const IconData budgetsFilled = PhosphorIconsFill.wallet;
-  static const IconData insights = PhosphorIconsRegular.chartLineUp;
-  static const IconData insightsFilled = PhosphorIconsFill.chartLineUp;
-  static const IconData balanceSheet = PhosphorIconsRegular.chartBarHorizontal;
-  static const IconData exchangeRates = PhosphorIconsRegular.arrowsLeftRight;
+  static const IconData home = Icons.home_rounded;
+  static const IconData homeOutline = Icons.home_outlined;
+  static const IconData reports = Icons.bar_chart_outlined;
+  static const IconData reportsFilled = Icons.bar_chart_rounded;
+  static const IconData savings = Icons.savings_outlined;
+  static const IconData savingsFilled = Icons.savings_rounded;
+  static const IconData subscriptions = Icons.layers_outlined;
+  static const IconData subscriptionsFilled = Icons.layers_rounded;
+  static const IconData settings = Icons.settings_outlined;
+  static const IconData settingsFilled = Icons.settings_rounded;
+  static const IconData moreGrid = Icons.grid_view_outlined;
+  static const IconData moreGridFilled = Icons.grid_view_rounded;
+  static const IconData add = Icons.add_rounded;
+  static const IconData transactions = Icons.receipt_long_outlined;
+  static const IconData transactionsFilled = Icons.receipt_long_rounded;
+  static const IconData budgets = Icons.account_balance_wallet_outlined;
+  static const IconData budgetsFilled = Icons.account_balance_wallet_rounded;
+  static const IconData insights = Icons.insights_outlined;
+  static const IconData insightsFilled = Icons.insights_rounded;
+  static const IconData balanceSheet = Icons.account_balance_outlined;
+  static const IconData exchangeRates = Icons.swap_horiz_rounded;
 }

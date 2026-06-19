@@ -1431,7 +1431,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     '${l10n.reportsPdfPeriod}: ${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}'),
                 pw.SizedBox(height: 20),
                 pw.Text('${l10n.reportsPdfIncomeExpenses}:',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.Text(
                     '${l10n.reportsPdfTotalIncome}: $appCurrencySymbol${income.toStringAsFixed(2)}'),
                 pw.Text(
@@ -1443,12 +1443,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     '${l10n.reportsPdfMonthlySubscriptions}: $appCurrencySymbol${subscriptionCosts.toStringAsFixed(2)}'),
                 pw.SizedBox(height: 20),
                 pw.Text('${l10n.reportsPdfBudgetUtilization}:',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 ...budgetUtilization.entries.map((entry) => pw.Text(
                     '${entry.key}: ${(entry.value * 100).toStringAsFixed(1)}%')),
                 pw.SizedBox(height: 20),
                 pw.Text('${l10n.reportsPdfRecentTransactions}:',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 ...filteredTransactions.take(10).map((t) => pw.Text(
                     '${DateFormat('MM/dd').format(t.date)} ${t.category}: $appCurrencySymbol${t.amount.toStringAsFixed(2)} (${_getTransactionTypeLabel(t.type, l10n)})')),
               ],
@@ -1627,14 +1627,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     '${l10n.reportsPdfPeriod}: ${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}'),
                 pw.SizedBox(height: 20),
                 pw.Text('${l10n.reportsPdfBudgetPerformance}:',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 10),
                 ...budgetData.map((data) => pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('${data['category']}',
                             style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                                const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                         pw.Text(
                             '${l10n.reportsPdfLimit}: $appCurrencySymbol${data['limit'].toStringAsFixed(2)}'),
                         pw.Text(
@@ -1654,7 +1654,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     )),
                 pw.SizedBox(height: 20),
                 pw.Text('${l10n.reportsPdfSummary}:',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.Text('${l10n.reportsPdfTotalBudgets}: ${budgets.length}'),
                 pw.Text(
                     '${l10n.reportsPdfOverBudget}: ${budgetData.where((b) => b['percentage'] > 100).length}'),
@@ -1745,7 +1745,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     '${l10n.reportsPdfPeriod}: ${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}'),
                 pw.SizedBox(height: 20),
                 pw.Text('${l10n.reportsPdfSummary}:',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.Text(
                     '${l10n.reportsPdfTotalActiveSubscriptions}: ${activeSubscriptions.length}'),
                 pw.Text(
@@ -1754,14 +1754,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     '${l10n.reportsPdfYearlyTotalCost}: $appCurrencySymbol${(monthlyTotal * 12).toStringAsFixed(2)}'),
                 pw.SizedBox(height: 20),
                 pw.Text('${l10n.reportsPdfActiveSubscriptions}:',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 10),
                 ...activeSubscriptions.map((s) => pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(s.name,
                             style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                                const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                         pw.Text(
                             '${l10n.reportsPdfAmount}: $appCurrencySymbol${s.amount.toStringAsFixed(2)} (${_getBillingCycleLabel(s.billingCycle, l10n)})'),
                         pw.Text(
