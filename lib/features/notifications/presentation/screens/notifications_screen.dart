@@ -158,7 +158,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             child: Container(
                               decoration:
                                   AppSurfaces.elevated(context, radius: 16),
-                              child: ListTile(
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: ListTile(
                                 onTap: () {
                                   ref
                                       .read(notificationServiceProvider)
@@ -228,6 +230,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                     ],
                                   ),
                                 ),
+                              ),
                               ),
                             ),
                           ),

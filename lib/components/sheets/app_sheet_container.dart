@@ -32,7 +32,14 @@ class AppSheetContainer extends StatelessWidget {
             ),
           ],
         ),
-        child: child,
+        // Inner transparent Material sits BELOW the colored box so ListTile /
+        // SwitchListTile descendants paint their background + ink on it rather
+        // than on the outer Material (which the colored box would otherwise
+        // cover — Flutter 3.44 asserts on that).
+        child: Material(
+          type: MaterialType.transparency,
+          child: child,
+        ),
       ),
     );
   }

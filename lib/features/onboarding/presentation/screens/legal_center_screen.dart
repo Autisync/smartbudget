@@ -146,13 +146,19 @@ class _LegalCenterTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final document = legalDocumentForType(type, l10n);
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      title: Text(document.title),
-      subtitle: Text(document.subtitle),
-      trailing: const Icon(Icons.chevron_right),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      onTap: onTap,
+    // Transparent Material so the tile paints its ink/background above the
+    // enclosing decorated Container (Flutter 3.44 asserts otherwise).
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        title: Text(document.title),
+        subtitle: Text(document.subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        onTap: onTap,
+      ),
     );
   }
 }
