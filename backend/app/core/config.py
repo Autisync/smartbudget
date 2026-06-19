@@ -36,7 +36,11 @@ class Settings(BaseSettings):
     # For native Sign in with Apple the identity token's `aud` claim is the
     # app's bundle identifier. Override per-environment (comma-separated) if a
     # Services ID or additional bundle IDs are also used.
-    apple_oauth_audiences: str = "autisync.smartbudget"
+    # Native Apple sign-in: the identity token's `aud` is the app bundle id.
+    # Release/Profile builds use autisync.smartspend, Debug uses
+    # autisync.smartbudget — accept both. Add a Services ID here too if/when
+    # Android/web Apple sign-in is enabled.
+    apple_oauth_audiences: str = "autisync.smartspend,autisync.smartbudget"
 
     smtp_enabled: bool = False
     smtp_host: str = ""
