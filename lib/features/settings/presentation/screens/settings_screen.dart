@@ -1016,7 +1016,11 @@ class _MoreActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return ListTile(
+    // Transparent Material so the tile paints correctly inside the section's
+    // decorated card (Flutter 3.44 assertion).
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
       contentPadding: EdgeInsets.symmetric(
         horizontal: 14,
         vertical: tileVerticalPadding,
@@ -1052,6 +1056,7 @@ class _MoreActionTile extends StatelessWidget {
                 )
               : null),
       onTap: onTap,
+      ),
     );
   }
 }

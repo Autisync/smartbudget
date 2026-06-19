@@ -13,6 +13,7 @@ import 'package:smartbudget/data/datasources/local/database_cipher.dart';
 import 'package:smartbudget/features/accounts/presentation/providers/account_provider.dart';
 import 'package:smartbudget/core/router/app_router.dart';
 import 'package:smartbudget/core/services/locale_service.dart';
+import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/core/theme/app_theme.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -178,11 +179,41 @@ class _FatalErrorApp extends StatelessWidget {
   }
 }
 
-class SmartSpendApp extends ConsumerWidget {
+class SmartSpendApp extends ConsumerStatefulWidget {
   const SmartSpendApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SmartSpendApp> createState() => _SmartSpendAppState();
+}
+
+class _SmartSpendAppState extends ConsumerState<SmartSpendApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // When the user returns to the app (e.g. after verifying their email in the
+    // browser), re-fetch the user so a now-verified account is reflected and the
+    // verification banner / gate clears without a re-login.
+    if (state == AppLifecycleState.resumed) {
+      unawaited(
+        ref.read(sessionControllerProvider.notifier).refreshUser(),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeControllerProvider);
     final appLocale = ref.watch(appLocaleControllerProvider);

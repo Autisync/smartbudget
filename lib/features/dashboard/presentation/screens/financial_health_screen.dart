@@ -258,11 +258,14 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Container(
                       decoration: AppSurfaces.elevated(context, radius: 18),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 4),
-                        leading: const Icon(Icons.lightbulb_outline),
-                        title: Text(item),
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
+                          leading: const Icon(Icons.lightbulb_outline),
+                          title: Text(item),
+                        ),
                       ),
                     ),
                   ),

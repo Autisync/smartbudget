@@ -520,6 +520,22 @@ class SessionController extends StateNotifier<SessionState> {
     }
   }
 
+  /// Re-fetches the current user from the server and updates the session — used
+  /// after the user verifies their email on the web (server-side), so the app
+  /// reflects the new `isVerified` without requiring a re-login. No-op when not
+  /// authenticated; silent on transient/offline failure so it can be called
+  /// freely (e.g. on app resume). Returns the refreshed verified state.
+  Future<bool> refreshUser() async {
+    if (!state.authenticated) return false;
+    try {
+      final user = await _repository.me().timeout(_bootCallTimeout);
+      state = state.copyWith(user: user);
+      return user.isVerified;
+    } catch (_) {
+      return state.user?.isVerified ?? false;
+    }
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     ErrorMonitor.clearUser();

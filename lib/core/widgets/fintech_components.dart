@@ -468,7 +468,10 @@ class AppCard extends StatelessWidget {
         radius: radius,
         color: color,
       ),
-      child: child,
+      // Transparent Material below the colored decoration so ListTile /
+      // SwitchListTile descendants paint ink/background correctly (Flutter 3.44
+      // asserts when a tile sits in a colored box with no Material between).
+      child: Material(type: MaterialType.transparency, child: child),
     );
 
     if (onTap == null) {

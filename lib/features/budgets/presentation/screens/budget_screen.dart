@@ -900,24 +900,27 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                         color: Theme.of(context).colorScheme.outlineVariant,
                       ),
                     ),
-                    child: ListTile(
-                      dense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      title: Text(
-                        tx.note ?? tx.category,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        MaterialLocalizations.of(context)
-                            .formatMediumDate(tx.date),
-                      ),
-                      trailing: Text(
-                        currencyFormat.format(tx.amount),
-                        style: Theme.of(context).textTheme.labelLarge,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: ListTile(
+                        dense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        title: Text(
+                          tx.note ?? tx.category,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          MaterialLocalizations.of(context)
+                              .formatMediumDate(tx.date),
+                        ),
+                        trailing: Text(
+                          currencyFormat.format(tx.amount),
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
                       ),
                     ),
                   ),

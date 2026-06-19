@@ -89,8 +89,10 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                     Container(
                       decoration: AppSurfaces.elevated(context, radius: 20),
                       clipBehavior: Clip.hardEdge,
-                      child: Column(
-                        children: [
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Column(
+                          children: [
                           SwitchListTile(
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 16),
@@ -227,6 +229,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                           ),
                         ],
                       ),
+                      ),
                     ),
                   ],
                 ),
@@ -263,7 +266,9 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                         return Container(
                           decoration: AppSurfaces.elevated(context, radius: 20),
                           clipBehavior: Clip.hardEdge,
-                          child: Column(
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: Column(
                             children: [
                               for (int i = 0; i < logs.length; i++)
                                 Column(
@@ -295,6 +300,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                                   ],
                                 ),
                             ],
+                          ),
                           ),
                         );
                       },
