@@ -242,7 +242,10 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   Future<bool> login({required String email, required String password}) async {
-    state = state.copyWith(initializing: true, errorMessage: null);
+    // Don't flip `initializing` here — that drives the /splash redirect and
+    // would unmount this screen mid-request (the sign-in loop). The screen
+    // shows its own submit spinner; we only clear any previous error.
+    state = state.copyWith(errorMessage: null);
     try {
       final result = await _repository.login(
         email: email,
@@ -290,7 +293,10 @@ class SessionController extends StateNotifier<SessionState> {
     String? firstName,
     String? lastName,
   }) async {
-    state = state.copyWith(initializing: true, errorMessage: null);
+    // Don't flip `initializing` here — that drives the /splash redirect and
+    // would unmount this screen mid-request (the sign-in loop). The screen
+    // shows its own submit spinner; we only clear any previous error.
+    state = state.copyWith(errorMessage: null);
     try {
       final result = await _repository.socialLogin(
         provider: provider,
@@ -341,7 +347,10 @@ class SessionController extends StateNotifier<SessionState> {
     required String firstName,
     required String lastName,
   }) async {
-    state = state.copyWith(initializing: true, errorMessage: null);
+    // Don't flip `initializing` here — that drives the /splash redirect and
+    // would unmount this screen mid-request (the sign-in loop). The screen
+    // shows its own submit spinner; we only clear any previous error.
+    state = state.copyWith(errorMessage: null);
     try {
       final result = await _repository.signup(
         email: email,
@@ -384,7 +393,10 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   Future<void> forgotPassword(String email) async {
-    state = state.copyWith(initializing: true, errorMessage: null);
+    // Don't flip `initializing` here — that drives the /splash redirect and
+    // would unmount this screen mid-request (the sign-in loop). The screen
+    // shows its own submit spinner; we only clear any previous error.
+    state = state.copyWith(errorMessage: null);
     try {
       await _repository.forgotPassword(email);
       state = state.copyWith(initializing: false, errorMessage: null);
@@ -411,7 +423,10 @@ class SessionController extends StateNotifier<SessionState> {
     required String token,
     required String newPassword,
   }) async {
-    state = state.copyWith(initializing: true, errorMessage: null);
+    // Don't flip `initializing` here — that drives the /splash redirect and
+    // would unmount this screen mid-request (the sign-in loop). The screen
+    // shows its own submit spinner; we only clear any previous error.
+    state = state.copyWith(errorMessage: null);
     try {
       await _repository.resetPassword(token: token, newPassword: newPassword);
       state = state.copyWith(initializing: false, errorMessage: null);
@@ -438,7 +453,10 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   Future<bool> verifyEmail(String token) async {
-    state = state.copyWith(initializing: true, errorMessage: null);
+    // Don't flip `initializing` here — that drives the /splash redirect and
+    // would unmount this screen mid-request (the sign-in loop). The screen
+    // shows its own submit spinner; we only clear any previous error.
+    state = state.copyWith(errorMessage: null);
     try {
       await _repository.verifyEmail(token);
       state = state.copyWith(initializing: false, errorMessage: null);

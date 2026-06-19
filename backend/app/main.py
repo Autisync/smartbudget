@@ -71,7 +71,6 @@ def _verify_email_result_html(*, success: bool, app_link: str) -> str:
 
 
 def _reset_password_page_html(*, token: str) -> str:
-    safe_token = escape(token, quote=True)
     token_js = json.dumps(token)
     app_link = f"smartbudget://reset-password?token={quote(token, safe='')}"
     app_link_html = escape(app_link, quote=True)
@@ -192,8 +191,6 @@ def _reset_password_page_html(*, token: str) -> str:
                     <div id=\"msg-error\" class=\"message error\"></div>
                     <div id=\"msg-success\" class=\"message success\"></div>
                 </form>
-
-                <div class=\"token\">Token: {safe_token}</div>
             </div>
         </div>
 
@@ -314,6 +311,24 @@ def create_application() -> FastAPI:
 
     @app.websocket("/ws/v1/balance/{user_id}")
     async def balance_updates(websocket: WebSocket, user_id: str):
+        # AUTH: require a valid access token (query param ?token=) whose subject
+        # matches the requested user_id. Without this, anyone could subscribe to
+        # another user's balance-event channel. Reject before accepting.
+        token = websocket.query_params.get("token")
+        authorized = False
+        if token:
+            try:
+                payload = decode_token(token)
+                authorized = (
+                    payload.get("type") == "access"
+                    and str(payload.get("sub")) == str(user_id)
+                )
+            except Exception:  # noqa: BLE001 - any decode failure is unauthorized
+                authorized = False
+        if not authorized:
+            await websocket.close(code=4401)  # unauthorized
+            return
+
         await websocket.accept()
         redis_client = get_async_redis()
         pubsub = redis_client.pubsub()
