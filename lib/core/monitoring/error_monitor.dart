@@ -76,12 +76,12 @@ class ErrorMonitor {
         options.tracesSampleRate = _sampleRate;
         // ignore: experimental_member_use
         options.profilesSampleRate = _sampleRate;
-        // Session Replay (8.x: under `experimental`). Captures 10% of sessions
-        // and 100% of sessions that hit an error.
-        // ignore: experimental_member_use
-        options.experimental.replay.sessionSampleRate = 0.1;
-        // ignore: experimental_member_use
-        options.experimental.replay.onErrorSampleRate = 1.0;
+        // Structured logs.
+        options.enableLogs = true;
+        // Session Replay: 10% of sessions, 100% of sessions that hit an error.
+        // Text/images are masked by default, so on-screen balances are redacted.
+        options.replay.sessionSampleRate = 0.1;
+        options.replay.onErrorSampleRate = 1.0;
         options.debug = false;
       },
       appRunner: () async {

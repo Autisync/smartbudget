@@ -21,7 +21,8 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          # Pin to the version in .fvmrc so CI and local builds always match.
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Install dependencies

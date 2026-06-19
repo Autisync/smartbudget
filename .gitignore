@@ -58,3 +58,8 @@ test_result.txt
 test_results.txt
 analysis_report.txt
 .gstack/
+
+sentry.properties
+
+# FVM (Flutter Version Management) — keep .fvmrc tracked, ignore the cache
+.fvm/
