@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.smaartspend.com/sitemap.xml
+Sitemap: https://smaartspend.com/sitemap.xml

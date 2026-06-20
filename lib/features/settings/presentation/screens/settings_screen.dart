@@ -74,7 +74,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   /// Opens the SmartSpend help/support website in the device browser.
   Future<void> _openHelpWebsite() async {
-    final uri = Uri.parse('https://www.smaartspend.com');
+    final uri = Uri.parse('https://smaartspend.com');
     try {
       final launched =
           await launchUrl(uri, mode: LaunchMode.externalApplication);

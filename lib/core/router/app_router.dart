@@ -619,7 +619,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
 
     Future<void> openHelpWebsite() async {
       _closePanel();
-      final websiteUri = Uri.parse('https://www.smaartspend.com');
+      final websiteUri = Uri.parse('https://smaartspend.com');
       final launched = await launchUrl(
         websiteUri,
         mode: LaunchMode.externalApplication,
