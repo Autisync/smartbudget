@@ -21,6 +21,9 @@ import 'package:smartbudget/features/savings/presentation/providers/savings_prov
 import 'package:smartbudget/domain/entities/savings_goal.dart';
 import 'package:smartbudget/data/models/tables.dart' show GoalPriority;
 import 'package:smartbudget/data/models/tables.dart' show TransactionType;
+import 'package:smartbudget/domain/entities/account.dart';
+import 'package:smartbudget/domain/entities/transaction.dart';
+import 'package:smartbudget/features/accounts/presentation/providers/account_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
@@ -826,9 +829,29 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         return aRemaining.compareTo(bRemaining);
       });
     final target = sorted.first;
-    final updated = target.copyWith(
-      savedAmount: (target.savedAmount + amount).clamp(0, target.targetAmount),
-    );
+    final newSaved =
+        (target.savedAmount + amount).clamp(0, target.targetAmount).toDouble();
+    final applied = newSaved - target.savedAmount;
+    if (applied <= 0) return;
+
+    // Debit the allocated cash from the default Cash account so the dashboard's
+    // cash-on-hand balance reflects the surplus that was set aside. Recorded as
+    // a transfer, so it stays out of the income/expense and budget totals.
+    final appCurrency = ref.read(appCurrencyControllerProvider);
+    await ref.read(transactionListProvider().notifier).addTransaction(
+          Transaction(
+            id: const Uuid().v4(),
+            accountId: DefaultAccountIds.cash,
+            amount: applied,
+            currency: appCurrency,
+            type: TransactionType.transfer,
+            category: 'Savings',
+            date: DateTime.now(),
+            note: target.id,
+          ),
+        );
+
+    final updated = target.copyWith(savedAmount: newSaved);
     await ref.read(savingsGoalListProvider.notifier).updateSavingsGoal(updated);
   }
 
@@ -842,16 +865,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final result = await AppFormSheet.show<_SurplusSimulationResult>(
       context,
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.viewInsetsOf(context).bottom,
-        ),
-        child: _SurplusSimulationSheet(
-          goals: goals,
-          monthlySurplus: monthlySurplus,
-          currencyFormat: currencyFormat,
-          currencyCode: currencyCode,
-        ),
+      builder: (_) => _SurplusSimulationSheet(
+        goals: goals,
+        monthlySurplus: monthlySurplus,
+        currencyFormat: currencyFormat,
+        currencyCode: currencyCode,
       ),
     );
     if (!mounted) return;
@@ -1103,38 +1121,62 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final appCurrency = ref.read(appCurrencyControllerProvider);
     final currencyFormat = CurrencyUtils.getFormat(appCurrency);
-    final amount = await showDialog<double>(
+    final accounts = await ref.read(accountsListProvider.future);
+    if (!context.mounted) return;
+    final result = await showDialog<_ContributionResult>(
       context: context,
       builder: (_) => _ContributionDialog(
         goalTitle: goal.title,
         currencySymbol: CurrencyUtils.symbol(appCurrency),
+        currencyFormat: currencyFormat,
+        accounts: accounts,
       ),
     );
 
-    if (amount != null && amount > 0 && mounted) {
-      final updated = goal.copyWith(
-        savedAmount: (goal.savedAmount + amount).clamp(0, goal.targetAmount),
-      );
-      await ref
-          .read(savingsGoalListProvider.notifier)
-          .updateSavingsGoal(updated);
-      if (!context.mounted) return;
-      AppFeedback.show(
-        context,
-        message: l10n.savingsProgressLine(
-          ((updated.savedAmount / updated.targetAmount) * 100)
-              .clamp(0, 100)
-              .toStringAsFixed(1),
-          currencyFormat.format(
-            (updated.targetAmount - updated.savedAmount).clamp(
-              0,
-              double.infinity,
-            ),
+    if (result == null || result.amount <= 0 || !context.mounted) return;
+
+    // Only the portion that actually lands in the goal (clamped to target)
+    // should leave the source account, so cash-on-hand and savings stay in
+    // sync. The transfer debits the chosen account but is excluded from the
+    // income/expense chips and budget spending (both filter on those types).
+    final newSaved =
+        (goal.savedAmount + result.amount).clamp(0, goal.targetAmount).toDouble();
+    final applied = newSaved - goal.savedAmount;
+    if (applied <= 0) return;
+
+    await ref.read(transactionListProvider().notifier).addTransaction(
+          Transaction(
+            id: const Uuid().v4(),
+            accountId: result.accountId,
+            amount: applied,
+            currency: appCurrency,
+            type: TransactionType.transfer,
+            category: 'Savings',
+            date: DateTime.now(),
+            note: goal.id,
+          ),
+        );
+
+    final updated = goal.copyWith(savedAmount: newSaved);
+    await ref
+        .read(savingsGoalListProvider.notifier)
+        .updateSavingsGoal(updated);
+    if (!context.mounted) return;
+    AppFeedback.show(
+      context,
+      message: l10n.savingsProgressLine(
+        ((updated.savedAmount / updated.targetAmount) * 100)
+            .clamp(0, 100)
+            .toStringAsFixed(1),
+        currencyFormat.format(
+          (updated.targetAmount - updated.savedAmount).clamp(
+            0,
+            double.infinity,
           ),
         ),
-        type: AppFeedbackType.success,
-      );
-    }
+      ),
+      type: AppFeedbackType.success,
+    );
   }
 
   void _showSimulation(
@@ -1860,13 +1902,12 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
         ? null
         : DateTime(now.year, now.month + projectedMonthsToComplete, now.day);
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+    return AppFormSheet(
+      maxHeightFactor: 0.85,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
             Text(
               'Monthly surplus simulation',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -1957,23 +1998,26 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
                 ),
               ),
             ],
-            const SizedBox(height: 14),
-            FilledButton(
-              onPressed: _simulate,
-              child: Text(l10n.savingsSimulate),
-            ),
-            const SizedBox(height: 8),
-            FilledButton.tonal(
-              onPressed: _state == _SimulationState.simulated ? _apply : null,
-              child: Text(l10n.savingsConfirmAndApply),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _cancel,
-              child: Text(l10n.cancel),
-            ),
-          ],
-        ),
+        ],
+      ),
+      actions: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FilledButton(
+            onPressed: _simulate,
+            child: Text(l10n.savingsSimulate),
+          ),
+          const SizedBox(height: 8),
+          FilledButton.tonal(
+            onPressed: _state == _SimulationState.simulated ? _apply : null,
+            child: Text(l10n.savingsConfirmAndApply),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _cancel,
+            child: Text(l10n.cancel),
+          ),
+        ],
       ),
     );
   }
@@ -2268,14 +2312,27 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
   }
 }
 
+/// Result of the add-funds dialog: how much to contribute and which account
+/// the cash leaves from.
+class _ContributionResult {
+  const _ContributionResult({required this.amount, required this.accountId});
+
+  final double amount;
+  final String accountId;
+}
+
 class _ContributionDialog extends StatefulWidget {
   const _ContributionDialog({
     required this.goalTitle,
     required this.currencySymbol,
+    required this.currencyFormat,
+    required this.accounts,
   });
 
   final String goalTitle;
   final String currencySymbol;
+  final NumberFormat currencyFormat;
+  final List<Account> accounts;
 
   @override
   State<_ContributionDialog> createState() => _ContributionDialogState();
@@ -2283,11 +2340,14 @@ class _ContributionDialog extends StatefulWidget {
 
 class _ContributionDialogState extends State<_ContributionDialog> {
   late final TextEditingController _controller;
+  String? _accountId;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
+    _accountId =
+        widget.accounts.isNotEmpty ? widget.accounts.first.id : null;
   }
 
   @override
@@ -2298,7 +2358,14 @@ class _ContributionDialogState extends State<_ContributionDialog> {
 
   void _submit() {
     final value = double.tryParse(_controller.text.trim()) ?? 0;
-    Navigator.of(context).pop(value > 0 ? value : null);
+    final accountId = _accountId;
+    if (value <= 0 || accountId == null) {
+      Navigator.of(context).pop();
+      return;
+    }
+    Navigator.of(context).pop(
+      _ContributionResult(amount: value, accountId: accountId),
+    );
   }
 
   @override
@@ -2306,15 +2373,41 @@ class _ContributionDialogState extends State<_ContributionDialog> {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: Text(l10n.savingsAddToGoal(widget.goalTitle)),
-      content: TextField(
-        controller: _controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        style: InputStyles.inputTextStyle(Theme.of(context)),
-        decoration: InputDecoration(
-          labelText: l10n.amount,
-          prefixText: '${widget.currencySymbol} ',
-        ),
-        onSubmitted: (_) => _submit(),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            style: InputStyles.inputTextStyle(Theme.of(context)),
+            decoration: InputDecoration(
+              labelText: l10n.amount,
+              prefixText: '${widget.currencySymbol} ',
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+          if (widget.accounts.isNotEmpty && _accountId != null) ...[
+            const SizedBox(height: 16),
+            AppSelectField<String>(
+              value: _accountId!,
+              label: 'From account',
+              prefixIcon: Icons.account_balance_wallet_outlined,
+              onChanged: (v) => setState(() => _accountId = v),
+              options: widget.accounts
+                  .map(
+                    (a) => AppDropdownOption<String>(
+                      value: a.id,
+                      label:
+                          '${a.name}  ·  ${widget.currencyFormat.format(a.currentBalance)}',
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ],
+        ],
       ),
       actions: [
         TextButton(

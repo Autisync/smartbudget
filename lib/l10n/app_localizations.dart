@@ -4835,17 +4835,17 @@ abstract class AppLocalizations {
   /// **'Explore features'**
   String get settingsExploreFeatures;
 
-  /// No description provided for @settingsFeatureFinSimulator.
+  /// No description provided for @settingsFeatureDebtManagement.
   ///
   /// In en, this message translates to:
-  /// **'Fin Simulator'**
-  String get settingsFeatureFinSimulator;
+  /// **'Debt Management'**
+  String get settingsFeatureDebtManagement;
 
-  /// No description provided for @settingsFeatureFinSimulatorDesc.
+  /// No description provided for @settingsFeatureDebtManagementDesc.
   ///
   /// In en, this message translates to:
-  /// **'Run what-if financial scenarios with projected outcomes.'**
-  String get settingsFeatureFinSimulatorDesc;
+  /// **'Track loans and pay down debt faster with a payoff plan.'**
+  String get settingsFeatureDebtManagementDesc;
 
   /// No description provided for @settingsFeatureAiCoach.
   ///
@@ -4894,6 +4894,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Email tech and general feedback'**
   String get settingsSendFeedbackSubtitle;
+
+  /// No description provided for @settingsHelpSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Support'**
+  String get settingsHelpSupport;
+
+  /// No description provided for @settingsHelpSupportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit smaartspend.com'**
+  String get settingsHelpSupportSubtitle;
 
   /// No description provided for @settingsPreferences.
   ///

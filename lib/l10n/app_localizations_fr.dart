@@ -2570,10 +2570,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsExploreFeatures => 'Explorer les fonctionnalités';
 
   @override
-  String get settingsFeatureFinSimulator => 'Fin Simulator';
+  String get settingsFeatureDebtManagement => 'Gestion des Dettes';
 
   @override
-  String get settingsFeatureFinSimulatorDesc => 'Lancez des scénarios financiers hypothétiques avec des résultats projetés.';
+  String get settingsFeatureDebtManagementDesc => 'Suivez vos prêts et remboursez vos dettes plus vite avec un plan de remboursement.';
 
   @override
   String get settingsFeatureAiCoach => 'AI Budget Coach';
@@ -2598,6 +2598,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsSendFeedbackSubtitle => 'Envoyez vos retours techniques et généraux';
+
+  @override
+  String get settingsHelpSupport => 'Aide et Assistance';
+
+  @override
+  String get settingsHelpSupportSubtitle => 'Visitez smaartspend.com';
 
   @override
   String get settingsPreferences => 'Préférences';

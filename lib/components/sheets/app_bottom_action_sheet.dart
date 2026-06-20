@@ -50,20 +50,45 @@ class AppBottomActionSheet extends StatelessWidget {
     return Material(
       color: theme.colorScheme.surface,
       child: SafeArea(
+        top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: maxSheetHeight),
             child: ListView(
               shrinkWrap: true,
               children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+                // Centered grab handle — signals the sheet is draggable and
+                // gives the header a finished, native feel.
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.28),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                  child: Text(
+                    title,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ),
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                  color:
+                      theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 6),
                 ...actions.map((action) {
                   final color = action.destructive
                       ? theme.colorScheme.error

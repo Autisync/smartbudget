@@ -200,23 +200,52 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return SmartCard(
       radius: 28,
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppLottieView(
-            assetPath: 'assets/animations/scenario_simulation.json',
-            width: 84,
-            height: 84,
-            repeat: false,
-            animate: false,
-            fallbackIcon: Icons.science_rounded,
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: scheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            alignment: Alignment.center,
+            child: const AppLottieView(
+              assetPath: 'assets/animations/scenario_simulation.json',
+              width: 44,
+              height: 44,
+              repeat: false,
+              animate: false,
+              fallbackIcon: Icons.science_rounded,
+            ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            'Test life changes before you make them.',
-            style: Theme.of(context).textTheme.bodyMedium,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Scenario Lab',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Model life changes — a raise, higher rent, fewer subscriptions — and see the impact before you commit.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -235,24 +264,38 @@ class _PresetChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SmartCard(
       radius: 24,
-      padding: const EdgeInsets.all(14),
-      child: SizedBox(
-        height: 40,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemBuilder: (context, index) {
-            final preset = ScenarioEngine.presets[index];
-            return ChoiceChip(
-              label: Text(preset.type.label.replaceAll(' Mode', '')),
-              selected: selectedPreset == preset.type,
-              onSelected: (_) => onPresetTap(preset.type),
-            );
-          },
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemCount: ScenarioEngine.presets.length,
-        ),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Try a preset',
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                final preset = ScenarioEngine.presets[index];
+                return ChoiceChip(
+                  label: Text(preset.type.label.replaceAll(' Mode', '')),
+                  selected: selectedPreset == preset.type,
+                  onSelected: (_) => onPresetTap(preset.type),
+                );
+              },
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemCount: ScenarioEngine.presets.length,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -853,31 +896,37 @@ class _SmartActions extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              OutlinedButton(
+              OutlinedButton.icon(
                 onPressed: () => onTap(ScenarioActionType.openBudgetAdjustment),
-                child: Text(l10n.scenarioActionAdjustBudget),
+                icon: const Icon(Icons.tune_rounded, size: 18),
+                label: Text(l10n.scenarioActionAdjustBudget),
               ),
-              OutlinedButton(
+              OutlinedButton.icon(
                 onPressed: () => onTap(ScenarioActionType.createSavingsRule),
-                child: Text(l10n.scenarioActionSavingsRule),
+                icon: const Icon(Icons.savings_rounded, size: 18),
+                label: Text(l10n.scenarioActionSavingsRule),
               ),
-              OutlinedButton(
+              OutlinedButton.icon(
                 onPressed: () => onTap(ScenarioActionType.reviewSubscriptions),
-                child: Text(l10n.scenarioActionReviewSubs),
+                icon: const Icon(Icons.autorenew_rounded, size: 18),
+                label: Text(l10n.scenarioActionReviewSubs),
               ),
-              OutlinedButton(
+              OutlinedButton.icon(
                 onPressed: () =>
                     onTap(ScenarioActionType.openRecurringBalanceSheet),
-                child: Text(l10n.scenarioActionOpenBalanceSheet),
+                icon: const Icon(Icons.receipt_long_rounded, size: 18),
+                label: Text(l10n.scenarioActionOpenBalanceSheet),
               ),
-              OutlinedButton(
+              OutlinedButton.icon(
                 onPressed: () =>
                     onTap(ScenarioActionType.openTransactionsByCategory),
-                child: Text(l10n.scenarioActionTxByCategory),
+                icon: const Icon(Icons.category_rounded, size: 18),
+                label: Text(l10n.scenarioActionTxByCategory),
               ),
-              OutlinedButton(
+              OutlinedButton.icon(
                 onPressed: () => onTap(ScenarioActionType.openSavingsGoal),
-                child: Text(l10n.scenarioActionOpenSavingsGoal),
+                icon: const Icon(Icons.flag_rounded, size: 18),
+                label: Text(l10n.scenarioActionOpenSavingsGoal),
               ),
             ],
           ),

@@ -355,7 +355,11 @@ class _PageSlide extends StatelessWidget {
         ),
         child: SizedBox(
           height: MediaQuery.sizeOf(context).height * 0.44,
-          child: step.illustration(context, illustAnim),
+          // Drive the illustrations from the raw [stagger] controller (range
+          // [0,1]). They each nest their own CurvedAnimation/Interval, and the
+          // overshooting easeOutBack of [illustAnim] would push the parent value
+          // above 1.0, tripping Flutter's Curve.transform assertion.
+          child: step.illustration(context, stagger),
         ),
       ),
     );

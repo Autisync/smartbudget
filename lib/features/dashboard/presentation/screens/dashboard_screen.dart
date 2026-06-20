@@ -18,9 +18,12 @@ import 'package:smartbudget/domain/entities/transaction.dart';
 import 'package:smartbudget/features/auth/presentation/providers/session_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:smartbudget/features/transactions/presentation/widgets/transaction_form_sheet.dart';
+import 'package:smartbudget/features/accounts/presentation/providers/account_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_alerts_provider.dart';
 import 'package:smartbudget/features/budgets/presentation/providers/budget_provider.dart';
 import 'package:smartbudget/features/dashboard/presentation/providers/financial_health_provider.dart';
+import 'package:smartbudget/features/savings/presentation/providers/savings_provider.dart';
+import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/data/models/tables.dart' show TransactionType;
 import 'package:smartbudget/data/models/tables.dart' show TransactionRecurrence;
 import 'package:smartbudget/intelligence/engines/financial_insight_engines.dart';
@@ -212,6 +215,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           .fold(0.0, (sum, t) => sum + t.amount),
       orElse: () => 0.0,
     );
+    // Headline is real cash on hand = Σ account current balances (opening +
+    // ledger, savings transfers already debited). Falls back to the period net
+    // while the accounts query resolves so the hero never flashes empty.
+    final totalBalance = ref.watch(totalAccountBalanceProvider).maybeWhen(
+          data: (value) => value,
+          orElse: () => income - expenses,
+        );
+    final savingsTotal = ref.watch(savingsGoalListProvider).maybeWhen(
+          data: (goals) =>
+              goals.fold<double>(0.0, (sum, g) => sum + g.savedAmount),
+          orElse: () => 0.0,
+        );
+    final budgetTotal = ref.watch(activeBudgetsProvider).maybeWhen(
+          data: (budgets) =>
+              budgets.fold<double>(0.0, (sum, b) => sum + b.limitAmount),
+          orElse: () => 0.0,
+        );
+    final subscriptionTotal = ref.watch(subscriptionListProvider).maybeWhen(
+          data: (subs) => subs
+              .where((s) => s.isActive)
+              .fold<double>(0.0, (sum, s) => sum + s.monthlyCost),
+          orElse: () => 0.0,
+        );
     // Real running-balance trend for the hero spark line (was previously a
     // fake 3-point [income, expenses, balance] curve that meant nothing).
     final balanceTrend = allTxAsync.maybeWhen(
@@ -303,8 +329,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       l10n: l10n,
                       currencyFormat: currencyFormat,
                       currencyCode: appCurrency,
+                      balance: totalBalance,
                       income: income,
                       expenses: expenses,
+                      savings: savingsTotal,
+                      budget: budgetTotal,
+                      subscriptions: subscriptionTotal,
                       balanceTrend: balanceTrend,
                     ),
                     const SizedBox(height: 24),
@@ -521,16 +551,33 @@ class HomeBalanceCard extends StatelessWidget {
     required this.l10n,
     required this.currencyFormat,
     required this.currencyCode,
+    required this.balance,
     required this.income,
     required this.expenses,
+    this.savings = 0,
+    this.budget = 0,
+    this.subscriptions = 0,
     this.balanceTrend = const [],
   });
 
   final AppLocalizations l10n;
   final NumberFormat currencyFormat;
   final String currencyCode;
+
+  /// Real cash on hand: Σ account current balances (opening + ledger, with
+  /// savings transfers already debited).
+  final double balance;
   final double income;
   final double expenses;
+
+  /// Σ amount set aside across savings goals (reflected in [balance] via reduced
+  /// cash; shown here for awareness).
+  final double savings;
+
+  /// Σ active budget limits and Σ active monthly subscription cost — informational
+  /// commitments, not subtracted from [balance].
+  final double budget;
+  final double subscriptions;
 
   /// Running-balance series over time. When fewer than two points exist the
   /// spark line is omitted rather than drawing a meaningless flat/synthetic line.
@@ -538,7 +585,6 @@ class HomeBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final balance = income - expenses;
     // Deep indigo hero — the one bold surface on the screen. White type on the
     // brand gradient reads premium and clears contrast easily; the pastel
     // lavender it replaced was both low-contrast and an "AI default" tell.
@@ -626,6 +672,83 @@ class HomeBalanceCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 14),
+          // Secondary commitments. Savings is reflected in the headline (cash
+          // already left the account); Budget & Subscriptions are informational.
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _HeroChip(
+                icon: Icons.savings_rounded,
+                label: l10n.navSavings,
+                value: CurrencyUtils.getCompactFormat(currencyCode)
+                    .format(savings),
+              ),
+              _HeroChip(
+                icon: Icons.account_balance_wallet_rounded,
+                label: l10n.navBudgets,
+                value: CurrencyUtils.getCompactFormat(currencyCode)
+                    .format(budget),
+              ),
+              _HeroChip(
+                icon: Icons.autorenew_rounded,
+                label: l10n.navSubscriptions,
+                value: CurrencyUtils.getCompactFormat(currencyCode)
+                    .format(subscriptions),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Compact translucent pill for the hero's secondary metrics (savings, budget,
+/// subscriptions). Rendered on the indigo gradient: white type throughout.
+class _HeroChip extends StatelessWidget {
+  const _HeroChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.white.withValues(alpha: 0.8)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.72),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
           ),
         ],
       ),

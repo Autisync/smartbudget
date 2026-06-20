@@ -1,0 +1,15 @@
+{
+  "name": "SmartSpend",
+  "short_name": "SmartSpend",
+  "description": "Calm, intelligent budgeting — budgets, savings, subscriptions and AI-assisted insights. Private by design.",
+  "lang": "en",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6F7FB",
+  "theme_color": "#1A1E40",
+  "icons": [
+    { "src": "/assets/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

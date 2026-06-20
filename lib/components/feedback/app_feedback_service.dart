@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class AppFeedbackToast {
@@ -28,6 +30,16 @@ class AppFeedbackToast {
     return Duration(milliseconds: ms.clamp(4000, 8000));
   }
 
+  static OverlayEntry? _toastEntry;
+  static Timer? _toastTimer;
+
+  // Must match AppBottomNavigation's layout in app_router.dart so the toast
+  // sits just above the navbar instead of behind it (or mid-screen, which the
+  // old floating SnackBar did because its position followed whichever
+  // ScaffoldMessenger happened to be nearest).
+  static const double _kNavBarHeight = 60.0;
+  static const double _kNavBarPaddingBottom = 8.0;
+
   static void show(
     BuildContext context, {
     required String message,
@@ -40,10 +52,16 @@ class AppFeedbackToast {
       return;
     }
 
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) return;
+    // Anchor in the root overlay so positioning is independent of the nested
+    // Scaffold/messenger the caller lives in.
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
 
     final effectiveDuration = duration ?? _durationFor(message);
+
+    if (replaceCurrent) {
+      _dismissToast();
+    }
 
     // Read the bottom safe-area inset WITHOUT registering an inherited
     // dependency. This method is frequently invoked from async event handlers
@@ -55,40 +73,32 @@ class AppFeedbackToast {
     final bottomInset =
         context.getInheritedWidgetOfExactType<MediaQuery>()?.data.padding.bottom ??
             0.0;
+    final bottomOffset =
+        bottomInset + _kNavBarPaddingBottom + _kNavBarHeight + 12;
 
-    if (replaceCurrent) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..removeCurrentSnackBar();
-    }
-
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        duration: effectiveDuration,
-        margin: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
-        backgroundColor: backgroundColor,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
-        content: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 18),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+    final entry = OverlayEntry(
+      builder: (_) => Positioned(
+        left: 16,
+        right: 16,
+        bottom: bottomOffset,
+        child: _ToastCard(
+          message: message,
+          backgroundColor: backgroundColor,
+          icon: icon,
         ),
       ),
     );
+    _toastEntry = entry;
+    overlay.insert(entry);
+
+    _toastTimer = Timer(effectiveDuration, _dismissToast);
+  }
+
+  static void _dismissToast() {
+    _toastTimer?.cancel();
+    _toastTimer = null;
+    _toastEntry?.remove();
+    _toastEntry = null;
   }
 
   static void showLoadingOverlay(BuildContext context,
@@ -163,6 +173,90 @@ class AppFeedbackToast {
   static void dismissLoadingOverlay() {
     _loadingEntry?.remove();
     _loadingEntry = null;
+  }
+}
+
+/// Animated toast pill rendered in the root overlay, anchored just above the
+/// navbar. Fades + slides up on entry; the controller in [AppFeedbackToast]
+/// removes the entry after the display duration.
+class _ToastCard extends StatefulWidget {
+  const _ToastCard({
+    required this.message,
+    required this.backgroundColor,
+    required this.icon,
+  });
+
+  final String message;
+  final Color backgroundColor;
+  final IconData icon;
+
+  @override
+  State<_ToastCard> createState() => _ToastCardState();
+}
+
+class _ToastCardState extends State<_ToastCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  )..forward();
+
+  late final Animation<double> _curve =
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: FadeTransition(
+        opacity: _curve,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.25),
+            end: Offset.zero,
+          ).animate(_curve),
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: widget.backgroundColor,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(widget.icon, color: Colors.white, size: 18),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      widget.message,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

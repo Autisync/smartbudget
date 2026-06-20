@@ -72,6 +72,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  /// Opens the SmartSpend help/support website in the device browser.
+  Future<void> _openHelpWebsite() async {
+    final uri = Uri.parse('https://www.smaartspend.com');
+    try {
+      final launched =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && mounted) {
+        AppFeedbackService.showWarning(
+          context,
+          'Could not open the website on this device.',
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      AppFeedbackService.showError(
+        context,
+        'Unable to open the website right now.',
+      );
+    }
+  }
+
   /// Master notifications toggle: enabling requests both push and local OS
   /// permissions and turns them on together; disabling switches everything off.
   Future<void> _toggleAllNotifications() async {
@@ -431,10 +452,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   Expanded(
                     child: _FeatureCard(
-                      icon: Icons.description_outlined,
-                      title: l10n.settingsFeatureFinSimulator,
+                      icon: Icons.credit_card_off_outlined,
+                      title: l10n.settingsFeatureDebtManagement,
                       subtitle:
-                          l10n.settingsFeatureFinSimulatorDesc,
+                          l10n.settingsFeatureDebtManagementDesc,
                       tag: l10n.commonComingSoon,
                     ),
                   ),
@@ -489,6 +510,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     tileVerticalPadding: 12,
                     showChevron: true,
                     onTap: _sendSupportFeedbackEmail,
+                  ),
+                  _MoreActionTile(
+                    icon: Icons.help_outline_rounded,
+                    title: l10n.settingsHelpSupport,
+                    subtitle: l10n.settingsHelpSupportSubtitle,
+                    tileVerticalPadding: 12,
+                    showChevron: true,
+                    onTap: _openHelpWebsite,
                   ),
                 ],
               ),

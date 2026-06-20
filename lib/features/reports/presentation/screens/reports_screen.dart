@@ -13,6 +13,7 @@ import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
 import 'package:smartbudget/components/forms/app_action_menu.dart';
 import 'package:smartbudget/components/forms/modern_date_picker.dart';
+import 'package:smartbudget/core/monitoring/error_monitor.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
@@ -905,7 +906,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         );
         AppFeedbackService.showSuccess(
             context, 'Report generated successfully');
-      } catch (_) {
+      } catch (e, st) {
+        await ErrorMonitor.captureException(e, st,
+            context: 'report:${template.reportKey}:$format');
         if (!mounted) return;
         _trackFailedReport(
           reportKey: template.reportKey,
@@ -913,7 +916,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           format: format,
           icon: template.icon,
         );
-        AppFeedbackService.showError(context, 'Report generation failed');
+        AppFeedbackService.showError(context, 'Report generation failed: $e');
       } finally {
         if (mounted) {
           setState(() {
@@ -934,7 +937,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         icon: template.icon,
       );
       AppFeedbackService.showSuccess(context, 'Report generated successfully');
-    } catch (_) {
+    } catch (e, st) {
+      await ErrorMonitor.captureException(e, st,
+          context: 'report:${template.reportKey}:$format');
       if (!mounted) return;
       _trackFailedReport(
         reportKey: template.reportKey,
@@ -942,7 +947,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         format: format,
         icon: template.icon,
       );
-      AppFeedbackService.showError(context, 'Report generation failed');
+      AppFeedbackService.showError(context, 'Report generation failed: $e');
     }
   }
 
@@ -1370,7 +1375,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     if (!mounted) return;
     final ok = await _confirmShare(context);
     if (!ok || !mounted) return;
-    await Share.shareXFiles([file], text: text);
+    // sharePositionOrigin is required for the iPad popover anchor; omitting it
+    // throws there. Harmless on iPhone.
+    final box = context.findRenderObject() as RenderBox?;
+    await Share.shareXFiles(
+      [file],
+      text: text,
+      sharePositionOrigin:
+          box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+    );
   }
 
   Future<void> _generateFinancialSummary() async {

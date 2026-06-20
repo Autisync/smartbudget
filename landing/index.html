@@ -2,63 +2,137 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SmartSpend — Calm, intelligent budgeting</title>
-  <meta name="description" content="SmartSpend turns scattered money data into a calm, legible picture of where you stand — budgets, savings, subscriptions, and AI-assisted insights. Private by design." />
-  <meta name="theme-color" content="#1A1E40" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <!-- ─────────────────────────  SEO  ───────────────────────── -->
+  <title>SmartSpend — Calm, intelligent budgeting for iPhone &amp; Android</title>
+  <meta name="description" content="SmartSpend turns scattered transactions into one calm, trustworthy picture of your money — budgets, savings goals, subscriptions, and AI-assisted insights. Private by design, encrypted on device. Coming soon to the App Store and Google Play." />
+  <meta name="keywords" content="budgeting app, personal finance, money management, savings goals, subscription tracker, expense tracker, financial health, private budgeting, iPhone, Android" />
+  <meta name="author" content="Autisync" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="theme-color" content="#1A1E40" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#F7F8FA" media="(prefers-color-scheme: light)" />
+  <meta name="color-scheme" content="light" />
+  <link rel="canonical" href="https://www.smaartspend.com/" />
 
   <!-- Open Graph -->
+  <meta property="og:site_name" content="SmartSpend" />
   <meta property="og:title" content="SmartSpend — Calm, intelligent budgeting" />
   <meta property="og:description" content="Know exactly where your money stands in seconds. Budgets, savings, subscriptions, and AI-assisted insights — private by design." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.smaartspend.com" />
+  <meta property="og:url" content="https://www.smaartspend.com/" />
+  <meta property="og:locale" content="en" />
+  <meta property="og:locale:alternate" content="es" />
+  <meta property="og:locale:alternate" content="fr" />
+  <meta property="og:locale:alternate" content="de" />
+  <meta property="og:locale:alternate" content="pt" />
+  <meta property="og:image" content="https://www.smaartspend.com/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:alt" content="SmartSpend — know where your money stands in seconds" />
 
-  <link rel="icon" href="/favicon.png" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SmartSpend — Calm, intelligent budgeting" />
+  <meta name="twitter:description" content="One calm, trustworthy picture of your money. Budgets, savings, subscriptions, AI-assisted insights — private by design." />
+  <meta name="twitter:image" content="https://www.smaartspend.com/og.png" />
+  <meta name="twitter:image:alt" content="SmartSpend app icon" />
+
+  <link rel="icon" href="/favicon.png" sizes="any" />
+  <link rel="icon" type="image/png" href="/assets/logo.png" sizes="512x512" />
+  <link rel="apple-touch-icon" href="/assets/icon-1024.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="image" href="/assets/logo.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Structured data: organization, site, and the app itself -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://www.smaartspend.com/#org",
+        "name": "Autisync",
+        "url": "https://www.smaartspend.com/",
+        "logo": "https://www.smaartspend.com/assets/logo.png",
+        "email": "support@smaartspend.com"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://www.smaartspend.com/#site",
+        "url": "https://www.smaartspend.com/",
+        "name": "SmartSpend",
+        "publisher": { "@id": "https://www.smaartspend.com/#org" },
+        "inLanguage": ["en", "es", "fr", "de", "pt"]
+      },
+      {
+        "@type": "MobileApplication",
+        "@id": "https://www.smaartspend.com/#app",
+        "name": "SmartSpend",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "iOS, Android",
+        "description": "AI-assisted personal budgeting app: budgets, savings goals, subscriptions, and a financial health score. Private by design, encrypted on device.",
+        "image": "https://www.smaartspend.com/og.png",
+        "publisher": { "@id": "https://www.smaartspend.com/#org" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Vercel Web Analytics (static-site method; enable Analytics in the Vercel dashboard) -->
+  <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
+  <script defer src="/_vercel/insights/script.js"></script>
 
   <style>
     /* ============================================================
-       SmartSpend landing — tokens mirror the Flutter app's theme
-       (brand #7377F9, hero indigo gradient, Inter, calm neutrals).
+       SmartSpend landing. Identity mirrors the Flutter app:
+       brand indigo #7377F9, hero gradient, Inter, tabular figures,
+       calm neutrals, one strong accent. Premium-minimal floor,
+       bold on the numbers that matter.
        ============================================================ */
     :root {
       --brand: #7377F9;
       --brand-deep: #4C57D6;
-      --hero-from: #1A1E40;
+      --brand-ink: #2E338F;
+      --hero-from: #15183A;
+      --hero-mid: #2B2F63;
       --hero-to: #4C57D6;
       --ink: #14161D;
-      --ink-2: #3A3F4B;
-      --muted: #5B6270;
-      --bg: #F7F8FA;
+      --ink-2: #353A47;
+      --muted: #565D6B;          /* AA on --bg and --surface */
+      --bg: #F6F7FB;
       --surface: #FFFFFF;
-      --surface-2: #F1F3F5;
-      --border: #E6E8EE;
+      --surface-2: #EEF0F6;
+      --border: #E4E7F0;
+      --border-strong: #D3D8E6;
       --income: #0E7A4E;
       --expense: #C53B3B;
-      --radius: 18px;
-      --radius-lg: 24px;
-      --radius-hero: 28px;
-      --maxw: 1140px;
-      --shadow-sm: 0 1px 2px rgba(20, 22, 29, .04), 0 6px 18px -10px rgba(20, 22, 29, .12);
-      --shadow-lg: 0 24px 60px -28px rgba(36, 40, 90, .45);
-      --ease: cubic-bezier(.2, .8, .2, 1);
+      --mint: #4FE0A0;
+      --radius: 16px;
+      --radius-lg: 22px;
+      --radius-hero: 26px;
+      --maxw: 1160px;
+      --shadow-sm: 0 1px 2px rgba(20,22,29,.04), 0 8px 22px -14px rgba(20,22,29,.16);
+      --shadow-md: 0 2px 6px rgba(20,22,29,.05), 0 22px 48px -26px rgba(36,40,90,.34);
+      --shadow-lg: 0 40px 90px -40px rgba(21,24,58,.55);
+      --ease: cubic-bezier(.2,.8,.2,1);
+      --ease-out-expo: cubic-bezier(.16,1,.3,1);
 
-      /* semantic z-index scale */
-      --z-header: 100;
-      --z-toast: 600;
+      --z-bg: 0; --z-base: 1; --z-header: 100; --z-toast: 600;
 
       font-synthesis-weight: none;
       -webkit-text-size-adjust: 100%;
     }
 
     * { box-sizing: border-box; }
-
-    html { scroll-behavior: smooth; }
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-    }
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
     body {
       margin: 0;
@@ -68,201 +142,307 @@
       line-height: 1.55;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
+      overflow-x: hidden;
     }
 
-    h1, h2, h3 { margin: 0; letter-spacing: -0.02em; text-wrap: balance; line-height: 1.08; }
-    p { margin: 0; }
+    h1,h2,h3,h4 { margin: 0; letter-spacing: -0.025em; text-wrap: balance; line-height: 1.06; }
+    p { margin: 0; text-wrap: pretty; }
     a { color: inherit; text-decoration: none; }
-    img { max-width: 100%; display: block; }
+    img, svg { max-width: 100%; display: block; }
+    :focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 6px; }
 
     .wrap { width: min(100% - 40px, var(--maxw)); margin-inline: auto; }
+    .tnum { font-variant-numeric: tabular-nums; }
 
+    /* ---------- Buttons ---------- */
     .btn {
-      --btn-bg: var(--brand);
-      --btn-fg: #fff;
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 13px 22px; border-radius: 14px;
+      --btn-bg: var(--brand); --btn-fg: #fff;
+      position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      padding: 13px 22px; border-radius: 13px;
       background: var(--btn-bg); color: var(--btn-fg);
-      font-weight: 700; font-size: 15px; border: 1px solid transparent;
-      cursor: pointer; transition: transform .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
-      will-change: transform;
+      font-weight: 650; font-size: 15px; border: 1px solid transparent; cursor: pointer;
+      transition: transform .2s var(--ease), box-shadow .25s var(--ease), background .2s var(--ease);
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -14px rgba(76, 87, 214, .7); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -16px rgba(76,87,214,.75); }
     .btn:active { transform: translateY(0); }
-    .btn--ghost {
-      --btn-bg: transparent; --btn-fg: var(--ink);
-      border-color: var(--border); background: var(--surface);
-    }
+    .btn--lg { padding: 16px 28px; font-size: 16px; border-radius: 15px; }
+    .btn--ghost { --btn-bg: var(--surface); --btn-fg: var(--ink); border-color: var(--border-strong); }
     .btn--ghost:hover { box-shadow: var(--shadow-sm); }
-    .btn--lg { padding: 16px 28px; font-size: 16px; }
     .btn--on-dark { --btn-bg: #fff; --btn-fg: var(--hero-from); }
-    .btn--on-dark.btn--ghost { --btn-bg: rgba(255,255,255,.08); --btn-fg: #fff; border-color: rgba(255,255,255,.24); }
+    .btn--on-dark.btn--ghost { --btn-bg: rgba(255,255,255,.06); --btn-fg: #fff; border-color: rgba(255,255,255,.26); }
 
     /* ---------- Header ---------- */
     header.site {
       position: sticky; top: 0; z-index: var(--z-header);
-      background: rgba(247, 248, 250, .82);
-      backdrop-filter: saturate(140%) blur(12px);
-      -webkit-backdrop-filter: saturate(140%) blur(12px);
+      background: color-mix(in srgb, var(--bg) 80%, transparent);
+      backdrop-filter: saturate(150%) blur(14px);
+      -webkit-backdrop-filter: saturate(150%) blur(14px);
       border-bottom: 1px solid transparent;
-      transition: border-color .2s var(--ease), background .2s var(--ease);
+      transition: border-color .25s var(--ease), background .25s var(--ease);
     }
     header.site.scrolled { border-bottom-color: var(--border); }
-    .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: -0.02em; }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; font-size: 18px; letter-spacing: -0.03em; }
     .brand .mark {
-      width: 30px; height: 30px; border-radius: 9px;
-      background: linear-gradient(135deg, var(--hero-from), var(--brand));
-      display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 15px;
-      box-shadow: 0 6px 14px -6px rgba(76, 87, 214, .7);
+      width: 32px; height: 32px; border-radius: 9px; object-fit: cover;
+      box-shadow: 0 4px 12px -4px rgba(46,51,143,.55), 0 0 0 1px rgba(20,22,29,.05);
     }
     .nav-links { display: flex; align-items: center; gap: 30px; }
-    .nav-links a.link { font-weight: 600; font-size: 14.5px; color: var(--muted); transition: color .15s var(--ease); }
+    .nav-links a.link { font-weight: 550; font-size: 14.5px; color: var(--muted); transition: color .15s var(--ease); }
     .nav-links a.link:hover { color: var(--ink); }
-    @media (max-width: 820px) { .nav-links .link { display: none; } }
+    @media (max-width: 860px) { .nav-links .link { display: none; } }
 
     /* ---------- Hero ---------- */
     .hero {
-      position: relative; overflow: hidden;
+      position: relative; overflow: hidden; color: #fff;
       background:
-        radial-gradient(1200px 600px at 85% -10%, rgba(115, 119, 249, .18), transparent 60%),
-        linear-gradient(160deg, var(--hero-from) 0%, #2B2F63 42%, var(--hero-to) 100%);
-      color: #fff;
-      border-radius: 0 0 36px 36px;
+        radial-gradient(1200px 620px at 86% -12%, rgba(115,119,249,.22), transparent 58%),
+        radial-gradient(760px 460px at 6% 116%, rgba(115,119,249,.20), transparent 60%),
+        linear-gradient(158deg, var(--hero-from) 0%, var(--hero-mid) 44%, var(--hero-to) 100%);
+      border-radius: 0 0 38px 38px;
     }
-    .hero::after {
-      content: ""; position: absolute; inset: 0; pointer-events: none;
-      background: radial-gradient(700px 400px at 12% 110%, rgba(115,119,249,.25), transparent 60%);
+    /* slow living grain/aurora */
+    .hero .aurora {
+      position: absolute; inset: -20% -10% auto; height: 80%; z-index: 0; pointer-events: none;
+      background: radial-gradient(420px 320px at 30% 20%, rgba(120,130,255,.30), transparent 70%),
+                  radial-gradient(380px 300px at 78% 8%, rgba(94,234,170,.12), transparent 70%);
+      filter: blur(8px); opacity: .9;
+      animation: drift 22s var(--ease) infinite alternate;
     }
-    .hero-grid {
-      position: relative; z-index: 1;
-      display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center;
-      padding: 84px 0 96px;
-    }
-    @media (max-width: 900px) {
-      .hero-grid { grid-template-columns: 1fr; gap: 44px; padding: 56px 0 64px; text-align: center; }
-    }
-    .hero h1 { font-size: clamp(2.4rem, 6vw, 4.1rem); font-weight: 800; }
-    .hero .lede {
-      margin-top: 20px; font-size: clamp(1.05rem, 2.2vw, 1.3rem);
-      color: rgba(255,255,255,.82); max-width: 34ch; font-weight: 400;
-    }
-    @media (max-width: 900px) { .hero .lede { margin-inline: auto; } }
-    .hero-cta { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; }
-    @media (max-width: 900px) { .hero-cta { justify-content: center; } }
-    .hero-trust {
-      margin-top: 28px; display: flex; gap: 22px; flex-wrap: wrap; align-items: center;
-      color: rgba(255,255,255,.7); font-size: 13.5px; font-weight: 500;
-    }
-    @media (max-width: 900px) { .hero-trust { justify-content: center; } }
-    .hero-trust span { display: inline-flex; align-items: center; gap: 7px; }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: #5EEAAA; box-shadow: 0 0 10px #5EEAAA; }
+    @keyframes drift { to { transform: translate3d(-26px, 18px, 0) scale(1.06); } }
+    @media (prefers-reduced-motion: reduce) { .hero .aurora { animation: none; } }
 
-    /* ---------- Phone mock (mirrors the app's balance hero card) ---------- */
-    .device-stage { display: flex; justify-content: center; perspective: 1600px; }
-    .phone {
-      width: min(300px, 78vw); border-radius: 42px; padding: 12px;
-      background: linear-gradient(160deg, #20243f, #0e1022);
-      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,.06) inset;
-      transform: rotateY(-12deg) rotateX(4deg); transform-style: preserve-3d;
-      transition: transform .5s var(--ease);
+    .hero-grid {
+      position: relative; z-index: var(--z-base);
+      display: grid; grid-template-columns: 1.04fr .96fr; gap: clamp(32px, 5vw, 60px); align-items: center;
+      padding: clamp(60px, 9vw, 96px) 0 clamp(64px, 9vw, 104px);
     }
-    @media (hover:hover) { .phone:hover { transform: rotateY(-4deg) rotateX(2deg); } }
-    @media (prefers-reduced-motion: reduce) { .phone { transform: none; } }
-    .phone-screen { background: #0B0D13; border-radius: 32px; padding: 18px 16px 22px; overflow: hidden; }
-    .phone-status { display: flex; justify-content: space-between; color: #9AA0AE; font-size: 11px; font-weight: 600; margin-bottom: 14px; }
+    @media (max-width: 940px) {
+      .hero-grid { grid-template-columns: 1fr; gap: 44px; text-align: center; }
+    }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px; border-radius: 999px;
+      background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16);
+      font-size: 13px; font-weight: 600; color: rgba(255,255,255,.9);
+    }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 12px var(--mint); }
+    .hero h1 { margin-top: 22px; font-size: clamp(2.5rem, 6vw, 4.2rem); font-weight: 800; letter-spacing: -0.04em; }
+    .hero h1 .grad { color: #C9CDFF; }
+    .hero .lede {
+      margin-top: 22px; font-size: clamp(1.06rem, 2.1vw, 1.28rem);
+      color: rgba(255,255,255,.84); max-width: 36ch; font-weight: 400; line-height: 1.6;
+    }
+    @media (max-width: 940px) { .hero .lede { margin-inline: auto; } }
+    .hero-cta { margin-top: 30px; display: flex; gap: 14px; flex-wrap: wrap; }
+    @media (max-width: 940px) { .hero-cta { justify-content: center; } }
+    .hero-trust {
+      margin-top: 26px; display: flex; gap: 22px; flex-wrap: wrap; align-items: center;
+      color: rgba(255,255,255,.72); font-size: 13.5px; font-weight: 500;
+    }
+    @media (max-width: 940px) { .hero-trust { justify-content: center; } }
+    .hero-trust span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero-trust svg { width: 16px; height: 16px; color: var(--mint); }
+
+    /* ---------- Store badges ---------- */
+    .stores { display: flex; gap: 12px; flex-wrap: wrap; }
+    @media (max-width: 940px) { .stores { justify-content: center; } }
+    .store-badge {
+      position: relative; display: inline-flex; align-items: center; gap: 11px;
+      padding: 10px 18px 10px 16px; border-radius: 14px;
+      background: #0C0E1A; color: #fff; border: 1px solid rgba(255,255,255,.14);
+      cursor: default; transition: transform .2s var(--ease), border-color .2s var(--ease);
+    }
+    .store-badge[href] { cursor: pointer; }
+    .store-badge:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.32); }
+    .store-badge svg.glyph { width: 26px; height: 26px; flex: none; }
+    .store-badge .txt { display: grid; line-height: 1.1; text-align: left; }
+    .store-badge .txt small { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; color: rgba(255,255,255,.62); text-transform: uppercase; }
+    .store-badge .txt b { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+    .store-badge .soon {
+      position: absolute; top: -9px; right: 10px; font-size: 9.5px; font-weight: 800; letter-spacing: .06em;
+      text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
+      background: var(--mint); color: #06281B;
+    }
+    /* on light surfaces */
+    .stores--light .store-badge { background: #0C0E1A; }
+
+    /* ---------- Device mockups (faithful to the real app screens) ---------- */
+    .device-stage { position: relative; display: flex; justify-content: center; perspective: 1800px; }
+    .phone {
+      position: relative; width: min(296px, 76vw); border-radius: 44px; padding: 11px;
+      background: linear-gradient(160deg, #23274a, #0c0e1f);
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,.07) inset;
+      transform-style: preserve-3d;
+    }
+    .phone::before { /* speaker notch */
+      content: ""; position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      width: 92px; height: 7px; border-radius: 999px; background: rgba(255,255,255,.10); z-index: 3;
+    }
+    .phone-screen { background: #0A0C12; border-radius: 34px; padding: 26px 15px 20px; overflow: hidden; }
+    .phone-status { display: flex; justify-content: space-between; color: #98A0B4; font-size: 11px; font-weight: 600; margin-bottom: 14px; }
+    .phone-status b { color: #E8EAF2; font-weight: 700; }
+
+    /* hero phone tilt + float */
+    .device-stage .phone.lead {
+      transform: rotateY(-13deg) rotateX(5deg) translateZ(0);
+      transition: transform .6s var(--ease-out-expo);
+    }
+    @media (hover:hover) { .device-stage:hover .phone.lead { transform: rotateY(-5deg) rotateX(2deg); } }
+    .device-stage .phone.behind {
+      position: absolute; left: 50%; top: 50%; width: min(250px, 64vw);
+      transform: translate(-86%, -46%) rotateY(-16deg) rotateX(6deg) scale(.9);
+      filter: saturate(.95) brightness(.92); opacity: .92; z-index: -1;
+    }
+    @media (max-width: 1040px) { .device-stage .phone.behind { display: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      .device-stage .phone.lead { transform: none; }
+    }
+    .float { animation: float 7s ease-in-out infinite; }
+    @keyframes float { 0%,100% { translate: 0 0; } 50% { translate: 0 -12px; } }
+    @media (prefers-reduced-motion: reduce) { .float { animation: none; } }
+
+    /* in-app: balance card */
     .balance-card {
-      border-radius: var(--radius-hero); padding: 20px;
+      border-radius: var(--radius-hero); padding: 18px;
       background: linear-gradient(135deg, #2B2F63, #5258D9);
-      box-shadow: 0 18px 40px -22px rgba(76,87,214,.9);
+      box-shadow: 0 20px 44px -24px rgba(76,87,214,.95);
     }
     .balance-card .row { display: flex; justify-content: space-between; align-items: center; }
-    .balance-card .label { color: rgba(255,255,255,.72); font-size: 13px; font-weight: 500; }
-    .pill { background: rgba(255,255,255,.16); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
-    .balance-card .amount { color: #fff; font-size: 34px; font-weight: 800; letter-spacing: -1px; margin-top: 8px; font-variant-numeric: tabular-nums; }
-    .spark { height: 46px; margin: 12px 0 16px; }
-    .spark path { fill: none; stroke: rgba(255,255,255,.9); stroke-width: 2.5; stroke-linecap: round; }
+    .balance-card .label { color: rgba(255,255,255,.74); font-size: 12.5px; font-weight: 500; }
+    .pill { background: rgba(255,255,255,.18); color: #fff; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+    .balance-card .amount { color: #fff; font-size: 33px; font-weight: 800; letter-spacing: -1.2px; margin-top: 8px; }
+    .spark { height: 44px; margin: 10px 0 14px; }
+    .spark path { fill: none; stroke: rgba(255,255,255,.92); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     .metrics { display: flex; gap: 14px; }
     .metric { display: flex; align-items: center; gap: 8px; flex: 1; }
-    .metric .ic { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.14); display: grid; place-items: center; font-size: 13px; }
-    .metric .mlabel { color: rgba(255,255,255,.72); font-size: 11px; }
-    .metric .mval { color: #fff; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .metric .ic { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.15); display: grid; place-items: center; }
+    .metric .ic svg { width: 15px; height: 15px; }
+    .metric .mlabel { color: rgba(255,255,255,.72); font-size: 10.5px; display: block; }
+    .metric .mval { color: #fff; font-weight: 700; font-size: 13.5px; }
+    .chips { display: flex; gap: 7px; margin-top: 12px; flex-wrap: wrap; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.12); border-radius: 999px; padding: 6px 10px; }
+    .chip svg { width: 12px; height: 12px; color: rgba(255,255,255,.82); }
+    .chip span { color: rgba(255,255,255,.72); font-size: 10px; }
+    .chip b { color: #fff; font-size: 11px; font-weight: 700; }
     .mini-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-    .mini { background: #14161F; border: 1px solid #222632; border-radius: 16px; padding: 12px; }
-    .mini .ic { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-size: 13px; margin-bottom: 8px; }
+    .mini { background: #13151F; border: 1px solid #20232f; border-radius: 16px; padding: 12px; }
+    .mini .ic { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; margin-bottom: 9px; }
+    .mini .ic svg { width: 15px; height: 15px; }
     .mini .mn { color: #F4F5F8; font-weight: 700; font-size: 20px; line-height: 1; }
-    .mini .ml { color: #9AA0AE; font-size: 10.5px; margin-top: 4px; }
+    .mini .ml { color: #98A0B4; font-size: 10.5px; margin-top: 4px; }
+
+    /* in-app: savings + budget screens (used in showcase) */
+    .scr-title { color: #E8EAF2; font-weight: 800; font-size: 15px; margin-bottom: 12px; letter-spacing: -.02em; }
+    .goal {
+      background: #13151F; border: 1px solid #20232f; border-radius: 18px; padding: 14px; margin-bottom: 10px;
+    }
+    .goal .gtop { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
+    .goal .gflag { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; }
+    .goal .gflag svg { width: 15px; height: 15px; }
+    .goal .gname { color: #F4F5F8; font-weight: 700; font-size: 13px; }
+    .goal .gtag { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+    .goal .gtag.warn { background: rgba(197,59,59,.18); color: #FF9DA0; }
+    .goal .gtag.ok { background: rgba(14,122,78,.2); color: #5EEAAA; }
+    .goal .gamt { color: #F4F5F8; font-weight: 800; font-size: 16px; }
+    .bar { height: 7px; border-radius: 999px; background: #262a36; margin: 9px 0 6px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; border-radius: 999px; }
+    .goal .gsub { color: #98A0B4; font-size: 10px; }
+    .surplus { background: linear-gradient(135deg, rgba(79,224,160,.16), rgba(79,224,160,.06)); border: 1px solid rgba(79,224,160,.22); border-radius: 18px; padding: 14px; }
+    .surplus .sl { color: #BFEDD6; font-size: 11px; font-weight: 600; }
+    .surplus .sv { color: #5EEAAA; font-size: 26px; font-weight: 800; letter-spacing: -.5px; margin-top: 2px; }
+    .budget-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+    .budget-row span { color: #C9CDD8; font-size: 12px; font-weight: 600; }
+    .budget-row b { color: #98A0B4; font-size: 11px; font-weight: 600; }
 
     /* ---------- Section scaffolding ---------- */
-    section { padding: 92px 0; }
-    .section-head { max-width: 620px; margin-bottom: 48px; }
+    section { padding: clamp(64px, 9vw, 100px) 0; }
+    .section-head { max-width: 640px; margin-bottom: clamp(36px, 5vw, 52px); }
     .section-head.center { margin-inline: auto; text-align: center; }
-    .section-head h2 { font-size: clamp(1.8rem, 4vw, 2.7rem); font-weight: 800; }
-    .section-head p { margin-top: 14px; color: var(--muted); font-size: 1.08rem; }
+    .section-head h2 { font-size: clamp(1.85rem, 4vw, 2.7rem); font-weight: 800; }
+    .section-head p { margin-top: 14px; color: var(--muted); font-size: 1.08rem; line-height: 1.6; }
 
-    /* ---------- Features (varied layout, not an identical grid) ---------- */
+    /* ---------- Screens showcase ---------- */
+    .showcase { background: var(--surface); border-radius: 34px; }
+    .screens { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(20px, 4vw, 44px); align-items: start; }
+    @media (max-width: 880px) { .screens { grid-template-columns: 1fr; gap: 56px; } }
+    .screen-col { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 18px; }
+    .screen-col .cap h3 { font-size: 1.18rem; font-weight: 700; }
+    .screen-col .cap p { margin-top: 6px; color: var(--muted); font-size: .96rem; max-width: 30ch; margin-inline: auto; }
+    .screen-col .phone { width: min(258px, 72vw); }
+    .screen-col .phone-screen { padding: 22px 13px 16px; }
+
+    /* ---------- Features (bento, varied — not an identical grid) ---------- */
     .features { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
     .feature {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
       padding: 26px; box-shadow: var(--shadow-sm);
-      transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+      transition: transform .25s var(--ease), box-shadow .25s var(--ease), border-color .25s var(--ease);
     }
-    .feature:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -24px rgba(36,40,90,.4); }
+    .feature:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
     .feature .ficon {
       width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center;
-      font-size: 22px; margin-bottom: 16px; background: rgba(115,119,249,.12); color: var(--brand-deep);
+      margin-bottom: 16px; background: rgba(115,119,249,.12); color: var(--brand-deep);
     }
-    .feature h3 { font-size: 1.18rem; font-weight: 700; letter-spacing: -0.01em; }
-    .feature p { margin-top: 8px; color: var(--muted); font-size: .97rem; }
+    .feature .ficon svg { width: 23px; height: 23px; }
+    .feature h3 { font-size: 1.16rem; font-weight: 700; letter-spacing: -0.015em; }
+    .feature p { margin-top: 8px; color: var(--muted); font-size: .97rem; line-height: 1.55; }
     .feature.span-3 { grid-column: span 3; }
     .feature.span-2 { grid-column: span 2; }
-    .feature.span-6 {
-      grid-column: span 6; display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px; align-items: center;
-      background: linear-gradient(135deg, #1A1E40, #4C57D6); color: #fff; border: none;
+    .feature.dark {
+      grid-column: span 6; display: grid; grid-template-columns: 1.25fr 1fr; gap: 30px; align-items: center;
+      background: linear-gradient(135deg, var(--hero-from), var(--hero-to)); color: #fff; border: none; overflow: hidden;
     }
-    .feature.span-6 .ficon { background: rgba(255,255,255,.14); color: #fff; }
-    .feature.span-6 h3 { font-size: 1.5rem; }
-    .feature.span-6 p { color: rgba(255,255,255,.8); }
-    .feature.span-6 .badge { display: inline-block; margin-top: 14px; padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.16); font-size: 12px; font-weight: 700; }
+    .feature.dark::after {
+      content:""; position:absolute; inset:auto -40px -60px auto; width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(115,119,249,.45), transparent 65%); filter: blur(10px);
+    }
+    .feature.dark .ficon { background: rgba(255,255,255,.15); color: #fff; }
+    .feature.dark h3 { font-size: 1.5rem; }
+    .feature.dark p { color: rgba(255,255,255,.84); }
+    .feature.dark .badge { display: inline-flex; align-items:center; gap:8px; margin-top: 16px; padding: 6px 13px; border-radius: 999px; background: rgba(255,255,255,.16); font-size: 12px; font-weight: 700; }
+    .feature.dark .right { position: relative; z-index: 1; display: flex; justify-content: flex-end; gap: 10px; }
     @media (max-width: 900px) {
       .features { grid-template-columns: repeat(2, 1fr); }
       .feature.span-3, .feature.span-2 { grid-column: span 1; }
-      .feature.span-6 { grid-column: span 2; grid-template-columns: 1fr; }
+      .feature.dark { grid-column: span 2; grid-template-columns: 1fr; }
+      .feature.dark .right { justify-content: flex-start; }
     }
-    @media (max-width: 560px) {
-      .features { grid-template-columns: 1fr; }
-      .feature.span-6 { grid-column: span 1; }
-    }
+    @media (max-width: 560px) { .features { grid-template-columns: 1fr; } .feature.dark { grid-column: span 1; } }
 
     /* ---------- Security band ---------- */
-    .security { background: var(--ink); color: #fff; border-radius: 32px; }
-    .security .wrap { padding-block: 0; }
-    .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
-    @media (max-width: 900px) { .sec-grid { grid-template-columns: 1fr; gap: 36px; } }
-    .security h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; }
-    .security .lede { margin-top: 16px; color: rgba(255,255,255,.74); font-size: 1.08rem; max-width: 46ch; }
-    .sec-list { display: grid; gap: 16px; }
-    .sec-item { display: flex; gap: 14px; align-items: flex-start; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); padding: 18px; border-radius: var(--radius); }
-    .sec-item .ic { width: 38px; height: 38px; border-radius: 11px; background: rgba(94,234,170,.16); color: #5EEAAA; display: grid; place-items: center; font-size: 18px; flex: none; }
+    .security { background: var(--ink); color: #fff; border-radius: 32px; overflow: hidden; }
+    .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 56px); align-items: center; padding: clamp(40px, 6vw, 72px); }
+    @media (max-width: 900px) { .sec-grid { grid-template-columns: 1fr; } }
+    .security h2 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; }
+    .security .lede { margin-top: 16px; color: rgba(255,255,255,.76); font-size: 1.06rem; max-width: 46ch; line-height: 1.6; }
+    .sec-list { display: grid; gap: 14px; }
+    .sec-item { display: flex; gap: 14px; align-items: flex-start; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); padding: 18px; border-radius: var(--radius); }
+    .sec-item .ic { width: 40px; height: 40px; border-radius: 11px; background: rgba(94,234,170,.15); color: var(--mint); display: grid; place-items: center; flex: none; }
+    .sec-item .ic svg { width: 20px; height: 20px; }
     .sec-item h4 { margin: 0; font-size: 1.02rem; font-weight: 700; }
-    .sec-item p { margin-top: 4px; color: rgba(255,255,255,.66); font-size: .92rem; }
+    .sec-item p { margin-top: 4px; color: rgba(255,255,255,.68); font-size: .92rem; line-height: 1.5; }
+
+    /* ---------- Download CTA ---------- */
+    .download { text-align: center; }
+    .download .card {
+      background: linear-gradient(160deg, var(--hero-from), var(--hero-to)); color: #fff;
+      border-radius: 32px; padding: clamp(40px, 6vw, 64px) 24px; position: relative; overflow: hidden;
+    }
+    .download .card::after { content:""; position:absolute; inset:-30% 30% auto -20%; height: 70%; background: radial-gradient(circle, rgba(115,119,249,.4), transparent 70%); filter: blur(8px); }
+    .download h2 { position: relative; z-index:1; font-size: clamp(1.9rem, 4vw, 2.7rem); font-weight: 800; }
+    .download p { position: relative; z-index:1; margin: 14px auto 0; color: rgba(255,255,255,.82); max-width: 48ch; }
+    .download .stores { position: relative; z-index:1; margin-top: 28px; justify-content: center; }
 
     /* ---------- Support / Feedback ---------- */
-    .support-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 56px; align-items: start; }
-    @media (max-width: 900px) { .support-grid { grid-template-columns: 1fr; gap: 36px; } }
+    .support-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(32px, 5vw, 56px); align-items: start; }
+    @media (max-width: 900px) { .support-grid { grid-template-columns: 1fr; } }
     .support-aside h2 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; }
-    .support-aside p { margin-top: 14px; color: var(--muted); font-size: 1.05rem; }
-    .support-aside .direct {
-      margin-top: 24px; display: inline-flex; align-items: center; gap: 10px;
-      padding: 14px 18px; border-radius: 14px; background: var(--surface);
-      border: 1px solid var(--border); font-weight: 600; box-shadow: var(--shadow-sm);
-    }
-    .support-aside .direct b { color: var(--brand-deep); }
+    .support-aside p { margin-top: 14px; color: var(--muted); font-size: 1.05rem; line-height: 1.6; }
+    .support-aside .direct { margin-top: 24px; display: inline-flex; align-items: center; gap: 11px; padding: 14px 18px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); font-weight: 550; box-shadow: var(--shadow-sm); }
+    .support-aside .direct svg { width: 18px; height: 18px; color: var(--brand-deep); }
+    .support-aside .direct b { color: var(--brand-ink); font-weight: 700; }
 
-    form.feedback {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-      padding: 28px; box-shadow: var(--shadow-sm); display: grid; gap: 18px;
-    }
+    form.feedback { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-sm); display: grid; gap: 18px; }
     .field { display: grid; gap: 7px; }
     .field label { font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
     .field .req { color: var(--expense); }
@@ -270,111 +450,255 @@
     @media (max-width: 560px) { .row-2 { grid-template-columns: 1fr; } }
     input, select, textarea {
       font: inherit; color: var(--ink); background: var(--bg);
-      border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
+      border: 1px solid var(--border-strong); border-radius: 12px; padding: 12px 14px; width: 100%;
       transition: border-color .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
-      width: 100%;
     }
-    input::placeholder, textarea::placeholder { color: #9AA0AE; }
-    input:focus, select:focus, textarea:focus {
-      outline: none; border-color: var(--brand); background: var(--surface);
-      box-shadow: 0 0 0 4px rgba(115, 119, 249, .16);
-    }
+    input::placeholder, textarea::placeholder { color: #828A99; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brand); background: var(--surface); box-shadow: 0 0 0 4px rgba(115,119,249,.16); }
     textarea { resize: vertical; min-height: 130px; }
     .seg { display: flex; gap: 8px; flex-wrap: wrap; }
-    .seg input { position: absolute; opacity: 0; pointer-events: none; }
-    .seg label {
-      padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border);
-      background: var(--bg); font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer;
-      transition: all .15s var(--ease);
-    }
-    .seg input:checked + label { background: rgba(115,119,249,.12); border-color: var(--brand); color: var(--brand-deep); }
+    /* visually hidden but focusable; 1px box so the global input{width:100%} can't
+       push it off-canvas and cause horizontal overflow on mobile. */
+    .seg input { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; margin: 0; padding: 0; border: 0; }
+    .seg label { padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--bg); font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .15s var(--ease); }
+    .seg input:checked + label { background: rgba(115,119,249,.12); border-color: var(--brand); color: var(--brand-ink); }
     .seg input:focus-visible + label { box-shadow: 0 0 0 4px rgba(115,119,249,.16); }
+    /* honeypot — visually + a11y hidden, off-screen, not display:none (some bots skip those) */
+    .hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
     .form-foot { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-    .form-note { color: var(--muted); font-size: 12.5px; max-width: 38ch; }
-    .form-status { font-size: 14px; font-weight: 600; }
+    .form-note { color: var(--muted); font-size: 12.5px; max-width: 40ch; }
+    .char-count { color: #828A99; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+    .form-status { font-size: 14px; font-weight: 600; min-height: 1.2em; }
     .form-status.ok { color: var(--income); }
     .form-status.err { color: var(--expense); }
     .field-error { color: var(--expense); font-size: 12.5px; display: none; }
     .field.invalid .field-error { display: block; }
-    .field.invalid input, .field.invalid textarea, .field.invalid select { border-color: var(--expense); }
+    .field.invalid input, .field.invalid textarea { border-color: var(--expense); }
 
     /* ---------- Footer ---------- */
-    footer.site { padding: 56px 0 40px; border-top: 1px solid var(--border); margin-top: 8px; }
-    .foot-grid { display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap; align-items: center; }
+    footer.site { padding: 56px 0 44px; border-top: 1px solid var(--border); margin-top: 8px; }
+    .foot-top { display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap; align-items: flex-start; }
+    .foot-brand { max-width: 30ch; }
+    .foot-brand p { margin-top: 12px; color: var(--muted); font-size: 13.5px; line-height: 1.55; }
     .foot-links { display: flex; gap: 24px; flex-wrap: wrap; }
     .foot-links a { color: var(--muted); font-size: 14px; font-weight: 500; transition: color .15s var(--ease); }
     .foot-links a:hover { color: var(--ink); }
-    .foot-copy { color: #9AA0AE; font-size: 13px; }
+    .foot-bottom { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .foot-copy { color: #828A99; font-size: 13px; }
+    .foot-by { color: var(--muted); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px; }
+    .foot-by b { color: var(--brand-ink); font-weight: 800; }
+    .foot-by .heart { color: var(--brand); }
 
     /* ---------- Reveal-on-scroll (enhances an already-visible default) ---------- */
-    .reveal { opacity: 1; transform: none; }
+    .reveal { opacity: 1; }
     @media (prefers-reduced-motion: no-preference) {
-      .js .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+      .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s var(--ease-out-expo), transform .7s var(--ease-out-expo); }
       .js .reveal.in { opacity: 1; transform: none; }
+      .js .reveal.d1 { transition-delay: .06s; }
+      .js .reveal.d2 { transition-delay: .12s; }
+      .js .reveal.d3 { transition-delay: .18s; }
+      /* hero load choreography */
+      .js .hero [data-load] { opacity: 0; transform: translateY(20px); }
+      .js .hero.loaded [data-load] { opacity: 1; transform: none; transition: opacity .8s var(--ease-out-expo), transform .8s var(--ease-out-expo); }
+      .js .hero.loaded [data-load="1"] { transition-delay: .05s; }
+      .js .hero.loaded [data-load="2"] { transition-delay: .14s; }
+      .js .hero.loaded [data-load="3"] { transition-delay: .23s; }
+      .js .hero.loaded [data-load="4"] { transition-delay: .32s; }
+      .js .hero.loaded [data-load="5"] { transition-delay: .42s; }
+      .js .hero.loaded .device-stage { transition-delay: .2s; }
     }
   </style>
 </head>
 <body>
-  <script>document.body.parentElement.classList.add('js'); document.documentElement.classList.add('js');</script>
+  <script>document.documentElement.classList.add('js');</script>
 
   <!-- Header -->
   <header class="site" id="site-header">
     <div class="wrap nav">
       <a class="brand" href="#top" aria-label="SmartSpend home">
-        <span class="mark">S</span> SmartSpend
+        <img class="mark" src="/assets/logo.png" width="32" height="32" alt="" />
+        SmartSpend
       </a>
       <nav class="nav-links" aria-label="Primary">
+        <a class="link" href="#screens">Screens</a>
         <a class="link" href="#features">Features</a>
         <a class="link" href="#security">Security</a>
         <a class="link" href="#support">Support</a>
-        <a class="btn btn--ghost" href="#get">Get the app</a>
+        <a class="btn btn--ghost" href="#download">Get the app</a>
       </nav>
     </div>
   </header>
 
   <!-- Hero -->
   <a id="top"></a>
-  <section class="hero" style="padding:0;">
+  <section class="hero" id="hero" style="padding:0;">
+    <div class="aurora" aria-hidden="true"></div>
     <div class="wrap">
       <div class="hero-grid">
         <div>
-          <h1>Know where your money stands — in seconds.</h1>
-          <p class="lede">SmartSpend turns scattered transactions into one calm, trustworthy picture. Budgets, savings, subscriptions and AI-assisted insights, working quietly in the background.</p>
-          <div class="hero-cta">
-            <a class="btn btn--on-dark btn--lg" href="#get">Get SmartSpend</a>
-            <a class="btn btn--on-dark btn--ghost btn--lg" href="#features">See how it works</a>
+          <span class="eyebrow" data-load="1"><span class="dot"></span> Private by design · Encrypted on device</span>
+          <h1 data-load="2">Know where your money stands — <span class="grad">in seconds.</span></h1>
+          <p class="lede" data-load="3">SmartSpend turns scattered transactions into one calm, trustworthy picture. Budgets, savings, subscriptions and AI-assisted insights, working quietly in the background.</p>
+
+          <div class="stores" data-load="4" style="margin-top:30px" aria-label="Download (coming soon)">
+            <!-- App Store badge (coming soon) -->
+            <span class="store-badge" role="img" aria-label="Coming soon on the App Store">
+              <span class="soon">Soon</span>
+              <svg class="glyph" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M16.36 1.43c.05 1.02-.34 2.02-.99 2.74-.66.73-1.74 1.29-2.79 1.21-.07-1 .39-2.04 1.01-2.72.69-.76 1.86-1.32 2.77-1.23ZM19.7 17.2c-.5 1.15-.74 1.66-1.39 2.68-.9 1.43-2.18 3.2-3.76 3.21-1.4.01-1.76-.92-3.66-.91-1.9.01-2.29.93-3.69.9-1.58-.03-2.79-1.63-3.7-3.05-2.53-3.97-2.79-8.63-1.23-11.11 1.1-1.76 2.84-2.79 4.48-2.79 1.67 0 2.71.92 4.09.92 1.34 0 2.15-.92 4.08-.92 1.46 0 3.01.8 4.11 2.18-3.61 1.98-3.03 7.14.36 8.9Z"/></svg>
+              <span class="txt"><small>Coming soon on the</small><b>App Store</b></span>
+            </span>
+            <!-- Google Play badge (coming soon) -->
+            <span class="store-badge" role="img" aria-label="Coming soon on Google Play">
+              <span class="soon">Soon</span>
+              <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3.6 2.1 13.4 12 3.6 21.9c-.37-.2-.6-.6-.6-1.1V3.2c0-.5.23-.9.6-1.1Z" fill="#34D399"/>
+                <path d="M17.2 8.2 14.9 9.5 13.4 12l4.9-3.0c-.3-.3-.7-.6-1.1-.8Z" fill="#FBBF24"/>
+                <path d="M3.6 2.1c.2-.1.46-.13.74.03L16.1 8.9l-2.7 3.1L3.6 2.1Z" fill="#60A5FA"/>
+                <path d="M13.4 12l2.7 3.1L4.34 21.87c-.28.16-.54.13-.74.03L13.4 12Z" fill="#F87171"/>
+              </svg>
+              <span class="txt"><small>Coming soon on</small><b>Google Play</b></span>
+            </span>
           </div>
-          <div class="hero-trust">
-            <span><span class="dot"></span> Private by design</span>
-            <span><span class="dot"></span> Multi-currency</span>
-            <span><span class="dot"></span>5 languages</span>
+
+          <div class="hero-trust" data-load="5">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 7.8 8 9 4.6-1.2 8-4 8-9V5l-8-3Z"/></svg> Multi-currency</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg> 5 languages</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> No ads, ever</span>
           </div>
         </div>
 
-        <!-- Phone mock mirrors the in-app balance hero card -->
-        <div class="device-stage">
-          <div class="phone" aria-hidden="true">
+        <!-- Faithful device mockups of the real app -->
+        <div class="device-stage" data-load="4">
+          <!-- behind: savings screen -->
+          <div class="phone behind" aria-hidden="true">
             <div class="phone-screen">
-              <div class="phone-status"><span>9:41</span><span>SmartSpend</span></div>
-              <div class="balance-card">
-                <div class="row">
-                  <span class="label">Total Balance</span>
-                  <span class="pill">EUR</span>
+              <div class="scr-title">Savings Goals</div>
+              <div class="goal">
+                <div class="gtop">
+                  <span class="gflag" style="background:rgba(255,86,86,.18)"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9DA0" stroke-width="2"><path d="M5 21V4h11l-2 4 2 4H5"/></svg></span>
+                  <span class="gname">Namibia trip</span>
+                  <span class="gtag warn">Behind</span>
                 </div>
-                <div class="amount">€4,820.50</div>
-                <svg class="spark" viewBox="0 0 240 46" preserveAspectRatio="none">
-                  <path d="M2,34 C30,30 44,12 70,18 C96,24 110,40 134,30 C160,20 180,8 210,12 C224,14 232,10 238,8" />
+                <div class="gamt tnum">€303 <span style="color:#98A0B4;font-weight:600">/ €3,500</span></div>
+                <div class="bar"><i style="width:9%;background:#F87171"></i></div>
+                <div class="gsub">8.7% complete · Suggested €533/mo</div>
+              </div>
+              <div class="surplus">
+                <div class="sl">Monthly surplus available</div>
+                <div class="sv tnum">€950.00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- lead: dashboard -->
+          <div class="phone lead float">
+            <div class="phone-screen">
+              <div class="phone-status"><span class="tnum">9:41</span><b>SmartSpend</b></div>
+              <div class="balance-card">
+                <div class="row"><span class="label">Total Balance</span><span class="pill">EUR</span></div>
+                <div class="amount tnum" id="balance-num" data-to="4820.50">€4,820.50</div>
+                <svg class="spark" id="spark" viewBox="0 0 240 44" preserveAspectRatio="none" aria-hidden="true">
+                  <path d="M2,32 C30,28 44,12 70,17 C96,23 110,38 134,29 C160,19 180,8 210,12 C224,13 232,10 238,8" />
                 </svg>
                 <div class="metrics">
-                  <div class="metric"><span class="ic" style="color:#5EEAAA">↓</span><span><span class="mlabel">Income</span><br><span class="mval">€6.2k</span></span></div>
-                  <div class="metric"><span class="ic" style="color:#FF9DA0">↑</span><span><span class="mlabel">Expense</span><br><span class="mval">€1.4k</span></span></div>
+                  <div class="metric"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5EEAAA" stroke-width="2.4"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></span><span><span class="mlabel">Income</span><span class="mval tnum">€6.2k</span></span></div>
+                  <div class="metric"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9DA0" stroke-width="2.4"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span><span><span class="mlabel">Expense</span><span class="mval tnum">€1.4k</span></span></div>
+                </div>
+                <div class="chips">
+                  <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 5H5a2 2 0 0 0-2 2v3h18V7a2 2 0 0 0-2-2ZM3 10v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/></svg><span>Savings</span><b class="tnum">€2.1k</b></div>
+                  <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 11h2"/></svg><span>Budget</span><b class="tnum">€3.0k</b></div>
+                  <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4"/></svg><span>Subs</span><b class="tnum">€84</b></div>
                 </div>
               </div>
               <div class="mini-cards">
-                <div class="mini"><div class="ic" style="background:rgba(75,139,255,.2);color:#4B8BFF">≡</div><div class="mn">128</div><div class="ml">Transactions</div></div>
-                <div class="mini"><div class="ic" style="background:rgba(30,158,106,.2);color:#3DD68C">♥</div><div class="mn">82</div><div class="ml">Money Health Index</div></div>
+                <div class="mini"><div class="ic" style="background:rgba(75,139,255,.2);color:#4B8BFF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div><div class="mn tnum">128</div><div class="ml">Transactions</div></div>
+                <div class="mini"><div class="ic" style="background:rgba(30,158,106,.2);color:#3DD68C"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 6 4-14 2 6h6"/></svg></div><div class="mn tnum">82</div><div class="ml">Money Health</div></div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screens showcase -->
+  <section id="screens">
+    <div class="wrap">
+      <div class="showcase" style="padding: clamp(40px,6vw,68px) clamp(20px,4vw,40px);">
+        <div class="section-head center reveal">
+          <h2>The whole picture, on one calm screen.</h2>
+          <p>Real screens from SmartSpend — the balance you came for, the goals you're chasing, and the budgets keeping you honest.</p>
+        </div>
+        <div class="screens">
+          <!-- Dashboard -->
+          <div class="screen-col reveal d1">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status"><span class="tnum">9:41</span><b>Overview</b></div>
+                <div class="balance-card">
+                  <div class="row"><span class="label">Total Balance</span><span class="pill">EUR</span></div>
+                  <div class="amount tnum">€4,820.50</div>
+                  <svg class="spark" viewBox="0 0 240 44" preserveAspectRatio="none" aria-hidden="true"><path d="M2,32 C30,28 44,12 70,17 C96,23 110,38 134,29 C160,19 180,8 210,12 C224,13 232,10 238,8"/></svg>
+                  <div class="chips">
+                    <div class="chip"><span>Income</span><b class="tnum">€6.2k</b></div>
+                    <div class="chip"><span>Expense</span><b class="tnum">€1.4k</b></div>
+                    <div class="chip"><span>Savings</span><b class="tnum">€2.1k</b></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="cap"><h3>Your balance, first</h3><p>The one number you opened the app for — big, exact, and trustworthy.</p></div>
+          </div>
+
+          <!-- Savings -->
+          <div class="screen-col reveal d2">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status"><span class="tnum">9:41</span><b>Savings</b></div>
+                <div class="surplus" style="margin-bottom:12px">
+                  <div class="sl">Monthly surplus available</div>
+                  <div class="sv tnum">€950.00</div>
+                </div>
+                <div class="goal">
+                  <div class="gtop"><span class="gflag" style="background:rgba(255,86,86,.18)"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9DA0" stroke-width="2"><path d="M5 21V4h11l-2 4 2 4H5"/></svg></span><span class="gname">Namibia trip</span><span class="gtag warn">Behind</span></div>
+                  <div class="gamt tnum">€303 <span style="color:#98A0B4;font-weight:600">/ €3,500</span></div>
+                  <div class="bar"><i style="width:9%;background:#F87171"></i></div>
+                  <div class="gsub">8.7% · Suggested €533/mo</div>
+                </div>
+                <div class="goal">
+                  <div class="gtop"><span class="gflag" style="background:rgba(14,122,78,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#5EEAAA" stroke-width="2"><path d="M19 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="2.5"/></svg></span><span class="gname">Emergency fund</span><span class="gtag ok">On track</span></div>
+                  <div class="gamt tnum">€2,400 <span style="color:#98A0B4;font-weight:600">/ €3,000</span></div>
+                  <div class="bar"><i style="width:80%;background:#5EEAAA"></i></div>
+                  <div class="gsub">80% · Ahead of pace</div>
+                </div>
+              </div>
+            </div>
+            <div class="cap"><h3>Goals with momentum</h3><p>A target, a deadline, a suggested pace — and an honest read on what's behind.</p></div>
+          </div>
+
+          <!-- Budgets -->
+          <div class="screen-col reveal d3">
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-status"><span class="tnum">9:41</span><b>Budgets</b></div>
+                <div class="goal">
+                  <div class="budget-row"><span>Groceries</span><b class="tnum">€420 / €500</b></div>
+                  <div class="bar"><i style="width:84%;background:linear-gradient(90deg,#5EEAAA,#FBBF24)"></i></div>
+                  <div class="gsub">84% used · 9 days left</div>
+                </div>
+                <div class="goal">
+                  <div class="budget-row"><span>Dining out</span><b class="tnum">€310 / €280</b></div>
+                  <div class="bar"><i style="width:100%;background:#F87171"></i></div>
+                  <div class="gsub" style="color:#FF9DA0">Over by €30</div>
+                </div>
+                <div class="goal">
+                  <div class="budget-row"><span>Transport</span><b class="tnum">€88 / €200</b></div>
+                  <div class="bar"><i style="width:44%;background:#5EEAAA"></i></div>
+                  <div class="gsub">44% used · comfortable</div>
+                </div>
+              </div>
+            </div>
+            <div class="cap"><h3>Budgets that hold the line</h3><p>One green-to-red meter per category. You see trouble before it happens.</p></div>
           </div>
         </div>
       </div>
@@ -390,39 +714,40 @@
       </div>
       <div class="features">
         <div class="feature span-3 reveal">
-          <div class="ficon">◐</div>
+          <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h5"/></svg></div>
           <h3>Budgets that hold the line</h3>
           <p>Set limits per category and watch a single green-to-red meter tell you exactly where you stand for the month.</p>
         </div>
-        <div class="feature span-3 reveal">
-          <div class="ficon">◇</div>
+        <div class="feature span-3 reveal d1">
+          <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 5H5a2 2 0 0 0-2 2v3h18V7a2 2 0 0 0-2-2ZM3 10v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M16 14h.01"/></svg></div>
           <h3>Savings goals with momentum</h3>
           <p>Define a target and deadline, get a suggested monthly pace, and see at a glance which goals are on track.</p>
         </div>
         <div class="feature span-2 reveal">
-          <div class="ficon">↻</div>
+          <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4"/></svg></div>
           <h3>Subscriptions</h3>
           <p>Track recurring bills, spot what renews soon, and find what to cut.</p>
         </div>
-        <div class="feature span-2 reveal">
-          <div class="ficon">◈</div>
+        <div class="feature span-2 reveal d1">
+          <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 4 8-9"/><path d="M21 7v5h-5"/></svg></div>
           <h3>Insights &amp; forecasts</h3>
           <p>Burn-rate, anomaly alerts and projections that read your trend, not just your total.</p>
         </div>
-        <div class="feature span-2 reveal">
-          <div class="ficon">♥</div>
+        <div class="feature span-2 reveal d2">
+          <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l2 6 4-14 2 6h6"/></svg></div>
           <h3>Money Health Index</h3>
           <p>One score for budget discipline and savings momentum — your financial check-up.</p>
         </div>
-        <div class="feature span-6 reveal" id="get">
+
+        <div class="feature dark reveal" id="scenario">
           <div>
-            <div class="ficon">✦</div>
+            <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4A2 2 0 0 0 20 18l-5-9V3"/><path d="M8 3h8M9.5 14h5"/></svg></div>
             <h3>Scenario Lab &amp; AI Budget Coach</h3>
             <p>Run what-if scenarios — a raise, a new subscription, a tighter month — and see the projected impact on your runway and goals. Personalized coaching is on the way.</p>
-            <span class="badge">Available now · Coaching coming soon</span>
+            <span class="badge"><span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--mint)"></span> Available now · Coaching coming soon</span>
           </div>
-          <div>
-            <a class="btn btn--on-dark btn--lg" href="https://www.smaartspend.com" target="_blank" rel="noopener">Get SmartSpend</a>
+          <div class="right">
+            <a class="btn btn--on-dark btn--lg" href="#download">Get SmartSpend</a>
           </div>
         </div>
       </div>
@@ -433,28 +758,53 @@
   <section id="security" style="padding-block:24px;">
     <div class="wrap">
       <div class="security">
-        <div class="wrap">
-          <div class="sec-grid" style="padding-block:72px;">
-            <div class="reveal">
-              <h2>Your finances stay yours.</h2>
-              <p class="lede">SmartSpend is built privacy-first. Sensitive data is encrypted on your device, access is guarded by biometrics, and every connection to our servers is pinned and verified.</p>
-              <a class="btn btn--on-dark" href="#support" style="margin-top:24px">Ask us anything</a>
+        <div class="sec-grid">
+          <div class="reveal">
+            <h2>Your finances stay yours.</h2>
+            <p class="lede">SmartSpend is built privacy-first. Sensitive data is encrypted on your device, access is guarded by biometrics, and every connection to our servers is pinned and verified.</p>
+            <a class="btn btn--on-dark" href="#support" style="margin-top:24px">Ask us anything</a>
+          </div>
+          <div class="sec-list reveal d1">
+            <div class="sec-item">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+              <div><h4>On-device encryption</h4><p>Your financial records are encrypted locally with field-level encryption — they never live in plain text.</p></div>
             </div>
-            <div class="sec-list reveal">
-              <div class="sec-item">
-                <div class="ic">🔒</div>
-                <div><h4>On-device encryption</h4><p>Your financial records are encrypted locally with field-level encryption.</p></div>
-              </div>
-              <div class="sec-item">
-                <div class="ic">👆</div>
-                <div><h4>Biometric lock</h4><p>Face ID / fingerprint stands between your data and anyone else.</p></div>
-              </div>
-              <div class="sec-item">
-                <div class="ic">🛡️</div>
-                <div><h4>Pinned, verified connections</h4><p>Certificate pinning protects every request against interception.</p></div>
-              </div>
+            <div class="sec-item">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 11a4 4 0 1 0-4-4M6 20c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="12" cy="7" r="4"/></svg></div>
+              <div><h4>Biometric lock</h4><p>Face ID / fingerprint stands between your data and anyone who picks up your phone.</p></div>
+            </div>
+            <div class="sec-item">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2 4 5v6c0 5 3.4 7.8 8 9 4.6-1.2 8-4 8-9V5l-8-3Z"/><path d="M9 12l2 2 4-4"/></svg></div>
+              <div><h4>Pinned, verified connections</h4><p>Certificate pinning protects every request against interception and tampering.</p></div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section id="download" class="download">
+    <div class="wrap">
+      <div class="card reveal">
+        <h2>Calm money is coming to your pocket.</h2>
+        <p>SmartSpend launches soon on iPhone and Android. Add your email below and we'll tell you the day it's live — nothing else.</p>
+        <div class="stores stores--light" aria-label="Download (coming soon)">
+          <a class="store-badge" href="#support">
+            <span class="soon">Soon</span>
+            <svg class="glyph" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M16.36 1.43c.05 1.02-.34 2.02-.99 2.74-.66.73-1.74 1.29-2.79 1.21-.07-1 .39-2.04 1.01-2.72.69-.76 1.86-1.32 2.77-1.23ZM19.7 17.2c-.5 1.15-.74 1.66-1.39 2.68-.9 1.43-2.18 3.2-3.76 3.21-1.4.01-1.76-.92-3.66-.91-1.9.01-2.29.93-3.69.9-1.58-.03-2.79-1.63-3.7-3.05-2.53-3.97-2.79-8.63-1.23-11.11 1.1-1.76 2.84-2.79 4.48-2.79 1.67 0 2.71.92 4.09.92 1.34 0 2.15-.92 4.08-.92 1.46 0 3.01.8 4.11 2.18-3.61 1.98-3.03 7.14.36 8.9Z"/></svg>
+            <span class="txt"><small>Coming soon on the</small><b>App Store</b></span>
+          </a>
+          <a class="store-badge" href="#support">
+            <span class="soon">Soon</span>
+            <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3.6 2.1 13.4 12 3.6 21.9c-.37-.2-.6-.6-.6-1.1V3.2c0-.5.23-.9.6-1.1Z" fill="#34D399"/>
+              <path d="M17.2 8.2 14.9 9.5 13.4 12l4.9-3.0c-.3-.3-.7-.6-1.1-.8Z" fill="#FBBF24"/>
+              <path d="M3.6 2.1c.2-.1.46-.13.74.03L16.1 8.9l-2.7 3.1L3.6 2.1Z" fill="#60A5FA"/>
+              <path d="M13.4 12l2.7 3.1L4.34 21.87c-.28.16-.54.13-.74.03L13.4 12Z" fill="#F87171"/>
+            </svg>
+            <span class="txt"><small>Coming soon on</small><b>Google Play</b></span>
+          </a>
         </div>
       </div>
     </div>
@@ -467,19 +817,19 @@
         <div class="support-aside reveal">
           <h2>Support &amp; feedback</h2>
           <p>Hit a snag, found a bug, or have an idea that would make SmartSpend better? Tell us — real people read every message.</p>
-          <div class="direct">✉️ <span>Or email us directly at <b>support@smaartspend.com</b></span></div>
+          <div class="direct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>Or email us directly at <b>support@smaartspend.com</b></span></div>
         </div>
 
-        <form class="feedback reveal" id="feedback-form" novalidate>
+        <form class="feedback reveal d1" id="feedback-form" novalidate autocomplete="on">
           <div class="row-2">
             <div class="field" id="f-name">
-              <label for="name">Name <span class="req">*</span></label>
-              <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" required />
+              <label for="name">Name <span class="req" aria-hidden="true">*</span></label>
+              <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" required maxlength="80" />
               <span class="field-error">Please enter your name.</span>
             </div>
             <div class="field" id="f-email">
-              <label for="email">Email <span class="req">*</span></label>
-              <input id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required />
+              <label for="email">Email <span class="req" aria-hidden="true">*</span></label>
+              <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" required maxlength="160" />
               <span class="field-error">Please enter a valid email.</span>
             </div>
           </div>
@@ -499,10 +849,21 @@
           </div>
 
           <div class="field" id="f-message">
-            <label for="message">Message <span class="req">*</span></label>
-            <textarea id="message" name="message" placeholder="Tell us what's going on, what you expected, and what happened…" required></textarea>
-            <span class="field-error">Please add a few words so we can help.</span>
+            <label for="message">Message <span class="req" aria-hidden="true">*</span></label>
+            <textarea id="message" name="message" placeholder="Tell us what's going on, what you expected, and what happened…" required maxlength="2000"></textarea>
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+              <span class="field-error">Please add a few words so we can help.</span>
+              <span class="char-count" id="char-count" aria-hidden="true">0 / 2000</span>
+            </div>
           </div>
+
+          <!-- Honeypot: real users never see or fill this. Bots usually do. -->
+          <div class="hp" aria-hidden="true">
+            <label for="company">Company (leave blank)</label>
+            <input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+          <!-- Timestamp trap filled on load; submissions faster than humans are rejected. -->
+          <input type="hidden" name="_ts" id="form-ts" value="" />
 
           <div class="form-foot">
             <p class="form-note">We'll only use your email to reply. No marketing, ever.</p>
@@ -516,81 +877,172 @@
 
   <!-- Footer -->
   <footer class="site">
-    <div class="wrap foot-grid">
-      <a class="brand" href="#top"><span class="mark">S</span> SmartSpend</a>
-      <nav class="foot-links" aria-label="Legal">
-        <a href="https://www.smaartspend.com/app/legal/terms">Terms</a>
-        <a href="https://www.smaartspend.com/app/legal/privacy">Privacy</a>
-        <a href="https://www.smaartspend.com/app/legal/security-disclosure">Security</a>
-        <a href="#support">Contact</a>
-      </nav>
-      <p class="foot-copy">© <span id="year">2026</span> SmartSpend by Autisync. All rights reserved.</p>
+    <div class="wrap">
+      <div class="foot-top">
+        <div class="foot-brand">
+          <a class="brand" href="#top"><img class="mark" src="/assets/logo.png" width="32" height="32" alt="" /> SmartSpend</a>
+          <p>Calm, intelligent budgeting. One trustworthy picture of where your money stands — private by design.</p>
+        </div>
+        <nav class="foot-links" aria-label="Footer">
+          <a href="#screens">Screens</a>
+          <a href="#features">Features</a>
+          <a href="#security">Security</a>
+          <a href="https://www.smaartspend.com/app/legal/terms">Terms</a>
+          <a href="https://www.smaartspend.com/app/legal/privacy">Privacy</a>
+          <a href="https://www.smaartspend.com/app/legal/security-disclosure">Security disclosure</a>
+          <a href="#support">Contact</a>
+        </nav>
+      </div>
+      <div class="foot-bottom">
+        <p class="foot-copy">© <span id="year">2026</span> SmartSpend. All rights reserved.</p>
+        <p class="foot-by">Designed &amp; developed by <a href="https://www.smaartspend.com/"><b>Autisync</b></a> <span class="heart" aria-hidden="true">●</span></p>
+      </div>
     </div>
   </footer>
 
   <script>
-    // Year
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Header shadow on scroll
+    // Header border on scroll
     const header = document.getElementById('site-header');
     const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 6);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // Reveal on scroll — content is visible by default; this only enhances.
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Hero load choreography
+    requestAnimationFrame(() => document.getElementById('hero').classList.add('loaded'));
+
+    // Reveal on scroll — but never gate visibility: a failsafe guarantees
+    // content always appears (background tabs, headless renderers, crawlers, or
+    // a misfiring observer must never ship a blank section).
+    const reveals = Array.from(document.querySelectorAll('.reveal'));
+    const revealAll = () => reveals.forEach((el) => el.classList.add('in'));
+    if (reduce || !('IntersectionObserver' in window)) {
+      revealAll();
+    } else {
       const io = new IntersectionObserver((entries) => {
         entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-      }, { threshold: 0.12 });
-      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+      }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
+      reveals.forEach((el) => io.observe(el));
+      window.addEventListener('load', () => setTimeout(revealAll, 1200));
+    }
+
+    // Sparkline draw-in
+    if (!reduce) {
+      const spark = document.querySelector('#spark path');
+      if (spark) {
+        const len = spark.getTotalLength();
+        spark.style.strokeDasharray = len; spark.style.strokeDashoffset = len;
+        spark.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(.16,1,.3,1) .5s';
+        requestAnimationFrame(() => { spark.style.strokeDashoffset = '0'; });
+      }
+      // Balance count-up
+      const bal = document.getElementById('balance-num');
+      if (bal) {
+        const to = parseFloat(bal.dataset.to); let started = false;
+        const run = () => {
+          if (started) return; started = true;
+          const dur = 1100, t0 = performance.now();
+          const tick = (t) => {
+            const p = Math.min(1, (t - t0) / dur);
+            const e = 1 - Math.pow(1 - p, 3);
+            bal.textContent = '€' + (to * e).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (p < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        };
+        new IntersectionObserver((en, ob) => { if (en[0].isIntersecting) { run(); ob.disconnect(); } }).observe(bal);
+      }
+    }
+
+    // Pointer parallax on the hero device (desktop, motion-allowed)
+    if (!reduce && window.matchMedia('(hover:hover)').matches) {
+      const stage = document.querySelector('.device-stage');
+      const lead = stage && stage.querySelector('.phone.lead');
+      if (lead) {
+        stage.addEventListener('pointermove', (ev) => {
+          const r = stage.getBoundingClientRect();
+          const dx = (ev.clientX - r.left) / r.width - 0.5;
+          const dy = (ev.clientY - r.top) / r.height - 0.5;
+          lead.style.transform = `rotateY(${-9 + dx * 8}deg) rotateX(${4 - dy * 8}deg)`;
+        });
+        stage.addEventListener('pointerleave', () => { lead.style.transform = ''; });
+      }
     }
 
     /* ------------------------------------------------------------------
-       Feedback form submission.
-       No feedback API exists yet, so we compose a mailto to support.
-       To wire a real backend later, set FORM_ENDPOINT to a URL that
-       accepts JSON { name, email, topic, message }; the code will POST
-       to it and fall back to mailto on failure.
+       Hardened feedback form.
+
+       This is a STATIC page, so these are defense-in-depth client checks
+       to deter spam/abuse. Any real backend MUST re-validate server-side
+       (length caps, email format, rate-limit per IP, and a CAPTCHA such as
+       Cloudflare Turnstile / hCaptcha). Set FORM_ENDPOINT to enable it.
+
+       Protections here:
+         • Honeypot field ("company") — if filled, silently drop.
+         • Time trap — submissions under MIN_FILL_MS are bot-like; drop.
+         • Hard length caps + control-character stripping.
+         • mailto header-injection guard (newlines stripped from subject).
+         • Per-browser cooldown (localStorage) to throttle rapid submits.
+         • Request timeout via AbortController; no secrets in the client.
        ------------------------------------------------------------------ */
     const FORM_ENDPOINT = ''; // e.g. 'https://api.smaartspend.com/api/v1/feedback'
     const SUPPORT_EMAIL = 'support@smaartspend.com';
+    const MIN_FILL_MS = 2500;
+    const COOLDOWN_MS = 60000;
+    const MAX = { name: 80, email: 160, message: 2000 };
 
     const form = document.getElementById('feedback-form');
     const statusEl = document.getElementById('form-status');
     const submitBtn = document.getElementById('submit-btn');
+    const tsEl = document.getElementById('form-ts');
+    const msgEl = document.getElementById('message');
+    const countEl = document.getElementById('char-count');
+    tsEl.value = String(Date.now());
+
+    msgEl.addEventListener('input', () => { countEl.textContent = `${msgEl.value.length} / ${MAX.message}`; });
 
     const setInvalid = (id, bad) => document.getElementById(id).classList.toggle('invalid', bad);
-    const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+    // strip control chars; clamp length; collapse newlines for single-line fields
+    const clean = (v, max, singleLine) => {
+      let s = String(v).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim();
+      if (singleLine) s = s.replace(/[\r\n]+/g, ' ');
+      return s.slice(0, max);
+    };
+    const fail = (m) => { statusEl.textContent = m; statusEl.className = 'form-status err'; };
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       statusEl.textContent = ''; statusEl.className = 'form-status';
 
-      const name = form.name.value.trim();
-      const email = form.email.value.trim();
-      const message = form.message.value.trim();
-      const topic = (form.querySelector('input[name="topic"]:checked') || {}).value || 'Support';
+      // Honeypot — bots fill it, humans can't see it.
+      if (form.company && form.company.value.trim() !== '') { form.reset(); statusEl.textContent = 'Thanks — your message is on its way.'; statusEl.className = 'form-status ok'; return; }
+      // Time trap.
+      if (Date.now() - Number(tsEl.value || 0) < MIN_FILL_MS) { return fail('Please take a moment to complete the form.'); }
+      // Cooldown.
+      const last = Number(localStorage.getItem('ss_last_submit') || 0);
+      if (Date.now() - last < COOLDOWN_MS) { return fail('You just sent a message — please wait a minute before sending another.'); }
 
-      const nb = !name, eb = !emailOk(email), mb = message.length < 3;
+      const name = clean(form.name.value, MAX.name, true);
+      const email = clean(form.email.value, MAX.email, true);
+      const message = clean(form.message.value, MAX.message, false);
+      const topic = clean((form.querySelector('input[name="topic"]:checked') || {}).value || 'Support', 24, true);
+
+      const nb = name.length < 1, eb = !emailOk(email), mb = message.length < 3;
       setInvalid('f-name', nb); setInvalid('f-email', eb); setInvalid('f-message', mb);
-      if (nb || eb || mb) {
-        statusEl.textContent = 'Please fix the highlighted fields.';
-        statusEl.classList.add('err');
-        return;
-      }
+      if (nb || eb || mb) { return fail('Please fix the highlighted fields.'); }
 
       submitBtn.disabled = true;
       const original = submitBtn.textContent;
       submitBtn.textContent = 'Sending…';
 
-      const payload = { name, email, topic, message, source: 'landing' };
-
       const finishMailto = () => {
-        const subject = encodeURIComponent(`SmartSpend ${topic} — ${name}`);
-        const body = encodeURIComponent(
-          `Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\n${message}`
-        );
+        // Guard against mailto header injection: subject is single-line + encoded.
+        const subject = encodeURIComponent(clean(`SmartSpend ${topic} — ${name}`, 120, true));
+        const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\n${message}`);
         window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
         statusEl.textContent = 'Opening your email app to send… If nothing happens, email ' + SUPPORT_EMAIL + '.';
         statusEl.className = 'form-status ok';
@@ -598,18 +1050,23 @@
 
       try {
         if (FORM_ENDPOINT) {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 12000);
           const res = await fetch(FORM_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ name, email, topic, message, source: 'landing' }),
+            signal: ctrl.signal,
           });
+          clearTimeout(timer);
           if (!res.ok) throw new Error('bad status');
           statusEl.textContent = 'Thanks — your message is on its way. We’ll reply by email.';
           statusEl.className = 'form-status ok';
-          form.reset();
+          form.reset(); tsEl.value = String(Date.now()); countEl.textContent = `0 / ${MAX.message}`;
         } else {
           finishMailto();
         }
+        localStorage.setItem('ss_last_submit', String(Date.now()));
       } catch (err) {
         finishMailto();
       } finally {

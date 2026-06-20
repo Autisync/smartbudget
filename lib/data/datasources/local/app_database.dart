@@ -240,7 +240,11 @@ WHERE original_currency IS NULL
         case TransactionType.expense:
           deltas[tx.accountId] = (deltas[tx.accountId] ?? 0) - tx.amount;
         case TransactionType.transfer:
-          break; // counterparty cannot be modelled with a single accountId
+          // A transfer is a one-way outflow from [accountId] to a non-account
+          // destination (e.g. a savings goal): it debits the source account so
+          // the cash-on-hand balance drops, but is excluded from income/expense
+          // totals and budget spending (which filter on those types).
+          deltas[tx.accountId] = (deltas[tx.accountId] ?? 0) - tx.amount;
       }
     }
     return deltas;
