@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import current_user, db_session
 from app.core import errors
 from app.core.config import settings
+from app.core.redis import get_redis
 from app.core.security import decode_token
 from app.schemas.auth import (
     AuthResponse,
@@ -28,8 +29,7 @@ router = APIRouter()
 
 
 def limiter() -> RateLimiterService:
-    redis_client = Redis.from_url(settings.redis_url, decode_responses=True)
-    return RateLimiterService(redis_client)
+    return RateLimiterService(get_redis())
 
 
 @router.post("/signup", response_model=AuthResponse)
@@ -71,8 +71,17 @@ def social_login(
     payload: SocialLoginRequest,
     request: Request,
     db: Session = Depends(db_session),
+    rate_limiter: RateLimiterService = Depends(limiter),
 ):
     ip_key = request.client.host if request.client else "unknown"
+    email_key = payload.email.lower() if payload.email else "unknown"
+    if not rate_limiter.check_once(
+        "social-login",
+        f"{ip_key}:{payload.provider}:{email_key}",
+        max_attempts=12,
+        window_seconds=300,
+    ):
+        raise errors.bad_request("Too many sign-in attempts. Try again later.")
     service = AuthService(db)
     return service.social_login(
         provider=payload.provider,
@@ -98,7 +107,20 @@ def logout(payload: LogoutRequest, db: Session = Depends(db_session)):
 
 
 @router.post("/forgot-password", response_model=MessageResponse)
-def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(db_session)):
+def forgot_password(
+    payload: ForgotPasswordRequest,
+    request: Request,
+    db: Session = Depends(db_session),
+    rate_limiter: RateLimiterService = Depends(limiter),
+):
+    ip_key = request.client.host if request.client else "unknown"
+    if not rate_limiter.check_once(
+        "forgot-password",
+        f"{ip_key}:{payload.email.lower()}",
+        max_attempts=6,
+        window_seconds=900,
+    ):
+        raise errors.bad_request("Too many requests. Try again later.")
     AuthService(db).forgot_password(email=payload.email)
     return MessageResponse(message="If account exists, reset instructions were sent")
 

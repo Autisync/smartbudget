@@ -25,7 +25,7 @@ class EmojiCategoryTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: selected
-              ? colorScheme.primary.withValues(alpha: 0.12)
+              ? colorScheme.primary.withOpacity( 0.12)
               : colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(

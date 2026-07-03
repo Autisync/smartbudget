@@ -57,8 +57,8 @@ class InputStyles {
     final neutral = labelColor(brightness);
     // Softer hairline at rest; the 2px primary focus border carries the accent.
     final borderColor = brightness == Brightness.dark
-        ? Colors.white.withValues(alpha: 0.12)
-        : Colors.black.withValues(alpha: 0.08);
+        ? Colors.white.withOpacity( 0.12)
+        : Colors.black.withOpacity( 0.08);
 
     return InputDecorationTheme(
       filled: true,
@@ -66,7 +66,7 @@ class InputStyles {
       floatingLabelBehavior: FloatingLabelBehavior.auto,
       border: _border(color: borderColor, width: 1),
       enabledBorder: _border(color: borderColor, width: 1),
-      disabledBorder: _border(color: borderColor.withValues(alpha: 0.55)),
+      disabledBorder: _border(color: borderColor.withOpacity( 0.55)),
       focusedBorder: _border(color: primaryColor, width: 2),
       errorBorder: _border(color: errorColor, width: 2),
       focusedErrorBorder: _border(color: errorColor, width: 2),
@@ -99,7 +99,7 @@ class InputStyles {
       trackHeight: 4,
       activeTrackColor: primaryColor,
       inactiveTrackColor: inactiveColor,
-      overlayColor: primaryColor.withValues(alpha: 0.12),
+      overlayColor: primaryColor.withOpacity( 0.12),
       thumbColor: Colors.white,
       thumbShape: const _InputSliderThumbShape(),
       valueIndicatorColor: primaryColor,
@@ -125,8 +125,8 @@ class InputStyles {
       borderRadius: BorderRadius.circular(fieldRadius),
       border: Border.all(
         color: isDark
-            ? Colors.white.withValues(alpha: 0.14)
-            : Colors.black.withValues(alpha: 0.14),
+            ? Colors.white.withOpacity( 0.14)
+            : Colors.black.withOpacity( 0.14),
       ),
     );
   }
@@ -137,7 +137,7 @@ class InputStyles {
       borderRadius: BorderRadius.circular(16),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
+          color: Colors.black.withOpacity( 0.06),
           blurRadius: 8,
           offset: const Offset(0, 4),
         ),
@@ -147,7 +147,7 @@ class InputStyles {
 
   static BoxDecoration importanceBannerDecoration(Color color) {
     return BoxDecoration(
-      color: color.withValues(alpha: 0.15),
+      color: color.withOpacity( 0.15),
       borderRadius: BorderRadius.circular(12),
     );
   }
@@ -184,7 +184,7 @@ class _InputSliderThumbShape extends RoundSliderThumbShape {
     context.canvas.drawCircle(
       center + const Offset(0, 2),
       10,
-      Paint()..color = Colors.black.withValues(alpha: 0.12),
+      Paint()..color = Colors.black.withOpacity( 0.12),
     );
 
     super.paint(

@@ -9,7 +9,7 @@ class AppShadows {
   static List<BoxShadow> card(Color shadowColor, {double opacity = 0.04}) {
     return [
       BoxShadow(
-        color: shadowColor.withValues(alpha: opacity),
+        color: shadowColor.withOpacity( opacity),
         blurRadius: 18,
         offset: const Offset(0, 8),
         spreadRadius: -10,
@@ -20,7 +20,7 @@ class AppShadows {
   static List<BoxShadow> floating(Color shadowColor) {
     return [
       BoxShadow(
-        color: shadowColor.withValues(alpha: 0.08),
+        color: shadowColor.withOpacity( 0.08),
         blurRadius: 24,
         offset: const Offset(0, 12),
         spreadRadius: -12,

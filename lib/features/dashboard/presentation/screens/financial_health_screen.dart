@@ -44,8 +44,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
           title: l10n.financialHealthTitle,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -166,7 +165,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
                         color: toneColor,
                         backgroundColor: Theme.of(context)
                             .dividerColor
-                            .withValues(alpha: 0.4),
+                            .withOpacity( 0.4),
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -330,7 +329,7 @@ class _FactorTile extends StatelessWidget {
               minHeight: 7,
               color: color,
               backgroundColor:
-                  Theme.of(context).dividerColor.withValues(alpha: 0.35),
+                  Theme.of(context).dividerColor.withOpacity( 0.35),
             ),
             const SizedBox(height: 8),
             Text(
@@ -385,7 +384,7 @@ class _HealthPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
+        color: color.withOpacity( 0.16),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

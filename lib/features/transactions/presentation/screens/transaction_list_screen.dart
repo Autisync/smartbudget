@@ -123,8 +123,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           title: l10n.transactionsTitle,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface.withValues(
-              alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: Theme.of(context).colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
             ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -647,7 +646,7 @@ class _TransactionSearchFieldState extends State<_TransactionSearchField> {
         filled: true,
         fillColor: isDark
             ? scheme.surfaceContainerHigh
-            : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
+            : scheme.surfaceContainerHighest.withOpacity( 0.6),
         hintText: l10n.transactionsSearchHint,
         prefixIcon: Icon(
           Icons.search_rounded,
@@ -657,16 +656,16 @@ class _TransactionSearchFieldState extends State<_TransactionSearchField> {
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.16)
-                : Colors.black.withValues(alpha: 0.16),
+                ? Colors.white.withOpacity( 0.16)
+                : Colors.black.withOpacity( 0.16),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.16)
-                : Colors.black.withValues(alpha: 0.16),
+                ? Colors.white.withOpacity( 0.16)
+                : Colors.black.withOpacity( 0.16),
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -710,8 +709,8 @@ class _MerchantAvatar extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              color.withValues(alpha: 0.20),
-              color.withValues(alpha: 0.08),
+              color.withOpacity( 0.20),
+              color.withOpacity( 0.08),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -767,8 +766,8 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: selected
-              ? scheme.primary.withValues(alpha: 0.14)
-              : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              ? scheme.primary.withOpacity( 0.14)
+              : scheme.surfaceContainerHighest.withOpacity( 0.5),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
             color: selected ? scheme.primary : scheme.outlineVariant,

@@ -568,8 +568,7 @@ class _RecurringBalanceSheetScreenState
           title: l10n.dashboardBalanceSheetTitle,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
         ),
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -670,7 +669,7 @@ class _RecurringBalanceSheetScreenState
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: colorScheme.primary.withValues(alpha: 0.12),
+                              color: colorScheme.primary.withOpacity( 0.12),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
@@ -707,11 +706,11 @@ class _RecurringBalanceSheetScreenState
                               horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
                             color: colorScheme.tertiaryContainer
-                                .withValues(alpha: 0.45),
+                                .withOpacity( 0.45),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color:
-                                  colorScheme.tertiary.withValues(alpha: 0.2),
+                                  colorScheme.tertiary.withOpacity( 0.2),
                             ),
                           ),
                           child: Text(
@@ -889,13 +888,13 @@ class _HeroSummaryCard extends StatelessWidget {
         border: Border.all(
           color: isPositive
               ? AppColors.income(colorScheme.brightness)
-                  .withValues(alpha: isDark ? 0.25 : 0.45)
-              : colorScheme.error.withValues(alpha: isDark ? 0.25 : 0.45),
+                  .withOpacity( isDark ? 0.25 : 0.45)
+              : colorScheme.error.withOpacity( isDark ? 0.25 : 0.45),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withOpacity( 0.04),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -913,8 +912,8 @@ class _HeroSummaryCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isPositive
                       ? AppColors.income(colorScheme.brightness)
-                          .withValues(alpha: 0.14)
-                      : colorScheme.error.withValues(alpha: 0.14),
+                          .withOpacity( 0.14)
+                      : colorScheme.error.withOpacity( 0.14),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -1049,12 +1048,12 @@ class _MetricGridCell extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.white.withValues(alpha: 0.75),
+            ? Colors.white.withOpacity( 0.06)
+            : Colors.white.withOpacity( 0.75),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.12 : 0.04),
+            color: Colors.black.withOpacity( isDark ? 0.12 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1120,11 +1119,11 @@ class _CoverageOutlookCard extends StatelessWidget {
         color: isDark ? colorScheme.surface : Colors.white,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: colorScheme.outlineVariant.withOpacity( 0.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity( 0.03),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -1148,7 +1147,7 @@ class _CoverageOutlookCard extends StatelessWidget {
               minHeight: 8,
               color: barColor,
               backgroundColor:
-                  colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  colorScheme.outlineVariant.withOpacity( 0.3),
             ),
           ),
           const SizedBox(height: 12),
@@ -1237,13 +1236,13 @@ class _ScenarioLabCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
           color: isDark
-              ? Colors.purple.withValues(alpha: 0.15)
+              ? Colors.purple.withOpacity( 0.15)
               : const Color(0xFFE8E0FF),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withOpacity( 0.04),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1258,7 +1257,7 @@ class _ScenarioLabCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.12),
+                  color: colorScheme.primary.withOpacity( 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -1354,14 +1353,14 @@ class _ScenarioLabCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: simulatedNetBalance >= 0
                     ? AppColors.income(colorScheme.brightness)
-                        .withValues(alpha: 0.1)
-                    : colorScheme.error.withValues(alpha: 0.1),
+                        .withOpacity( 0.1)
+                    : colorScheme.error.withOpacity( 0.1),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: simulatedNetBalance >= 0
                       ? AppColors.income(colorScheme.brightness)
-                          .withValues(alpha: 0.25)
-                      : colorScheme.error.withValues(alpha: 0.25),
+                          .withOpacity( 0.25)
+                      : colorScheme.error.withOpacity( 0.25),
                 ),
               ),
               child: Column(
@@ -1466,9 +1465,9 @@ class _PremiumSlider extends StatelessWidget {
         SliderTheme(
           data: SliderThemeData(
             activeTrackColor: activeColor,
-            inactiveTrackColor: activeColor.withValues(alpha: 0.15),
+            inactiveTrackColor: activeColor.withOpacity( 0.15),
             thumbColor: activeColor,
-            overlayColor: activeColor.withValues(alpha: 0.08),
+            overlayColor: activeColor.withOpacity( 0.08),
             trackHeight: 4,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
@@ -1507,7 +1506,7 @@ class _PremiumSectionHeader extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: tone.withValues(alpha: 0.12),
+            color: tone.withOpacity( 0.12),
             borderRadius: BorderRadius.circular(13),
           ),
           child: Icon(icon, color: tone, size: 18),
@@ -1561,11 +1560,11 @@ class _PremiumInsightCard extends StatelessWidget {
         color: isDark ? colorScheme.surface : Colors.white,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: tone.withValues(alpha: isDark ? 0.2 : 0.15),
+          color: tone.withOpacity( isDark ? 0.2 : 0.15),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity( 0.03),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -1601,10 +1600,10 @@ class _PremiumInsightCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: tone.withValues(alpha: 0.1),
+                  color: tone.withOpacity( 0.1),
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
-                    color: tone.withValues(alpha: 0.2),
+                    color: tone.withOpacity( 0.2),
                   ),
                 ),
                 child: Text(
@@ -1694,11 +1693,11 @@ class _PremiumEntriesCard extends StatelessWidget {
           color: isDark ? colorScheme.surface : Colors.white,
           borderRadius: BorderRadius.circular(26),
           border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+            color: colorScheme.outlineVariant.withOpacity( 0.5),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withOpacity( 0.03),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -1761,11 +1760,11 @@ class _PremiumEntryCard extends StatelessWidget {
         color: isDark ? colorScheme.surface : Colors.white,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+          color: colorScheme.outlineVariant.withOpacity( 0.4),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity( 0.03),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -1778,7 +1777,7 @@ class _PremiumEntryCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: tone.withValues(alpha: 0.12),
+              color: tone.withOpacity( 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(kindIcon, color: tone, size: 20),
@@ -1865,7 +1864,7 @@ class _RecurringPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: tone.withValues(alpha: 0.1),
+        color: tone.withOpacity( 0.1),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(

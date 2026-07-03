@@ -498,7 +498,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                 behavior: HitTestBehavior.opaque,
                 onTap: _closePanel,
                 child: ColoredBox(
-                  color: Colors.black.withValues(alpha: 0.30),
+                  color: Colors.black.withOpacity( 0.30),
                 ),
               ),
             ),

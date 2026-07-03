@@ -251,6 +251,7 @@ class AuthService:
         user.password_hash = hash_password(new_password)
         self.db.add(user)
         self.db.commit()
+        self.sessions.revoke_all_for_user(str(user.id))
 
     def verify_email(self, *, token_payload: dict) -> None:
         user = self.users.get_by_id(token_payload["sub"])

@@ -43,8 +43,8 @@ class NavActionPanel extends StatelessWidget {
     // Panel background tinted toward the app's surface token so it reads as
     // part of the same design language rather than an alien white sheet.
     final panelColor = isDark
-        ? cs.surfaceContainerHigh.withValues(alpha: 0.82)
-        : cs.surface.withValues(alpha: 0.88);
+        ? cs.surfaceContainerHigh.withOpacity( 0.82)
+        : cs.surface.withOpacity( 0.88);
 
     final radius = BorderRadius.circular(UiTokens.radius2xl);
 
@@ -66,7 +66,7 @@ class NavActionPanel extends StatelessWidget {
                   color: panelColor,
                   borderRadius: radius,
                   border: Border.all(
-                    color: cs.outline.withValues(alpha: isDark ? 0.35 : 0.55),
+                    color: cs.outline.withOpacity( isDark ? 0.35 : 0.55),
                     width: 1,
                   ),
                 ),
@@ -113,8 +113,8 @@ class _NavActionTile extends StatelessWidget {
     // Tile background uses the app's primary container token so it inherits
     // the brand palette automatically in both light and dark modes.
     final tileBg = isDark
-        ? cs.primaryContainer.withValues(alpha: 0.35)
-        : cs.primaryContainer.withValues(alpha: 0.55);
+        ? cs.primaryContainer.withOpacity( 0.35)
+        : cs.primaryContainer.withOpacity( 0.55);
 
     // Icon colour: brand primary in both modes (muted by container alpha).
     final iconColor = item.tint ?? (isDark ? cs.primary : cs.primary);

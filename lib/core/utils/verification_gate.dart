@@ -168,7 +168,7 @@ class _VerificationSheetState extends State<_VerificationSheet> {
                   backgroundColor: const Color(0xFFF97316),
                   foregroundColor: Colors.white,
                   disabledBackgroundColor:
-                      const Color(0xFFF97316).withValues(alpha: 0.4),
+                      const Color(0xFFF97316).withOpacity( 0.4),
                   disabledForegroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(52),
                   shape: RoundedRectangleBorder(
@@ -216,7 +216,7 @@ class _VerificationSheetState extends State<_VerificationSheet> {
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                   side: BorderSide(
-                    color: theme.colorScheme.outline.withValues(alpha: 0.4),
+                    color: theme.colorScheme.outline.withOpacity( 0.4),
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),

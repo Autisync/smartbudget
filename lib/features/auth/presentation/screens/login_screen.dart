@@ -73,7 +73,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       footer: AuthInlinePrompt(
         label: l10n.authNewHere,
         actionLabel: l10n.authCreateAccount,
-        onPressed: form.submitting ? () {} : () => context.push('/signup'),
+        onPressed: form.submitting ? null : () => context.push('/signup'),
       ),
       child: AutofillGroup(
         child: Column(
@@ -477,7 +477,7 @@ class _BiometricUnlockView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.08),
+              color: colorScheme.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -506,10 +506,10 @@ class _BiometricUnlockView extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: _messageTone(colorScheme).withValues(alpha: 0.12),
+                color: _messageTone(colorScheme).withOpacity(0.12),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _messageTone(colorScheme).withValues(alpha: 0.35),
+                  color: _messageTone(colorScheme).withOpacity(0.35),
                 ),
               ),
               child: Row(

@@ -147,8 +147,7 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
           title: l10n?.navSubscriptions ?? 'Subscriptions',
           isScrolled: _isScrolled,
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface.withValues(
-              alpha: _isScrolled ? 0.88 : 0,
+        backgroundColor: Theme.of(context).colorScheme.surface.withOpacity( _isScrolled ? 0.88 : 0,
             ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -678,7 +677,7 @@ class SubscriptionItemCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(UiTokens.radiusXl),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: Colors.black.withOpacity( 0.04),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -691,7 +690,7 @@ class SubscriptionItemCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: importanceColor.withValues(alpha: 0.15),
+                  color: importanceColor.withOpacity( 0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
@@ -885,7 +884,7 @@ class _SubscriptionSearchFieldState extends State<_SubscriptionSearchField> {
         filled: true,
         fillColor: isDark
             ? scheme.surfaceContainerHigh
-            : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
+            : scheme.surfaceContainerHighest.withOpacity( 0.6),
         hintText:
             l10n?.subscriptionsSearchHint ?? 'Search by name or category',
         prefixIcon: Icon(
@@ -896,16 +895,16 @@ class _SubscriptionSearchFieldState extends State<_SubscriptionSearchField> {
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.16)
-                : Colors.black.withValues(alpha: 0.16),
+                ? Colors.white.withOpacity( 0.16)
+                : Colors.black.withOpacity( 0.16),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.16)
-                : Colors.black.withValues(alpha: 0.16),
+                ? Colors.white.withOpacity( 0.16)
+                : Colors.black.withOpacity( 0.16),
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -987,8 +986,8 @@ class _SubFilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: selected
-              ? scheme.primary.withValues(alpha: 0.14)
-              : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              ? scheme.primary.withOpacity( 0.14)
+              : scheme.surfaceContainerHighest.withOpacity( 0.5),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
             color: selected ? scheme.primary : scheme.outlineVariant,

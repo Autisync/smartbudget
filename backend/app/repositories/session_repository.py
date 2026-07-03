@@ -50,3 +50,18 @@ class SessionRepository:
         auth_session.revoked_at = datetime.now(UTC)
         self.db.add(auth_session)
         self.db.commit()
+
+    def revoke_all_for_user(self, user_id: str) -> None:
+        sessions = self.db.scalars(
+            select(AuthSession).where(
+                AuthSession.user_id == user_id,
+                AuthSession.revoked_at.is_(None),
+            )
+        ).all()
+        if not sessions:
+            return
+        now = datetime.now(UTC)
+        for auth_session in sessions:
+            auth_session.revoked_at = now
+            self.db.add(auth_session)
+        self.db.commit()

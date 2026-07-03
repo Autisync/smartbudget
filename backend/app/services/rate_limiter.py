@@ -7,6 +7,14 @@ class RateLimiterService:
     def __init__(self, redis_client: Redis):
         self.redis = redis_client
 
+    def check_once(self, action: str, key: str, *, max_attempts: int, window_seconds: int) -> bool:
+        return self.check_action(
+            action,
+            key,
+            max_attempts=max_attempts,
+            window_seconds=window_seconds,
+        )
+
     def check_login_attempts(self, key: str) -> bool:
         bucket_key = f"rate-limit:login:{key}"
         value = self.redis.incr(bucket_key)

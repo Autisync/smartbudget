@@ -302,7 +302,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             color: Theme.of(context)
                                 .colorScheme
                                 .onSurfaceVariant
-                                .withValues(alpha: 0.78),
+                                .withOpacity( 0.78),
                           ),
                     ),
                     Text(
@@ -589,7 +589,7 @@ class HomeBalanceCard extends StatelessWidget {
     // brand gradient reads premium and clears contrast easily; the pastel
     // lavender it replaced was both low-contrast and an "AI default" tell.
     const onHero = Colors.white;
-    final onHeroMuted = Colors.white.withValues(alpha: 0.72);
+    final onHeroMuted = Colors.white.withOpacity( 0.72);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -615,7 +615,7 @@ class HomeBalanceCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
+                  color: Colors.white.withOpacity( 0.16),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
@@ -645,7 +645,7 @@ class HomeBalanceCard extends StatelessWidget {
             const SizedBox(height: 10),
             AppLineSparkChart(
               values: balanceTrend,
-              color: Colors.white.withValues(alpha: 0.92),
+              color: Colors.white.withOpacity( 0.92),
               height: 64,
             ),
           ],
@@ -724,18 +724,18 @@ class _HeroChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
+        color: Colors.white.withOpacity( 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.white.withValues(alpha: 0.8)),
+          Icon(icon, size: 14, color: Colors.white.withOpacity( 0.8)),
           const SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.72),
+              color: Colors.white.withOpacity( 0.72),
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -779,7 +779,7 @@ class _BalanceMetric extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.14),
+            color: Colors.white.withOpacity( 0.14),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: accent, size: 18),
@@ -792,7 +792,7 @@ class _BalanceMetric extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.72),
+                  color: Colors.white.withOpacity( 0.72),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -947,10 +947,10 @@ class HomeFinancialHealthCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
+                  color: statusColor.withOpacity( 0.1),
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
-                    color: statusColor.withValues(alpha: 0.4),
+                    color: statusColor.withOpacity( 0.4),
                     width: 1,
                   ),
                 ),
@@ -1022,7 +1022,7 @@ class HomeFinancialHealthCard extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .outline
-                      .withValues(alpha: 0.4),
+                      .withOpacity( 0.4),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
@@ -1062,7 +1062,7 @@ class HomeRecurringBalanceCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: cs.outline.withValues(alpha: 0.9), width: 1),
+        border: Border.all(color: cs.outline.withOpacity( 0.9), width: 1),
         boxShadow: _cardShadow(context),
       ),
       child: Column(
@@ -1074,7 +1074,7 @@ class HomeRecurringBalanceCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: cs.primary.withValues(alpha: 0.12),
+                  color: cs.primary.withOpacity( 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -1120,7 +1120,7 @@ class HomeRecurringBalanceCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 side: BorderSide(
-                  color: cs.outline.withValues(alpha: 0.7),
+                  color: cs.outline.withOpacity( 0.7),
                   width: 1,
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1183,7 +1183,7 @@ class _HomeSpendingCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.12),
+                  color: statusColor.withOpacity( 0.12),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
@@ -1218,7 +1218,7 @@ class _HomeSpendingCard extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .primary
-                      .withValues(alpha: 0.1),
+                      .withOpacity( 0.1),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
@@ -1308,7 +1308,7 @@ class _ThinProgressBar extends StatelessWidget {
                 color: Theme.of(context)
                     .colorScheme
                     .outlineVariant
-                    .withValues(alpha: 0.4),
+                    .withOpacity( 0.4),
               ),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 600),
@@ -1318,7 +1318,7 @@ class _ThinProgressBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      color.withValues(alpha: 0.7),
+                      color.withOpacity( 0.7),
                       color,
                     ],
                   ),
@@ -1367,7 +1367,7 @@ class _DashboardLiveRateCard extends ConsumerWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  color: colorScheme.primary.withOpacity( 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -1489,7 +1489,7 @@ class _DashboardLiveRateQuote extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.08),
+                color: colorScheme.primary.withOpacity( 0.08),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
@@ -1525,7 +1525,7 @@ class _LoadingCard extends StatelessWidget {
       height: 92,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: scheme.surfaceContainerHighest.withOpacity( 0.5),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

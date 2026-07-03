@@ -94,7 +94,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color:
-                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.40),
+                  colorScheme.surfaceContainerHighest.withOpacity( 0.40),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Column(
@@ -195,7 +195,7 @@ class _RecoveryStep extends StatelessWidget {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: colorScheme.primary.withValues(alpha: 0.12),
+            color: colorScheme.primary.withOpacity( 0.12),
             borderRadius: BorderRadius.circular(999),
           ),
           alignment: Alignment.center,

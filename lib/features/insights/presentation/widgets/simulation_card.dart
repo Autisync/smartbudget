@@ -43,7 +43,7 @@ class _SimulationCardState extends State<SimulationCard> {
 
     return SmartCard(
       radius: 28,
-      color: const Color(0xFF7A6CF6).withValues(alpha: 0.08),
+      color: const Color(0xFF7A6CF6).withOpacity( 0.08),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -75,7 +75,7 @@ class _SimulationCardState extends State<SimulationCard> {
               inactiveTrackColor: Theme.of(context)
                   .colorScheme
                   .outlineVariant
-                  .withValues(alpha: 0.35),
+                  .withOpacity( 0.35),
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
             ),

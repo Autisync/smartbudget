@@ -43,8 +43,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
           title: l10n.securitySettingsTitle,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,

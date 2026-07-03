@@ -346,7 +346,6 @@ def create_application() -> FastAPI:
         finally:
             await pubsub.unsubscribe(channel)
             await pubsub.close()
-            await redis_client.aclose()
 
     @app.get("/r/reset-password", response_class=HTMLResponse)
     def reset_password_redirect(token: str = "") -> str:

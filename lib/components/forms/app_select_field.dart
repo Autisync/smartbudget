@@ -163,7 +163,7 @@ class _SelectSheetState<T> extends State<_SelectSheet<T>> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.shadow.withValues(alpha: 0.18),
+              color: colorScheme.shadow.withOpacity( 0.18),
               blurRadius: 28,
               offset: const Offset(0, -8),
             ),
@@ -192,7 +192,7 @@ class _SelectSheetState<T> extends State<_SelectSheet<T>> {
                       width: 38,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: colorScheme.outline.withValues(alpha: 0.45),
+                        color: colorScheme.outline.withOpacity( 0.45),
                         borderRadius: BorderRadius.circular(999),
                       ),
                     ),
@@ -259,14 +259,14 @@ class _SelectSheetState<T> extends State<_SelectSheet<T>> {
                             decoration: BoxDecoration(
                               color: selected
                                   ? colorScheme.primaryContainer
-                                      .withValues(alpha: 0.55)
+                                      .withOpacity( 0.55)
                                   : colorScheme.surfaceContainerHighest
-                                      .withValues(alpha: 0.42),
+                                      .withOpacity( 0.42),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: selected
                                     ? colorScheme.primary
-                                        .withValues(alpha: 0.32)
+                                        .withOpacity( 0.32)
                                     : colorScheme.outlineVariant,
                               ),
                             ),

@@ -324,7 +324,7 @@ class AppAnimatedEmptyState extends StatelessWidget {
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.10),
+                  color: scheme.primary.withOpacity( 0.10),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Icon(icon, size: 34, color: scheme.primary),
@@ -369,7 +369,7 @@ class _FallbackIcon extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: scheme.primary.withValues(alpha: 0.12),
+        color: scheme.primary.withOpacity( 0.12),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Icon(icon, color: scheme.primary),

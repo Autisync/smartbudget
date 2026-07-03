@@ -350,8 +350,8 @@ class _TopBar extends StatelessWidget {
                       color: done
                           ? Colors.white
                           : active
-                              ? Colors.white.withValues(alpha: 0.85)
-                              : Colors.white.withValues(alpha: 0.25),
+                              ? Colors.white.withOpacity( 0.85)
+                              : Colors.white.withOpacity( 0.25),
                       borderRadius: BorderRadius.circular(2),
                     ),
                     // Fill animation for active bar
@@ -390,7 +390,7 @@ class _TopBar extends StatelessWidget {
             child: Text(
               'Skip',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: Colors.white.withOpacity( 0.6),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -442,13 +442,13 @@ class _BottomPanel extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(28, 28, 28, safeBottom + 24),
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.black.withValues(alpha: 0.55)
-              : Colors.white.withValues(alpha: 0.92),
+              ? Colors.black.withOpacity( 0.55)
+              : Colors.white.withOpacity( 0.92),
           borderRadius:
               const BorderRadius.vertical(top: Radius.circular(32)),
           border: Border(
             top: BorderSide(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: Colors.white.withOpacity( 0.15),
               width: 1,
             ),
           ),
@@ -464,7 +464,7 @@ class _BottomPanel extends StatelessWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
+                  color: Colors.grey.withOpacity( 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -622,7 +622,7 @@ class _SpendingIllustration extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
+                              color: Colors.white.withOpacity( 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text('Monthly',
@@ -697,9 +697,9 @@ class _SpendingIllustration extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         color: i == 3
                                             ? Colors.white
-                                                .withValues(alpha: 0.85)
+                                                .withOpacity( 0.85)
                                             : Colors.white
-                                                .withValues(alpha: 0.35),
+                                                .withOpacity( 0.35),
                                         borderRadius:
                                             BorderRadius.circular(4),
                                       ),
@@ -711,7 +711,7 @@ class _SpendingIllustration extends StatelessWidget {
                               Text(_labels[i],
                                   style: TextStyle(
                                       color:
-                                          Colors.white.withValues(alpha: 0.5),
+                                          Colors.white.withOpacity( 0.5),
                                       fontSize: 10)),
                             ],
                           ),
@@ -825,10 +825,10 @@ class _InsightsIllustration extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 9),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: Colors.white.withOpacity( 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
+                          color: Colors.white.withOpacity( 0.12),
                           width: 1),
                     ),
                     child: Row(
@@ -890,7 +890,7 @@ class _TrendLinePainter extends CustomPainter {
     if (visiblePts.length < 2) return;
 
     final linePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.9)
+      ..color = Colors.white.withOpacity( 0.9)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -904,7 +904,7 @@ class _TrendLinePainter extends CustomPainter {
 
     // Glow
     final glowPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.3)
+      ..color = Colors.white.withOpacity( 0.3)
       ..strokeWidth = 5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -972,14 +972,14 @@ class _SecurityIllustration extends StatelessWidget {
                       height: 110,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.15),
+                        color: Colors.white.withOpacity( 0.15),
                         border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.25),
+                            color: Colors.white.withOpacity( 0.25),
                             width: 1.5),
                         boxShadow: [
                           BoxShadow(
                             color:
-                                Colors.white.withValues(alpha: 0.08),
+                                Colors.white.withOpacity( 0.08),
                             blurRadius: 30,
                             spreadRadius: 10,
                           ),
@@ -1017,10 +1017,10 @@ class _SecurityIllustration extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 11),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: Colors.white.withOpacity( 0.1),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.15),
+                          color: Colors.white.withOpacity( 0.15),
                           width: 1),
                     ),
                     child: Row(
@@ -1030,7 +1030,7 @@ class _SecurityIllustration extends StatelessWidget {
                           height: 32,
                           decoration: BoxDecoration(
                             color: const Color(0xFF5EEAAA)
-                                .withValues(alpha: 0.2),
+                                .withOpacity( 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.check_rounded,
@@ -1071,10 +1071,10 @@ class _GlassCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
+        color: Colors.white.withOpacity( 0.12),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-            color: Colors.white.withValues(alpha: 0.18), width: 1),
+            color: Colors.white.withOpacity( 0.18), width: 1),
       ),
       child: child,
     );

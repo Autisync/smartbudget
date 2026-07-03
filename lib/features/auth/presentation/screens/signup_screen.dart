@@ -50,7 +50,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       footer: AuthInlinePrompt(
         label: l10n.authAlreadyHaveAccount,
         actionLabel: l10n.authSignIn,
-        onPressed: form.submitting ? () {} : () => context.go('/login'),
+        onPressed: form.submitting ? null : () => context.go('/login'),
       ),
       child: AutofillGroup(
         child: Column(
@@ -208,8 +208,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color:
-                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                color: colorScheme.surfaceContainerHighest.withOpacity(0.35),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -347,7 +346,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final session = ref.read(sessionControllerProvider);
     if (!ok) {
       // Surfaces backend messages such as "Account already exists" inline.
-      formController.setError(session.errorMessage ?? 'Unable to create account.');
+      formController
+          .setError(session.errorMessage ?? 'Unable to create account.');
       return;
     }
     if (!context.mounted) return;

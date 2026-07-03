@@ -87,7 +87,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                           height: 130 + t * 34,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: _brand.withValues(alpha: 0.05 + t * 0.05),
+                            color: _brand.withOpacity( 0.05 + t * 0.05),
                           ),
                         ),
                       );
@@ -102,7 +102,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                         height: 108 + t * 16,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: _brand.withValues(alpha: 0.08),
+                          color: _brand.withOpacity( 0.08),
                         ),
                       );
                     },
@@ -131,7 +131,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: _brand.withValues(alpha: 0.18),
+                            color: _brand.withOpacity( 0.18),
                             blurRadius: 28,
                             offset: const Offset(0, 12),
                           ),
@@ -226,7 +226,7 @@ class _SweepBarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final track = Paint()..color = color.withValues(alpha: 0.12);
+    final track = Paint()..color = color.withOpacity( 0.12);
     canvas.drawRect(Offset.zero & size, track);
 
     // A highlight segment slides left→right, then wraps.
@@ -237,9 +237,9 @@ class _SweepBarPainter extends CustomPainter {
     final shimmer = Paint()
       ..shader = LinearGradient(
         colors: [
-          color.withValues(alpha: 0.0),
+          color.withOpacity( 0.0),
           color,
-          color.withValues(alpha: 0.0),
+          color.withOpacity( 0.0),
         ],
       ).createShader(rect);
     canvas.drawRect(rect, shimmer);

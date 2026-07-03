@@ -199,8 +199,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: theme.brightness == Brightness.dark
-                    ? Colors.white.withValues(alpha: 0.10)
-                    : Colors.black.withValues(alpha: 0.10),
+                    ? Colors.white.withOpacity( 0.10)
+                    : Colors.black.withOpacity( 0.10),
               ),
             ),
             child: Row(
@@ -209,7 +209,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: typeColor.withValues(alpha: 0.14),
+                    color: typeColor.withOpacity( 0.14),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(typeIcon, color: typeColor, size: 20),
@@ -397,8 +397,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     : l10n.addTransaction,
                 isScrolled: _isAppBarScrolled,
               ),
-              backgroundColor: colorScheme.surface.withValues(
-                alpha: _isAppBarScrolled ? 0.88 : 0,
+              backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
               ),
               surfaceTintColor: Colors.transparent,
               elevation: 0,
@@ -412,8 +411,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               leading: IconButton(
                 style: IconButton.styleFrom(
                   backgroundColor:
-                      colorScheme.surfaceContainerHighest.withValues(
-                    alpha: _isAppBarScrolled ? 0.9 : 0,
+                      colorScheme.surfaceContainerHighest.withOpacity( _isAppBarScrolled ? 0.9 : 0,
                   ),
                 ),
                 icon: const Icon(Icons.close),

@@ -171,8 +171,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
           title: document.title,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withValues(
-          alpha: _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -263,7 +262,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withValues(alpha: 0.72),
+                                  .withOpacity( 0.72),
                             ),
                       ),
                     ),

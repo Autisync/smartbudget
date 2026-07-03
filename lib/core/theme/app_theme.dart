@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/app_radius.dart';
@@ -43,7 +42,7 @@ class AppTheme {
           scheme.onSurfaceVariant,
         ).headlineSmall,
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: scheme.surface,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
@@ -52,19 +51,19 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.xl),
           side: BorderSide(
-            color: scheme.outline.withValues(alpha: isDark ? 0.55 : 0.9),
+            color: scheme.outline.withOpacity(isDark ? 0.55 : 0.9),
             width: 1,
           ),
         ),
       ),
       dividerTheme: DividerThemeData(
-        color: scheme.outline.withValues(alpha: isDark ? 0.5 : 0.8),
+        color: scheme.outline.withOpacity(isDark ? 0.5 : 0.8),
         thickness: 1,
         space: AppSpacing.lg,
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 68,
-        backgroundColor: scheme.surface.withValues(alpha: isDark ? 0.92 : 0.94),
+        backgroundColor: scheme.surface.withOpacity(isDark ? 0.92 : 0.94),
         surfaceTintColor: Colors.transparent,
         indicatorColor: scheme.primaryContainer,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -123,7 +122,7 @@ class AppTheme {
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            side: BorderSide(color: scheme.outline.withValues(alpha: 0.55)),
+            side: BorderSide(color: scheme.outline.withOpacity(0.55)),
           ),
         ),
       ),
@@ -135,7 +134,7 @@ class AppTheme {
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.sm,
           ),
-          side: BorderSide(color: scheme.outline.withValues(alpha: 0.7)),
+          side: BorderSide(color: scheme.outline.withOpacity(0.7)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
@@ -176,7 +175,7 @@ class AppTheme {
           color: scheme.onSurfaceVariant,
         ),
       ),
-      dialogTheme: DialogThemeData(
+      dialogTheme: DialogTheme(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(

@@ -184,7 +184,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
     final borderColor = hasError
         ? colorScheme.error
         : isFocused
-            ? colorScheme.primary.withValues(alpha: 0.38)
+            ? colorScheme.primary.withOpacity(0.38)
             : Colors.transparent;
 
     return Column(
@@ -207,7 +207,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
             boxShadow: isFocused
                 ? [
                     BoxShadow(
-                      color: colorScheme.primary.withValues(alpha: 0.10),
+                      color: colorScheme.primary.withOpacity(0.10),
                       blurRadius: 18,
                       offset: const Offset(0, 10),
                     ),
@@ -236,7 +236,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
               fillColor: fillColor,
               hintText: widget.hint,
               hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
+                color: colorScheme.onSurfaceVariant.withOpacity(0.75),
               ),
               prefixIcon: widget.prefixIcon,
               suffixIcon: widget.suffix,
@@ -324,7 +324,7 @@ class _AuthButtonState extends State<AuthButton> {
             ),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.shadow.withValues(alpha: shadowOpacity),
+                color: colorScheme.shadow.withOpacity(shadowOpacity),
                 blurRadius: blurRadius,
                 offset: Offset(0, offsetY),
               ),
@@ -413,11 +413,12 @@ class SocialButton extends StatelessWidget {
       label: Text(label),
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(double.infinity, 52),
-        backgroundColor: colorScheme.surfaceContainerHigh.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.32 : 0.45,
+        backgroundColor: colorScheme.surfaceContainerHigh.withOpacity(
+          Theme.of(context).brightness == Brightness.dark ? 0.32 : 0.45,
         ),
         foregroundColor: colorScheme.onSurface,
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.30),
+          color: colorScheme.outlineVariant.withOpacity(0.30),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
@@ -461,7 +462,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.4),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -497,7 +498,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: active
                         ? levelColor
-                        : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                        : colorScheme.outlineVariant.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
@@ -545,7 +546,7 @@ class _RuleChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: tone.withValues(alpha: 0.12),
+        color: tone.withOpacity(0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -610,9 +611,9 @@ class AuthMessageBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: tone.withValues(alpha: 0.10),
+        color: tone.withOpacity(0.10),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: tone.withValues(alpha: 0.10)),
+        border: Border.all(color: tone.withOpacity(0.10)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -643,12 +644,12 @@ class AuthInlinePrompt extends StatelessWidget {
     super.key,
     required this.label,
     required this.actionLabel,
-    required this.onPressed,
+    this.onPressed,
   });
 
   final String label;
   final String actionLabel;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -766,7 +767,7 @@ class _AuthCard extends StatelessWidget {
       decoration: AppSurfaces.elevated(
         context,
         radius: 30,
-        color: colorScheme.surface.withValues(alpha: isDark ? 0.86 : 0.92),
+        color: colorScheme.surface.withOpacity(isDark ? 0.86 : 0.92),
         blur: 30,
         opacity: isDark ? 0.22 : 0.08,
         offsetY: 16,
@@ -775,9 +776,9 @@ class _AuthCard extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
-          color: colorScheme.surface.withValues(alpha: isDark ? 0.86 : 0.94),
+          color: colorScheme.surface.withOpacity(isDark ? 0.86 : 0.94),
           border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.10),
+            color: colorScheme.outlineVariant.withOpacity(0.10),
           ),
         ),
         child: Column(
@@ -809,8 +810,8 @@ class _AuthBackground extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             colorScheme.surface,
-            colorScheme.primary.withValues(alpha: 0.035),
-            const Color(0xFF2EA7FF).withValues(alpha: 0.025),
+            colorScheme.primary.withOpacity(0.035),
+            const Color(0xFF2EA7FF).withOpacity(0.025),
             colorScheme.surface,
           ],
           stops: const [0, 0.52, 0.78, 1],
@@ -828,7 +829,3 @@ void popOrGoToLogin(BuildContext context) {
   }
   context.go('/login');
 }
-
-
-
-
