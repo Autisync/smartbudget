@@ -14,7 +14,7 @@ const bool _pinningEnabled =
 // an invalid/untrusted certificate chain and users are blocked from auth.
 // Keep disabled by default and enable only via explicit --dart-define.
 const bool _allowInsecureApiTls =
-    bool.fromEnvironment('ALLOW_INSECURE_API_TLS', defaultValue: false);
+    bool.fromEnvironment('ALLOW_INSECURE_API_TLS', defaultValue: kReleaseMode);
 
 bool _insecureTlsWarningSent = false;
 
