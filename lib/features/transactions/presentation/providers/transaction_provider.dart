@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/intelligence/predictors/cashflow_predictor.dart';
 import 'package:smartbudget/data/repositories/transaction_repository_impl.dart';
@@ -10,7 +11,7 @@ import 'package:smartbudget/intelligence/engines/financial_insight_engines.dart'
 part 'transaction_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-TransactionRepository transactionRepository(TransactionRepositoryRef ref) {
+TransactionRepository transactionRepository(Ref ref) {
   final database = ref.watch(databaseProvider);
   final encryptor = ref.watch(fieldEncryptorProvider);
   return TransactionRepositoryImpl(database, encryptor);
@@ -79,7 +80,7 @@ class TransactionList extends _$TransactionList {
 }
 
 @riverpod
-Future<List<Transaction>> recentTransactions(RecentTransactionsRef ref) async {
+Future<List<Transaction>> recentTransactions(Ref ref) async {
   final repo = ref.watch(transactionRepositoryProvider);
   final now = DateTime.now();
   final start = DateTime(now.year, now.month, 1);
@@ -87,7 +88,7 @@ Future<List<Transaction>> recentTransactions(RecentTransactionsRef ref) async {
 }
 
 @riverpod
-Future<SpendingProfile> spendingProfile(SpendingProfileRef ref) async {
+Future<SpendingProfile> spendingProfile(Ref ref) async {
   final transactions = await ref.watch(recentTransactionsProvider.future);
   final analyzer = SpendingAnalyzer();
   final now = DateTime.now();
@@ -95,7 +96,7 @@ Future<SpendingProfile> spendingProfile(SpendingProfileRef ref) async {
 }
 
 @riverpod
-Future<BurnRateInsight> burnRateInsight(BurnRateInsightRef ref) async {
+Future<BurnRateInsight> burnRateInsight(Ref ref) async {
   final transactions = await ref.watch(transactionListProvider().future);
   return const BurnRateEngine().calculate(
     transactions: transactions,
@@ -104,7 +105,7 @@ Future<BurnRateInsight> burnRateInsight(BurnRateInsightRef ref) async {
 
 @riverpod
 Future<TransactionDecisionSnapshotData> transactionDecisionSnapshot(
-  TransactionDecisionSnapshotRef ref,
+  Ref ref,
 ) async {
   final transactions = await ref.watch(transactionListProvider().future);
   return const TransactionInsightEngine().build(
@@ -113,7 +114,7 @@ Future<TransactionDecisionSnapshotData> transactionDecisionSnapshot(
 }
 
 @riverpod
-Future<CashflowPrediction> cashflowPrediction(CashflowPredictionRef ref) async {
+Future<CashflowPrediction> cashflowPrediction(Ref ref) async {
   final repo = ref.watch(transactionRepositoryProvider);
   final transactions = await repo.getTransactions();
   final currentBalance = transactions.fold<double>(0.0, (sum, tx) {
@@ -125,7 +126,7 @@ Future<CashflowPrediction> cashflowPrediction(CashflowPredictionRef ref) async {
 }
 
 @riverpod
-Future<void> recurringTransactions(RecurringTransactionsRef ref) async {
+Future<void> recurringTransactions(Ref ref) async {
   final repo = ref.watch(transactionRepositoryProvider);
   await repo.generateRecurringTransactions();
 }

@@ -36,6 +36,7 @@ class $TransactionsTable extends Transactions
           GeneratedColumn.checkTextLength(minTextLength: 3, maxTextLength: 3),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumnWithTypeConverter<TransactionType, int> type =
       GeneratedColumn<int>('type', aliasedName, false,
@@ -57,6 +58,8 @@ class $TransactionsTable extends Transactions
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
       'note', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _recurrenceMeta =
+      const VerificationMeta('recurrence');
   @override
   late final GeneratedColumnWithTypeConverter<TransactionRecurrence, int>
       recurrence = GeneratedColumn<int>('recurrence', aliasedName, false,
@@ -162,6 +165,7 @@ class $TransactionsTable extends Transactions
     } else if (isInserting) {
       context.missing(_currencyMeta);
     }
+    context.handle(_typeMeta, const VerificationResult.success());
     if (data.containsKey('category')) {
       context.handle(_categoryMeta,
           category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
@@ -178,6 +182,7 @@ class $TransactionsTable extends Transactions
       context.handle(
           _noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
     }
+    context.handle(_recurrenceMeta, const VerificationResult.success());
     if (data.containsKey('is_recurring')) {
       context.handle(
           _isRecurringMeta,
@@ -752,6 +757,7 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
           GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumnWithTypeConverter<AccountType, int> type =
       GeneratedColumn<int>('type', aliasedName, false,
@@ -814,6 +820,7 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    context.handle(_typeMeta, const VerificationResult.success());
     if (data.containsKey('balance')) {
       context.handle(_balanceMeta,
           balance.isAcceptableOrUnknown(data['balance']!, _balanceMeta));
@@ -1149,6 +1156,7 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
   late final GeneratedColumn<String> currency = GeneratedColumn<String>(
       'currency', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _periodMeta = const VerificationMeta('period');
   @override
   late final GeneratedColumnWithTypeConverter<BudgetPeriod, int> period =
       GeneratedColumn<int>('period', aliasedName, false,
@@ -1229,6 +1237,7 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
     } else if (isInserting) {
       context.missing(_currencyMeta);
     }
+    context.handle(_periodMeta, const VerificationResult.success());
     if (data.containsKey('start_date')) {
       context.handle(_startDateMeta,
           startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta));
@@ -1633,6 +1642,8 @@ class $SavingsGoalsTable extends SavingsGoals
   late final GeneratedColumn<DateTime> deadline = GeneratedColumn<DateTime>(
       'deadline', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _priorityMeta =
+      const VerificationMeta('priority');
   @override
   late final GeneratedColumnWithTypeConverter<GoalPriority, int> priority =
       GeneratedColumn<int>('priority', aliasedName, false,
@@ -1710,6 +1721,7 @@ class $SavingsGoalsTable extends SavingsGoals
       context.handle(_deadlineMeta,
           deadline.isAcceptableOrUnknown(data['deadline']!, _deadlineMeta));
     }
+    context.handle(_priorityMeta, const VerificationResult.success());
     if (data.containsKey('color')) {
       context.handle(
           _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
@@ -2111,6 +2123,8 @@ class $SubscriptionsTable extends Subscriptions
           GeneratedColumn.checkTextLength(minTextLength: 3, maxTextLength: 3),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
+  static const VerificationMeta _billingCycleMeta =
+      const VerificationMeta('billingCycle');
   @override
   late final GeneratedColumnWithTypeConverter<BillingCycle, int> billingCycle =
       GeneratedColumn<int>('billing_cycle', aliasedName, false,
@@ -2141,6 +2155,8 @@ class $SubscriptionsTable extends Subscriptions
   late final GeneratedColumn<String> category = GeneratedColumn<String>(
       'category', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _importanceMeta =
+      const VerificationMeta('importance');
   @override
   late final GeneratedColumnWithTypeConverter<SubscriptionImportance, int>
       importance = GeneratedColumn<int>('importance', aliasedName, false,
@@ -2243,6 +2259,7 @@ class $SubscriptionsTable extends Subscriptions
     } else if (isInserting) {
       context.missing(_currencyMeta);
     }
+    context.handle(_billingCycleMeta, const VerificationResult.success());
     if (data.containsKey('start_date')) {
       context.handle(_startDateMeta,
           startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta));
@@ -2267,6 +2284,7 @@ class $SubscriptionsTable extends Subscriptions
     } else if (isInserting) {
       context.missing(_categoryMeta);
     }
+    context.handle(_importanceMeta, const VerificationResult.success());
     if (data.containsKey('is_active')) {
       context.handle(_isActiveMeta,
           isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
@@ -3422,11 +3440,14 @@ class $AuthLogsTable extends AuthLogs with TableInfo<$AuthLogsTable, AuthLog> {
   late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
       'device_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _authTypeMeta =
+      const VerificationMeta('authType');
   @override
   late final GeneratedColumnWithTypeConverter<AuthLogType, int> authType =
       GeneratedColumn<int>('auth_type', aliasedName, false,
               type: DriftSqlType.int, requiredDuringInsert: true)
           .withConverter<AuthLogType>($AuthLogsTable.$converterauthType);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumnWithTypeConverter<AuthStatus, int> status =
       GeneratedColumn<int>('status', aliasedName, false,
@@ -3490,6 +3511,8 @@ class $AuthLogsTable extends AuthLogs with TableInfo<$AuthLogsTable, AuthLog> {
     } else if (isInserting) {
       context.missing(_deviceIdMeta);
     }
+    context.handle(_authTypeMeta, const VerificationResult.success());
+    context.handle(_statusMeta, const VerificationResult.success());
     if (data.containsKey('ip_address')) {
       context.handle(_ipAddressMeta,
           ipAddress.isAcceptableOrUnknown(data['ip_address']!, _ipAddressMeta));

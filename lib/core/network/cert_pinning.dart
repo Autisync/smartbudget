@@ -5,6 +5,18 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
+import 'package:smartbudget/core/monitoring/error_monitor.dart';
+
+const bool _pinningEnabled =
+    bool.fromEnvironment('ENABLE_CERT_PINNING', defaultValue: false);
+
+// Emergency-only escape hatch for production incidents where the API serves
+// an invalid/untrusted certificate chain and users are blocked from auth.
+// Keep disabled by default and enable only via explicit --dart-define.
+const bool _allowInsecureApiTls =
+    bool.fromEnvironment('ALLOW_INSECURE_API_TLS', defaultValue: false);
+
+bool _insecureTlsWarningSent = false;
 
 /// SPKI pins: base64(SHA-256(SubjectPublicKeyInfo DER)).
 ///
@@ -60,6 +72,47 @@ void applyCertificatePinning(Dio dio, String baseUrl) {
   final uri = Uri.tryParse(baseUrl);
   if (uri == null) return;
 
+  // Emergency override takes precedence over pinning mode so a production TLS
+  // incident can be unblocked with a single --dart-define.
+  if (_allowInsecureApiTls &&
+      uri.scheme == 'https' &&
+      !_isLocalHost(uri.host)) {
+    if (kReleaseMode && !_insecureTlsWarningSent) {
+      _insecureTlsWarningSent = true;
+      ErrorMonitor.captureMessage(
+        'SECURITY WARNING: ALLOW_INSECURE_API_TLS=true is active for ${uri.host}.',
+        category: 'security',
+      );
+    }
+
+    if (kDebugMode) {
+      debugPrint(
+        '[SmartSpend Security] ⚠️  Insecure API TLS override enabled for ${uri.host}.',
+      );
+    }
+
+    dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.badCertificateCallback = (cert, host, port) {
+          // Allow ONLY the configured API host while override is enabled.
+          return host == uri.host;
+        };
+        return client;
+      },
+    );
+    return;
+  }
+
+  // Pinning is opt-in via --dart-define=ENABLE_CERT_PINNING=true.
+  // Defaulting off keeps environments functional when cert chains rotate.
+  if (!_pinningEnabled) {
+    if (kDebugMode) {
+      debugPrint('[SmartSpend Security] Certificate pinning disabled.');
+    }
+    return;
+  }
+
   if (uri.scheme != 'https') return;
   if (_isLocalHost(uri.host)) return;
 
@@ -80,13 +133,15 @@ void applyCertificatePinning(Dio dio, String baseUrl) {
       // We perform our own trust decision by verifying the SPKI pin.
       final context = SecurityContext(withTrustedRoots: false);
       final client = HttpClient(context: context);
-      client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) {
         if (host != uri.host) return false;
 
         final spkiPin = _computeSpkiPin(Uint8List.fromList(cert.der));
         if (spkiPin == null) {
           if (kDebugMode) {
-            debugPrint('[SmartSpend Security] Failed to parse SPKI from cert for $host');
+            debugPrint(
+                '[SmartSpend Security] Failed to parse SPKI from cert for $host');
           }
           return false;
         }

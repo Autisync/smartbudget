@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:share_plus/share_plus.dart' show Share, XFile;
+import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus, XFile;
 import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
 import 'package:smartbudget/components/forms/app_action_menu.dart';
@@ -109,7 +109,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           title: l10n.reportsTitleExport,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0.0,
+        backgroundColor: colorScheme.surface.withOpacity(
+          _isAppBarScrolled ? 0.88 : 0.0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -128,7 +129,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
           IconButton(
             style: IconButton.styleFrom(
-              backgroundColor: colorScheme.surfaceContainerHighest.withOpacity( _isAppBarScrolled ? 0.9 : 0.0,
+              backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(
+                _isAppBarScrolled ? 0.9 : 0.0,
               ),
             ),
             icon: const Icon(Icons.ios_share_rounded),
@@ -401,7 +403,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .tertiary
-                                  .withOpacity( 0.12),
+                                  .withOpacity(0.12),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -442,7 +444,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .primary
-                                  .withOpacity( 0.12),
+                                  .withOpacity(0.12),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
@@ -647,7 +649,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           color: Theme.of(context)
                               .colorScheme
                               .primary
-                              .withOpacity( 0.14),
+                              .withOpacity(0.14),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(entry.icon,
@@ -1376,11 +1378,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     // sharePositionOrigin is required for the iPad popover anchor; omitting it
     // throws there. Harmless on iPhone.
     final box = context.findRenderObject() as RenderBox?;
-    await Share.shareXFiles(
-      [file],
-      text: text,
-      sharePositionOrigin:
-          box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [file],
+        text: text,
+        sharePositionOrigin:
+            box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+      ),
     );
   }
 
@@ -1481,7 +1485,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         fileSizeBytes: fileSize,
       );
 
-      await _warnAndShare(XFile(output.path), text: l10n.reportsShareFinancialSummary);
+      await _warnAndShare(XFile(output.path),
+          text: l10n.reportsShareFinancialSummary);
 
       _trackActivity(
         title: l10n.reportShared(l10n.reportTypeFinancialSummary),
@@ -1556,7 +1561,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         fileSizeBytes: fileSize,
       );
 
-      await _warnAndShare(XFile(output.path), text: l10n.reportsShareTransactionHistory);
+      await _warnAndShare(XFile(output.path),
+          text: l10n.reportsShareTransactionHistory);
 
       _trackActivity(
         title: l10n.reportShared(l10n.reportTypeTransactionHistory),
@@ -1692,7 +1698,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         fileSizeBytes: fileSize,
       );
 
-      await _warnAndShare(XFile(output.path), text: l10n.reportsShareBudgetAnalysis);
+      await _warnAndShare(XFile(output.path),
+          text: l10n.reportsShareBudgetAnalysis);
 
       _trackActivity(
         title: l10n.reportShared(l10n.reportTypeBudgetAnalysis),
@@ -1802,7 +1809,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         fileSizeBytes: fileSize,
       );
 
-      await _warnAndShare(XFile(output.path), text: l10n.reportsShareSubscriptionReport);
+      await _warnAndShare(XFile(output.path),
+          text: l10n.reportsShareSubscriptionReport);
 
       _trackActivity(
         title: l10n.reportShared(l10n.reportTypeSubscriptionCosts),
@@ -1882,7 +1890,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         fileSizeBytes: fileSize,
       );
 
-      await _warnAndShare(XFile(output.path), text: l10n.reportsShareCompleteDataExport);
+      await _warnAndShare(XFile(output.path),
+          text: l10n.reportsShareCompleteDataExport);
 
       _trackActivity(
         title: l10n.reportShared(l10n.reportTypeCompleteExport),

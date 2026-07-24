@@ -80,7 +80,7 @@ class DatabaseCipher {
   }
 
   static FlutterSecureStorage _defaultStorage() => const FlutterSecureStorage(
-        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+        aOptions: AndroidOptions(),
         iOptions: IOSOptions(
           accessibility: KeychainAccessibility.first_unlock_this_device,
         ),
@@ -93,9 +93,7 @@ class DatabaseCipher {
     if (existing != null && existing.length == 64) return existing;
 
     final keyBytes = encrypt.Key.fromSecureRandom(32).bytes;
-    final hex = keyBytes
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join();
+    final hex = keyBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
     await storage.write(key: _cipherKeyAlias, value: hex);
     return hex;
   }
@@ -104,7 +102,8 @@ class DatabaseCipher {
   /// misconfiguration can never silently store the database in plaintext.
   static void _assertCipherActive(Database raw) {
     final result = raw.select('PRAGMA cipher_version;');
-    if (result.isEmpty || (result.first.values.first?.toString() ?? '').isEmpty) {
+    if (result.isEmpty ||
+        (result.first.values.first?.toString() ?? '').isEmpty) {
       throw StateError(
         'SQLCipher is not active — refusing to open the database unencrypted. '
         'Ensure setupSqlCipher() ran and sqlcipher_flutter_libs is linked.',
@@ -141,14 +140,13 @@ class DatabaseCipher {
     }
 
     final encryptedPath = '$dbPath.enc';
-    File(encryptedPath).existsSync()
-        ? File(encryptedPath).deleteSync()
-        : null;
+    File(encryptedPath).existsSync() ? File(encryptedPath).deleteSync() : null;
 
     final plain = sqlite3.open(dbPath);
     try {
       // Attach a new encrypted database and copy everything across.
-      plain.execute("ATTACH DATABASE '$encryptedPath' AS enc KEY \"x'$keyHex'\";");
+      plain.execute(
+          "ATTACH DATABASE '$encryptedPath' AS enc KEY \"x'$keyHex'\";");
       plain.execute("SELECT sqlcipher_export('enc');");
       plain.execute('DETACH DATABASE enc;');
     } finally {

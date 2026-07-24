@@ -27,7 +27,8 @@ class ErrorMonitor {
   static const String _dsnOverride = String.fromEnvironment('SENTRY_DSN');
   static const String _defaultDsn =
       'https://afd92e179fe1efbf47208adcf428a14e@o4511355600437248.ingest.de.sentry.io/4511588586422352';
-  static String get _dsn => _dsnOverride.isNotEmpty ? _dsnOverride : _defaultDsn;
+  static String get _dsn =>
+      _dsnOverride.isNotEmpty ? _dsnOverride : _defaultDsn;
 
   static const String _environment = String.fromEnvironment(
     'SENTRY_ENV',
@@ -117,6 +118,18 @@ class ErrorMonitor {
     _record(category, message);
     if (!_initialized) return;
     Sentry.addBreadcrumb(Breadcrumb(message: message, category: category));
+  }
+
+  /// Emits a non-fatal warning/info message to monitoring and the local
+  /// diagnostics buffer.
+  static Future<void> captureMessage(
+    String message, {
+    SentryLevel level = SentryLevel.warning,
+    String category = 'app',
+  }) async {
+    _record(category, message);
+    if (!_initialized) return;
+    await Sentry.captureMessage(message, level: level);
   }
 
   /// Associates subsequent events with the signed-in user (id only by default).

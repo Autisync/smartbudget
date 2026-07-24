@@ -77,7 +77,7 @@ class _AuthRefreshListenable extends ChangeNotifier {
 }
 
 @riverpod
-GoRouter router(RouterRef ref) {
+GoRouter router(Ref ref) {
   // Build the router ONCE; react to auth/onboarding via refreshListenable.
   final refresh = _AuthRefreshListenable(ref);
   ref.onDispose(refresh.dispose);
@@ -498,7 +498,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                 behavior: HitTestBehavior.opaque,
                 onTap: _closePanel,
                 child: ColoredBox(
-                  color: Colors.black.withOpacity( 0.30),
+                  color: Colors.black.withOpacity(0.30),
                 ),
               ),
             ),
@@ -709,11 +709,8 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     // Use the true current router location rather than the shell route's
     // matchedLocation, which can lag behind imperative pushes (e.g. opening
     // Settings from a page-header action) and leave the previous tab lit.
-    final location = GoRouter.of(context)
-        .routerDelegate
-        .currentConfiguration
-        .uri
-        .path;
+    final location =
+        GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
     // Four primary destinations: Transactions(0), Home(1), Savings(2), More(3).
     // Budgets, Subscriptions and every secondary surface now live under More.
     if (location.startsWith('/transactions')) return 0;

@@ -6,7 +6,7 @@ part of 'budget_alerts_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$budgetAlertsHash() => r'3378804ffe1e4342544a9b701561e298955254ec';
+String _$budgetAlertsHash() => r'7d2d764b5132f32ce04a68e62c690c615b838882';
 
 /// See also [budgetAlerts].
 @ProviderFor(budgetAlerts)

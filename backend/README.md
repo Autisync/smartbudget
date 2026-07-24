@@ -29,10 +29,10 @@ Production-ready authentication backend scaffold for SmartSpend/smartbudget.
 
 The Flutter app now supports tokenized routes for auth completion:
 
-- `smartbudget://reset-password?token=<token>`
-- `smartbudget://verify-email?token=<token>`
+- `https://api.smaartspend.com/r/reset-password?token=<token>`
+- `https://api.smaartspend.com/r/verify-email?token=<token>`
 
-Equivalent web-path style routes supported by GoRouter:
+Equivalent in-app routes supported by GoRouter after token handoff:
 
 - `/reset-password?token=<token>`
 - `/verify-email?token=<token>`
@@ -44,15 +44,15 @@ Use these in your email templates when replacing the scaffold email service.
 Android (emulator or device):
 
 ```bash
-adb shell am start -a android.intent.action.VIEW -d "smartbudget://reset-password?token=test-token"
-adb shell am start -a android.intent.action.VIEW -d "smartbudget://verify-email?token=test-token"
+adb shell am start -a android.intent.action.VIEW -d "https://api.smaartspend.com/r/reset-password?token=test-token"
+adb shell am start -a android.intent.action.VIEW -d "https://api.smaartspend.com/r/verify-email?token=test-token"
 ```
 
 iOS simulator:
 
 ```bash
-xcrun simctl openurl booted "smartbudget://reset-password?token=test-token"
-xcrun simctl openurl booted "smartbudget://verify-email?token=test-token"
+xcrun simctl openurl booted "https://api.smaartspend.com/r/reset-password?token=test-token"
+xcrun simctl openurl booted "https://api.smaartspend.com/r/verify-email?token=test-token"
 ```
 
 ### Preview Auth Links From Env
@@ -126,12 +126,12 @@ docker compose -f docker-compose.dev.yml down
 This repository includes a GitHub Actions workflow at [.github/workflows/docker-image.yml](../.github/workflows/docker-image.yml).
 
 - For pull requests and pushes touching `backend/**`:
-	- Builds and starts the full backend stack with Docker Compose
-	- Waits for `http://localhost:8000/api/v1/health`
+  - Builds and starts the full backend stack with Docker Compose
+  - Waits for `http://localhost:8000/api/v1/health`
 - For pushes to `main` after smoke tests pass:
-	- Builds and publishes backend image to GHCR:
-		- `ghcr.io/<owner>/smartbudget-backend:latest`
-		- `ghcr.io/<owner>/smartbudget-backend:<commit-sha>`
+  - Builds and publishes backend image to GHCR:
+    - `ghcr.io/<owner>/smartbudget-backend:latest`
+    - `ghcr.io/<owner>/smartbudget-backend:<commit-sha>`
 
 ### Important: Flutter cannot connect directly to GitHub Actions runner containers
 
@@ -139,12 +139,12 @@ GitHub-hosted runners are ephemeral and not publicly routable for your phone/emu
 Use one of these approaches:
 
 1. Local development (recommended for day-to-day)
-	 - Run `docker compose -f docker-compose.dev.yml up --build` locally
-	 - Start Flutter with your local API base URL (LAN IP for physical device)
+   - Run `docker compose -f docker-compose.dev.yml up --build` locally
+   - Start Flutter with your local API base URL (LAN IP for physical device)
 
 2. Remote deployment for shared/stable backend URL
-	 - Pull GHCR image on a VPS or cloud platform and run it there
-	 - Point Flutter `AUTH_API_BASE_URL` to that deployed HTTPS URL
+   - Pull GHCR image on a VPS or cloud platform and run it there
+   - Point Flutter `AUTH_API_BASE_URL` to that deployed HTTPS URL
 
 ### Example: run GHCR image on a server
 

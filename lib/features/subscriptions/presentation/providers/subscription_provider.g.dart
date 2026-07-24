@@ -6,7 +6,7 @@ part of 'subscription_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$dueSubscriptionsHash() => r'b3a7c8a43bea54531c450c94d0f803733a26e635';
+String _$dueSubscriptionsHash() => r'40dab5c6ddf6e2072cb62380c7b1c6e1ccaffb93';
 
 /// See also [dueSubscriptions].
 @ProviderFor(dueSubscriptions)
@@ -24,7 +24,7 @@ final dueSubscriptionsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DueSubscriptionsRef = AutoDisposeFutureProviderRef<List<Subscription>>;
-String _$subscriptionHash() => r'53e9d2998e461c9fefcd32d605621acb546d873e';
+String _$subscriptionHash() => r'c81073437bcc5821dafe7d37ee8a591e60cf1f5c';
 
 /// Copied from Dart SDK
 class _SystemHash {

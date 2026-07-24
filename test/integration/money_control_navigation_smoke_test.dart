@@ -294,12 +294,12 @@ class _NoopSecureStorage extends FlutterSecureStorage {
   @override
   Future<String?> read({
     required String key,
-    IOSOptions? iOptions,
+    AppleOptions? iOptions,
     AndroidOptions? aOptions,
     LinuxOptions? lOptions,
     WebOptions? webOptions,
     WindowsOptions? wOptions,
-    MacOsOptions? mOptions,
+    AppleOptions? mOptions,
   }) async =>
       null;
 
@@ -312,6 +312,6 @@ class _NoopSecureStorage extends FlutterSecureStorage {
     LinuxOptions? lOptions,
     WebOptions? webOptions,
     WindowsOptions? wOptions,
-    MacOsOptions? mOptions,
+    AppleOptions? mOptions,
   }) async {}
 }

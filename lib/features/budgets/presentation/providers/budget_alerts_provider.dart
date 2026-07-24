@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:smartbudget/domain/entities/budget_alert.dart';
@@ -6,7 +7,7 @@ import 'package:smartbudget/features/budgets/presentation/providers/budget_provi
 part 'budget_alerts_provider.g.dart';
 
 @riverpod
-Future<List<BudgetAlert>> budgetAlerts(BudgetAlertsRef ref) async {
+Future<List<BudgetAlert>> budgetAlerts(Ref ref) async {
   final budgets = await ref.watch(activeBudgetsProvider.future);
   final alerts = <BudgetAlert>[];
 

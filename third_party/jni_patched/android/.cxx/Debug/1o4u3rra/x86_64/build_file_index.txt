@@ -1,0 +1,1 @@
+C:\Users\pizt1\Documents\Business\smartbudget\third_party\jni_patched\src\CMakeLists.txt

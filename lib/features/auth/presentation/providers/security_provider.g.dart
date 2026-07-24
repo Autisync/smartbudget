@@ -6,7 +6,7 @@ part of 'security_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$securitySettingHash() => r'a2419c3a1c0f1563348c10c175ad3bf2ac0d6349';
+String _$securitySettingHash() => r'8d9783fe5842ee10cebde5b1c2a6051a46175657';
 
 /// See also [securitySetting].
 @ProviderFor(securitySetting)
@@ -24,7 +24,7 @@ final securitySettingProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SecuritySettingRef = AutoDisposeFutureProviderRef<SecuritySetting>;
-String _$authLogsHash() => r'6438ffb6a906725699a3dd75a78a4d9dac89d7e3';
+String _$authLogsHash() => r'fc9078d2116bfdc8a3d46cbe050d574122573a29';
 
 /// See also [authLogs].
 @ProviderFor(authLogs)

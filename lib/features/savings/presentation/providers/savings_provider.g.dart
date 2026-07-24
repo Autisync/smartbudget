@@ -7,7 +7,7 @@ part of 'savings_provider.dart';
 // **************************************************************************
 
 String _$savingsGoalRepositoryHash() =>
-    r'a9f6a9b6928d673587a9d3b3d8ca1bcd0f10ce2e';
+    r'73ce708aebdb37fbbb5af274486bf48557654ec0';
 
 /// See also [savingsGoalRepository].
 @ProviderFor(savingsGoalRepository)

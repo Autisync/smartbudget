@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/domain/entities/budget.dart';
@@ -60,7 +61,7 @@ class FinancialHealthTrendSnapshot {
 }
 
 @riverpod
-Future<FinancialHealthSnapshot> financialHealth(FinancialHealthRef ref) async {
+Future<FinancialHealthSnapshot> financialHealth(Ref ref) async {
   final l10n = lookupAppLocalizations(ref.watch(appLocaleControllerProvider));
   final budgets = await ref.watch(activeBudgetsProvider.future);
   final goals = await ref.watch(savingsGoalListProvider.future);
@@ -114,7 +115,7 @@ Future<FinancialHealthSnapshot> financialHealth(FinancialHealthRef ref) async {
 
 @riverpod
 Future<FinancialHealthTrendSnapshot> financialHealthHistory(
-  FinancialHealthHistoryRef ref, {
+  Ref ref, {
   int weeks = 8,
 }) async {
   final l10n = lookupAppLocalizations(ref.watch(appLocaleControllerProvider));
@@ -287,7 +288,7 @@ int _countBehindGoals(List<SavingsGoal> goals) {
 }
 
 Future<double> _computeBudgetUtilizationScore(
-  FinancialHealthRef ref,
+  Ref ref,
   List<Budget> budgets,
 ) async {
   if (budgets.isEmpty) return 70;

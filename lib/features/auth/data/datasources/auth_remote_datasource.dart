@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -74,12 +75,56 @@ class AuthApiClient {
             headers: const {'Content-Type': 'application/json'},
           ),
         ) {
+    developer.log(
+      'AuthApiClient initialized with baseUrl=$baseUrl',
+      name: 'SmartSpend.Auth',
+    );
+
     // H-5: Apply certificate pinning first (production hosts only).
     // Debug TLS bypass applies only to localhost — never to production.
     applyCertificatePinning(_dio, baseUrl);
     applyCertificatePinning(_refreshDio, baseUrl);
     configureDebugTlsAdapter(_dio, baseUrl);
     configureDebugTlsAdapter(_refreshDio, baseUrl);
+
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          if (options.path.startsWith('/api/v1/auth/')) {
+            developer.log(
+              'Request ${options.method} ${options.baseUrl}${options.path}',
+              name: 'SmartSpend.Auth',
+            );
+          }
+          handler.next(options);
+        },
+        onResponse: (response, handler) {
+          final path = response.requestOptions.path;
+          if (path.startsWith('/api/v1/auth/')) {
+            developer.log(
+              'Response ${response.statusCode} '
+              '${response.requestOptions.method} '
+              '${response.requestOptions.baseUrl}$path',
+              name: 'SmartSpend.Auth',
+            );
+          }
+          handler.next(response);
+        },
+        onError: (err, handler) {
+          final path = err.requestOptions.path;
+          if (path.startsWith('/api/v1/auth/')) {
+            developer.log(
+              'Error ${err.type} status=${err.response?.statusCode} '
+              '${err.requestOptions.method} '
+              '${err.requestOptions.baseUrl}$path '
+              'message=${err.message}',
+              name: 'SmartSpend.Auth',
+            );
+          }
+          handler.next(err);
+        },
+      ),
+    );
 
     _dio.interceptors.add(
       InterceptorsWrapper(

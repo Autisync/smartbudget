@@ -6,7 +6,7 @@ part of 'budget_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$budgetRepositoryHash() => r'722621f1902af26c697c5d67149a2725555543dc';
+String _$budgetRepositoryHash() => r'b487822ef2fb624606efe6de3627119cffc0a3e2';
 
 /// See also [budgetRepository].
 @ProviderFor(budgetRepository)
@@ -23,7 +23,7 @@ final budgetRepositoryProvider = Provider<BudgetRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef BudgetRepositoryRef = ProviderRef<BudgetRepository>;
-String _$budgetSpendingHash() => r'fb47708ba44873b386e352010f0977ea54ad0d19';
+String _$budgetSpendingHash() => r'2837a413cbde2debf00c901c6b565deade618723';
 
 /// Copied from Dart SDK
 class _SystemHash {

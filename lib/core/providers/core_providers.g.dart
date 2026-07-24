@@ -6,7 +6,7 @@ part of 'core_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$databaseHash() => r'dfb355b75031c13f4b9aacb208490f1d92f17762';
+String _$databaseHash() => r'e5a1fa0e8ff9aa131f847f28519ec2098e6d0f76';
 
 /// See also [database].
 @ProviderFor(database)
@@ -22,7 +22,7 @@ final databaseProvider = Provider<AppDatabase>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DatabaseRef = ProviderRef<AppDatabase>;
-String _$secureStorageHash() => r'ed88dce95a08c3d0173da54e8f23d477851f8d59';
+String _$secureStorageHash() => r'15ee065037a1b407722702d5bc45ef49333bd17d';
 
 /// See also [secureStorage].
 @ProviderFor(secureStorage)
@@ -39,7 +39,7 @@ final secureStorageProvider = Provider<FlutterSecureStorage>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SecureStorageRef = ProviderRef<FlutterSecureStorage>;
-String _$localAuthHash() => r'558740d844521301fb1fcae6c4964a039532dc12';
+String _$localAuthHash() => r'352b04d375edb7326ce1ca3fb7835db923b866eb';
 
 /// See also [localAuth].
 @ProviderFor(localAuth)
@@ -55,7 +55,7 @@ final localAuthProvider = Provider<LocalAuthentication>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef LocalAuthRef = ProviderRef<LocalAuthentication>;
-String _$encryptionServiceHash() => r'8698a024ded3e2f6d40c2dce6ddcf482980d70d7';
+String _$encryptionServiceHash() => r'370e645efc45f3aa63072992c5134818008ccd9f';
 
 /// See also [encryptionService].
 @ProviderFor(encryptionService)
@@ -73,7 +73,7 @@ final encryptionServiceProvider = Provider<EncryptionService>.internal(
 // ignore: unused_element
 typedef EncryptionServiceRef = ProviderRef<EncryptionService>;
 String _$biometricAuthServiceHash() =>
-    r'eb4075adfc8308feec3dae56b9f55218a2b6a35f';
+    r'fbbac87021cac41e71c9ec8b911fc4b44bb48569';
 
 /// See also [biometricAuthService].
 @ProviderFor(biometricAuthService)
@@ -90,7 +90,7 @@ final biometricAuthServiceProvider = Provider<BiometricAuthService>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef BiometricAuthServiceRef = ProviderRef<BiometricAuthService>;
-String _$securityServiceHash() => r'79ce7f4fb4e76bc79267162526b7554460d5e904';
+String _$securityServiceHash() => r'b204910b234c91a9facc6076be8fa373c1dc8728';
 
 /// See also [securityService].
 @ProviderFor(securityService)
@@ -108,7 +108,7 @@ final securityServiceProvider = Provider<SecurityService>.internal(
 // ignore: unused_element
 typedef SecurityServiceRef = ProviderRef<SecurityService>;
 String _$recurringSchedulerServiceHash() =>
-    r'91bd9644364ba73dff192be78f6324125a29b1ee';
+    r'1910708529b753f8703d7c285acdd59dd3f67db3';
 
 /// See also [recurringSchedulerService].
 @ProviderFor(recurringSchedulerService)
@@ -127,7 +127,7 @@ final recurringSchedulerServiceProvider =
 // ignore: unused_element
 typedef RecurringSchedulerServiceRef = ProviderRef<RecurringSchedulerService>;
 String _$notificationServiceHash() =>
-    r'015117d47fe71bf44664bf802ad1290b1e2492d4';
+    r'58da87941dbfa08925105dcc4d74091ee38c8593';
 
 /// See also [notificationService].
 @ProviderFor(notificationService)
@@ -145,7 +145,7 @@ final notificationServiceProvider = Provider<NotificationService>.internal(
 // ignore: unused_element
 typedef NotificationServiceRef = ProviderRef<NotificationService>;
 String _$subscriptionRepositoryHash() =>
-    r'0a4dc9ddebe2a4f014faadb8546aee3172f26c41';
+    r'f310daf244a2d5f7704bb67a7baa27a36baa8431';
 
 /// See also [subscriptionRepository].
 @ProviderFor(subscriptionRepository)

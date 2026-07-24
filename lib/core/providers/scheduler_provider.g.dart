@@ -6,7 +6,7 @@ part of 'scheduler_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$recurringSyncHash() => r'92ef6b99ed12b184eeb80f7b3e2bfe6fc09d50bd';
+String _$recurringSyncHash() => r'59d8ac8ddecf675a2208350e94ab560476f9e2d9';
 
 /// See also [recurringSync].
 @ProviderFor(recurringSync)

@@ -1,0 +1,3 @@
+C:/Users/pizt1/Documents/Business/smartbudget/third_party/jni_patched/android/.cxx/RelWithDebInfo/1913f5w4/x86/CMakeFiles/jni.dir
+C:/Users/pizt1/Documents/Business/smartbudget/third_party/jni_patched/android/.cxx/RelWithDebInfo/1913f5w4/x86/CMakeFiles/edit_cache.dir
+C:/Users/pizt1/Documents/Business/smartbudget/third_party/jni_patched/android/.cxx/RelWithDebInfo/1913f5w4/x86/CMakeFiles/rebuild_cache.dir

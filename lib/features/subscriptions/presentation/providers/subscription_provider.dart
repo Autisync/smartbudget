@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
@@ -117,17 +118,13 @@ class SubscriptionList extends _$SubscriptionList {
 }
 
 @riverpod
-Future<List<Subscription>> dueSubscriptions(DueSubscriptionsRef ref) {
+Future<List<Subscription>> dueSubscriptions(Ref ref) {
   final repository = ref.watch(subscriptionRepositoryProvider);
   return repository.getDueSubscriptions(DateTime.now());
 }
 
 @riverpod
-Future<Subscription?> subscription(SubscriptionRef ref, String id) {
+Future<Subscription?> subscription(Ref ref, String id) {
   final repository = ref.watch(subscriptionRepositoryProvider);
   return repository.getSubscription(id);
 }
-
-
-
-

@@ -93,8 +93,6 @@ class AppLineSparkChart extends StatelessWidget {
         builder: (context, progress) => SizedBox(
           height: height,
           child: LineChart(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOutCubic,
             LineChartData(
               minX: 0,
               maxX: (series.length - 1).toDouble(),
@@ -112,7 +110,7 @@ class AppLineSparkChart extends StatelessWidget {
                   dotData: const FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: lineColor.withOpacity( 0.12),
+                    color: lineColor.withOpacity(0.12),
                   ),
                   // Scale y-values from baseline upward on entrance
                   spots: List.generate(
@@ -125,6 +123,8 @@ class AppLineSparkChart extends StatelessWidget {
                 ),
               ],
             ),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOutCubic,
           ),
         ),
       ),
@@ -161,8 +161,6 @@ class AppDonutChart extends StatelessWidget {
           width: radius * 2.6,
           height: radius * 2.6,
           child: PieChart(
-            swapAnimationDuration: const Duration(milliseconds: 500),
-            swapAnimationCurve: Curves.easeInOutCubic,
             PieChartData(
               sectionsSpace: 3,
               centerSpaceRadius: centerSpaceRadius,
@@ -179,6 +177,8 @@ class AppDonutChart extends StatelessWidget {
                   )
                   .toList(),
             ),
+            swapAnimationDuration: const Duration(milliseconds: 500),
+            swapAnimationCurve: Curves.easeInOutCubic,
           ),
         ),
       ),

@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     # assetlinks.json + apple-app-site-association) instead of a hijackable
     # custom URL scheme. Must match the /app path prefix registered in the
     # native deep-link intent-filters.
-    reset_password_deep_link_base: str = "https://smaartspend.com/app/reset-password"
-    verify_email_deep_link_base: str = "https://smaartspend.com/app/verify-email"
+    reset_password_deep_link_base: str = "https://api.smaartspend.com/r/reset-password"
+    verify_email_deep_link_base: str = "https://api.smaartspend.com/r/verify-email"
     google_oauth_client_ids: str = ""
     # For native Sign in with Apple the identity token's `aud` claim is the
     # app's bundle identifier. Override per-environment (comma-separated) if a

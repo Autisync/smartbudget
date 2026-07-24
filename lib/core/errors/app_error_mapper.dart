@@ -33,6 +33,7 @@ class AppErrorMapper {
 
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
+      case DioExceptionType.transformTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
         return 'Request timed out. Please try again.';
@@ -126,8 +127,8 @@ class AppErrorMapper {
       RegExp(r'\bSELECT\b.*\bFROM\b', caseSensitive: false),
       RegExp(r'\bINSERT INTO\b', caseSensitive: false),
       RegExp(r'\bUPDATE\b.*\bSET\b', caseSensitive: false),
-      RegExp(r'(\/[a-zA-Z0-9._-]+){3,}'),   // Unix-style deep file paths
-      RegExp(r'[A-Z]:\\[^\s]+'),             // Windows-style paths
+      RegExp(r'(\/[a-zA-Z0-9._-]+){3,}'), // Unix-style deep file paths
+      RegExp(r'[A-Z]:\\[^\s]+'), // Windows-style paths
       RegExp(r'<html', caseSensitive: false), // HTML error pages
       RegExp(r'Internal Server Error', caseSensitive: false),
       RegExp(r'\bstacktrace\b', caseSensitive: false),
@@ -139,7 +140,3 @@ class AppErrorMapper {
     return true;
   }
 }
-
-
-
-

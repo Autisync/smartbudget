@@ -1,0 +1,38 @@
+{
+  "buildFiles": [
+    "C:\\Users\\pizt1\\Documents\\Business\\smartbudget\\third_party\\jni_patched\\src\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\pizt1\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\pizt1\\Documents\\Business\\smartbudget\\third_party\\jni_patched\\android\\.cxx\\Debug\\1o4u3rra\\x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\pizt1\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\pizt1\\Documents\\Business\\smartbudget\\third_party\\jni_patched\\android\\.cxx\\Debug\\1o4u3rra\\x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "jni::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "x86_64",
+      "artifactName": "jni",
+      "output": "C:\\Users\\pizt1\\Documents\\Business\\smartbudget\\build\\jni\\intermediates\\cxx\\Debug\\1o4u3rra\\obj\\x86_64\\libdartjni.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "C:\\Users\\pizt1\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe",
+      "cppCompilerExecutable": "C:\\Users\\pizt1\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+    }
+  },
+  "cFileExtensions": [
+    "c"
+  ],
+  "cppFileExtensions": []
+}

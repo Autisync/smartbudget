@@ -72,7 +72,9 @@ def _verify_email_result_html(*, success: bool, app_link: str) -> str:
 
 def _reset_password_page_html(*, token: str) -> str:
     token_js = json.dumps(token)
-    app_link = f"smartbudget://reset-password?token={quote(token, safe='')}"
+    base = settings.reset_password_deep_link_base
+    separator = "&" if "?" in base else "?"
+    app_link = f"{base}{separator}token={quote(token, safe='')}"
     app_link_html = escape(app_link, quote=True)
     app_link_js = json.dumps(app_link)
 

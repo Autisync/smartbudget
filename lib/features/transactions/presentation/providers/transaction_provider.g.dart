@@ -7,7 +7,7 @@ part of 'transaction_provider.dart';
 // **************************************************************************
 
 String _$transactionRepositoryHash() =>
-    r'f5626bbbbae28adf6e9cbeae85d97dc082d42250';
+    r'552373077ddfce54a39a9b7cbbe85eb1cc3b7ecb';
 
 /// See also [transactionRepository].
 @ProviderFor(transactionRepository)
@@ -25,7 +25,7 @@ final transactionRepositoryProvider = Provider<TransactionRepository>.internal(
 // ignore: unused_element
 typedef TransactionRepositoryRef = ProviderRef<TransactionRepository>;
 String _$recentTransactionsHash() =>
-    r'51375331e007bb47be5c6aca5900922006c25527';
+    r'8849b02452c91f264d957eaf924f5bffe6785336';
 
 /// See also [recentTransactions].
 @ProviderFor(recentTransactions)
@@ -43,7 +43,7 @@ final recentTransactionsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef RecentTransactionsRef = AutoDisposeFutureProviderRef<List<Transaction>>;
-String _$spendingProfileHash() => r'102fb9416b5d6e1a9c761aa152ce5d6c902a060c';
+String _$spendingProfileHash() => r'b044634698afdfcd62d8da17da42418fec0fc621';
 
 /// See also [spendingProfile].
 @ProviderFor(spendingProfile)
@@ -61,7 +61,7 @@ final spendingProfileProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SpendingProfileRef = AutoDisposeFutureProviderRef<SpendingProfile>;
-String _$burnRateInsightHash() => r'7ed95f89e915fa2bc5da02d0dc481994513e712f';
+String _$burnRateInsightHash() => r'ebc82407d226e8d8ad6541b0997e719bf6eaee18';
 
 /// See also [burnRateInsight].
 @ProviderFor(burnRateInsight)
@@ -80,7 +80,7 @@ final burnRateInsightProvider =
 // ignore: unused_element
 typedef BurnRateInsightRef = AutoDisposeFutureProviderRef<BurnRateInsight>;
 String _$transactionDecisionSnapshotHash() =>
-    r'075e9cd7d0268ddb49c9dd2421710a3944f1bfc7';
+    r'9a06aea4f2dc2ae3cd165ab35de174e8f9b8cf23';
 
 /// See also [transactionDecisionSnapshot].
 @ProviderFor(transactionDecisionSnapshot)
@@ -100,7 +100,7 @@ final transactionDecisionSnapshotProvider =
 typedef TransactionDecisionSnapshotRef
     = AutoDisposeFutureProviderRef<TransactionDecisionSnapshotData>;
 String _$cashflowPredictionHash() =>
-    r'a05b1af74d7c3f347456101954f2e1c0e82d41f8';
+    r'8f0ba1b63030f3413ba32b412820c7a5165afc9f';
 
 /// See also [cashflowPrediction].
 @ProviderFor(cashflowPrediction)
@@ -120,7 +120,7 @@ final cashflowPredictionProvider =
 typedef CashflowPredictionRef
     = AutoDisposeFutureProviderRef<CashflowPrediction>;
 String _$recurringTransactionsHash() =>
-    r'21c3732074a6632a63c656d78ebf27563ae2ad1e';
+    r'aca229641e06ca6afb867d9c4bde7f2ef83fbedc';
 
 /// See also [recurringTransactions].
 @ProviderFor(recurringTransactions)

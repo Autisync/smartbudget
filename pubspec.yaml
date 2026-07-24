@@ -50,7 +50,7 @@ dependencies:
   retrofit: ^4.1.0
 
   # Security
-  flutter_secure_storage: ^9.2.0
+  flutter_secure_storage: ^10.3.1
   local_auth: ^2.2.0
   encrypt: ^5.0.3
   crypto: ^3.0.3
@@ -68,26 +68,26 @@ dependencies:
   shimmer: ^3.0.0
   flutter_markdown: ^0.7.7+1
   google_sign_in: ^6.2.1
-  sign_in_with_apple: ^6.1.0
+  sign_in_with_apple: ^7.0.1
 
   # Utils
   json_annotation: ^4.9.0
   uuid: ^4.4.0
   intl: ^0.19.0
-  go_router: ^13.2.0
+  go_router: ^15.1.2
   collection: ^1.18.0
   url_launcher: ^6.3.1
 
   # Reports & Export
   pdf: ^3.10.7
   csv: ^6.0.0
-  share_plus: ^7.2.0
+  share_plus: ^12.0.2
 
   # Background Tasks & Notifications
-  workmanager: ^0.5.2
-  flutter_local_notifications: ^17.0.0
-  firebase_core: ^3.15.1
-  firebase_messaging: ^15.2.6
+  workmanager: ^0.7.0
+  flutter_local_notifications: ^19.5.0
+  firebase_core: ^4.7.0
+  firebase_messaging: ^16.2.0
   sqlcipher_flutter_libs: ^0.6.0
   sentry_flutter: ^9.22.0
 
@@ -103,6 +103,10 @@ dev_dependencies:
   json_serializable: ^6.8.0
   flutter_native_splash: ^2.4.1
   # retrofit_generator removed due to generator compatibility issues; re-add if needed
+
+dependency_overrides:
+  jni:
+    path: third_party/jni_patched
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

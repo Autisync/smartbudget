@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/domain/entities/savings_goal.dart';
@@ -8,7 +9,7 @@ import 'package:smartbudget/l10n/app_localizations.dart';
 part 'savings_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-SavingsGoalRepository savingsGoalRepository(SavingsGoalRepositoryRef ref) {
+SavingsGoalRepository savingsGoalRepository(Ref ref) {
   final database = ref.watch(databaseProvider);
   return SavingsGoalRepositoryImpl(database);
 }
@@ -120,7 +121,3 @@ class SavingsNudges extends _$SavingsNudges {
     return nudges;
   }
 }
-
-
-
-

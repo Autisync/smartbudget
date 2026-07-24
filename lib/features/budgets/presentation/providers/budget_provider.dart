@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/data/models/tables.dart' show BudgetPeriod;
 import 'package:smartbudget/domain/entities/budget.dart';
@@ -13,7 +14,7 @@ final activeBudgetsProvider = FutureProvider<List<Budget>>((ref) async {
 });
 
 @Riverpod(keepAlive: true)
-BudgetRepository budgetRepository(BudgetRepositoryRef ref) {
+BudgetRepository budgetRepository(Ref ref) {
   final database = ref.watch(databaseProvider);
   return BudgetRepositoryImpl(database);
 }
@@ -131,7 +132,7 @@ class BudgetList extends _$BudgetList {
 }
 
 @riverpod
-Future<double> budgetSpending(BudgetSpendingRef ref,
+Future<double> budgetSpending(Ref ref,
     {required String category,
     required DateTime start,
     required DateTime end}) async {

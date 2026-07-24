@@ -265,7 +265,7 @@ class _NoopStorage implements FlutterSecureStorage {
     LinuxOptions? lOptions,
     WebOptions? webOptions,
     WindowsOptions? wOptions,
-    MacOsOptions? mOptions,
+    AppleOptions? mOptions,
   }) async =>
       null;
 
@@ -278,7 +278,7 @@ class _NoopStorage implements FlutterSecureStorage {
     LinuxOptions? lOptions,
     WebOptions? webOptions,
     WindowsOptions? wOptions,
-    MacOsOptions? mOptions,
+    AppleOptions? mOptions,
   }) async {}
 
   @override

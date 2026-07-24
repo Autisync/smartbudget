@@ -23,16 +23,14 @@ import 'package:smartbudget/data/repositories/subscription_repository_impl.dart'
 part 'core_providers.g.dart';
 
 @Riverpod(keepAlive: true)
-AppDatabase database(DatabaseRef ref) {
+AppDatabase database(Ref ref) {
   return AppDatabase();
 }
 
 @Riverpod(keepAlive: true)
-FlutterSecureStorage secureStorage(SecureStorageRef ref) {
+FlutterSecureStorage secureStorage(Ref ref) {
   return const FlutterSecureStorage(
     aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-      keyCipherAlgorithm: KeyCipherAlgorithm.RSA_ECB_PKCS1Padding,
       storageCipherAlgorithm: StorageCipherAlgorithm.AES_GCM_NoPadding,
     ),
     iOptions: IOSOptions(
@@ -43,12 +41,12 @@ FlutterSecureStorage secureStorage(SecureStorageRef ref) {
 }
 
 @Riverpod(keepAlive: true)
-LocalAuthentication localAuth(LocalAuthRef ref) {
+LocalAuthentication localAuth(Ref ref) {
   return LocalAuthentication();
 }
 
 @Riverpod(keepAlive: true)
-EncryptionService encryptionService(EncryptionServiceRef ref) {
+EncryptionService encryptionService(Ref ref) {
   final storage = ref.watch(secureStorageProvider);
   return EncryptionService(storage);
 }
@@ -61,7 +59,7 @@ final fieldEncryptorProvider = Provider<FieldEncryptor>((ref) {
 });
 
 @Riverpod(keepAlive: true)
-BiometricAuthService biometricAuthService(BiometricAuthServiceRef ref) {
+BiometricAuthService biometricAuthService(Ref ref) {
   final localAuth = ref.watch(localAuthProvider);
   final storage = ref.watch(secureStorageProvider);
   return BiometricAuthService(localAuth, storage);
@@ -167,20 +165,19 @@ final notificationDispatchStatusProvider =
 });
 
 @Riverpod(keepAlive: true)
-SecurityService securityService(SecurityServiceRef ref) {
+SecurityService securityService(Ref ref) {
   final database = ref.watch(databaseProvider);
   return SecurityService(database);
 }
 
 @Riverpod(keepAlive: true)
-RecurringSchedulerService recurringSchedulerService(
-    RecurringSchedulerServiceRef ref) {
+RecurringSchedulerService recurringSchedulerService(Ref ref) {
   final database = ref.watch(databaseProvider);
   return RecurringSchedulerService(database);
 }
 
 @Riverpod(keepAlive: true)
-NotificationService notificationService(NotificationServiceRef ref) {
+NotificationService notificationService(Ref ref) {
   return NotificationService();
 }
 
@@ -210,8 +207,7 @@ final pushPermissionStateProvider =
 });
 
 @Riverpod(keepAlive: true)
-SubscriptionRepositoryImpl subscriptionRepository(
-    SubscriptionRepositoryRef ref) {
+SubscriptionRepositoryImpl subscriptionRepository(Ref ref) {
   final database = ref.watch(databaseProvider);
   final encryptor = ref.watch(fieldEncryptorProvider);
   // C-2: inject FieldEncryptor so description/paymentMethod/website are encrypted.
