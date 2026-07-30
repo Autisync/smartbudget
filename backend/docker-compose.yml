@@ -67,7 +67,7 @@ services:
       - traefik.http.routers.smaartspend-backend.rule=Host(`api.smaartspend.com`)
       - traefik.http.routers.smaartspend-backend.entrypoints=websecure
       - traefik.http.routers.smaartspend-backend.tls=true
-      - traefik.http.routers.smaartspend-backend.tls.certresolver=letsencrypt
+      - traefik.http.routers.smaartspend-backend.tls.certresolver=letsencrypt-http
       - traefik.http.routers.smaartspend-backend.service=smaartspend-backend-svc
       - traefik.http.services.smaartspend-backend-svc.loadbalancer.server.port=8000
 
