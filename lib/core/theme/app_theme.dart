@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/app_radius.dart';
@@ -42,7 +43,7 @@ class AppTheme {
           scheme.onSurfaceVariant,
         ).headlineSmall,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: scheme.surface,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
@@ -175,7 +176,7 @@ class AppTheme {
           color: scheme.onSurfaceVariant,
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
