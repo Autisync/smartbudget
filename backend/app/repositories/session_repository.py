@@ -43,13 +43,14 @@ class SessionRepository:
             )
         )
 
-    def revoke_by_token_hash(self, token_hash: str) -> None:
+    def revoke_by_token_hash(self, token_hash: str) -> AuthSession | None:
         auth_session = self.db.scalar(select(AuthSession).where(AuthSession.token_hash == token_hash))
         if auth_session is None:
-            return
+            return None
         auth_session.revoked_at = datetime.now(UTC)
         self.db.add(auth_session)
         self.db.commit()
+        return auth_session
 
     def revoke_all_for_user(self, user_id: str) -> None:
         sessions = self.db.scalars(

@@ -82,6 +82,7 @@ def test_distributed_brute_force_is_still_capped_per_account(real_db, real_redis
         SignupRequest(
             email=email, password="CorrectHorse123", first_name="Target", last_name="User",
         ),
+        _FakeRequest(ip="198.51.100.1"),
         db=real_db,
     )
 
@@ -121,6 +122,7 @@ def test_legitimate_single_ip_login_within_normal_use_is_unaffected(real_db, rea
         SignupRequest(
             email=email, password="CorrectHorse123", first_name="Normal", last_name="User",
         ),
+        _FakeRequest(ip="198.51.100.7"),
         db=real_db,
     )
 

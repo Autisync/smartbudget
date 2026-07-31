@@ -18,6 +18,7 @@ from app.core.security import (
     hash_token,
     verify_password_constant_time,
 )
+from app.models.finance import AuditLog
 from app.repositories.session_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import AuthResponse
@@ -52,7 +53,45 @@ class AuthService:
         self.users = UserRepository(db)
         self.sessions = SessionRepository(db)
 
-    def signup(self, *, email: str, password: str, first_name: str, last_name: str, device_name: str | None, platform: str | None):
+    def _audit(
+        self,
+        *,
+        action: str,
+        actor_user_id=None,
+        resource_id: str | None = None,
+        ip_address: str | None = None,
+        metadata: dict | None = None,
+    ) -> None:
+        """L-2 fix: audit_logs previously only ever got a row from
+        transaction create/delete — every authentication event (login,
+        failed login, logout, signup, password reset, email verification)
+        went completely unlogged, despite that being exactly the kind of
+        sensitive-action trail this table exists for. Joins the caller's
+        existing transaction rather than committing separately, so a crash
+        between the audit write and the real commit can't leave one without
+        the other."""
+        self.db.add(
+            AuditLog(
+                actor_user_id=actor_user_id,
+                action=action,
+                resource_type="auth",
+                resource_id=resource_id,
+                ip_address=ip_address,
+                metadata_json=metadata or {},
+            )
+        )
+
+    def signup(
+        self,
+        *,
+        email: str,
+        password: str,
+        first_name: str,
+        last_name: str,
+        device_name: str | None,
+        platform: str | None,
+        request_ip: str | None = None,
+    ):
         existing = self.users.get_by_email(email)
         if existing:
             # Account-enumeration fix: never reveal whether the email is
@@ -75,6 +114,13 @@ class AuthService:
                 user_name=existing.first_name,
                 attempt_time=attempt_time,
             )
+            self._audit(
+                action="auth.signup_duplicate_attempt",
+                actor_user_id=existing.id,
+                ip_address=request_ip,
+                metadata={"email": email.lower().strip()},
+            )
+            self.db.commit()
             raise errors.bad_request("Unable to create account with the provided details")
 
         user = self.users.create(
@@ -83,6 +129,10 @@ class AuthService:
             first_name=first_name,
             last_name=last_name,
         )
+        self._audit(
+            action="auth.signup", actor_user_id=user.id, ip_address=request_ip,
+        )
+        self.db.commit()
 
         verification_token = create_short_lived_token(
             subject=str(user.id),
@@ -112,9 +162,24 @@ class AuthService:
         # account existence via timing despite the identical error message.
         password_hash = user.password_hash if user else None
         if not verify_password_constant_time(password, password_hash):
+            self._audit(
+                action="auth.login_failed",
+                actor_user_id=user.id if user else None,
+                ip_address=request_ip,
+                metadata={"email": email.lower().strip()},
+            )
+            self.db.commit()
             raise errors.unauthorized("Invalid email or password")
         if not user.is_active:
+            self._audit(
+                action="auth.login_failed", actor_user_id=user.id, ip_address=request_ip,
+                metadata={"reason": "inactive_user"},
+            )
+            self.db.commit()
             raise errors.forbidden("User is inactive")
+
+        self._audit(action="auth.login_success", actor_user_id=user.id, ip_address=request_ip)
+        self.db.commit()
 
         auth_response = self._issue_tokens(
             user_id=str(user.id),
@@ -182,6 +247,11 @@ class AuthService:
             user = self.users.link_apple_sub(user, apple_sub)
 
         if not user.is_active:
+            self._audit(
+                action="auth.login_failed", actor_user_id=user.id, ip_address=request_ip,
+                metadata={"reason": "inactive_user", "provider": provider},
+            )
+            self.db.commit()
             raise errors.forbidden("User is inactive")
 
         if profile["email_verified"] and not user.is_verified:
@@ -189,6 +259,12 @@ class AuthService:
             self.db.add(user)
             self.db.commit()
             self.db.refresh(user)
+
+        self._audit(
+            action="auth.login_success", actor_user_id=user.id, ip_address=request_ip,
+            metadata={"provider": provider},
+        )
+        self.db.commit()
 
         auth_response = self._issue_tokens(
             user_id=str(user.id),
@@ -231,9 +307,16 @@ class AuthService:
             user=user,
         )
 
-    def logout(self, *, refresh_token: str):
+    def logout(self, *, refresh_token: str, request_ip: str | None = None):
         token_hash = hash_token(refresh_token)
-        self.sessions.revoke_by_token_hash(token_hash)
+        revoked_session = self.sessions.revoke_by_token_hash(token_hash)
+        if revoked_session is not None:
+            self._audit(
+                action="auth.logout",
+                actor_user_id=revoked_session.user_id,
+                ip_address=request_ip,
+            )
+            self.db.commit()
 
     def resend_verification(self, *, user) -> None:
         """Re-issues an email-verification link to the given user. Idempotent and
@@ -256,7 +339,7 @@ class AuthService:
             user, first_name=first_name, last_name=last_name
         )
 
-    def forgot_password(self, *, email: str) -> None:
+    def forgot_password(self, *, email: str, request_ip: str | None = None) -> None:
         user = self.users.get_by_email(email)
         if user is None:
             return
@@ -266,23 +349,30 @@ class AuthService:
         _safe_delay(send_password_reset_email_task,
             email=user.email, token=token, user_name=user.first_name
         )
+        self._audit(action="auth.password_reset_requested", actor_user_id=user.id, ip_address=request_ip)
+        self.db.commit()
 
-    def reset_password(self, *, token_payload: dict, new_password: str) -> None:
+    def reset_password(self, *, token_payload: dict, new_password: str, request_ip: str | None = None) -> None:
         user = self.users.get_by_id(token_payload["sub"])
         if user is None:
             raise errors.bad_request("Invalid reset token")
 
         user.password_hash = hash_password(new_password)
         self.db.add(user)
-        self.db.commit()
         self.sessions.revoke_all_for_user(str(user.id))
+        self._audit(
+            action="auth.password_reset_completed", actor_user_id=user.id, ip_address=request_ip,
+            metadata={"sessions_revoked": True},
+        )
+        self.db.commit()
 
-    def verify_email(self, *, token_payload: dict) -> None:
+    def verify_email(self, *, token_payload: dict, request_ip: str | None = None) -> None:
         user = self.users.get_by_id(token_payload["sub"])
         if user is None:
             raise errors.bad_request("Invalid verification token")
         user.is_verified = True
         self.db.add(user)
+        self._audit(action="auth.email_verified", actor_user_id=user.id, ip_address=request_ip)
         self.db.commit()
 
         _safe_delay(send_welcome_email_task,

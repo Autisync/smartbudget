@@ -33,7 +33,8 @@ def limiter() -> RateLimiterService:
 
 
 @router.post("/signup", response_model=AuthResponse)
-def signup(payload: SignupRequest, db: Session = Depends(db_session)):
+def signup(payload: SignupRequest, request: Request, db: Session = Depends(db_session)):
+    ip_key = request.client.host if request.client else None
     service = AuthService(db)
     return service.signup(
         email=payload.email,
@@ -42,6 +43,7 @@ def signup(payload: SignupRequest, db: Session = Depends(db_session)):
         last_name=payload.last_name,
         device_name=payload.device_name,
         platform=payload.platform,
+        request_ip=ip_key,
     )
 
 
@@ -105,8 +107,9 @@ def refresh(payload: RefreshRequest, db: Session = Depends(db_session)):
 
 
 @router.post("/logout", response_model=MessageResponse)
-def logout(payload: LogoutRequest, db: Session = Depends(db_session)):
-    AuthService(db).logout(refresh_token=payload.refresh_token)
+def logout(payload: LogoutRequest, request: Request, db: Session = Depends(db_session)):
+    ip_key = request.client.host if request.client else None
+    AuthService(db).logout(refresh_token=payload.refresh_token, request_ip=ip_key)
     return MessageResponse(message="Logged out")
 
 
@@ -125,12 +128,12 @@ def forgot_password(
         window_seconds=900,
     ):
         raise errors.bad_request("Too many requests. Try again later.")
-    AuthService(db).forgot_password(email=payload.email)
+    AuthService(db).forgot_password(email=payload.email, request_ip=ip_key)
     return MessageResponse(message="If account exists, reset instructions were sent")
 
 
 @router.post("/reset-password", response_model=MessageResponse)
-def reset_password(payload: ResetPasswordRequest, db: Session = Depends(db_session)):
+def reset_password(payload: ResetPasswordRequest, request: Request, db: Session = Depends(db_session)):
     try:
         token_payload = decode_token(payload.token)
         if token_payload.get("type") != "reset_password":
@@ -138,12 +141,15 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(db_sessi
     except jwt.PyJWTError:
         raise errors.bad_request("Invalid token")
 
-    AuthService(db).reset_password(token_payload=token_payload, new_password=payload.new_password)
+    ip_key = request.client.host if request.client else None
+    AuthService(db).reset_password(
+        token_payload=token_payload, new_password=payload.new_password, request_ip=ip_key,
+    )
     return MessageResponse(message="Password updated")
 
 
 @router.post("/verify-email", response_model=MessageResponse)
-def verify_email(payload: VerifyEmailRequest, db: Session = Depends(db_session)):
+def verify_email(payload: VerifyEmailRequest, request: Request, db: Session = Depends(db_session)):
     try:
         token_payload = decode_token(payload.token)
         if token_payload.get("type") != "verify_email":
@@ -151,7 +157,8 @@ def verify_email(payload: VerifyEmailRequest, db: Session = Depends(db_session))
     except jwt.PyJWTError:
         raise errors.bad_request("Invalid token")
 
-    AuthService(db).verify_email(token_payload=token_payload)
+    ip_key = request.client.host if request.client else None
+    AuthService(db).verify_email(token_payload=token_payload, request_ip=ip_key)
     return MessageResponse(message="Email verified")
 
 
