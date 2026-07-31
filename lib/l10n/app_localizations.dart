@@ -5027,6 +5027,48 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load accounts.'**
   String get accountsLoadError;
 
+  /// No description provided for @accountsLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load accounts'**
+  String get accountsLoadErrorTitle;
+
+  /// No description provided for @budgetsListErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load budgets'**
+  String get budgetsListErrorTitle;
+
+  /// No description provided for @budgetsListErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again in a moment to view your budgets.'**
+  String get budgetsListErrorMessage;
+
+  /// No description provided for @savingsListErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load savings goals'**
+  String get savingsListErrorTitle;
+
+  /// No description provided for @savingsListErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again in a moment to view your savings goals.'**
+  String get savingsListErrorMessage;
+
+  /// No description provided for @notificationsListErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load notifications'**
+  String get notificationsListErrorTitle;
+
+  /// No description provided for @notificationsListErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again in a moment to view your notifications.'**
+  String get notificationsListErrorMessage;
+
   /// No description provided for @accountsRemoveTitle.
   ///
   /// In en, this message translates to:

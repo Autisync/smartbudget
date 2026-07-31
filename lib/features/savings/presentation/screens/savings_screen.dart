@@ -791,8 +791,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemCount: 4,
           ),
-          error: (err, st) => Center(
-            child: Text(l10n.transactionsError(err.toString())),
+          error: (err, st) => AppErrorState(
+            title: l10n.savingsListErrorTitle,
+            message: l10n.savingsListErrorMessage,
+            actionLabel: l10n.commonRetry,
+            onAction: () => ref.invalidate(savingsGoalListProvider),
           ),
         ),
       ),

@@ -615,8 +615,11 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemCount: 4,
           ),
-          error: (err, st) => Center(
-            child: Text(l10n.transactionsError(err.toString())),
+          error: (err, st) => AppErrorState(
+            title: l10n.budgetsListErrorTitle,
+            message: l10n.budgetsListErrorMessage,
+            actionLabel: l10n.commonRetry,
+            onAction: () => ref.invalidate(budgetListProvider),
           ),
         ),
       ),

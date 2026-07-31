@@ -244,8 +244,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           },
           loading: () => const AppShimmerSkeleton(
               variant: AppShimmerVariant.list, itemCount: 6),
-          error: (err, st) => Center(
-            child: Text(l10n.notificationsLoadError(err.toString())),
+          error: (err, st) => AppErrorState(
+            title: l10n.notificationsListErrorTitle,
+            message: l10n.notificationsListErrorMessage,
+            actionLabel: l10n.commonRetry,
+            onAction: () => ref.invalidate(notificationInboxProvider),
           ),
         ),
       ),

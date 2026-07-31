@@ -2666,6 +2666,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountsLoadError => 'Couldn\'t load accounts.';
 
   @override
+  String get accountsLoadErrorTitle => 'Unable to load accounts';
+
+  @override
+  String get budgetsListErrorTitle => 'Unable to load budgets';
+
+  @override
+  String get budgetsListErrorMessage => 'Try again in a moment to view your budgets.';
+
+  @override
+  String get savingsListErrorTitle => 'Unable to load savings goals';
+
+  @override
+  String get savingsListErrorMessage => 'Try again in a moment to view your savings goals.';
+
+  @override
+  String get notificationsListErrorTitle => 'Unable to load notifications';
+
+  @override
+  String get notificationsListErrorMessage => 'Try again in a moment to view your notifications.';
+
+  @override
   String accountsRemoveTitle(String name) {
     return 'Remove $name?';
   }

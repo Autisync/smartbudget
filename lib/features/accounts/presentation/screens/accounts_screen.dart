@@ -95,7 +95,12 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
         child: accountsAsync.when(
           loading: () => const AppShimmerSkeleton(
               variant: AppShimmerVariant.cards, itemCount: 4),
-          error: (e, _) => Center(child: Text(l10n.accountsLoadError)),
+          error: (e, _) => AppErrorState(
+            title: l10n.accountsLoadErrorTitle,
+            message: l10n.accountsLoadError,
+            actionLabel: l10n.commonRetry,
+            onAction: () => ref.invalidate(accountsProvider),
+          ),
           data: (accounts) {
             if (accounts.isEmpty) {
               return AppEmptyState(
