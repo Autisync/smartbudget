@@ -1,0 +1,35 @@
+# M-3 fix: without this, `COPY . .` bakes any of these into the image layer
+# if present in the build context — most importantly a populated .env with
+# real secrets (see the C-2 leaked-secrets incident this repo already had).
+
+# Secrets — never let these into an image layer.
+.env
+.env.*
+!.env.example
+
+# VCS
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Test / coverage / lint artifacts — not needed at runtime, and pytest-report
+# output could leak internal details (stack traces, DB state) into an image.
+tests/
+.pytest_cache/
+.coverage
+coverage.xml
+pytest-report.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Editor/OS cruft
+.DS_Store
+.vscode/
+.idea/
