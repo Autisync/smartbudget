@@ -108,7 +108,7 @@ jobs:
       # have configured yet. Skip quietly rather than failing the build when
       # it's absent — the obfuscated build itself is what this job verifies.
       - name: Upload debug symbols to Sentry
-        if: ${{ secrets.SENTRY_AUTH_TOKEN != '' }}
+        if: ${{ env.SENTRY_AUTH_TOKEN != '' }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: dart run sentry_dart_plugin
