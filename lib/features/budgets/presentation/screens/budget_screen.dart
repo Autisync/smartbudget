@@ -472,11 +472,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                     final projectedOverrun =
                                         projectedSpend - budget.limitAmount;
 
-                                    final statusColor = usagePercentage < 70
-                                        ? Colors.green
-                                        : usagePercentage < 90
-                                            ? Colors.orange
-                                            : Colors.red;
+                                    final statusColor = AppColors.statusFor(
+                                      Theme.of(context).brightness,
+                                      usagePercentage < 70
+                                          ? AppStatus.success
+                                          : usagePercentage < 90
+                                              ? AppStatus.warning
+                                              : AppStatus.danger,
+                                    );
 
                                     final status = usagePercentage < 70
                                         ? l10n.budgetStatusOnTrack
@@ -1010,7 +1013,7 @@ class _BudgetInsightCard extends StatelessWidget {
     final tone = isCritical
         ? scheme.error
         : isWarning
-            ? Colors.orange
+            ? AppColors.statusFor(Theme.of(context).brightness, AppStatus.warning)
             : scheme.primary;
 
     final statusLabel = isCritical

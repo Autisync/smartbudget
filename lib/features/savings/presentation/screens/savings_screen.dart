@@ -646,7 +646,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                         )
                       : 0;
 
-                  final statusColor = _goalStatusColor(progress, projectedLate);
+                  final statusColor = _goalStatusColor(
+                    Theme.of(context).brightness,
+                    progress,
+                    projectedLate,
+                  );
 
                   return AnimatedListItem(
                     index: idx,
@@ -1234,11 +1238,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     return l10n.savingsStatusBuildingMomentum;
   }
 
-  Color _goalStatusColor(double progress, int projectedLate) {
-    if (progress >= 1.0) return Colors.green;
-    if (projectedLate > 0) return Colors.red;
-    if (progress >= 0.6) return Colors.orange;
-    return Colors.blue;
+  Color _goalStatusColor(Brightness brightness, double progress, int projectedLate) {
+    if (progress >= 1.0) return AppColors.statusFor(brightness, AppStatus.success);
+    if (projectedLate > 0) return AppColors.statusFor(brightness, AppStatus.danger);
+    if (progress >= 0.6) return AppColors.statusFor(brightness, AppStatus.warning);
+    return AppColors.statusFor(brightness, AppStatus.info);
   }
 }
 
@@ -1250,13 +1254,15 @@ class _SavingsNudgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final infoColor = AppColors.statusFor(brightness, AppStatus.info);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity( 0.08),
+        color: AppColors.statusTint(brightness, AppStatus.info),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.blue.withOpacity( 0.15),
+          color: infoColor.withOpacity(0.15),
           width: 1,
         ),
         boxShadow: [
@@ -1276,13 +1282,13 @@ class _SavingsNudgeCard extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity( 0.14),
+                  color: infoColor.withOpacity(0.14),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.lightbulb_outline,
                   size: 16,
-                  color: Colors.blue,
+                  color: infoColor,
                 ),
               ),
               const SizedBox(width: 10),
@@ -1306,7 +1312,7 @@ class _SavingsNudgeCard extends StatelessWidget {
                   Icon(
                     _getSeverityIcon(nudge.severity),
                     size: 16,
-                    color: _getSeverityColor(nudge.severity),
+                    color: _getSeverityColor(brightness, nudge.severity),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -1332,11 +1338,11 @@ class _SavingsNudgeCard extends StatelessWidget {
     };
   }
 
-  Color _getSeverityColor(SavingsNudgeSeverity severity) {
+  Color _getSeverityColor(Brightness brightness, SavingsNudgeSeverity severity) {
     return switch (severity) {
-      SavingsNudgeSeverity.critical => Colors.red,
-      SavingsNudgeSeverity.warning => Colors.orange,
-      SavingsNudgeSeverity.info => Colors.blue,
+      SavingsNudgeSeverity.critical => AppColors.statusFor(brightness, AppStatus.danger),
+      SavingsNudgeSeverity.warning => AppColors.statusFor(brightness, AppStatus.warning),
+      SavingsNudgeSeverity.info => AppColors.statusFor(brightness, AppStatus.info),
     };
   }
 }
@@ -1356,10 +1362,12 @@ class _SavingsSurplusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final incomeColor = AppColors.income(brightness);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity( 0.08),
+        color: AppColors.incomeTint(brightness),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -1384,7 +1392,7 @@ class _SavingsSurplusCard extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
                   fontSize: 28,
-                  color: Colors.green,
+                  color: incomeColor,
                 ),
           ),
           const SizedBox(height: 12),
@@ -1401,7 +1409,7 @@ class _SavingsSurplusCard extends StatelessWidget {
             label: Text(l10n.savingsSimulateCustomAllocation),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
-              backgroundColor: Colors.green,
+              backgroundColor: incomeColor,
               foregroundColor: Colors.white,
             ),
           ),
@@ -1631,7 +1639,10 @@ class _SavingsGoalCard extends StatelessWidget {
             Text(
               'Projected late by $projectedLate months',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.red,
+                    color: AppColors.statusFor(
+                      Theme.of(context).brightness,
+                      AppStatus.danger,
+                    ),
                     fontWeight: FontWeight.w600,
                   ),
             ),
@@ -1650,14 +1661,20 @@ class _SavingsGoalCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity( 0.12),
+                color: AppColors.statusTint(
+                  Theme.of(context).brightness,
+                  AppStatus.success,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.check_circle_outline,
-                    color: Colors.green,
+                    color: AppColors.statusFor(
+                      Theme.of(context).brightness,
+                      AppStatus.success,
+                    ),
                     size: 18,
                   ),
                   const SizedBox(width: 8),
@@ -1665,7 +1682,10 @@ class _SavingsGoalCard extends StatelessWidget {
                     child: Text(
                       l10n.savingsGoalAchieved,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: Colors.green,
+                            color: AppColors.statusFor(
+                              Theme.of(context).brightness,
+                              AppStatus.success,
+                            ),
                             fontWeight: FontWeight.w600,
                           ),
                     ),
