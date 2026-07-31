@@ -16,6 +16,7 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.redis import get_async_redis
 from app.core.security import decode_token
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.services.auth_service import AuthService
 
 logger = logging.getLogger(__name__)
@@ -333,6 +334,7 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(SecurityHeadersMiddleware)
     app.include_router(api_router)
 
     @app.websocket("/ws/v1/balance/{user_id}")
