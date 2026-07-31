@@ -119,6 +119,19 @@ flutter:
   uses-material-design: true
   generate: true
 
+  config:
+    # iOS dependency resolution stays on CocoaPods only. Discovered via the
+    # P3.3 CI job (first-ever iOS build attempted on a clean checkout): a
+    # fresh machine has Xcode resolve some plugins (flutter_native_splash)
+    # through Swift Package Manager instead, which fails there with
+    # 'public headers ("include") directory path ... invalid or not
+    # contained in the target' — a real SPM-integration bug for that
+    # plugin's generated package, not something in this app's own code.
+    # CocoaPods is the path already proven working for local/TestFlight
+    # release builds (see ios/Podfile's post_install SQLCipher fix), so
+    # this keeps iOS builds on that one working path everywhere.
+    enable-swift-package-manager: false
+
   assets:
     - assets/fonts/Roboto-Regular.ttf
     - assets/fonts/Roboto-Bold.ttf
