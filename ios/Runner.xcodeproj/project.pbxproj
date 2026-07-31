@@ -536,6 +536,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"SQLCipher",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = autisync.smartspend;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -751,6 +756,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"SQLCipher",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = autisync.smartspend;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -788,6 +798,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"SQLCipher",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = autisync.smartspend;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

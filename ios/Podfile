@@ -45,4 +45,39 @@ post_install do |installer|
       config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
     end
   end
+
+  # sqlcipher_flutter_libs + firebase_messaging fix (root cause of the
+  # "SQLCipher is not active" crash — see database_cipher.dart's guard).
+  # FirebaseMessaging's podspec declares `s.library = 'sqlite3'`, which links
+  # Apple's system libsqlite3 alongside our SQLCipher.framework. Both export
+  # identical C symbol names (sqlite3_open, sqlite3_key, ...), and since
+  # CocoaPods aggregates pod linker flags alphabetically, FirebaseMessaging's
+  # `-lsqlite3` lands before `-framework SQLCipher` in Pods-Runner.xcconfig.
+  # Dart's DynamicLibrary.process() then resolves those symbols against the
+  # unencrypted system library instead of SQLCipher, so `PRAGMA cipher_version`
+  # comes back empty. See sqlcipher_flutter_libs' own README
+  # ("Incompatibilities with sqlite3 on iOS and macOS") and
+  # https://github.com/simolus3/drift/issues/1810#issuecomment-1119426006.
+  #
+  # Mutating the Xcodeproj Ruby objects above does NOT fix this: CocoaPods
+  # writes each pod's Target Support Files/*.xcconfig (and the aggregated
+  # Pods-Runner.*.xcconfig) to disk before post_install runs, and nothing
+  # re-syncs them from the in-memory PBXNativeTarget afterward. Patch the
+  # already-written xcconfig files directly instead.
+  xcconfig_glob = File.join(__dir__, 'Pods', 'Target Support Files', '**', '*.xcconfig')
+  patched = []
+  Dir.glob(xcconfig_glob).each do |xcconfig_path|
+    content = File.read(xcconfig_path)
+    next unless content.include?('sqlite3')
+
+    updated = content.gsub(/\s*-l"?sqlite3"?/, '')
+    if updated != content
+      File.write(xcconfig_path, updated)
+      patched << xcconfig_path
+    end
+  end
+  unless patched.empty?
+    puts "[Podfile] Stripped -lsqlite3 from #{patched.length} xcconfig file(s) " \
+         "so SQLCipher's symbols aren't shadowed by the system library."
+  end
 end
