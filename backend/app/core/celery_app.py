@@ -12,7 +12,7 @@ celery_app = Celery(
     "smartbudget",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["app.tasks.finance", "app.tasks.email"],
+    include=["app.tasks.finance", "app.tasks.email", "app.tasks.maintenance"],
 )
 
 celery_app.conf.update(
@@ -28,6 +28,11 @@ celery_app.conf.update(
         },
         "monthly-summary-daily": {
             "task": "app.tasks.finance.generate_monthly_summaries",
+            "schedule": 86400.0,
+        },
+        # L-5: low-priority daily cleanup of expired/long-revoked auth_sessions.
+        "auth-session-cleanup-daily": {
+            "task": "app.tasks.maintenance.cleanup_expired_sessions",
             "schedule": 86400.0,
         },
     },
