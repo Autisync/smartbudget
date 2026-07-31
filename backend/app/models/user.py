@@ -13,6 +13,11 @@ class User(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True, nullable=False)
+    # Apple's stable, cryptographically-verified per-user identifier (the `sub`
+    # claim of the Sign in with Apple identity token). Used to resolve returning
+    # users on subsequent logins where Apple omits the `email` claim, instead of
+    # trusting a client-supplied email fallback (see auth_service._verify_apple_token).
+    apple_sub: Mapped[str | None] = mapped_column(String(255), unique=True, index=True, nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     first_name: Mapped[str] = mapped_column(String(120), nullable=False)
     last_name: Mapped[str] = mapped_column(String(120), nullable=False)

@@ -146,8 +146,14 @@ class AuthService:
             fallback_last_name=last_name,
         )
         resolved_email = profile["email"]
+        apple_sub = profile.get("apple_sub")
 
-        user = self.users.get_by_email(resolved_email)
+        # Apple's `sub` claim is cryptographically verified by the token
+        # signature — resolve by it first so a returning user is recognized
+        # correctly even on a later login where Apple omits the `email` claim.
+        user = self.users.get_by_apple_sub(apple_sub) if apple_sub else None
+        if user is None:
+            user = self.users.get_by_email(resolved_email)
         if user is None:
             generated_password = f"{uuid4().hex}A1a!"
             user = self.users.create(
@@ -155,7 +161,13 @@ class AuthService:
                 password_hash=hash_password(generated_password),
                 first_name=profile["first_name"],
                 last_name=profile["last_name"],
+                apple_sub=apple_sub,
             )
+        elif apple_sub:
+            # Existing account (password or Google) signing in with Apple for
+            # the first time — link it so future Apple logins without an
+            # email claim resolve back to this same account.
+            user = self.users.link_apple_sub(user, apple_sub)
 
         if not user.is_active:
             raise errors.forbidden("User is inactive")
@@ -333,6 +345,7 @@ class AuthService:
             "email_verified": email_verified,
             "first_name": first_name.strip()[:120],
             "last_name": last_name.strip()[:120],
+            "apple_sub": None,
         }
 
     def _verify_apple_token(
@@ -359,10 +372,31 @@ class AuthService:
         except Exception:
             raise errors.unauthorized("Invalid Apple identity token")
 
+        apple_sub = payload.get("sub")
+        if not isinstance(apple_sub, str) or not apple_sub:
+            raise errors.unauthorized("Apple identity token is missing its subject claim")
+
+        # H-1 fix: never trust a client-supplied email as an identity
+        # fallback. `fallback_email` comes straight from the request body and
+        # is fully attacker-controlled — using it here to resolve an existing
+        # account by email previously allowed logging into *any* account
+        # whose email an attacker guessed, with no password check, using
+        # nothing but the attacker's own valid Apple identity token. When
+        # Apple omits the `email` claim (routine on a returning user's later
+        # logins), resolve the user via the token's cryptographically
+        # verified `sub` claim instead — never via client-supplied data.
         claim_email = payload.get("email")
-        email = claim_email if isinstance(claim_email, str) and claim_email else fallback_email
-        if not email:
-            raise errors.bad_request("Apple account email is required for first login")
+        if isinstance(claim_email, str) and claim_email:
+            email = claim_email
+        else:
+            existing = self.users.get_by_apple_sub(apple_sub)
+            if existing is None:
+                raise errors.bad_request(
+                    "Apple did not share an email for this sign-in and no account "
+                    "is linked yet. Please try Apple sign-in again with email "
+                    "sharing enabled, or sign in with email and password."
+                )
+            email = existing.email
 
         email_verified_value = payload.get("email_verified", False)
         if isinstance(email_verified_value, str):
@@ -378,6 +412,7 @@ class AuthService:
             "email_verified": email_verified,
             "first_name": first_name.strip()[:120],
             "last_name": last_name.strip()[:120],
+            "apple_sub": apple_sub,
         }
 
     def _issue_tokens(self, *, user_id: str, device_name: str | None, platform: str | None, user):
