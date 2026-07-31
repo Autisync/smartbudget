@@ -311,9 +311,20 @@ def create_application() -> FastAPI:
     for issue in smtp_issues:
         logger.warning("SMTP configuration: %s", issue)
 
-    allowed_origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
+    allowed_origins = settings.cors_allowed_origins()
     if not allowed_origins:
-        allowed_origins = ["*"]
+        # M-2 fix: production_secret_issues() above already blocks startup
+        # when CORS_ORIGINS is "*" or empty in a non-development environment
+        # — this is a second, independent fail-closed check rather than
+        # silently defaulting to wildcard-with-credentials if this function
+        # is ever reached without that guard having run first.
+        if settings.environment == "development":
+            allowed_origins = ["*"]
+        else:
+            raise SystemExit(
+                "Refusing to start: CORS_ORIGINS resolved to an empty origin "
+                "list outside development. Set CORS_ORIGINS explicitly."
+            )
 
     app.add_middleware(
         CORSMiddleware,

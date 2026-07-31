@@ -59,6 +59,15 @@ class Settings(BaseSettings):
     smtp_from_email: str = "noreply@smartspend.local"
     smtp_from_name: str = "SmartSpend"
 
+    def cors_allowed_origins(self) -> list[str]:
+        """Single source of truth for parsing CORS_ORIGINS, used by both the
+        startup guard below and the actual CORSMiddleware config in main.py —
+        M-2 fix: these previously used separate logic, so an empty string
+        (e.g. a forgotten .env entry — docker-compose.yml sets no default)
+        satisfied the guard's `== "*"` check while still resolving to
+        wildcard-with-credentials in the actual middleware."""
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
     def production_secret_issues(self) -> list[str]:
         """Returns a list of critical misconfiguration issues that must block startup
         in any non-development environment. Raises SystemExit when called from main.py."""
@@ -75,9 +84,9 @@ class Settings(BaseSettings):
                 "DATABASE_URL contains default postgres:postgres credentials — "
                 "use a dedicated DB user with a strong password"
             )
-        if self.cors_origins == "*":
+        if self.cors_origins == "*" or not self.cors_allowed_origins():
             issues.append(
-                "CORS_ORIGINS is '*' — restrict to your production domain(s)"
+                "CORS_ORIGINS is '*' or empty — restrict to your production domain(s)"
             )
         return issues
 
