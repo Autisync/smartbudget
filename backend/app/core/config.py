@@ -16,6 +16,17 @@ class Settings(BaseSettings):
     celery_broker_url: str = Field(default="redis://redis:6379/1")
     celery_result_backend: str = Field(default="redis://redis:6379/2")
 
+    # Explicit connection pool bounds (previously unset, so SQLAlchemy's
+    # untuned defaults applied — pool_size=5, max_overflow=10 — with no
+    # documented rationale for whether that's actually enough headroom).
+    # This process runs multiple uvicorn workers (see docker-compose.yml),
+    # each with its own pool, so keep per-worker size modest: worker_count *
+    # db_pool_size must stay comfortably under Postgres's max_connections
+    # (100 by default) alongside celery-worker/celery-beat's own pools.
+    db_pool_size: int = 5
+    db_max_overflow: int = 5
+    db_pool_timeout_seconds: int = 30
+
     jwt_secret_key: str = "change-me"  # MUST be overridden via JWT_SECRET_KEY env var in production
     jwt_algorithm: str = "HS256"
     access_token_ttl_seconds: int = 900

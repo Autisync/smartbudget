@@ -38,7 +38,14 @@ services:
       [
         "sh",
         "-c",
-        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000",
+        # P2.7: multiple worker processes instead of a single uvicorn process
+        # — one worker means a crash or a slow request under load is total
+        # downtime, not degraded capacity. UVICORN_WORKERS defaults to 2, a
+        # conservative choice for this shared VPS (see PERFORMANCE_NOTES.md)
+        # — each worker opens its own DB pool (db_pool_size + max_overflow),
+        # so raise it in tandem with lowering the per-worker pool size if
+        # ever increased, to stay under Postgres's max_connections.
+        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${UVICORN_WORKERS:-2}",
       ]
     restart: always
     depends_on:
