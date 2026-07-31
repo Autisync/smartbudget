@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     login_rate_limit_window_seconds: int = 60
     login_rate_limit_max_attempts: int = 10
 
+    # M-1 fix: the bucket above is keyed per (IP, email), so an attacker
+    # rotating source IPs (proxy pool, botnet) gets a fresh allowance against
+    # the same target account from every new IP. This second bucket is keyed
+    # only on email — IP-independent — as a global per-account cap.
+    login_rate_limit_per_account_window_seconds: int = 3600
+    login_rate_limit_per_account_max_attempts: int = 20
+
     # Domain-bound App Links / Universal Links (cryptographically verified via
     # assetlinks.json + apple-app-site-association) instead of a hijackable
     # custom URL scheme. Must match the /app path prefix registered in the

@@ -22,6 +22,17 @@ class RateLimiterService:
             self.redis.expire(bucket_key, settings.login_rate_limit_window_seconds)
         return value <= settings.login_rate_limit_max_attempts
 
+    def check_login_attempts_per_account(self, email: str) -> bool:
+        """IP-independent cap keyed only on the target account (see M-1) — a
+        wider window/allowance than the per-IP bucket since legitimate users
+        on shared IPs (offices, mobile carriers) shouldn't hit this normally,
+        but it still bounds a distributed brute force against one account."""
+        bucket_key = f"rate-limit:login-account:{email.lower().strip()}"
+        value = self.redis.incr(bucket_key)
+        if value == 1:
+            self.redis.expire(bucket_key, settings.login_rate_limit_per_account_window_seconds)
+        return value <= settings.login_rate_limit_per_account_max_attempts
+
     def check_action(
         self,
         action: str,

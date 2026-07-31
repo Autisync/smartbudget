@@ -55,6 +55,10 @@ def login(
     ip_key = request.client.host if request.client else "unknown"
     if not rate_limiter.check_login_attempts(f"{ip_key}:{payload.email.lower()}"):
         raise errors.bad_request("Too many login attempts. Try again later.")
+    # M-1: also enforce an IP-independent, per-account cap so rotating source
+    # IPs can't bypass the per-(IP, email) bucket above.
+    if not rate_limiter.check_login_attempts_per_account(payload.email):
+        raise errors.bad_request("Too many login attempts. Try again later.")
 
     service = AuthService(db)
     return service.login(
