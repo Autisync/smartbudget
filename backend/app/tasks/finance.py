@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 
 from app.core.celery_app import celery_app
 from app.db.session import SessionLocal
@@ -23,10 +23,23 @@ def generate_report(user_id: str, report_type: str = "monthly") -> dict[str, str
 
 @celery_app.task(name="app.tasks.finance.check_subscriptions")
 def check_subscriptions() -> dict[str, int]:
+    # P2.8 fix: this task runs hourly. Without the last_notified_for guard,
+    # a subscription whose next_due_on isn't advanced (the common case — the
+    # user hasn't marked it renewed yet) would re-trigger a brand new
+    # Notification row on every single run, forever, flooding the table and
+    # spamming the user. Only notify once per due date per subscription: a
+    # subscription is eligible only if it's never been notified, or was last
+    # notified for a *different* (i.e. earlier) due date than its current one.
     today = date.today()
     with SessionLocal() as db:
         due_subscriptions = db.scalars(
-            select(Subscription).where(Subscription.next_due_on <= today)
+            select(Subscription).where(
+                Subscription.next_due_on <= today,
+                or_(
+                    Subscription.last_notified_for.is_(None),
+                    Subscription.last_notified_for != Subscription.next_due_on,
+                ),
+            )
         ).all()
         for subscription in due_subscriptions:
             db.add(
@@ -37,6 +50,8 @@ def check_subscriptions() -> dict[str, int]:
                     event_type="subscription_due",
                 )
             )
+            subscription.last_notified_for = subscription.next_due_on
+            db.add(subscription)
         db.commit()
         return {"notifications_created": len(due_subscriptions)}
 

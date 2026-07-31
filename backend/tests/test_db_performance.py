@@ -56,7 +56,10 @@ def test_partial_index_migration_applies_and_rolls_back_cleanly(real_db):
     assert index_present is not None
 
     try:
-        _run_alembic("downgrade", "-1")
+        # Target the specific prior revision rather than a relative "-1" —
+        # this migration isn't guaranteed to stay at head as later ones are
+        # added (it wasn't, by the very next commit in this pass).
+        _run_alembic("downgrade", "0003_add_apple_sub_to_users")
         real_db.commit()  # release the prior session's view of the catalog
         index_after_downgrade = real_db.execute(
             text("SELECT 1 FROM pg_indexes WHERE indexname = 'ix_auth_sessions_active_by_user'")

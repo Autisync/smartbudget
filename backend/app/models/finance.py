@@ -85,6 +85,12 @@ class Subscription(Base):
     cadence: Mapped[Recurrence] = mapped_column(Enum(Recurrence), nullable=False, default=Recurrence.monthly)
     category: Mapped[str] = mapped_column(String(80), nullable=False, default="Subscriptions")
     next_due_on: Mapped[date] = mapped_column(Date, nullable=False)
+    # P2.8 fix: tracks which next_due_on value a "due soon" notification has
+    # already been sent for, so the hourly check_subscriptions task is
+    # idempotent per due date — without this, a subscription whose
+    # next_due_on isn't advanced re-triggers a new notification every hour,
+    # indefinitely (see app/tasks/finance.py).
+    last_notified_for: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
