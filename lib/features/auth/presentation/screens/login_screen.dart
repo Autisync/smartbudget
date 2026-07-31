@@ -123,6 +123,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               prefixIcon: const Icon(Icons.lock_outline_rounded, size: 19),
               errorText: passwordError,
               suffix: IconButton(
+                tooltip: _obscurePassword ? l10n.a11yShowPassword : l10n.a11yHidePassword,
                 onPressed: () {
                   setState(() => _obscurePassword = !_obscurePassword);
                 },

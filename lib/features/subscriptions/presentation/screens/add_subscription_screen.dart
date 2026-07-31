@@ -562,6 +562,7 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
           offKey: 'subscription-form-appbar-blur-off',
         ),
         leading: IconButton(
+          tooltip: l10n?.commonClose ?? 'Close',
           style: IconButton.styleFrom(
             backgroundColor: colorScheme.surfaceContainerHighest.withOpacity( _isAppBarScrolled ? 0.9 : 0,
             ),

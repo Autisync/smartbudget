@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
 import 'package:smartbudget/core/widgets/branded_title.dart';
 import 'package:smartbudget/features/notifications/presentation/widgets/notification_bell_button.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 Widget buildFrostedAppBarTitle({
   required BuildContext context,
@@ -79,11 +80,13 @@ List<Widget> buildPageHeaderActions({
   bool includeSettings = true,
 }) {
   final colorScheme = Theme.of(context).colorScheme;
+  final l10n = AppLocalizations.of(context)!;
   final actionBackground = colorScheme.surfaceContainerHighest.withOpacity( isScrolled ? 0.9 : 0,
   );
   return [
     if (includeSettings)
       IconButton(
+        tooltip: l10n.settings,
         style: IconButton.styleFrom(
           backgroundColor: actionBackground,
         ),
@@ -97,6 +100,7 @@ List<Widget> buildPageHeaderActions({
       )
     else
       IconButton(
+        tooltip: l10n.notificationsTitle,
         style: IconButton.styleFrom(backgroundColor: actionBackground),
         icon: const Icon(Icons.notifications_none_rounded),
         onPressed: () => context.push('/notifications'),

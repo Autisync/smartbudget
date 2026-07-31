@@ -1768,6 +1768,7 @@ class _SavingsDormantGoalCard extends StatelessWidget {
             child: Text(l10n.commonResume),
           ),
           IconButton(
+            tooltip: l10n.delete,
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline),
           ),
@@ -2308,6 +2309,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
             trailing: _deadline == null
                 ? null
                 : IconButton(
+                    tooltip: l10n.a11yClearDeadline,
                     icon: const Icon(Icons.close),
                     onPressed: () => setState(() => _deadline = null),
                   ),

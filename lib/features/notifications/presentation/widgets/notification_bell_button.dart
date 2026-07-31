@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/l10n/app_localizations.dart';
 
 class NotificationBellButton extends ConsumerWidget {
   const NotificationBellButton({
@@ -19,7 +20,10 @@ class NotificationBellButton extends ConsumerWidget {
           orElse: () => 0,
         );
 
+    final l10n = AppLocalizations.of(context)!;
+
     return IconButton(
+      tooltip: l10n.notificationsTitle,
       style: IconButton.styleFrom(backgroundColor: backgroundColor),
       onPressed: onPressed,
       icon: Stack(

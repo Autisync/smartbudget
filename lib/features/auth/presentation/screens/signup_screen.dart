@@ -137,6 +137,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               prefixIcon: const Icon(Icons.lock_outline_rounded, size: 19),
               errorText: passwordError,
               suffix: IconButton(
+                tooltip: _obscurePassword ? l10n.a11yShowPassword : l10n.a11yHidePassword,
                 onPressed: () {
                   setState(() => _obscurePassword = !_obscurePassword);
                 },
@@ -168,6 +169,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               prefixIcon: const Icon(Icons.verified_user_outlined, size: 19),
               errorText: confirmError,
               suffix: IconButton(
+                tooltip: _obscureConfirmPassword
+                    ? l10n.a11yShowPassword
+                    : l10n.a11yHidePassword,
                 onPressed: () {
                   setState(
                     () => _obscureConfirmPassword = !_obscureConfirmPassword,

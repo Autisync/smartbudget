@@ -129,6 +129,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             includeTrailingSpace: false,
           ),
           IconButton(
+            tooltip: l10n.a11yExportReport,
             style: IconButton.styleFrom(
               backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(
                 _isAppBarScrolled ? 0.9 : 0.0,

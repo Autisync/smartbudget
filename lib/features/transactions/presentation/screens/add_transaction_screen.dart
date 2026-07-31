@@ -409,6 +409,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 offKey: 'tx-form-appbar-blur-off',
               ),
               leading: IconButton(
+                tooltip: l10n.commonClose,
                 style: IconButton.styleFrom(
                   backgroundColor:
                       colorScheme.surfaceContainerHighest.withOpacity( _isAppBarScrolled ? 0.9 : 0,

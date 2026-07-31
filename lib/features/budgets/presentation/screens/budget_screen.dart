@@ -1246,6 +1246,7 @@ class _BudgetDormantCard extends StatelessWidget {
             child: Text(l10n.commonResume),
           ),
           IconButton(
+            tooltip: l10n.delete,
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline),
           ),

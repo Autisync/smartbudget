@@ -56,6 +56,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: l10n.a11yMarkAllNotificationsRead,
             icon: const Icon(Icons.done_all_rounded),
             onPressed: () {
               ref.read(notificationServiceProvider).markAllRead();
@@ -67,6 +68,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             includeTrailingSpace: false,
           ),
           IconButton(
+            tooltip: l10n.a11yClearAllNotifications,
             icon: const Icon(Icons.delete_sweep_outlined),
             onPressed: () {
               ref.read(notificationServiceProvider).clearInbox();

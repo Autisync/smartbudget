@@ -2796,6 +2796,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String get savingsPriorityShortCritical => 'Critical';
 
   @override
+  String get a11yShowPassword => 'Show password';
+
+  @override
+  String get a11yHidePassword => 'Hide password';
+
+  @override
+  String get a11yClearDeadline => 'Clear deadline';
+
+  @override
+  String get a11yCloseForm => 'Close';
+
+  @override
+  String get a11yMarkAllNotificationsRead => 'Mark all as read';
+
+  @override
+  String get a11yClearAllNotifications => 'Clear all notifications';
+
+  @override
+  String get a11yExportReport => 'Export report';
+
+  @override
   String get authForgotPassword => 'Passwort vergessen';
 
   @override

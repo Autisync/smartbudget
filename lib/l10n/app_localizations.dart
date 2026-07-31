@@ -5279,6 +5279,48 @@ abstract class AppLocalizations {
   /// **'Critical'**
   String get savingsPriorityShortCritical;
 
+  /// No description provided for @a11yShowPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get a11yShowPassword;
+
+  /// No description provided for @a11yHidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get a11yHidePassword;
+
+  /// No description provided for @a11yClearDeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear deadline'**
+  String get a11yClearDeadline;
+
+  /// No description provided for @a11yCloseForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get a11yCloseForm;
+
+  /// No description provided for @a11yMarkAllNotificationsRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get a11yMarkAllNotificationsRead;
+
+  /// No description provided for @a11yClearAllNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all notifications'**
+  String get a11yClearAllNotifications;
+
+  /// No description provided for @a11yExportReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export report'**
+  String get a11yExportReport;
+
   /// No description provided for @authForgotPassword.
   ///
   /// In en, this message translates to:
