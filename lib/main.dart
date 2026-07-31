@@ -12,6 +12,7 @@ import 'package:smartbudget/core/boot/non_fatal_init.dart';
 import 'package:smartbudget/core/monitoring/error_monitor.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_typography.dart';
+import 'package:smartbudget/core/widgets/text_scale_clamp.dart';
 import 'package:smartbudget/data/datasources/local/database_cipher.dart';
 import 'package:smartbudget/features/accounts/presentation/providers/account_provider.dart';
 import 'package:smartbudget/core/router/app_router.dart';
@@ -235,6 +236,7 @@ class _SmartSpendAppState extends ConsumerState<SmartSpendApp>
           .map((code) => Locale(code))
           .toList(),
       locale: appLocale,
+      builder: (context, child) => TextScaleClamp(child: child!),
     );
   }
 }
