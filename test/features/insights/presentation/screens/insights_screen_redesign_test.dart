@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/components/feedback/app_lottie_view.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/features/insights/domain/models/insight.dart';
 import 'package:smartbudget/features/insights/presentation/providers/insight_provider.dart';
 import 'package:smartbudget/features/insights/presentation/screens/insights_screen.dart';
@@ -103,7 +104,10 @@ void main() {
       state: AsyncValue.error(Exception('boom'), StackTrace.current),
     );
     expect(find.text('Analysis failed'), findsOneWidget);
-    expect(find.textContaining('boom'), findsOneWidget);
+    // P3.2: the raw exception ("Exception: boom") must never reach the UI —
+    // only AppErrorMapper's safe, mapped message should render.
+    expect(find.textContaining('boom'), findsNothing);
+    expect(find.text(AppErrorMapper.defaultFallbackMessage), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Retry'), findsOneWidget);
   });
 

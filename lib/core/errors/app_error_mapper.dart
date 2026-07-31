@@ -4,9 +4,15 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 
 class AppErrorMapper {
+  /// The generic message shown when an error doesn't match a more specific
+  /// case. Exposed so call sites that need a representative safe message
+  /// (e.g. layout warm-up placeholders) don't have to duplicate the string.
+  static const String defaultFallbackMessage =
+      'Something went wrong. Please try again.';
+
   static String from(
     Object error, {
-    String fallback = 'Something went wrong. Please try again.',
+    String fallback = defaultFallbackMessage,
   }) {
     if (error is DioException) {
       return fromDio(error, fallback: fallback);

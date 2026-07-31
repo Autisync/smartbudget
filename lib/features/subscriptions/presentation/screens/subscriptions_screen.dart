@@ -6,6 +6,7 @@ import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/utils/verification_gate.dart';
@@ -180,8 +181,8 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 160),
               children: [
                 Text(
-                  l10n?.subscriptionsLoadError(error.toString()) ??
-                      'Error loading subscription: $error',
+                  l10n?.subscriptionsLoadError(AppErrorMapper.from(error)) ??
+                      'Error loading subscription: ${AppErrorMapper.from(error)}',
                 ),
               ],
             ),

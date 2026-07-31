@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
 import 'package:smartbudget/features/subscriptions/presentation/screens/add_subscription_screen.dart';
@@ -46,8 +47,8 @@ class EditSubscriptionScreen extends ConsumerWidget {
         ),
         body: Center(
           child: Text(
-            l10n?.subscriptionsLoadError(error.toString()) ??
-                'Error loading subscription: $error',
+            l10n?.subscriptionsLoadError(AppErrorMapper.from(error)) ??
+                'Error loading subscription: ${AppErrorMapper.from(error)}',
           ),
         ),
       ),

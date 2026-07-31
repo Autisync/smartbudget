@@ -13,6 +13,7 @@ import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
 import 'package:smartbudget/components/forms/app_action_menu.dart';
 import 'package:smartbudget/components/forms/modern_date_picker.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/monitoring/error_monitor.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
@@ -916,7 +917,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           format: format,
           icon: template.icon,
         );
-        AppFeedbackService.showError(context, 'Report generation failed: $e');
+        AppFeedbackService.showError(
+          context, 'Report generation failed: ${AppErrorMapper.from(e)}');
       } finally {
         if (mounted) {
           setState(() {
@@ -947,7 +949,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         format: format,
         icon: template.icon,
       );
-      AppFeedbackService.showError(context, 'Report generation failed: $e');
+      AppFeedbackService.showError(
+          context, 'Report generation failed: ${AppErrorMapper.from(e)}');
     }
   }
 
@@ -1509,7 +1512,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       if (mounted) {
         AppFeedbackService.showError(
           context,
-          l10n.reportsErrorGenerating(e.toString()),
+          l10n.reportsErrorGenerating(AppErrorMapper.from(e)),
         );
       }
       rethrow;
@@ -1587,7 +1590,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       if (mounted) {
         AppFeedbackService.showError(
           context,
-          l10n.reportsErrorExportingData(e.toString()),
+          l10n.reportsErrorExportingData(AppErrorMapper.from(e)),
         );
       }
       rethrow;
@@ -1724,7 +1727,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       if (mounted) {
         AppFeedbackService.showError(
           context,
-          l10n.reportsErrorGenerating(e.toString()),
+          l10n.reportsErrorGenerating(AppErrorMapper.from(e)),
         );
       }
       rethrow;
@@ -1835,7 +1838,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       if (mounted) {
         AppFeedbackService.showError(
           context,
-          l10n.reportsErrorGenerating(e.toString()),
+          l10n.reportsErrorGenerating(AppErrorMapper.from(e)),
         );
       }
       rethrow;
@@ -1916,7 +1919,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       if (mounted) {
         AppFeedbackService.showError(
           context,
-          l10n.reportsErrorExportingData(e.toString()),
+          l10n.reportsErrorExportingData(AppErrorMapper.from(e)),
         );
       }
       rethrow;

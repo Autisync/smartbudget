@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/widgets/app_shimmer.dart';
@@ -596,7 +597,7 @@ class _RecurringBalanceSheetScreenState
           error: (error, _) => Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(l10n.balanceSheetBuildError(error.toString())),
+              child: Text(l10n.balanceSheetBuildError(AppErrorMapper.from(error))),
             ),
           ),
           data: (snapshot) {

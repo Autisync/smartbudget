@@ -10,6 +10,7 @@ import 'package:smartbudget/components/feedback/app_feedback_service.dart';
 import 'package:smartbudget/components/feedback/app_lottie_view.dart';
 import 'package:smartbudget/components/forms/app_action_menu.dart';
 import 'package:smartbudget/components/forms/modern_select.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/features/insights/domain/models/insight.dart';
 import 'package:smartbudget/features/insights/presentation/providers/insight_provider.dart';
 
@@ -77,7 +78,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
       body: insightsAsync.when(
         data: (insights) => _buildContent(context, insights),
         loading: _buildLoadingState,
-        error: (error, _) => _buildErrorState(error.toString()),
+        error: (error, _) => _buildErrorState(AppErrorMapper.from(error)),
       ),
     );
   }
@@ -677,11 +678,15 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             ],
           ),
         ),
+        // Invisible pre-warm of the error layout so a later transition into
+        // the real error state doesn't jank. Uses the same safe fallback
+        // text AppErrorMapper produces for an unmapped exception — never a
+        // raw exception string, even though this is never actually shown.
         ExcludeSemantics(
           child: IgnorePointer(
             child: Opacity(
               opacity: 0,
-              child: _buildErrorState('Exception: boom'),
+              child: _buildErrorState(AppErrorMapper.defaultFallbackMessage),
             ),
           ),
         ),

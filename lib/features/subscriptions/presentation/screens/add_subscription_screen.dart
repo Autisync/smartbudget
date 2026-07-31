@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
 import 'package:smartbudget/components/sheets/app_sheet_container.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
@@ -230,9 +231,10 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
       if (!mounted) {
         return;
       }
-      final fallbackError = 'Error saving subscription: $error';
+      final mappedError = AppErrorMapper.from(error);
+      final fallbackError = 'Error saving subscription: $mappedError';
       final message =
-          l10n?.subscriptionsSaveError(error.toString()) ?? fallbackError;
+          l10n?.subscriptionsSaveError(mappedError) ?? fallbackError;
       AppFeedbackService.showError(context, message);
     } finally {
       AppFeedbackService.dismissLoading();

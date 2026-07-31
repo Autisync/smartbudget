@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/forms/financial_input.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/locale_service.dart';
@@ -179,7 +180,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (!mounted) return;
       AppFeedbackService.showError(
         context,
-        'Unable to convert currency: $error',
+        'Unable to convert currency: ${AppErrorMapper.from(error)}',
       );
     } finally {
       AppFeedbackService.dismissLoading();
