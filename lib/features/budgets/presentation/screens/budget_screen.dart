@@ -329,8 +329,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       child: SmartEmptyState(
                         icon: Icons.pause_circle_outline,
                         title: l10n.budgetsNoActive,
-                        message:
-                            'All budgets are paused or archived. Resume one below to continue tracking.',
+                        message: l10n.budgetsAllPausedOrArchived,
                         lottieAsset: 'assets/animations/empty_budgets.json',
                       ),
                     ),
@@ -553,7 +552,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     sliver: SliverToBoxAdapter(
                       child: Text(
-                        'Paused or archived budgets',
+                        l10n.budgetsPausedOrArchivedTitle,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
@@ -566,7 +565,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     sliver: SliverToBoxAdapter(
                       child: Text(
-                        'Resume a budget to bring it back into active planning.',
+                        l10n.budgetsResumeHint,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -675,8 +674,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               context: context,
               builder: (context) => ConfirmActionDialog(
                 title: l10n.budgetsArchiveTitle,
-                message:
-                    'This budget will be paused and hidden from active planning until you re-enable it.',
+                message: l10n.budgetsPauseConfirmation,
                 confirmLabel: l10n.commonArchive,
               ),
             ) ??
@@ -691,8 +689,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               context: context,
               builder: (context) => ConfirmActionDialog(
                 title: l10n.budgetsDeleteTitle,
-                message:
-                    'This permanently removes the budget. Transactions are not deleted.',
+                message: l10n.budgetsDeleteConfirmation,
                 confirmLabel: l10n.delete,
               ),
             ) ??
@@ -795,6 +792,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
     if (result == null) return;
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
 
     final endDate = _calculateEndDate(result.startDate, result.period);
     final budget = Budget(
@@ -811,7 +809,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
     AppFeedbackService.showLoading(
       context,
-      existingBudget == null ? 'Saving budget...' : 'Updating budget...',
+      existingBudget == null ? l10n.budgetsSaving : l10n.budgetsUpdating,
     );
     try {
       if (existingBudget == null) {
@@ -823,14 +821,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
       AppFeedbackService.showSuccess(
         context,
         existingBudget == null
-            ? 'Budget saved successfully.'
-            : 'Budget updated successfully.',
+            ? l10n.budgetsSavedSuccessfully
+            : l10n.budgetsUpdatedSuccessfully,
       );
     } catch (_) {
       if (!mounted) return;
       AppFeedbackService.showError(
         context,
-        'Unable to save budget. Please try again.',
+        l10n.budgetsUnableToSave,
       );
     } finally {
       AppFeedbackService.dismissLoading();
@@ -1017,10 +1015,10 @@ class _BudgetInsightCard extends StatelessWidget {
             : scheme.primary;
 
     final statusLabel = isCritical
-        ? 'Exceeded'
+        ? l10n.budgetStatusExceeded
         : isWarning
-            ? 'Near Limit'
-            : 'On Track';
+            ? l10n.budgetAlertStatusNearLimit
+            : l10n.budgetAlertStatusOnTrack;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -1459,7 +1457,7 @@ class _BudgetCategoryCard extends StatelessWidget {
           ],
           const SizedBox(height: 10),
           Text(
-            'Tap the progress bar to review related transactions.',
+            l10n.budgetsTapProgressHint,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -1542,10 +1540,11 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context)!;
     if (!(_formKey.currentState?.validate() ?? false)) {
       AppFeedbackService.showWarning(
         context,
-        'Complete required budget fields to continue.',
+        l10n.budgetsCompleteRequiredFields,
       );
       return;
     }
@@ -1554,7 +1553,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
     if (parsedAmount <= 0) {
       AppFeedbackService.showWarning(
         context,
-        'Enter a valid budget amount greater than zero.',
+        l10n.budgetsEnterValidAmount,
       );
       return;
     }
@@ -1625,7 +1624,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
                       Text(
                         liveAmount > 0
                             ? '${widget.currencySymbol} ${liveAmount.toStringAsFixed(2)}${liveCategory.isNotEmpty ? ' · $liveCategory' : ''}'
-                            : 'Set a category and limit',
+                            : l10n.budgetsSetCategoryAndLimit,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
@@ -1642,7 +1641,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
             controller: _categoryController,
             label: l10n.category,
             hintText: l10n.budgetCategoryHint,
-            helperText: 'Used for insights and category-based controls',
+            helperText: l10n.budgetsUsedForInsights,
             onChanged: (_) => setState(() {}),
             validator: (value) =>
                 FormValidation.requiredText(value, l10n.budgetEnterCategory),

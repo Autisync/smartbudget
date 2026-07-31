@@ -31,16 +31,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final firstNameError = _firstNameTouched
-        ? _requiredValidation(form.firstName, 'First name')
+        ? _requiredValidation(l10n, form.firstName, l10n.authFirstName)
         : null;
     final lastNameError = _lastNameTouched
-        ? _requiredValidation(form.lastName, 'Last name')
+        ? _requiredValidation(l10n, form.lastName, l10n.authLastName)
         : null;
-    final emailError = _emailTouched ? _emailValidation(form.email) : null;
+    final emailError =
+        _emailTouched ? _emailValidation(l10n, form.email) : null;
     final passwordError =
-        _passwordTouched ? _passwordValidation(form.password) : null;
+        _passwordTouched ? _passwordValidation(l10n, form.password) : null;
     final confirmError = _confirmTouched
-        ? _confirmValidation(form.password, form.confirmPassword)
+        ? _confirmValidation(l10n, form.password, form.confirmPassword)
         : null;
 
     return AuthScaffold(
@@ -57,14 +58,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Sign Up',
+              l10n.signupHeading,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              'Create your secure SmartSpend account.',
+              l10n.signupHeadingSubtitle,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -111,7 +112,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             const SizedBox(height: 12),
             AuthTextField(
               label: l10n.authEmail,
-              hint: 'name@example.com',
+              hint: l10n.authEmailHint,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.email],
@@ -198,7 +199,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ],
             const SizedBox(height: 14),
             AuthButton(
-              label: form.submitting ? 'Creating account...' : 'Create account',
+              label: form.submitting
+                  ? l10n.signupCreatingAccount
+                  : l10n.authCreateAccount,
               loading: form.submitting,
               enabled: !form.submitting,
               leading: const Icon(Icons.person_add_alt_1_rounded, size: 18),
@@ -246,7 +249,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'By continuing, you agree to our Terms and Privacy Policy.',
+              l10n.authTermsAgreement,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
@@ -281,27 +284,31 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 
-  String? _requiredValidation(String value, String field) {
-    if (value.trim().isEmpty) return '$field is required';
+  String? _requiredValidation(AppLocalizations l10n, String value, String field) {
+    if (value.trim().isEmpty) return l10n.authFieldRequired(field);
     return null;
   }
 
-  String? _emailValidation(String value) {
-    if (value.trim().isEmpty) return 'Email is required';
+  String? _emailValidation(AppLocalizations l10n, String value) {
+    if (value.trim().isEmpty) return l10n.authEmailRequired;
     final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim());
-    if (!valid) return 'Enter a valid email';
+    if (!valid) return l10n.authEmailInvalid;
     return null;
   }
 
-  String? _passwordValidation(String value) {
-    if (value.isEmpty) return 'Password is required';
-    if (value.length < 8) return 'Must be at least 8 characters';
+  String? _passwordValidation(AppLocalizations l10n, String value) {
+    if (value.isEmpty) return l10n.authPasswordRequired;
+    if (value.length < 8) return l10n.authPasswordTooShort;
     return null;
   }
 
-  String? _confirmValidation(String password, String confirmPassword) {
-    if (confirmPassword.isEmpty) return 'Please confirm your password';
-    if (password != confirmPassword) return 'Passwords do not match';
+  String? _confirmValidation(
+    AppLocalizations l10n,
+    String password,
+    String confirmPassword,
+  ) {
+    if (confirmPassword.isEmpty) return l10n.authConfirmPasswordRequired;
+    if (password != confirmPassword) return l10n.authPasswordsDoNotMatch;
     return null;
   }
 
@@ -324,9 +331,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       // Single inline message (no duplicate snackbar).
       formController.setError(
         hasInvalidFields && !_acceptedLegal
-            ? 'Complete the required fields and accept the legal terms.'
+            ? l10n.signupCompleteFieldsAndLegal
             : hasInvalidFields
-                ? 'Complete the highlighted fields to create your account.'
+                ? l10n.signupCompleteHighlightedFields
                 : l10n.onboardingAcceptLegalError,
       );
       return;
@@ -347,7 +354,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     if (!ok) {
       // Surfaces backend messages such as "Account already exists" inline.
       formController
-          .setError(session.errorMessage ?? 'Unable to create account.');
+          .setError(session.errorMessage ?? l10n.signupUnableToCreateAccount);
       return;
     }
     if (!context.mounted) return;

@@ -4727,6 +4727,558 @@ abstract class AppLocalizations {
   /// **'Repeat password'**
   String get authRepeatPassword;
 
+  /// No description provided for @signupHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signupHeading;
+
+  /// No description provided for @signupHeadingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your secure SmartSpend account.'**
+  String get signupHeadingSubtitle;
+
+  /// No description provided for @authEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@example.com'**
+  String get authEmailHint;
+
+  /// No description provided for @signupCreatingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating account...'**
+  String get signupCreatingAccount;
+
+  /// No description provided for @authTermsAgreement.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you agree to our Terms and Privacy Policy.'**
+  String get authTermsAgreement;
+
+  /// No description provided for @authFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} is required'**
+  String authFieldRequired(String field);
+
+  /// No description provided for @authEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required'**
+  String get authEmailRequired;
+
+  /// No description provided for @authEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email'**
+  String get authEmailInvalid;
+
+  /// No description provided for @authPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get authPasswordRequired;
+
+  /// No description provided for @authPasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be at least 8 characters'**
+  String get authPasswordTooShort;
+
+  /// No description provided for @authConfirmPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm your password'**
+  String get authConfirmPasswordRequired;
+
+  /// No description provided for @authPasswordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get authPasswordsDoNotMatch;
+
+  /// No description provided for @signupCompleteFieldsAndLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the required fields and accept the legal terms.'**
+  String get signupCompleteFieldsAndLegal;
+
+  /// No description provided for @signupCompleteHighlightedFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the highlighted fields to create your account.'**
+  String get signupCompleteHighlightedFields;
+
+  /// No description provided for @signupUnableToCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to create account.'**
+  String get signupUnableToCreateAccount;
+
+  /// No description provided for @loginHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get loginHeading;
+
+  /// No description provided for @loginHeadingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your account credentials to continue.'**
+  String get loginHeadingSubtitle;
+
+  /// No description provided for @loginSigningIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in...'**
+  String get loginSigningIn;
+
+  /// No description provided for @commonOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get commonOr;
+
+  /// No description provided for @authBiometricAvailableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID / biometrics remain available after first sign in.'**
+  String get authBiometricAvailableHint;
+
+  /// No description provided for @authGoogleNoIdToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in did not return an ID token.'**
+  String get authGoogleNoIdToken;
+
+  /// No description provided for @authSignedInSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in successfully.'**
+  String get authSignedInSuccessfully;
+
+  /// No description provided for @authGoogleSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in failed.'**
+  String get authGoogleSignInFailed;
+
+  /// No description provided for @authGoogleSignInFailedRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in failed. Please try again.'**
+  String get authGoogleSignInFailedRetry;
+
+  /// No description provided for @authAppleNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple sign-in is not available on this device.'**
+  String get authAppleNotAvailable;
+
+  /// No description provided for @authAppleNoIdToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple sign-in did not return an ID token.'**
+  String get authAppleNoIdToken;
+
+  /// No description provided for @authAppleSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple sign-in failed.'**
+  String get authAppleSignInFailed;
+
+  /// No description provided for @authAppleSignInFailedRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple sign-in failed. Please try again.'**
+  String get authAppleSignInFailedRetry;
+
+  /// No description provided for @authEnterValidEmailPasswordContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email and password to continue.'**
+  String get authEnterValidEmailPasswordContinue;
+
+  /// No description provided for @authEnterValidEmailPasswordSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email and password to sign in.'**
+  String get authEnterValidEmailPasswordSignIn;
+
+  /// No description provided for @authLoginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed.'**
+  String get authLoginFailed;
+
+  /// No description provided for @authSessionExpiredSignInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again.'**
+  String get authSessionExpiredSignInAgain;
+
+  /// No description provided for @authBiometricUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric unlock'**
+  String get authBiometricUnlockTitle;
+
+  /// No description provided for @authBiometricUnlockSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Face ID or fingerprint to restore local access.'**
+  String get authBiometricUnlockSubtitle;
+
+  /// No description provided for @authBiometricAnimationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication animation'**
+  String get authBiometricAnimationLabel;
+
+  /// No description provided for @authBiometricInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Face ID, fingerprint, or another enrolled biometric method to continue.'**
+  String get authBiometricInstructions;
+
+  /// No description provided for @authVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying...'**
+  String get authVerifying;
+
+  /// No description provided for @authUnlockWithBiometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with biometrics'**
+  String get authUnlockWithBiometrics;
+
+  /// No description provided for @authUsePasswordInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Use password instead'**
+  String get authUsePasswordInstead;
+
+  /// No description provided for @authUseDifferentAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a different account'**
+  String get authUseDifferentAccount;
+
+  /// No description provided for @budgetAlertStatusNearLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Near Limit'**
+  String get budgetAlertStatusNearLimit;
+
+  /// No description provided for @budgetAlertStatusOnTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'On Track'**
+  String get budgetAlertStatusOnTrack;
+
+  /// No description provided for @budgetsTapProgressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the progress bar to review related transactions.'**
+  String get budgetsTapProgressHint;
+
+  /// No description provided for @budgetsCompleteRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete required budget fields to continue.'**
+  String get budgetsCompleteRequiredFields;
+
+  /// No description provided for @budgetsEnterValidAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid budget amount greater than zero.'**
+  String get budgetsEnterValidAmount;
+
+  /// No description provided for @budgetsSetCategoryAndLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a category and limit'**
+  String get budgetsSetCategoryAndLimit;
+
+  /// No description provided for @budgetsUsedForInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for insights and category-based controls'**
+  String get budgetsUsedForInsights;
+
+  /// No description provided for @budgetsAllPausedOrArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'All budgets are paused or archived. Resume one below to continue tracking.'**
+  String get budgetsAllPausedOrArchived;
+
+  /// No description provided for @budgetsPausedOrArchivedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused or archived budgets'**
+  String get budgetsPausedOrArchivedTitle;
+
+  /// No description provided for @budgetsResumeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume a budget to bring it back into active planning.'**
+  String get budgetsResumeHint;
+
+  /// No description provided for @budgetsPauseConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This budget will be paused and hidden from active planning until you re-enable it.'**
+  String get budgetsPauseConfirmation;
+
+  /// No description provided for @budgetsDeleteConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently removes the budget. Transactions are not deleted.'**
+  String get budgetsDeleteConfirmation;
+
+  /// No description provided for @budgetsSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving budget...'**
+  String get budgetsSaving;
+
+  /// No description provided for @budgetsUpdating.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating budget...'**
+  String get budgetsUpdating;
+
+  /// No description provided for @budgetsSavedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget saved successfully.'**
+  String get budgetsSavedSuccessfully;
+
+  /// No description provided for @budgetsUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget updated successfully.'**
+  String get budgetsUpdatedSuccessfully;
+
+  /// No description provided for @budgetsUnableToSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save budget. Please try again.'**
+  String get budgetsUnableToSave;
+
+  /// No description provided for @savingsSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving goal...'**
+  String get savingsSaving;
+
+  /// No description provided for @savingsUpdating.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating goal...'**
+  String get savingsUpdating;
+
+  /// No description provided for @savingsSavedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goal saved successfully.'**
+  String get savingsSavedSuccessfully;
+
+  /// No description provided for @savingsUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goal updated successfully.'**
+  String get savingsUpdatedSuccessfully;
+
+  /// No description provided for @savingsUnableToSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save savings goal. Please try again.'**
+  String get savingsUnableToSave;
+
+  /// No description provided for @savingsInsightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get savingsInsightsTitle;
+
+  /// No description provided for @savingsMonthlySurplusAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Surplus Available'**
+  String get savingsMonthlySurplusAvailable;
+
+  /// No description provided for @savingsAllocateToHighestPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Allocate to your highest priority goal'**
+  String get savingsAllocateToHighestPriority;
+
+  /// No description provided for @savingsProjectedLateBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Projected late by {months} months'**
+  String savingsProjectedLateBy(int months);
+
+  /// No description provided for @savingsOverflowMenuHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the overflow menu to add funds, simulate scenarios, or update this goal.'**
+  String get savingsOverflowMenuHint;
+
+  /// No description provided for @savingsEnterAmountGreaterThanZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than zero.'**
+  String get savingsEnterAmountGreaterThanZero;
+
+  /// No description provided for @savingsAmountAboveSurplusWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This amount is above the available monthly surplus. Continue with simulation?'**
+  String get savingsAmountAboveSurplusWarning;
+
+  /// No description provided for @savingsRunSimulationFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Run a simulation before applying.'**
+  String get savingsRunSimulationFirst;
+
+  /// No description provided for @savingsMonthlySurplusSimulation.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly surplus simulation'**
+  String get savingsMonthlySurplusSimulation;
+
+  /// No description provided for @savingsCompleteRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete required savings goal fields to continue.'**
+  String get savingsCompleteRequiredFields;
+
+  /// No description provided for @savingsTargetAmountMustBeGreaterThanZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid target amount greater than zero.'**
+  String get savingsTargetAmountMustBeGreaterThanZero;
+
+  /// No description provided for @savingsNameGoalAndSetTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Name your goal and set a target'**
+  String get savingsNameGoalAndSetTarget;
+
+  /// No description provided for @savingsChooseSpecificTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a specific target such as Emergency Fund'**
+  String get savingsChooseSpecificTarget;
+
+  /// No description provided for @savingsFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'From account'**
+  String get savingsFromAccount;
+
+  /// No description provided for @savingsMilestoneGreatStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Great start. You are building momentum one step at a time.'**
+  String get savingsMilestoneGreatStart;
+
+  /// No description provided for @savingsMilestoneHalfway.
+  ///
+  /// In en, this message translates to:
+  /// **'Halfway there. Your consistency is paying off.'**
+  String get savingsMilestoneHalfway;
+
+  /// No description provided for @savingsMilestoneAmazing.
+  ///
+  /// In en, this message translates to:
+  /// **'Amazing progress. The finish line is close.'**
+  String get savingsMilestoneAmazing;
+
+  /// No description provided for @savingsMilestoneAchieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal achieved. Excellent discipline and focus.'**
+  String get savingsMilestoneAchieved;
+
+  /// No description provided for @savingsMilestoneNiceProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice progress. Keep going.'**
+  String get savingsMilestoneNiceProgress;
+
+  /// No description provided for @savingsAllPausedOrArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'All savings plans are paused or archived. Resume one below to continue.'**
+  String get savingsAllPausedOrArchived;
+
+  /// No description provided for @savingsPausedPlansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused plans'**
+  String get savingsPausedPlansTitle;
+
+  /// No description provided for @savingsPausedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get savingsPausedLabel;
+
+  /// No description provided for @savingsArchivedPlansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived plans'**
+  String get savingsArchivedPlansTitle;
+
+  /// No description provided for @savingsArchivedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get savingsArchivedLabel;
+
+  /// No description provided for @savingsArchiveConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This goal will move to Archived plans until you restore it.'**
+  String get savingsArchiveConfirmation;
+
+  /// No description provided for @savingsDeleteConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently removes the goal and cannot be undone.'**
+  String get savingsDeleteConfirmation;
+
+  /// No description provided for @savingsPriorityShortLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get savingsPriorityShortLow;
+
+  /// No description provided for @savingsPriorityShortMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get savingsPriorityShortMedium;
+
+  /// No description provided for @savingsPriorityShortHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get savingsPriorityShortHigh;
+
+  /// No description provided for @savingsPriorityShortCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get savingsPriorityShortCritical;
+
   /// No description provided for @authForgotPassword.
   ///
   /// In en, this message translates to:

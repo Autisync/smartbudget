@@ -2516,6 +2516,286 @@ class AppLocalizationsPt extends AppLocalizations {
   String get authRepeatPassword => 'Repita a senha';
 
   @override
+  String get signupHeading => 'Sign Up';
+
+  @override
+  String get signupHeadingSubtitle => 'Create your secure SmartSpend account.';
+
+  @override
+  String get authEmailHint => 'name@example.com';
+
+  @override
+  String get signupCreatingAccount => 'Creating account...';
+
+  @override
+  String get authTermsAgreement => 'By continuing, you agree to our Terms and Privacy Policy.';
+
+  @override
+  String authFieldRequired(String field) {
+    return '$field is required';
+  }
+
+  @override
+  String get authEmailRequired => 'Email is required';
+
+  @override
+  String get authEmailInvalid => 'Enter a valid email';
+
+  @override
+  String get authPasswordRequired => 'Password is required';
+
+  @override
+  String get authPasswordTooShort => 'Must be at least 8 characters';
+
+  @override
+  String get authConfirmPasswordRequired => 'Please confirm your password';
+
+  @override
+  String get authPasswordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get signupCompleteFieldsAndLegal => 'Complete the required fields and accept the legal terms.';
+
+  @override
+  String get signupCompleteHighlightedFields => 'Complete the highlighted fields to create your account.';
+
+  @override
+  String get signupUnableToCreateAccount => 'Unable to create account.';
+
+  @override
+  String get loginHeading => 'Sign In';
+
+  @override
+  String get loginHeadingSubtitle => 'Use your account credentials to continue.';
+
+  @override
+  String get loginSigningIn => 'Signing in...';
+
+  @override
+  String get commonOr => 'or';
+
+  @override
+  String get authBiometricAvailableHint => 'Face ID / biometrics remain available after first sign in.';
+
+  @override
+  String get authGoogleNoIdToken => 'Google sign-in did not return an ID token.';
+
+  @override
+  String get authSignedInSuccessfully => 'Signed in successfully.';
+
+  @override
+  String get authGoogleSignInFailed => 'Google sign-in failed.';
+
+  @override
+  String get authGoogleSignInFailedRetry => 'Google sign-in failed. Please try again.';
+
+  @override
+  String get authAppleNotAvailable => 'Apple sign-in is not available on this device.';
+
+  @override
+  String get authAppleNoIdToken => 'Apple sign-in did not return an ID token.';
+
+  @override
+  String get authAppleSignInFailed => 'Apple sign-in failed.';
+
+  @override
+  String get authAppleSignInFailedRetry => 'Apple sign-in failed. Please try again.';
+
+  @override
+  String get authEnterValidEmailPasswordContinue => 'Enter a valid email and password to continue.';
+
+  @override
+  String get authEnterValidEmailPasswordSignIn => 'Enter a valid email and password to sign in.';
+
+  @override
+  String get authLoginFailed => 'Login failed.';
+
+  @override
+  String get authSessionExpiredSignInAgain => 'Your session has expired. Please sign in again.';
+
+  @override
+  String get authBiometricUnlockTitle => 'Biometric unlock';
+
+  @override
+  String get authBiometricUnlockSubtitle => 'Use Face ID or fingerprint to restore local access.';
+
+  @override
+  String get authBiometricAnimationLabel => 'Biometric authentication animation';
+
+  @override
+  String get authBiometricInstructions => 'Use Face ID, fingerprint, or another enrolled biometric method to continue.';
+
+  @override
+  String get authVerifying => 'Verifying...';
+
+  @override
+  String get authUnlockWithBiometrics => 'Unlock with biometrics';
+
+  @override
+  String get authUsePasswordInstead => 'Use password instead';
+
+  @override
+  String get authUseDifferentAccount => 'Use a different account';
+
+  @override
+  String get budgetAlertStatusNearLimit => 'Near Limit';
+
+  @override
+  String get budgetAlertStatusOnTrack => 'On Track';
+
+  @override
+  String get budgetsTapProgressHint => 'Tap the progress bar to review related transactions.';
+
+  @override
+  String get budgetsCompleteRequiredFields => 'Complete required budget fields to continue.';
+
+  @override
+  String get budgetsEnterValidAmount => 'Enter a valid budget amount greater than zero.';
+
+  @override
+  String get budgetsSetCategoryAndLimit => 'Set a category and limit';
+
+  @override
+  String get budgetsUsedForInsights => 'Used for insights and category-based controls';
+
+  @override
+  String get budgetsAllPausedOrArchived => 'All budgets are paused or archived. Resume one below to continue tracking.';
+
+  @override
+  String get budgetsPausedOrArchivedTitle => 'Paused or archived budgets';
+
+  @override
+  String get budgetsResumeHint => 'Resume a budget to bring it back into active planning.';
+
+  @override
+  String get budgetsPauseConfirmation => 'This budget will be paused and hidden from active planning until you re-enable it.';
+
+  @override
+  String get budgetsDeleteConfirmation => 'This permanently removes the budget. Transactions are not deleted.';
+
+  @override
+  String get budgetsSaving => 'Saving budget...';
+
+  @override
+  String get budgetsUpdating => 'Updating budget...';
+
+  @override
+  String get budgetsSavedSuccessfully => 'Budget saved successfully.';
+
+  @override
+  String get budgetsUpdatedSuccessfully => 'Budget updated successfully.';
+
+  @override
+  String get budgetsUnableToSave => 'Unable to save budget. Please try again.';
+
+  @override
+  String get savingsSaving => 'Saving goal...';
+
+  @override
+  String get savingsUpdating => 'Updating goal...';
+
+  @override
+  String get savingsSavedSuccessfully => 'Savings goal saved successfully.';
+
+  @override
+  String get savingsUpdatedSuccessfully => 'Savings goal updated successfully.';
+
+  @override
+  String get savingsUnableToSave => 'Unable to save savings goal. Please try again.';
+
+  @override
+  String get savingsInsightsTitle => 'Insights';
+
+  @override
+  String get savingsMonthlySurplusAvailable => 'Monthly Surplus Available';
+
+  @override
+  String get savingsAllocateToHighestPriority => 'Allocate to your highest priority goal';
+
+  @override
+  String savingsProjectedLateBy(int months) {
+    return 'Projected late by $months months';
+  }
+
+  @override
+  String get savingsOverflowMenuHint => 'Use the overflow menu to add funds, simulate scenarios, or update this goal.';
+
+  @override
+  String get savingsEnterAmountGreaterThanZero => 'Enter an amount greater than zero.';
+
+  @override
+  String get savingsAmountAboveSurplusWarning => 'This amount is above the available monthly surplus. Continue with simulation?';
+
+  @override
+  String get savingsRunSimulationFirst => 'Run a simulation before applying.';
+
+  @override
+  String get savingsMonthlySurplusSimulation => 'Monthly surplus simulation';
+
+  @override
+  String get savingsCompleteRequiredFields => 'Complete required savings goal fields to continue.';
+
+  @override
+  String get savingsTargetAmountMustBeGreaterThanZero => 'Enter a valid target amount greater than zero.';
+
+  @override
+  String get savingsNameGoalAndSetTarget => 'Name your goal and set a target';
+
+  @override
+  String get savingsChooseSpecificTarget => 'Choose a specific target such as Emergency Fund';
+
+  @override
+  String get savingsFromAccount => 'From account';
+
+  @override
+  String get savingsMilestoneGreatStart => 'Great start. You are building momentum one step at a time.';
+
+  @override
+  String get savingsMilestoneHalfway => 'Halfway there. Your consistency is paying off.';
+
+  @override
+  String get savingsMilestoneAmazing => 'Amazing progress. The finish line is close.';
+
+  @override
+  String get savingsMilestoneAchieved => 'Goal achieved. Excellent discipline and focus.';
+
+  @override
+  String get savingsMilestoneNiceProgress => 'Nice progress. Keep going.';
+
+  @override
+  String get savingsAllPausedOrArchived => 'All savings plans are paused or archived. Resume one below to continue.';
+
+  @override
+  String get savingsPausedPlansTitle => 'Paused plans';
+
+  @override
+  String get savingsPausedLabel => 'Paused';
+
+  @override
+  String get savingsArchivedPlansTitle => 'Archived plans';
+
+  @override
+  String get savingsArchivedLabel => 'Archived';
+
+  @override
+  String get savingsArchiveConfirmation => 'This goal will move to Archived plans until you restore it.';
+
+  @override
+  String get savingsDeleteConfirmation => 'This permanently removes the goal and cannot be undone.';
+
+  @override
+  String get savingsPriorityShortLow => 'Low';
+
+  @override
+  String get savingsPriorityShortMedium => 'Medium';
+
+  @override
+  String get savingsPriorityShortHigh => 'High';
+
+  @override
+  String get savingsPriorityShortCritical => 'Critical';
+
+  @override
   String get authForgotPassword => 'Esqueci a senha';
 
   @override

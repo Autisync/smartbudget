@@ -230,23 +230,23 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       _MilestonePopupEvent(
         title: l10n.savingsMilestoneReached,
         headline: '${goal.title}: $reachedMilestone% complete',
-        message: _savingsMilestoneMessage(reachedMilestone),
+        message: _savingsMilestoneMessage(l10n, reachedMilestone),
       ),
     );
   }
 
-  String _savingsMilestoneMessage(int milestone) {
+  String _savingsMilestoneMessage(AppLocalizations l10n, int milestone) {
     switch (milestone) {
       case 25:
-        return 'Great start. You are building momentum one step at a time.';
+        return l10n.savingsMilestoneGreatStart;
       case 50:
-        return 'Halfway there. Your consistency is paying off.';
+        return l10n.savingsMilestoneHalfway;
       case 75:
-        return 'Amazing progress. The finish line is close.';
+        return l10n.savingsMilestoneAmazing;
       case 100:
-        return 'Goal achieved. Excellent discipline and focus.';
+        return l10n.savingsMilestoneAchieved;
       default:
-        return 'Nice progress. Keep going.';
+        return l10n.savingsMilestoneNiceProgress;
     }
   }
 
@@ -614,8 +614,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                     child: SmartEmptyState(
                       icon: Icons.pause_circle_outline,
                       title: l10n.savingsNoActiveGoals,
-                      message:
-                          'All savings plans are paused or archived. Resume one below to continue.',
+                      message: l10n.savingsAllPausedOrArchived,
                       lottieAsset: 'assets/animations/empty_savings.json',
                     ),
                   ),
@@ -727,7 +726,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                 if (pausedGoals.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'Paused plans',
+                    l10n.savingsPausedPlansTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -739,7 +738,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                       child: _SavingsDormantGoalCard(
                         goal: goal,
                         currencyFormat: currencyFormat,
-                        statusLabel: 'Paused',
+                        statusLabel: l10n.savingsPausedLabel,
                         onRestore: () => _handleGoalAction(
                           action: 'resume',
                           goal: goal,
@@ -757,7 +756,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                 if (archivedGoals.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'Archived plans',
+                    l10n.savingsArchivedPlansTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -769,7 +768,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
                       child: _SavingsDormantGoalCard(
                         goal: goal,
                         currencyFormat: currencyFormat,
-                        statusLabel: 'Archived',
+                        statusLabel: l10n.savingsArchivedLabel,
                         onRestore: () => _handleGoalAction(
                           action: 'unarchive',
                           goal: goal,
@@ -963,8 +962,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               context: context,
               builder: (context) => ConfirmActionDialog(
                 title: l10n.savingsArchiveGoalTitle,
-                message:
-                    'This goal will move to Archived plans until you restore it.',
+                message: l10n.savingsArchiveConfirmation,
                 confirmLabel: l10n.commonArchive,
               ),
             ) ??
@@ -991,8 +989,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               context: context,
               builder: (context) => ConfirmActionDialog(
                 title: l10n.savingsDeleteGoalTitle,
-                message:
-                    'This permanently removes the goal and cannot be undone.',
+                message: l10n.savingsDeleteConfirmation,
                 confirmLabel: l10n.delete,
               ),
             ) ??
@@ -1076,6 +1073,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
     if (result == null) return;
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
 
     final goal = SavingsGoal(
       id: existingGoal?.id ?? const Uuid().v4(),
@@ -1091,7 +1089,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
     AppFeedbackService.showLoading(
       context,
-      existingGoal == null ? 'Saving goal...' : 'Updating goal...',
+      existingGoal == null ? l10n.savingsSaving : l10n.savingsUpdating,
     );
     try {
       if (existingGoal == null) {
@@ -1105,14 +1103,14 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       AppFeedbackService.showSuccess(
         context,
         existingGoal == null
-            ? 'Savings goal saved successfully.'
-            : 'Savings goal updated successfully.',
+            ? l10n.savingsSavedSuccessfully
+            : l10n.savingsUpdatedSuccessfully,
       );
     } catch (_) {
       if (!mounted) return;
       AppFeedbackService.showError(
         context,
-        'Unable to save savings goal. Please try again.',
+        l10n.savingsUnableToSave,
       );
     } finally {
       AppFeedbackService.dismissLoading();
@@ -1254,6 +1252,7 @@ class _SavingsNudgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final brightness = Theme.of(context).brightness;
     final infoColor = AppColors.statusFor(brightness, AppStatus.info);
     return Container(
@@ -1294,7 +1293,7 @@ class _SavingsNudgeCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Insights',
+                  l10n.savingsInsightsTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -1381,7 +1380,7 @@ class _SavingsSurplusCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Monthly Surplus Available',
+            l10n.savingsMonthlySurplusAvailable,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -1397,7 +1396,7 @@ class _SavingsSurplusCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Allocate to your highest priority goal',
+            l10n.savingsAllocateToHighestPriority,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -1637,7 +1636,7 @@ class _SavingsGoalCard extends StatelessWidget {
 
           if (projectedLate > 0)
             Text(
-              'Projected late by $projectedLate months',
+              l10n.savingsProjectedLateBy(projectedLate),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: AppColors.statusFor(
                       Theme.of(context).brightness,
@@ -1649,7 +1648,7 @@ class _SavingsGoalCard extends StatelessWidget {
 
           const SizedBox(height: 10),
           Text(
-            'Use the overflow menu to add funds, simulate scenarios, or update this goal.',
+            l10n.savingsOverflowMenuHint,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -1845,7 +1844,7 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
     if (parsed == null || parsed <= 0) {
       setState(() {
         _state = _SimulationState.error;
-        _errorMessage = 'Enter an amount greater than zero.';
+        _errorMessage = l10n.savingsEnterAmountGreaterThanZero;
       });
       return;
     }
@@ -1855,8 +1854,7 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
             context: context,
             builder: (context) => ConfirmActionDialog(
               title: l10n.savingsUseMoreThanSurplusTitle,
-              message:
-                  'This amount is above the available monthly surplus. Continue with simulation?',
+              message: l10n.savingsAmountAboveSurplusWarning,
               confirmLabel: l10n.commonContinue,
             ),
           ) ??
@@ -1872,11 +1870,12 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
   }
 
   void _apply() {
+    final l10n = AppLocalizations.of(context)!;
     final amount = _simulatedAmount;
     if (amount == null || amount <= 0) {
       setState(() {
         _state = _SimulationState.error;
-        _errorMessage = 'Run a simulation before applying.';
+        _errorMessage = l10n.savingsRunSimulationFirst;
       });
       return;
     }
@@ -1931,7 +1930,7 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
             Text(
-              'Monthly surplus simulation',
+              l10n.savingsMonthlySurplusSimulation,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -2134,10 +2133,11 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context)!;
     if (!(_formKey.currentState?.validate() ?? false)) {
       AppFeedbackService.showWarning(
         context,
-        'Complete required savings goal fields to continue.',
+        l10n.savingsCompleteRequiredFields,
       );
       return;
     }
@@ -2146,7 +2146,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
     if (targetAmount <= 0) {
       AppFeedbackService.showWarning(
         context,
-        'Enter a valid target amount greater than zero.',
+        l10n.savingsTargetAmountMustBeGreaterThanZero,
       );
       return;
     }
@@ -2236,7 +2236,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
                             ? liveTarget > 0
                                 ? '$liveTitle · ${widget.currencySymbol} ${liveTarget.toStringAsFixed(2)}'
                                 : liveTitle
-                            : 'Name your goal and set a target',
+                            : l10n.savingsNameGoalAndSetTarget,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
@@ -2254,7 +2254,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
           ModernInput(
             controller: _titleController,
             label: l10n.savingsGoalName,
-            helperText: 'Choose a specific target such as Emergency Fund',
+            helperText: l10n.savingsChooseSpecificTarget,
             onChanged: (_) => setState(() {}),
             validator: (value) =>
                 FormValidation.requiredText(value, l10n.savingsEnterGoalName),
@@ -2415,7 +2415,7 @@ class _ContributionDialogState extends State<_ContributionDialog> {
             const SizedBox(height: 16),
             AppSelectField<String>(
               value: _accountId!,
-              label: 'From account',
+              label: l10n.savingsFromAccount,
               prefixIcon: Icons.account_balance_wallet_outlined,
               onChanged: (v) => setState(() => _accountId = v),
               options: widget.accounts
@@ -2468,11 +2468,11 @@ class _GoalPriorityChipSelector extends StatelessWidget {
         GoalPriority.critical => AppColors.statusFor(b, AppStatus.danger),
       };
 
-  static String _shortLabel(GoalPriority p) => switch (p) {
-        GoalPriority.low => 'Low',
-        GoalPriority.medium => 'Medium',
-        GoalPriority.high => 'High',
-        GoalPriority.critical => 'Critical',
+  static String _shortLabel(AppLocalizations l10n, GoalPriority p) => switch (p) {
+        GoalPriority.low => l10n.savingsPriorityShortLow,
+        GoalPriority.medium => l10n.savingsPriorityShortMedium,
+        GoalPriority.high => l10n.savingsPriorityShortHigh,
+        GoalPriority.critical => l10n.savingsPriorityShortCritical,
       };
 
   @override
@@ -2528,7 +2528,7 @@ class _GoalPriorityChipSelector extends StatelessWidget {
                                     : FontWeight.w500,
                               ),
                           child: Text(
-                            _shortLabel(p),
+                            _shortLabel(l10n, p),
                             textAlign: TextAlign.center,
                           ),
                         ),

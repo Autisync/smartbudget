@@ -80,14 +80,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Sign In',
+              l10n.loginHeading,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w900,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              'Use your account credentials to continue.',
+              l10n.loginHeadingSubtitle,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -95,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: 16),
             AuthTextField(
               label: l10n.authEmail,
-              hint: 'name@example.com',
+              hint: l10n.authEmailHint,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               autofillHints: const [
@@ -162,7 +162,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ],
             const SizedBox(height: 12),
             AuthButton(
-              label: form.submitting ? 'Signing in...' : 'Sign in',
+              label: form.submitting ? l10n.loginSigningIn : l10n.authSignIn,
               loading: form.submitting,
               leading: const Icon(Icons.login_rounded, size: 18),
               enabled: !form.submitting,
@@ -177,7 +177,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
-                    'or',
+                    l10n.commonOr,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -216,7 +216,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ],
             const SizedBox(height: 16),
             Text(
-              'Face ID / biometrics remain available after first sign in.',
+              l10n.authBiometricAvailableHint,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
@@ -263,19 +263,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   String? _emailValidation(String email) {
-    if (email.trim().isEmpty) return 'Email is required';
+    final l10n = AppLocalizations.of(context)!;
+    if (email.trim().isEmpty) return l10n.authEmailRequired;
     final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email.trim());
-    if (!ok) return 'Enter a valid email';
+    if (!ok) return l10n.authEmailInvalid;
     return null;
   }
 
   String? _passwordValidation(String password) {
-    if (password.isEmpty) return 'Password is required';
-    if (password.length < 8) return 'Must be at least 8 characters';
+    final l10n = AppLocalizations.of(context)!;
+    if (password.isEmpty) return l10n.authPasswordRequired;
+    if (password.length < 8) return l10n.authPasswordTooShort;
     return null;
   }
 
   Future<void> _signInWithGoogle(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final sessionController = ref.read(sessionControllerProvider.notifier);
     setState(() => _socialSubmitting = true);
     try {
@@ -288,7 +291,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final auth = await account.authentication;
       final idToken = auth.idToken;
       if (idToken == null || idToken.isEmpty) {
-        _showError('Google sign-in did not return an ID token.');
+        _showError(l10n.authGoogleNoIdToken);
         return;
       }
 
@@ -311,14 +314,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
 
       if (ok && context.mounted) {
-        AppFeedbackService.showSuccess(context, 'Signed in successfully.');
+        AppFeedbackService.showSuccess(context, l10n.authSignedInSuccessfully);
         context.go('/');
         return;
       }
       final session = ref.read(sessionControllerProvider);
-      _showError(session.errorMessage ?? 'Google sign-in failed.');
+      _showError(session.errorMessage ?? l10n.authGoogleSignInFailed);
     } catch (_) {
-      _showError('Google sign-in failed. Please try again.');
+      _showError(l10n.authGoogleSignInFailedRetry);
     } finally {
       if (mounted) {
         setState(() => _socialSubmitting = false);
@@ -327,12 +330,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _signInWithApple(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final sessionController = ref.read(sessionControllerProvider.notifier);
     setState(() => _socialSubmitting = true);
     try {
       final available = await SignInWithApple.isAvailable();
       if (!available) {
-        _showError('Apple sign-in is not available on this device.');
+        _showError(l10n.authAppleNotAvailable);
         return;
       }
 
@@ -345,7 +349,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       final idToken = credential.identityToken;
       if (idToken == null || idToken.isEmpty) {
-        _showError('Apple sign-in did not return an ID token.');
+        _showError(l10n.authAppleNoIdToken);
         return;
       }
 
@@ -360,14 +364,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
 
       if (ok && context.mounted) {
-        AppFeedbackService.showSuccess(context, 'Signed in successfully.');
+        AppFeedbackService.showSuccess(context, l10n.authSignedInSuccessfully);
         context.go('/');
         return;
       }
       final session = ref.read(sessionControllerProvider);
-      _showError(session.errorMessage ?? 'Apple sign-in failed.');
+      _showError(session.errorMessage ?? l10n.authAppleSignInFailed);
     } catch (_) {
-      _showError('Apple sign-in failed. Please try again.');
+      _showError(l10n.authAppleSignInFailedRetry);
     } finally {
       if (mounted) {
         setState(() => _socialSubmitting = false);
@@ -385,6 +389,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submit(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final form = ref.read(loginFormProvider);
     final formController = ref.read(loginFormProvider.notifier);
     final sessionController = ref.read(sessionControllerProvider.notifier);
@@ -397,10 +402,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!form.isValid) {
       AppFeedbackService.showWarning(
         context,
-        'Enter a valid email and password to continue.',
+        l10n.authEnterValidEmailPasswordContinue,
       );
       formController.setError(
-        'Enter a valid email and password to sign in.',
+        l10n.authEnterValidEmailPasswordSignIn,
       );
       return;
     }
@@ -416,11 +421,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final sessionAfter = ref.read(sessionControllerProvider);
     if (!ok) {
-      final message = sessionAfter.errorMessage ?? 'Login failed.';
+      final message = sessionAfter.errorMessage ?? l10n.authLoginFailed;
       if (message.toLowerCase().contains('sign in again')) {
         AppFeedbackService.showWarning(
           this.context,
-          'Your session has expired. Please sign in again.',
+          l10n.authSessionExpiredSignInAgain,
         );
       } else {
         AppFeedbackService.showError(this.context, message);
@@ -429,7 +434,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    AppFeedbackService.showSuccess(this.context, 'Signed in successfully.');
+    AppFeedbackService.showSuccess(this.context, l10n.authSignedInSuccessfully);
     if (!context.mounted) return;
     context.go('/');
   }
@@ -461,14 +466,14 @@ class _BiometricUnlockView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Biometric unlock',
+            l10n.authBiometricUnlockTitle,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Use Face ID or fingerprint to restore local access.',
+            l10n.authBiometricUnlockSubtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -488,12 +493,12 @@ class _BiometricUnlockView extends StatelessWidget {
                   height: 108,
                   repeat: state.isBusy,
                   animate: true,
-                  semanticLabel: 'Biometric authentication animation',
+                  semanticLabel: l10n.authBiometricAnimationLabel,
                   fallbackIcon: Icons.fingerprint_rounded,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Use Face ID, fingerprint, or another enrolled biometric method to continue.',
+                  l10n.authBiometricInstructions,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium,
                 ),
@@ -535,7 +540,7 @@ class _BiometricUnlockView extends StatelessWidget {
             const SizedBox(height: 12),
           ],
           AuthButton(
-            label: state.isBusy ? 'Verifying...' : 'Unlock with biometrics',
+            label: state.isBusy ? l10n.authVerifying : l10n.authUnlockWithBiometrics,
             leading: state.isBusy
                 ? const SizedBox(
                     width: 16,
@@ -550,8 +555,8 @@ class _BiometricUnlockView extends StatelessWidget {
             onPressed: state.isBusy ? null : () => onUseDifferentAccount(),
             child: Text(
               state.phase == BiometricUiPhase.fallback
-                  ? 'Use password instead'
-                  : 'Use a different account',
+                  ? l10n.authUsePasswordInstead
+                  : l10n.authUseDifferentAccount,
             ),
           ),
         ],
