@@ -11,6 +11,14 @@ from app.core.config import settings
 
 password_hasher = PasswordHasher()
 
+# H-2 fix: a precomputed hash used to pay Argon2's real, deliberately-expensive
+# cost even when there's no real password hash to check against (e.g. the
+# account doesn't exist). Without this, "no such account" and "wrong password"
+# take measurably different response times, defeating the account-enumeration
+# protection elsewhere in this codebase — identical response *bodies* aren't
+# enough on their own if the *timing* still leaks which case occurred.
+_DUMMY_PASSWORD_HASH = password_hasher.hash(secrets.token_urlsafe(32))
+
 
 def hash_password(password: str) -> str:
     return password_hasher.hash(password)
@@ -21,6 +29,14 @@ def verify_password(password: str, password_hash: str) -> bool:
         return password_hasher.verify(password_hash, password)
     except VerifyMismatchError:
         return False
+
+
+def verify_password_constant_time(password: str, password_hash: str | None) -> bool:
+    """Same as verify_password, but always costs one real Argon2 verify even
+    when `password_hash` is None — pass None for "no such account" instead of
+    short-circuiting before calling this at all."""
+    matched = verify_password(password, password_hash if password_hash is not None else _DUMMY_PASSWORD_HASH)
+    return matched if password_hash is not None else False
 
 
 def create_access_token(user_id: str) -> tuple[str, int]:

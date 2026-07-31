@@ -16,7 +16,7 @@ from app.core.security import (
     decode_refresh_token,
     hash_password,
     hash_token,
-    verify_password,
+    verify_password_constant_time,
 )
 from app.repositories.session_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
@@ -61,6 +61,12 @@ class AuthService:
             # return an error with a *generic* message so the caller cannot
             # distinguish "email already in use" from "invalid request".
             #
+            # H-2: also pay the same Argon2 cost the "new account" branch
+            # below pays via hash_password() — otherwise this branch returns
+            # measurably faster, and response *timing* re-reveals exactly
+            # what the identical response *body* was designed to hide.
+            hash_password(password)
+            #
             # We do notify the legitimate owner out-of-band (async, no latency)
             # so they know the attempt happened and can act if it wasn't them.
             attempt_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
@@ -99,7 +105,13 @@ class AuthService:
         request_ip: str | None = None,
     ):
         user = self.users.get_by_email(email)
-        if not user or not verify_password(password, user.password_hash):
+        # H-2: always pay the same Argon2 verify cost, whether or not the
+        # account exists — `user and verify_password(...)` would short-circuit
+        # and skip the (deliberately expensive) hash check entirely for a
+        # nonexistent account, making that case measurably faster and leaking
+        # account existence via timing despite the identical error message.
+        password_hash = user.password_hash if user else None
+        if not verify_password_constant_time(password, password_hash):
             raise errors.unauthorized("Invalid email or password")
         if not user.is_active:
             raise errors.forbidden("User is inactive")
