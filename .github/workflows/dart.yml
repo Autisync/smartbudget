@@ -113,14 +113,25 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: dart run sentry_dart_plugin
 
-      - name: Upload unsigned IPA archive
+      # --no-codesign means flutter build ipa produces only the .xcarchive,
+      # not an .ipa (codesigning is required to package one) — upload that
+      # instead of the empty build/ios/ipa directory.
+      #
+      # continue-on-error: these two uploads are evidence for later
+      # inspection, not the thing this job verifies (the obfuscated build
+      # succeeding is). A full GitHub Actions storage quota shouldn't mark a
+      # successful build red — that's an account-level storage concern to
+      # free up or upgrade, not a code problem.
+      - name: Upload unsigned archive
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
-          name: release-ipa-unsigned
-          path: build/ios/ipa
+          name: release-ios-archive-unsigned
+          path: build/ios/archive/Runner.xcarchive
 
       - name: Upload debug symbols (for flutter symbolize)
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: debug-info-ios
           path: build/debug-info/ios
