@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/encryption_service.dart';
 import 'package:smartbudget/data/datasources/local/app_database.dart' as db;
@@ -64,12 +65,15 @@ void main() {
 
     final encryption = EncryptionService(const FlutterSecureStorage());
     await tester.runAsync(() => encryption.initialize());
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(database),
           fieldEncryptorProvider.overrideWithValue(FieldEncryptor(encryption)),
+          sharedPreferencesProvider.overrideWithValue(prefs),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,

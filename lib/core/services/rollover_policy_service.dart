@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RolloverPolicy {
   const RolloverPolicy({
@@ -42,15 +42,17 @@ class RolloverPolicy {
   }
 }
 
+/// P3.7: the rollover policy isn't a secret — moved off Keychain-backed
+/// secure storage onto SharedPreferences.
 class RolloverPolicyService {
-  const RolloverPolicyService(this._storage);
+  const RolloverPolicyService(this._prefs);
 
   static const _key = 'budget_rollover_policy';
 
-  final FlutterSecureStorage _storage;
+  final SharedPreferences _prefs;
 
   Future<RolloverPolicy> loadPolicy() async {
-    final raw = await _storage.read(key: _key);
+    final raw = _prefs.getString(_key);
     if (raw == null || raw.isEmpty) {
       return RolloverPolicy.defaults;
     }
@@ -64,7 +66,7 @@ class RolloverPolicyService {
   }
 
   Future<void> savePolicy(RolloverPolicy policy) async {
-    await _storage.write(key: _key, value: jsonEncode(policy.toJson()));
+    await _prefs.setString(_key, jsonEncode(policy.toJson()));
   }
 }
 

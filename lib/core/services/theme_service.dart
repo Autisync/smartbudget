@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+/// P3.7: theme mode isn't a secret — moved off Keychain-backed secure
+/// storage onto SharedPreferences, same as the other non-sensitive UI
+/// preference services (locale, currency, rollover policy, notification
+/// preferences).
 class ThemeService {
-  final FlutterSecureStorage _secureStorage;
+  final SharedPreferences _prefs;
 
   static const _keyThemeMode = 'theme_mode';
 
-  const ThemeService(this._secureStorage);
+  const ThemeService(this._prefs);
 
   Future<ThemeMode> loadThemeMode() async {
-    final raw = await _secureStorage.read(key: _keyThemeMode);
+    final raw = _prefs.getString(_keyThemeMode);
     return _fromString(raw);
   }
 
   Future<void> saveThemeMode(ThemeMode mode) async {
-    await _secureStorage.write(key: _keyThemeMode, value: _toString(mode));
+    await _prefs.setString(_keyThemeMode, _toString(mode));
   }
 
   ThemeMode _fromString(String? value) {

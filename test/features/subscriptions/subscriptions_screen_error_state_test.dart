@@ -5,8 +5,8 @@
 // never the raw exception text.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
@@ -16,7 +16,7 @@ import 'package:smartbudget/features/subscriptions/presentation/screens/subscrip
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class _FakeCurrencyService extends CurrencyService {
-  _FakeCurrencyService() : super(const FlutterSecureStorage());
+  _FakeCurrencyService(super.prefs);
 
   @override
   Future<String> loadCurrencyCode() async => 'USD';
@@ -38,10 +38,13 @@ void main() {
   testWidgets(
     'shows a safe mapped message, never the raw exception, when subscriptions fail to load',
     (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            currencyServiceProvider.overrideWith((_) => _FakeCurrencyService()),
+            currencyServiceProvider.overrideWith((_) => _FakeCurrencyService(prefs)),
             subscriptionListProvider.overrideWith(_ThrowingSubscriptionList.new),
           ],
           child: const MaterialApp(

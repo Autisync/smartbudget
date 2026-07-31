@@ -106,8 +106,8 @@ final appTourSeenProvider = FutureProvider<bool>((ref) async {
 });
 
 final themeServiceProvider = Provider<ThemeService>((ref) {
-  final storage = ref.watch(secureStorageProvider);
-  return ThemeService(storage);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return ThemeService(prefs);
 });
 
 final themeModeControllerProvider =
@@ -117,13 +117,13 @@ final themeModeControllerProvider =
 });
 
 final currencyServiceProvider = Provider<CurrencyService>((ref) {
-  final storage = ref.watch(secureStorageProvider);
-  return CurrencyService(storage);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return CurrencyService(prefs);
 });
 
 final localeServiceProvider = Provider<LocaleService>((ref) {
-  final storage = ref.watch(secureStorageProvider);
-  return LocaleService(storage);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return LocaleService(prefs);
 });
 
 final appCurrencyControllerProvider =
@@ -139,8 +139,8 @@ final appLocaleControllerProvider =
 });
 
 final rolloverPolicyServiceProvider = Provider<RolloverPolicyService>((ref) {
-  final storage = ref.watch(secureStorageProvider);
-  return RolloverPolicyService(storage);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return RolloverPolicyService(prefs);
 });
 
 final rolloverPolicyControllerProvider =
@@ -151,8 +151,8 @@ final rolloverPolicyControllerProvider =
 
 final notificationPreferencesServiceProvider =
     Provider<NotificationPreferencesService>((ref) {
-  final storage = ref.watch(secureStorageProvider);
-  return NotificationPreferencesService(storage);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return NotificationPreferencesService(prefs);
 });
 
 final notificationPreferencesControllerProvider = StateNotifierProvider<

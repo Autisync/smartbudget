@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/notification_preferences_service.dart';
 import 'package:smartbudget/core/services/rollover_policy_service.dart';
@@ -24,6 +24,9 @@ import 'package:smartbudget/l10n/app_localizations.dart';
 void main() {
   testWidgets('Money-control screens navigate without lifecycle assertion',
       (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
     final start = DateTime(2026, 3, 1);
     final end = DateTime(2026, 4, 1);
 
@@ -99,10 +102,11 @@ void main() {
     );
 
     final overrides = <Override>[
+      sharedPreferencesProvider.overrideWithValue(prefs),
       rolloverPolicyServiceProvider
-          .overrideWithValue(_FakeRolloverPolicyService()),
+          .overrideWithValue(_FakeRolloverPolicyService(prefs)),
       notificationPreferencesServiceProvider
-          .overrideWithValue(_FakeNotificationPreferencesService()),
+          .overrideWithValue(_FakeNotificationPreferencesService(prefs)),
       budgetListProvider.overrideWith(() => _FakeBudgetList([budget])),
       budgetSpendingProvider(
         category: budget.category,
@@ -263,7 +267,7 @@ class _FakeSavingsNudges extends SavingsNudges {
 }
 
 class _FakeRolloverPolicyService extends RolloverPolicyService {
-  _FakeRolloverPolicyService() : super(const _NoopSecureStorage());
+  _FakeRolloverPolicyService(super.prefs);
 
   @override
   Future<RolloverPolicy> loadPolicy() async => RolloverPolicy.defaults;
@@ -274,7 +278,7 @@ class _FakeRolloverPolicyService extends RolloverPolicyService {
 
 class _FakeNotificationPreferencesService
     extends NotificationPreferencesService {
-  _FakeNotificationPreferencesService() : super(const _NoopSecureStorage());
+  _FakeNotificationPreferencesService(super.prefs);
 
   @override
   Future<NotificationPreferences> loadPreferences() async =>
@@ -286,32 +290,4 @@ class _FakeNotificationPreferencesService
   @override
   Future<bool> shouldDispatch(String categoryKey, {DateTime? now}) async =>
       false;
-}
-
-class _NoopSecureStorage extends FlutterSecureStorage {
-  const _NoopSecureStorage();
-
-  @override
-  Future<String?> read({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    WindowsOptions? wOptions,
-    AppleOptions? mOptions,
-  }) async =>
-      null;
-
-  @override
-  Future<void> write({
-    required String key,
-    required String? value,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    WindowsOptions? wOptions,
-    AppleOptions? mOptions,
-  }) async {}
 }

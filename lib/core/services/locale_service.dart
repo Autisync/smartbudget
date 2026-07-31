@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+/// P3.7: the selected language isn't a secret — moved off Keychain-backed
+/// secure storage onto SharedPreferences.
 class LocaleService {
-  const LocaleService(this._secureStorage);
+  const LocaleService(this._prefs);
 
   static const String defaultLanguageCode = 'en';
   // Must stay in sync with the generated AppLocalizations.supportedLocales and
@@ -18,10 +20,10 @@ class LocaleService {
   ];
   static const _keyLanguageCode = 'app_language_code';
 
-  final FlutterSecureStorage _secureStorage;
+  final SharedPreferences _prefs;
 
   Future<String> loadLanguageCode() async {
-    final raw = await _secureStorage.read(key: _keyLanguageCode);
+    final raw = _prefs.getString(_keyLanguageCode);
     if (raw == null || raw.trim().isEmpty) {
       return defaultLanguageCode;
     }
@@ -35,7 +37,7 @@ class LocaleService {
 
   Future<void> saveLanguageCode(String code) async {
     final normalized = code.toLowerCase();
-    await _secureStorage.write(key: _keyLanguageCode, value: normalized);
+    await _prefs.setString(_keyLanguageCode, normalized);
   }
 }
 

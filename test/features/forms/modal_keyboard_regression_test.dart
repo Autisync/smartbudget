@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/data/models/tables.dart';
@@ -14,7 +14,7 @@ import 'package:smartbudget/features/transactions/presentation/screens/add_trans
 import 'package:smartbudget/l10n/app_localizations.dart';
 
 class _FakeCurrencyService extends CurrencyService {
-  _FakeCurrencyService() : super(const FlutterSecureStorage());
+  _FakeCurrencyService(super.prefs);
 
   @override
   Future<String> loadCurrencyCode() async => 'USD';
@@ -23,13 +23,15 @@ class _FakeCurrencyService extends CurrencyService {
   Future<void> saveCurrencyCode(String code) async {}
 }
 
+late SharedPreferences _prefs;
+
 Widget _testShell({
   required Widget child,
   required MediaQueryData mediaQuery,
 }) {
   return ProviderScope(
     overrides: [
-      currencyServiceProvider.overrideWith((_) => _FakeCurrencyService()),
+      currencyServiceProvider.overrideWith((_) => _FakeCurrencyService(_prefs)),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -43,6 +45,11 @@ Widget _testShell({
 }
 
 void main() {
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+    _prefs = await SharedPreferences.getInstance();
+  });
+
   testWidgets('subscription edit modal remains keyboard-safe on small screens',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 568));

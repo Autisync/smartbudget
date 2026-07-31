@@ -12,7 +12,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartbudget/core/errors/app_error_mapper.dart';
+import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/data/models/tables.dart';
 import 'package:smartbudget/domain/entities/subscription.dart';
 import 'package:smartbudget/features/subscriptions/presentation/providers/subscription_provider.dart';
@@ -54,9 +56,13 @@ void main() {
         updatedAt: now,
       );
 
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
             subscriptionListProvider.overrideWith(_ThrowingOnSaveSubscriptionList.new),
           ],
           child: MaterialApp(

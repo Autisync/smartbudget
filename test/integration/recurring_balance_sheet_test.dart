@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/services/currency_service.dart';
 import 'package:smartbudget/core/services/notification_service.dart';
@@ -103,6 +103,9 @@ void main() {
   });
 
   testWidgets('dashboard balance sheet CTA navigates to route', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
     tester.view.physicalSize = const Size(1200, 2200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -148,8 +151,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           appCurrencyControllerProvider
-              .overrideWith((ref) => _TestCurrencyController()),
+              .overrideWith((ref) => _TestCurrencyController(prefs)),
           transactionListProvider().overrideWith(() => _FakeTransactionList()),
           budgetAlertsProvider.overrideWith((ref) async => const []),
           financialHealthProvider
@@ -239,48 +243,18 @@ class _FakeTransactionList extends TransactionList {
 }
 
 class _TestCurrencyController extends AppCurrencyController {
-  _TestCurrencyController() : super(_TestCurrencyService()) {
+  _TestCurrencyController(SharedPreferences prefs)
+      : super(_TestCurrencyService(prefs)) {
     state = 'USD';
   }
 }
 
 class _TestCurrencyService extends CurrencyService {
-  _TestCurrencyService() : super(const _NoopStorage());
+  _TestCurrencyService(super.prefs);
 
   @override
   Future<String> loadCurrencyCode() async => 'USD';
 
   @override
   Future<void> saveCurrencyCode(String code) async {}
-}
-
-class _NoopStorage implements FlutterSecureStorage {
-  const _NoopStorage() : super();
-
-  @override
-  Future<String?> read({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    WindowsOptions? wOptions,
-    AppleOptions? mOptions,
-  }) async =>
-      null;
-
-  @override
-  Future<void> write({
-    required String key,
-    required String? value,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    WindowsOptions? wOptions,
-    AppleOptions? mOptions,
-  }) async {}
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

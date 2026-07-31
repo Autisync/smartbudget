@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartbudget/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/components/forms/form_components.dart';
@@ -14,7 +14,7 @@ import 'package:smartbudget/features/subscriptions/presentation/screens/add_subs
 import 'package:smartbudget/features/subscriptions/presentation/screens/subscriptions_screen.dart';
 
 class _FakeCurrencyService extends CurrencyService {
-  _FakeCurrencyService() : super(const FlutterSecureStorage());
+  _FakeCurrencyService(super.prefs);
 
   @override
   Future<String> loadCurrencyCode() async => 'USD';
@@ -105,10 +105,13 @@ void main() {
 
   testWidgets('Subscription form modal uses shared modern fields',
       (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          currencyServiceProvider.overrideWith((_) => _FakeCurrencyService()),
+          currencyServiceProvider.overrideWith((_) => _FakeCurrencyService(prefs)),
         ],
         child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,

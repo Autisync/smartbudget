@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum NotificationFrequency { immediate, daily, weekly }
 
@@ -127,16 +127,19 @@ class NotificationPreferences {
   }
 }
 
+/// P3.7: notification preferences (and the per-category "last sent"
+/// timestamps used for frequency throttling) aren't secrets — moved off
+/// Keychain-backed secure storage onto SharedPreferences.
 class NotificationPreferencesService {
-  const NotificationPreferencesService(this._storage);
+  const NotificationPreferencesService(this._prefs);
 
   static const _keyPrefs = 'notification_preferences';
   static const _lastSentPrefix = 'notification_last_sent_';
 
-  final FlutterSecureStorage _storage;
+  final SharedPreferences _prefs;
 
   Future<NotificationPreferences> loadPreferences() async {
-    final raw = await _storage.read(key: _keyPrefs);
+    final raw = _prefs.getString(_keyPrefs);
     if (raw == null || raw.isEmpty) {
       return NotificationPreferences.defaults;
     }
@@ -150,8 +153,7 @@ class NotificationPreferencesService {
   }
 
   Future<void> savePreferences(NotificationPreferences preferences) async {
-    await _storage.write(
-        key: _keyPrefs, value: jsonEncode(preferences.toJson()));
+    await _prefs.setString(_keyPrefs, jsonEncode(preferences.toJson()));
   }
 
   Future<bool> shouldDispatch(String categoryKey, {DateTime? now}) async {
@@ -165,8 +167,7 @@ class NotificationPreferencesService {
       return false;
     }
 
-    final lastSentRaw =
-        await _storage.read(key: '$_lastSentPrefix$categoryKey');
+    final lastSentRaw = _prefs.getString('$_lastSentPrefix$categoryKey');
     if (lastSentRaw == null || lastSentRaw.isEmpty) {
       await _markSent(categoryKey, currentTime);
       return true;
@@ -224,8 +225,7 @@ class NotificationPreferencesService {
           )
         : currentTime;
 
-    final lastSentRaw =
-        await _storage.read(key: '$_lastSentPrefix$categoryKey');
+    final lastSentRaw = _prefs.getString('$_lastSentPrefix$categoryKey');
     final lastSent =
         lastSentRaw == null ? null : DateTime.tryParse(lastSentRaw);
     final frequencyReadyAt = switch (prefs.frequency) {
@@ -276,9 +276,9 @@ class NotificationPreferencesService {
   }
 
   Future<void> _markSent(String categoryKey, DateTime when) async {
-    await _storage.write(
-      key: '$_lastSentPrefix$categoryKey',
-      value: when.toIso8601String(),
+    await _prefs.setString(
+      '$_lastSentPrefix$categoryKey',
+      when.toIso8601String(),
     );
   }
 

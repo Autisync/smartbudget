@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+/// P3.7: the selected currency isn't a secret — moved off Keychain-backed
+/// secure storage onto SharedPreferences.
 class CurrencyService {
-  const CurrencyService(this._secureStorage);
+  const CurrencyService(this._prefs);
 
   static const String defaultCurrency = 'USD';
   static const List<String> supportedCurrencyCodes = [
@@ -34,10 +36,10 @@ class CurrencyService {
   static const _keyCurrencyCode = 'app_currency_code';
   static const _keySavingsCurrencyCode = 'savings_currency_code';
 
-  final FlutterSecureStorage _secureStorage;
+  final SharedPreferences _prefs;
 
   Future<String> loadCurrencyCode() async {
-    final raw = await _secureStorage.read(key: _keyCurrencyCode);
+    final raw = _prefs.getString(_keyCurrencyCode);
     if (raw == null || raw.trim().isEmpty) return defaultCurrency;
     final normalized = raw.toUpperCase();
     if (!supportedCurrencyCodes.contains(normalized)) return defaultCurrency;
@@ -45,14 +47,13 @@ class CurrencyService {
   }
 
   Future<void> saveCurrencyCode(String code) async {
-    await _secureStorage.write(
-        key: _keyCurrencyCode, value: code.toUpperCase());
+    await _prefs.setString(_keyCurrencyCode, code.toUpperCase());
   }
 
   Future<String> loadSavingsCurrencyCode({
     String fallback = defaultCurrency,
   }) async {
-    final raw = await _secureStorage.read(key: _keySavingsCurrencyCode);
+    final raw = _prefs.getString(_keySavingsCurrencyCode);
     if (raw == null || raw.trim().isEmpty) return fallback.toUpperCase();
     final normalized = raw.toUpperCase();
     if (!supportedCurrencyCodes.contains(normalized)) {
@@ -62,10 +63,7 @@ class CurrencyService {
   }
 
   Future<void> saveSavingsCurrencyCode(String code) async {
-    await _secureStorage.write(
-      key: _keySavingsCurrencyCode,
-      value: code.toUpperCase(),
-    );
+    await _prefs.setString(_keySavingsCurrencyCode, code.toUpperCase());
   }
 }
 
