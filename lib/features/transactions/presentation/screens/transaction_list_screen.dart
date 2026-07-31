@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:smartbudget/components/app_ui.dart';
 import 'package:smartbudget/components/financial/insight_portfolio_card.dart';
 import 'package:smartbudget/components/shared/slidable_edge_clip.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
+import 'package:smartbudget/core/monitoring/error_monitor.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/theme/ui_tokens.dart';
@@ -37,9 +39,82 @@ class TransactionListScreen extends ConsumerStatefulWidget {
 }
 
 class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
+  // P3.6: TransactionListScreen used to load an account's entire transaction
+  // history into memory on every open via transactionListProvider() (no
+  // limit). Paginates from the DB instead — the list already virtualizes
+  // via SliverList.separated, this closes the DB-side gap. Local widget
+  // state (rather than the shared transactionListProvider) so this screen
+  // controls its own page window independently of other providers still
+  // reading the full history for analytics (spendingProfile, cashflow
+  // prediction, etc.), which must keep working unpaginated.
+  static const _pageSize = 30;
+
   _TransactionFilter? _activeFilter;
   String _searchQuery = '';
   bool _isAppBarScrolled = false;
+
+  final List<Transaction> _transactions = [];
+  bool _isInitialLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  Object? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialPage();
+  }
+
+  Future<void> _loadInitialPage() async {
+    setState(() {
+      _isInitialLoading = true;
+      _loadError = null;
+    });
+    try {
+      final page = await ref
+          .read(transactionRepositoryProvider)
+          .getTransactions(limit: _pageSize, offset: 0);
+      if (!mounted) return;
+      setState(() {
+        _transactions
+          ..clear()
+          ..addAll(page);
+        _hasMore = page.length == _pageSize;
+        _isInitialLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = e;
+        _isInitialLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadNextPage() async {
+    if (_isLoadingMore || !_hasMore || _isInitialLoading) return;
+    setState(() => _isLoadingMore = true);
+    try {
+      final page = await ref.read(transactionRepositoryProvider).getTransactions(
+            limit: _pageSize,
+            offset: _transactions.length,
+          );
+      if (!mounted) return;
+      setState(() {
+        _transactions.addAll(page);
+        _hasMore = page.length == _pageSize;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      // A failed "load more" leaves the already-loaded page visible rather
+      // than replacing the whole screen with an error — the user can retry
+      // by scrolling again.
+      setState(() => _isLoadingMore = false);
+      await ErrorMonitor.captureException(e, StackTrace.current,
+          context: 'TransactionListScreen._loadNextPage');
+    }
+  }
 
   Future<void> _openEditTransactionModal(Transaction transaction) async {
     await AppFormSheet.show<void>(
@@ -50,6 +125,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         asModal: true,
       ),
     );
+    await _loadInitialPage();
   }
 
   Future<void> _openAddTransactionModal() async {
@@ -60,6 +136,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         asModal: true,
       ),
     );
+    await _loadInitialPage();
   }
 
   void _updateAppBarScrollState(double offset) {
@@ -112,7 +189,6 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final l10n = AppLocalizations.of(context)!;
     final appCurrency = ref.watch(appCurrencyControllerProvider);
     final currencyFormat = CurrencyUtils.getFormat(appCurrency);
-    final transactionsAsync = ref.watch(transactionListProvider());
     final decisionSnapshotAsync =
         ref.watch(transactionDecisionSnapshotProvider);
 
@@ -143,11 +219,26 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         onNotification: (notification) {
           if (notification.metrics.axis == Axis.vertical) {
             _updateAppBarScrollState(notification.metrics.pixels);
+            // Trigger the next page a little before the true end so it's
+            // ready by the time the user reaches it.
+            const loadMoreThreshold = 400.0;
+            if (notification.metrics.maxScrollExtent - notification.metrics.pixels <
+                loadMoreThreshold) {
+              _loadNextPage();
+            }
           }
           return false;
         },
-        child: transactionsAsync.when(
-          data: (transactions) {
+        child: _isInitialLoading
+            ? const AppShimmerSkeleton()
+            : _loadError != null
+                ? Center(
+                    child: Text(
+                      l10n.transactionsError(AppErrorMapper.from(_loadError!)),
+                    ),
+                  )
+                : Builder(builder: (context) {
+                    final transactions = _transactions;
             if (transactions.isEmpty) {
               return AppEmptyState(
                 icon: Icons.receipt_long_outlined,
@@ -388,8 +479,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                               SlidableAction(
                                 onPressed: (_) async {
                                   await ref
-                                      .read(transactionListProvider().notifier)
+                                      .read(transactionRepositoryProvider)
                                       .deleteTransaction(tx.id);
+                                  await _loadInitialPage();
                                   if (!context.mounted) return;
                                   AppFeedback.show(
                                     context,
@@ -529,13 +621,22 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       },
                     ),
                   ),
+                if (_isLoadingMore)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             );
-          },
-          loading: () => const AppShimmerSkeleton(),
-          error: (err, st) =>
-              Center(child: Text(l10n.transactionsError(err.toString()))),
-        ),
+                  }),
       ),
     );
   }

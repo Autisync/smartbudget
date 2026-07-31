@@ -19,11 +19,15 @@ class TransactionRepositoryImpl implements TransactionRepository {
     DateTime? startDate,
     DateTime? endDate,
     String? category,
+    int? limit,
+    int? offset,
   }) async {
     final results = await _db.getTransactions(
       startDate: startDate,
       endDate: endDate,
       category: category,
+      limit: limit,
+      offset: offset,
     );
     return results.map((row) => _mapToEntity(row)).toList();
   }

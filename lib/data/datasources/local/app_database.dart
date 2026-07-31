@@ -125,11 +125,20 @@ WHERE original_currency IS NULL
   }
 
   // Transaction Queries
+  //
+  // P3.6: [limit]/[offset] are optional and default to unbounded — every
+  // existing caller (analytics, cashflow prediction, recurring-transaction
+  // generation, etc.) needs the full matching result set and is unaffected.
+  // Only TransactionListScreen's paginated UI passes them, to stop loading
+  // an account's entire transaction history into memory on every screen
+  // open.
   Future<List<Transaction>> getTransactions({
     DateTime? startDate,
     DateTime? endDate,
     String? category,
     String? accountId,
+    int? limit,
+    int? offset,
   }) {
     final query = select(transactions);
 
@@ -146,7 +155,13 @@ WHERE original_currency IS NULL
       query.where((t) => t.accountId.equals(accountId));
     }
 
-    query.orderBy([(t) => OrderingTerm.desc(t.date)]);
+    // A secondary sort key is required for stable pagination: rows sharing
+    // the same `date` have no guaranteed relative order otherwise, which
+    // could duplicate or skip rows across pages.
+    query.orderBy([(t) => OrderingTerm.desc(t.date), (t) => OrderingTerm.desc(t.id)]);
+    if (limit != null) {
+      query.limit(limit, offset: offset ?? 0);
+    }
     return query.get();
   }
 

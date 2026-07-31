@@ -5,6 +5,8 @@ abstract class TransactionRepository {
     DateTime? startDate,
     DateTime? endDate,
     String? category,
+    int? limit,
+    int? offset,
   });
 
   Future<Transaction?> getTransactionById(String id);
