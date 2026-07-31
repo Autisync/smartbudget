@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import secrets
 from html import escape
 from urllib.parse import quote
 
@@ -70,13 +71,25 @@ def _verify_email_result_html(*, success: bool, app_link: str) -> str:
 """
 
 
-def _reset_password_page_html(*, token: str) -> str:
-    token_js = json.dumps(token)
+def _json_for_inline_script(value: str) -> str:
+    """`json.dumps` for embedding inside an inline `<script>` block.
+
+    `json.dumps` does not escape `/`, so a value containing the literal text
+    `</script>` closes the script element early (HTML parsing happens before
+    JS parsing) and anything after it renders as live markup. Escaping `/` as
+    `\\/` is the standard mitigation and is a no-op for JSON parsing.
+    """
+    return json.dumps(value).replace("/", "\\/")
+
+
+def _reset_password_page_html(*, token: str, script_nonce: str) -> str:
+    token_js = _json_for_inline_script(token)
     base = settings.reset_password_deep_link_base
     separator = "&" if "?" in base else "?"
     app_link = f"{base}{separator}token={quote(token, safe='')}"
     app_link_html = escape(app_link, quote=True)
-    app_link_js = json.dumps(app_link)
+    app_link_js = _json_for_inline_script(app_link)
+    nonce_html = escape(script_nonce, quote=True)
 
     return f"""<!doctype html>
 <html lang=\"en\">
@@ -196,7 +209,7 @@ def _reset_password_page_html(*, token: str) -> str:
             </div>
         </div>
 
-        <script>
+        <script nonce=\"{nonce_html}\">
             const token = {token_js};
             const appLink = {app_link_js};
             const form = document.getElementById('reset-form');
@@ -350,10 +363,26 @@ def create_application() -> FastAPI:
             await pubsub.close()
 
     @app.get("/r/reset-password", response_class=HTMLResponse)
-    def reset_password_redirect(token: str = "") -> str:
+    def reset_password_redirect(token: str = "") -> HTMLResponse:
         # token optional so a malformed link still renders the page (which shows
         # an error in-page) rather than a raw 422 JSON body.
-        return _reset_password_page_html(token=token)
+        nonce = secrets.token_urlsafe(16)
+        html = _reset_password_page_html(token=token, script_nonce=nonce)
+        # Defense in depth alongside the inline-script escaping above: even if a
+        # future edit reintroduces unescaped interpolation, only script tags
+        # carrying this response's one-time nonce are allowed to execute — no
+        # 'unsafe-inline', so an injected <script> without the nonce is inert.
+        return HTMLResponse(
+            content=html,
+            headers={
+                "Content-Security-Policy": (
+                    f"default-src 'none'; script-src 'self' 'nonce-{nonce}'; "
+                    "style-src 'unsafe-inline'; connect-src 'self'; "
+                    "base-uri 'none'; form-action 'self'"
+                ),
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
 
     @app.get("/r/verify-email", response_class=HTMLResponse)
     def verify_email_redirect(
