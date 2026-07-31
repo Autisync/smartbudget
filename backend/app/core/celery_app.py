@@ -1,6 +1,12 @@
 from celery import Celery
 
 from app.core.config import settings
+from app.core.sentry import configure_sentry
+
+# P2.9: report Celery task failures too (check_subscriptions, email tasks,
+# etc.) — previously this process had no error-monitoring integration at
+# all, same gap as the API. Safe no-op without SENTRY_DSN configured.
+configure_sentry()
 
 celery_app = Celery(
     "smartbudget",

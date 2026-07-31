@@ -6,16 +6,19 @@ from html import escape
 from urllib.parse import quote
 
 import jwt
-from fastapi import Depends, FastAPI, WebSocket, WebSocketDisconnect
+import sentry_sdk
+from fastapi import Depends, FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from app.api.deps import db_session
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.core.logging import configure_logging
 from app.core.redis import get_async_redis
 from app.core.security import decode_token
+from app.core.sentry import configure_sentry
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.services.auth_service import AuthService
 
@@ -296,6 +299,9 @@ def _reset_password_page_html(*, token: str, script_nonce: str) -> str:
 
 
 def create_application() -> FastAPI:
+    configure_logging()
+    configure_sentry()
+
     app = FastAPI(title=settings.app_name)
 
     # Fail fast if critical secrets are still at insecure defaults in production.
@@ -336,6 +342,21 @@ def create_application() -> FastAPI:
     )
     app.add_middleware(SecurityHeadersMiddleware)
     app.include_router(api_router)
+
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        # P2.9 fix: previously there was no global handler — an unhandled
+        # exception produced a bare stdout line via FastAPI's default 500
+        # response and nobody was alerted. This only fires for exceptions
+        # FastAPI doesn't already have a specific handler for (HTTPException,
+        # RequestValidationError keep their normal 4xx behavior — Starlette's
+        # handler lookup walks the exception's MRO and picks the most
+        # specific match, so those aren't affected by this).
+        logger.exception(
+            "Unhandled exception on %s %s", request.method, request.url.path,
+        )
+        sentry_sdk.capture_exception(exc)
+        return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
     @app.websocket("/ws/v1/balance/{user_id}")
     async def balance_updates(websocket: WebSocket, user_id: str):

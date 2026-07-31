@@ -70,6 +70,13 @@ class Settings(BaseSettings):
     smtp_from_email: str = "noreply@smartspend.local"
     smtp_from_name: str = "SmartSpend"
 
+    # P2.9 fix: the backend had zero error-monitoring integration (Sentry
+    # existed only in the Flutter app). Empty DSN = safe no-op, mirroring the
+    # mobile app's own ErrorMonitor pattern — nothing is sent anywhere unless
+    # explicitly configured.
+    sentry_dsn: str = ""
+    sentry_traces_sample_rate: float = 0.0
+
     def cors_allowed_origins(self) -> list[str]:
         """Single source of truth for parsing CORS_ORIGINS, used by both the
         startup guard below and the actual CORSMiddleware config in main.py —
