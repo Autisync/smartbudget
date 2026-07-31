@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
+import 'package:smartbudget/core/boot/non_fatal_init.dart';
 import 'package:smartbudget/core/monitoring/error_monitor.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/data/datasources/local/database_cipher.dart';
@@ -60,38 +61,27 @@ Future<void> _boot() async {
     final container = ProviderContainer();
     await container.read(encryptionServiceProvider).initialize();
 
-    // L-3 FIX: Log Firebase init failures so they don't silently disappear.
-    // Firebase is optional — the app operates fully offline without it.
-    try {
-      await Firebase.initializeApp();
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('[SmartSpend] Firebase init failed: $e\n$st');
-      }
-    }
+    // L-3 FIX: Firebase is optional — the app operates fully offline without
+    // it — but a failure here must be reported, not left silent, and must
+    // never abort boot. Same contract for notifications and account seeding
+    // below; runNonFatalInit (lib/core/boot/non_fatal_init.dart) is the
+    // shared implementation so all three behave identically and are unit
+    // testable without booting the real app.
+    await runNonFatalInit('Firebase.initializeApp', () => Firebase.initializeApp());
 
-    // Non-critical startup work: a failure here (e.g. notifications, account
-    // seeding) must never abort boot and drop the user onto the fatal screen.
-    try {
-      await container.read(notificationServiceProvider).initialize();
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('[SmartSpend] Notification init failed: $e\n$st');
-      }
-    }
+    await runNonFatalInit(
+      'notificationServiceProvider.initialize',
+      () => container.read(notificationServiceProvider).initialize(),
+    );
 
     // Seed the default money-source accounts (Cash, Bank Transfer, Credit Card)
     // and remap any legacy 'default' transactions. Idempotent — safe every run.
-    try {
+    await runNonFatalInit('ensureDefaultAccounts', () {
       final appCurrency = container.read(appCurrencyControllerProvider);
-      await container
+      return container
           .read(accountRepositoryProvider)
           .ensureDefaultAccounts(currency: appCurrency);
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('[SmartSpend] Account seeding failed: $e\n$st');
-      }
-    }
+    });
 
     // M-4 FIX: Prune auth logs older than 90 days on every startup.
     unawaited(
