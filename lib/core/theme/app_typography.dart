@@ -4,6 +4,19 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTypography {
   const AppTypography._();
 
+  /// L-7 fix: google_fonts fetches font files from Google's CDN at runtime
+  /// by default whenever the requested font isn't bundled as a local asset.
+  /// This app doesn't bundle Inter, so every themed screen was making a
+  /// network request on first render — a privacy leak (contacting Google
+  /// with the user's IP on every fresh install) and a reliability gap (the
+  /// UI's font depended on network access). Disabling runtime fetching
+  /// makes google_fonts fall back to the platform default font instead of
+  /// making that request; call this once, before the first GoogleFonts.*
+  /// call (see main.dart's _boot()).
+  static void disableRuntimeFetching() {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  }
+
   static TextTheme textTheme(TextTheme base, Color body, Color muted) {
     final inter = GoogleFonts.interTextTheme(base);
     return inter.copyWith(

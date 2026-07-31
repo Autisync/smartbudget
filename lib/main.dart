@@ -11,6 +11,7 @@ import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
 import 'package:smartbudget/core/boot/non_fatal_init.dart';
 import 'package:smartbudget/core/monitoring/error_monitor.dart';
 import 'package:smartbudget/core/providers/core_providers.dart';
+import 'package:smartbudget/core/theme/app_typography.dart';
 import 'package:smartbudget/data/datasources/local/database_cipher.dart';
 import 'package:smartbudget/features/accounts/presentation/providers/account_provider.dart';
 import 'package:smartbudget/core/router/app_router.dart';
@@ -36,6 +37,11 @@ Future<void> _boot() async {
   // Sentry's zone and do not replace the live UI.
   try {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // L-7 FIX: must run before the first GoogleFonts.* call (AppTheme, built
+    // below via the widget tree, is the first) so no screen ever makes a
+    // runtime request to Google's font CDN.
+    AppTypography.disableRuntimeFetching();
 
     // Catch Flutter framework errors (widget build failures, etc.): show a
     // visible error widget instead of a black screen AND report to monitoring.
