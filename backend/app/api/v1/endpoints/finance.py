@@ -23,11 +23,14 @@ from app.schemas.finance import (
     AnalyticsSummary,
     BudgetCreate,
     BudgetOut,
+    BudgetPage,
     PageMeta,
     SavingsGoalCreate,
     SavingsGoalOut,
+    SavingsGoalPage,
     SubscriptionCreate,
     SubscriptionOut,
+    SubscriptionPage,
     TransactionCreate,
     TransactionOut,
     TransactionPage,
@@ -141,9 +144,19 @@ def delete_transaction(
     return None
 
 
-@router.get("/budgets", response_model=list[BudgetOut])
-def list_budgets(db: Session = Depends(db_session), user=Depends(require_user)):
-    return db.scalars(select(Budget).where(Budget.user_id == user.id).order_by(Budget.category)).all()
+@router.get("/budgets", response_model=BudgetPage)
+def list_budgets(
+    db: Session = Depends(db_session),
+    user=Depends(require_user),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+):
+    filters = [Budget.user_id == user.id]
+    total = db.scalar(select(func.count()).select_from(Budget).where(*filters)) or 0
+    rows = db.scalars(
+        select(Budget).where(*filters).order_by(Budget.category).limit(limit).offset(offset)
+    ).all()
+    return BudgetPage(data=rows, meta=PageMeta(limit=limit, offset=offset, total=total))
 
 
 @router.post("/budgets", response_model=BudgetOut, status_code=201)
@@ -155,9 +168,23 @@ def create_budget(payload: BudgetCreate, db: Session = Depends(db_session), user
     return budget
 
 
-@router.get("/savings-goals", response_model=list[SavingsGoalOut])
-def list_savings_goals(db: Session = Depends(db_session), user=Depends(require_user)):
-    return db.scalars(select(SavingsGoal).where(SavingsGoal.user_id == user.id).order_by(SavingsGoal.created_at.desc())).all()
+@router.get("/savings-goals", response_model=SavingsGoalPage)
+def list_savings_goals(
+    db: Session = Depends(db_session),
+    user=Depends(require_user),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+):
+    filters = [SavingsGoal.user_id == user.id]
+    total = db.scalar(select(func.count()).select_from(SavingsGoal).where(*filters)) or 0
+    rows = db.scalars(
+        select(SavingsGoal)
+        .where(*filters)
+        .order_by(SavingsGoal.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    return SavingsGoalPage(data=rows, meta=PageMeta(limit=limit, offset=offset, total=total))
 
 
 @router.post("/savings-goals", response_model=SavingsGoalOut, status_code=201)
@@ -169,9 +196,23 @@ def create_savings_goal(payload: SavingsGoalCreate, db: Session = Depends(db_ses
     return goal
 
 
-@router.get("/subscriptions", response_model=list[SubscriptionOut])
-def list_subscriptions(db: Session = Depends(db_session), user=Depends(require_user)):
-    return db.scalars(select(Subscription).where(Subscription.user_id == user.id).order_by(Subscription.next_due_on)).all()
+@router.get("/subscriptions", response_model=SubscriptionPage)
+def list_subscriptions(
+    db: Session = Depends(db_session),
+    user=Depends(require_user),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+):
+    filters = [Subscription.user_id == user.id]
+    total = db.scalar(select(func.count()).select_from(Subscription).where(*filters)) or 0
+    rows = db.scalars(
+        select(Subscription)
+        .where(*filters)
+        .order_by(Subscription.next_due_on)
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    return SubscriptionPage(data=rows, meta=PageMeta(limit=limit, offset=offset, total=total))
 
 
 @router.post("/subscriptions", response_model=SubscriptionOut, status_code=201)

@@ -52,6 +52,11 @@ class BudgetOut(BudgetCreate):
     updated_at: datetime
 
 
+class BudgetPage(BaseModel):
+    data: list[BudgetOut]
+    meta: PageMeta
+
+
 class SavingsGoalCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     target_amount: Decimal = Field(gt=0, max_digits=14, decimal_places=2)
@@ -66,6 +71,11 @@ class SavingsGoalOut(SavingsGoalCreate):
     id: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class SavingsGoalPage(BaseModel):
+    data: list[SavingsGoalOut]
+    meta: PageMeta
 
 
 class SubscriptionCreate(BaseModel):
@@ -83,6 +93,11 @@ class SubscriptionOut(SubscriptionCreate):
     id: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class SubscriptionPage(BaseModel):
+    data: list[SubscriptionOut]
+    meta: PageMeta
 
 
 class AnalyticsSummary(BaseModel):
