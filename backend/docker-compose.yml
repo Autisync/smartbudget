@@ -41,6 +41,7 @@ services:
       SMTP_FROM_NAME: ${SMTP_FROM_NAME:-SmartBudget}
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.0}
+      HEALTH_CHECK_TOKEN: ${HEALTH_CHECK_TOKEN:-}
     command:
       [
         "sh",

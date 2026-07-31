@@ -77,6 +77,14 @@ class Settings(BaseSettings):
     sentry_dsn: str = ""
     sentry_traces_sample_rate: float = 0.0
 
+    # L-3 fix: /health/ready was unauthenticated and exposed Celery broker/
+    # worker/SMTP internals to anonymous callers — free reconnaissance about
+    # the deployment. Empty = unrestricted (fine for local/dev); set this to
+    # require a shared token via the X-Health-Check-Token header in
+    # production (e.g. for an uptime monitor), matching how RESET_PASSWORD/
+    # JWT secrets are configured — a deliberate opt-in, not a default.
+    health_check_token: str = ""
+
     def cors_allowed_origins(self) -> list[str]:
         """Single source of truth for parsing CORS_ORIGINS, used by both the
         startup guard below and the actual CORSMiddleware config in main.py —
