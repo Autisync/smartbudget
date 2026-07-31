@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
 import 'package:smartbudget/core/boot/non_fatal_init.dart';
 import 'package:smartbudget/core/monitoring/error_monitor.dart';
@@ -58,7 +59,10 @@ Future<void> _boot() async {
     await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
 
     // Initialize services
-    final container = ProviderContainer();
+    final prefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
     await container.read(encryptionServiceProvider).initialize();
 
     // L-3 FIX: Firebase is optional — the app operates fully offline without

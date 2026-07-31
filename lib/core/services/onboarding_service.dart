@@ -1,4 +1,4 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingStatus {
   final bool onboardingComplete;
@@ -14,27 +14,33 @@ class OnboardingStatus {
   bool get isReady => onboardingComplete && legalAccepted;
 }
 
+/// L-6 fix: these flags previously lived in Keychain-backed secure storage,
+/// which iOS/Android both preserve across an app uninstall/reinstall — a
+/// user who deletes and reinstalls the app got dropped straight past
+/// onboarding and legal acceptance, as if they'd already gone through it on
+/// this device. None of these values are secrets (they're plain booleans/a
+/// timestamp), so SharedPreferences — which IS correctly wiped on
+/// uninstall — is the right backend. True secrets (auth tokens, the
+/// SQLCipher key, biometric state) stay in Keychain via FlutterSecureStorage
+/// elsewhere; this service never touches that.
 class OnboardingService {
-  final FlutterSecureStorage _secureStorage;
+  final SharedPreferences _prefs;
 
   static const _keyOnboardingComplete = 'onboarding_complete';
   static const _keyLegalAccepted = 'legal_accepted';
   static const _keyLegalReviewedAt = 'legal_reviewed_at';
   static const _keyAppTourSeen = 'app_tour_seen';
 
-  const OnboardingService(this._secureStorage);
+  const OnboardingService(this._prefs);
 
   Future<OnboardingStatus> readStatus() async {
     final onboardingComplete =
-        await _secureStorage.read(key: _keyOnboardingComplete) == 'true';
-    final legalAccepted =
-        await _secureStorage.read(key: _keyLegalAccepted) == 'true';
-    final legalReviewedAtRaw =
-        await _secureStorage.read(key: _keyLegalReviewedAt);
-    final legalReviewedAt =
-        legalReviewedAtRaw == null || legalReviewedAtRaw.isEmpty
-            ? null
-            : DateTime.tryParse(legalReviewedAtRaw);
+        _prefs.getBool(_keyOnboardingComplete) ?? false;
+    final legalAccepted = _prefs.getBool(_keyLegalAccepted) ?? false;
+    final legalReviewedAtRaw = _prefs.getString(_keyLegalReviewedAt);
+    final legalReviewedAt = legalReviewedAtRaw == null || legalReviewedAtRaw.isEmpty
+        ? null
+        : DateTime.tryParse(legalReviewedAtRaw);
 
     return OnboardingStatus(
       onboardingComplete: onboardingComplete,
@@ -47,42 +53,30 @@ class OnboardingService {
     required bool acceptedLegal,
     DateTime? reviewedAt,
   }) async {
-    await _secureStorage.write(
-      key: _keyOnboardingComplete,
-      value: 'true',
-    );
-    await _secureStorage.write(
-      key: _keyLegalAccepted,
-      value: acceptedLegal.toString(),
-    );
+    await _prefs.setBool(_keyOnboardingComplete, true);
+    await _prefs.setBool(_keyLegalAccepted, acceptedLegal);
     if (acceptedLegal) {
-      await _secureStorage.write(
-        key: _keyLegalReviewedAt,
-        value: (reviewedAt ?? DateTime.now().toUtc()).toIso8601String(),
+      await _prefs.setString(
+        _keyLegalReviewedAt,
+        (reviewedAt ?? DateTime.now().toUtc()).toIso8601String(),
       );
     } else {
-      await _secureStorage.delete(key: _keyLegalReviewedAt);
+      await _prefs.remove(_keyLegalReviewedAt);
     }
   }
 
   Future<bool> isAppTourSeen() async {
-    return await _secureStorage.read(key: _keyAppTourSeen) == 'true';
+    return _prefs.getBool(_keyAppTourSeen) ?? false;
   }
 
   Future<void> markAppTourSeen() async {
-    await _secureStorage.write(key: _keyAppTourSeen, value: 'true');
+    await _prefs.setBool(_keyAppTourSeen, true);
   }
 
   Future<void> resetOnboarding() async {
-    await _secureStorage.write(
-      key: _keyOnboardingComplete,
-      value: 'false',
-    );
-    await _secureStorage.write(
-      key: _keyLegalAccepted,
-      value: 'false',
-    );
-    await _secureStorage.delete(key: _keyLegalReviewedAt);
+    await _prefs.setBool(_keyOnboardingComplete, false);
+    await _prefs.setBool(_keyLegalAccepted, false);
+    await _prefs.remove(_keyLegalReviewedAt);
   }
 }
 

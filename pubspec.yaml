@@ -90,6 +90,7 @@ dependencies:
   firebase_messaging: ^16.2.0
   sqlcipher_flutter_libs: ^0.6.0
   sentry_flutter: ^9.22.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   sentry_dart_plugin: ^3.4.0

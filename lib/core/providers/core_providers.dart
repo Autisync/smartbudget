@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart';
 import 'package:smartbudget/core/services/onboarding_service.dart';
@@ -65,9 +66,20 @@ BiometricAuthService biometricAuthService(Ref ref) {
   return BiometricAuthService(localAuth, storage);
 }
 
+// L-6: overridden at app startup (see main.dart) with the real, already-
+// resolved SharedPreferences.getInstance() — that call is async, and this
+// provider's dependents (onboardingServiceProvider and everything built on
+// it) need to stay synchronous, same as secureStorageProvider above.
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError(
+    'sharedPreferencesProvider must be overridden with a resolved '
+    'SharedPreferences instance before use (see main.dart _boot()).',
+  );
+});
+
 final onboardingServiceProvider = Provider<OnboardingService>((ref) {
-  final storage = ref.watch(secureStorageProvider);
-  return OnboardingService(storage);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return OnboardingService(prefs);
 });
 
 final onboardingStatusProvider = FutureProvider<OnboardingStatus>((ref) async {
