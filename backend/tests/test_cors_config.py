@@ -15,18 +15,31 @@ from app.main import create_application
 def _restore_settings():
     """Settings is a module-level singleton read by create_application() —
     snapshot and restore the fields these tests mutate."""
-    original = (settings.environment, settings.cors_origins, settings.jwt_secret_key, settings.database_url)
+    original = (
+        settings.environment,
+        settings.cors_origins,
+        settings.jwt_secret_key,
+        settings.database_url,
+        settings.health_check_token,
+    )
     yield
-    settings.environment, settings.cors_origins, settings.jwt_secret_key, settings.database_url = original
+    (
+        settings.environment,
+        settings.cors_origins,
+        settings.jwt_secret_key,
+        settings.database_url,
+        settings.health_check_token,
+    ) = original
 
 
 def _use_safe_non_cors_secrets():
-    """Sets JWT_SECRET_KEY/DATABASE_URL to non-default values so tests that
-    exercise the "app starts fine" path aren't tripped by the *other*,
-    unrelated production_secret_issues() checks — isolates the assertions to
-    CORS behavior specifically."""
+    """Sets JWT_SECRET_KEY/DATABASE_URL/HEALTH_CHECK_TOKEN to non-default
+    values so tests that exercise the "app starts fine" path aren't tripped
+    by the *other*, unrelated production_secret_issues() checks — isolates
+    the assertions to CORS behavior specifically."""
     settings.jwt_secret_key = "a-real-random-looking-secret-value-not-the-default"
     settings.database_url = "postgresql+psycopg://smartspend_app:S3cur3P@ss@db.internal:5432/smartspend"
+    settings.health_check_token = "a-real-shared-token"
 
 
 # ---- Unit tests: the startup guard -----------------------------------------
@@ -103,3 +116,44 @@ def test_app_starts_with_empty_cors_in_development_and_defaults_to_wildcard():
         m for m in app.user_middleware if m.cls.__name__ == "CORSMiddleware"
     )
     assert cors_middleware.kwargs["allow_origins"] == ["*"]
+
+
+# ---- Re-audit fix: HEALTH_CHECK_TOKEN must not default to unauthenticated in
+# production. Previously health_check_token="" was a silent opt-out — /health/
+# ready served DB/Redis/Celery connectivity details to anonymous callers
+# unless an operator remembered to set the env var. Now enforced the same way
+# as the other production_secret_issues() checks: fail closed, not silent. ----
+
+
+def test_unset_health_check_token_is_flagged_in_production():
+    settings.environment = "production"
+    settings.health_check_token = ""
+    assert any("HEALTH_CHECK_TOKEN" in issue for issue in settings.production_secret_issues())
+
+
+def test_set_health_check_token_is_not_flagged_in_production():
+    settings.environment = "production"
+    settings.health_check_token = "a-real-shared-token"
+    assert not any("HEALTH_CHECK_TOKEN" in issue for issue in settings.production_secret_issues())
+
+
+def test_unset_health_check_token_is_allowed_in_development():
+    settings.environment = "development"
+    settings.health_check_token = ""
+    assert settings.production_secret_issues() == []
+
+
+def test_app_fails_to_start_with_unset_health_check_token_in_production():
+    settings.environment = "production"
+    settings.health_check_token = ""
+    with pytest.raises(SystemExit):
+        create_application()
+
+
+def test_app_starts_normally_with_health_check_token_set_in_production():
+    settings.environment = "production"
+    settings.health_check_token = "a-real-shared-token"
+    _use_safe_non_cors_secrets()
+    settings.cors_origins = "https://smaartspend.com"
+    # Must not raise — the whole production_secret_issues() checklist passes.
+    create_application()

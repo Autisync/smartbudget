@@ -79,10 +79,11 @@ class Settings(BaseSettings):
 
     # L-3 fix: /health/ready was unauthenticated and exposed Celery broker/
     # worker/SMTP internals to anonymous callers — free reconnaissance about
-    # the deployment. Empty = unrestricted (fine for local/dev); set this to
-    # require a shared token via the X-Health-Check-Token header in
-    # production (e.g. for an uptime monitor), matching how RESET_PASSWORD/
-    # JWT secrets are configured — a deliberate opt-in, not a default.
+    # the deployment. Empty = unrestricted (fine for local/dev only); set this
+    # to require a shared token via the X-Health-Check-Token header in
+    # production (e.g. for an uptime monitor). Re-audit fix: an unset token
+    # outside development now fails startup via production_secret_issues()
+    # below, instead of silently defaulting to unauthenticated.
     health_check_token: str = ""
 
     def cors_allowed_origins(self) -> list[str]:
@@ -113,6 +114,11 @@ class Settings(BaseSettings):
         if self.cors_origins == "*" or not self.cors_allowed_origins():
             issues.append(
                 "CORS_ORIGINS is '*' or empty — restrict to your production domain(s)"
+            )
+        if not self.health_check_token:
+            issues.append(
+                "HEALTH_CHECK_TOKEN is unset — /health/ready would be reachable "
+                "anonymously; set a shared token for production"
             )
         return issues
 
