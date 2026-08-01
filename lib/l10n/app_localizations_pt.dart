@@ -3023,6 +3023,62 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get accountsEmptyMessage => 'Add your first account to start tracking your money across wallets and banks.';
+
+  @override
+  String get accountsRemoveMessage => 'The account will be hidden. Existing transactions are kept.';
+
+  @override
+  String get accountsTotalBalance => 'Total balance';
+
+  @override
+  String accountsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count accounts',
+      one: '$count account',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get accountsEditAccount => 'Edit Account';
+
+  @override
+  String get accountsNewAccount => 'New Account';
+
+  @override
+  String get accountsNameYourAccount => 'Name your account';
+
+  @override
+  String get accountsNameHint => 'e.g. Main Wallet, HSBC Savings';
+
+  @override
+  String get accountsEnterName => 'Enter a name';
+
+  @override
+  String get accountsNegativeBalanceHelper => 'Use a negative value for an outstanding balance owed';
+
+  @override
+  String get accountsStartingBalanceHelper => 'Starting balance for this account';
+
+  @override
+  String get accountsEnterNumber => 'Enter a number';
+
+  @override
+  String get accountsAmountTooLarge => 'Amount too large';
+
+  @override
+  String get accountsSaveAccount => 'Save Account';
+
+  @override
+  String get accountsCreateAccount => 'Create Account';
+
+  @override
+  String get accountsType => 'Account type';
+
+  @override
   String get subscriptionsClearFilters => 'Limpar filtros';
 
   @override

@@ -1712,6 +1712,29 @@
   "notificationsListErrorTitle": "Unable to load notifications",
   "notificationsListErrorMessage": "Try again in a moment to view your notifications.",
   "accountsRemoveTitle": "Remove {name}?",
+  "accountsEmptyMessage": "Add your first account to start tracking your money across wallets and banks.",
+  "accountsRemoveMessage": "The account will be hidden. Existing transactions are kept.",
+  "accountsTotalBalance": "Total balance",
+  "accountsCount": "{count, plural, one{{count} account} other{{count} accounts}}",
+  "@accountsCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "accountsEditAccount": "Edit Account",
+  "accountsNewAccount": "New Account",
+  "accountsNameYourAccount": "Name your account",
+  "accountsNameHint": "e.g. Main Wallet, HSBC Savings",
+  "accountsEnterName": "Enter a name",
+  "accountsNegativeBalanceHelper": "Use a negative value for an outstanding balance owed",
+  "accountsStartingBalanceHelper": "Starting balance for this account",
+  "accountsEnterNumber": "Enter a number",
+  "accountsAmountTooLarge": "Amount too large",
+  "accountsSaveAccount": "Save Account",
+  "accountsCreateAccount": "Create Account",
+  "accountsType": "Account type",
   "subscriptionsClearFilters": "Clear filters",
   "subscriptionsSearchHint": "Search by name or category",
   "notificationsMarkRead": "Read",

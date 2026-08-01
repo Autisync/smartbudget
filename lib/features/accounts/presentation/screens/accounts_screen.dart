@@ -106,9 +106,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               return AppEmptyState(
                 icon: Icons.account_balance_wallet_outlined,
                 title: l10n.accountsEmptyTitle,
-                message:
-                    'Add your first account to start tracking your money '
-                    'across wallets and banks.',
+                message: l10n.accountsEmptyMessage,
                 action: SizedBox(
                   width: (MediaQuery.sizeOf(context).width - 48)
                       .clamp(220.0, 320.0)
@@ -185,9 +183,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.accountsRemoveTitle(account.name)),
-        content: const Text(
-          'The account will be hidden. Existing transactions are kept.',
-        ),
+        content: Text(l10n.accountsRemoveMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -235,6 +231,7 @@ class _TotalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isDark = theme.brightness == Brightness.dark;
     final fmt = CurrencyUtils.getFormat(currency);
     return Container(
@@ -276,7 +273,7 @@ class _TotalCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Total balance',
+                l10n.accountsTotalBalance,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: Colors.white.withOpacity( 0.85),
                   fontWeight: FontWeight.w600,
@@ -296,7 +293,7 @@ class _TotalCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '$count ${count == 1 ? 'account' : 'accounts'}',
+            l10n.accountsCount(count),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Colors.white.withOpacity( 0.75),
             ),
@@ -517,7 +514,7 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isEdit ? 'Edit Account' : 'New Account',
+                        isEdit ? l10n.accountsEditAccount : l10n.accountsNewAccount,
                         style: theme.textTheme.titleLarge
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
@@ -527,7 +524,7 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
                             ? liveBalance != 0
                                 ? '$liveName · ${liveBalance.toStringAsFixed(2)}'
                                 : liveName
-                            : 'Name your account',
+                            : l10n.accountsNameYourAccount,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
@@ -545,11 +542,12 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
           ModernInput(
             controller: _name,
             label: l10n.accountsNameLabel,
-            hintText: 'e.g. Main Wallet, HSBC Savings',
+            hintText: l10n.accountsNameHint,
             prefixIcon: Icons.label_rounded,
             onChanged: (_) => setState(() {}),
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Enter a name' : null,
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? l10n.accountsEnterName
+                : null,
           ),
           const SizedBox(height: 16),
           // Account type chip row
@@ -567,13 +565,15 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
             // balance, so allow a leading minus for those types.
             allowNegative: _type == AccountType.creditCard,
             helperText: _type == AccountType.creditCard
-                ? 'Use a negative value for an outstanding balance owed'
-                : 'Starting balance for this account',
+                ? l10n.accountsNegativeBalanceHelper
+                : l10n.accountsStartingBalanceHelper,
             onChanged: (_) => setState(() {}),
             validator: (v) {
               final parsed = FormValidation.parseDecimal(v ?? '');
-              if (parsed == null) return 'Enter a number';
-              if (!MoneyUtils.isWithinLimit(parsed)) return 'Amount too large';
+              if (parsed == null) return l10n.accountsEnterNumber;
+              if (!MoneyUtils.isWithinLimit(parsed)) {
+                return l10n.accountsAmountTooLarge;
+              }
               return null;
             },
           ),
@@ -594,7 +594,7 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : Icon(isEdit ? Icons.edit_rounded : Icons.add_rounded),
-        label: Text(isEdit ? 'Save Account' : 'Create Account'),
+        label: Text(isEdit ? l10n.accountsSaveAccount : l10n.accountsCreateAccount),
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(52),
         ),
@@ -617,11 +617,12 @@ class _AccountTypeChipSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Account type',
+          l10n.accountsType,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,

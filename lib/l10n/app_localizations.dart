@@ -5729,6 +5729,102 @@ abstract class AppLocalizations {
   /// **'Remove {name}?'**
   String accountsRemoveTitle(String name);
 
+  /// No description provided for @accountsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first account to start tracking your money across wallets and banks.'**
+  String get accountsEmptyMessage;
+
+  /// No description provided for @accountsRemoveMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The account will be hidden. Existing transactions are kept.'**
+  String get accountsRemoveMessage;
+
+  /// No description provided for @accountsTotalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total balance'**
+  String get accountsTotalBalance;
+
+  /// No description provided for @accountsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} account} other{{count} accounts}}'**
+  String accountsCount(num count);
+
+  /// No description provided for @accountsEditAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Account'**
+  String get accountsEditAccount;
+
+  /// No description provided for @accountsNewAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'New Account'**
+  String get accountsNewAccount;
+
+  /// No description provided for @accountsNameYourAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Name your account'**
+  String get accountsNameYourAccount;
+
+  /// No description provided for @accountsNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Main Wallet, HSBC Savings'**
+  String get accountsNameHint;
+
+  /// No description provided for @accountsEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get accountsEnterName;
+
+  /// No description provided for @accountsNegativeBalanceHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a negative value for an outstanding balance owed'**
+  String get accountsNegativeBalanceHelper;
+
+  /// No description provided for @accountsStartingBalanceHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting balance for this account'**
+  String get accountsStartingBalanceHelper;
+
+  /// No description provided for @accountsEnterNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number'**
+  String get accountsEnterNumber;
+
+  /// No description provided for @accountsAmountTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount too large'**
+  String get accountsAmountTooLarge;
+
+  /// No description provided for @accountsSaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Account'**
+  String get accountsSaveAccount;
+
+  /// No description provided for @accountsCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get accountsCreateAccount;
+
+  /// No description provided for @accountsType.
+  ///
+  /// In en, this message translates to:
+  /// **'Account type'**
+  String get accountsType;
+
   /// No description provided for @subscriptionsClearFilters.
   ///
   /// In en, this message translates to:
