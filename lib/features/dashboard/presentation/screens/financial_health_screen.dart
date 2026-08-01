@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:smartbudget/components/charts/app_finance_charts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/components/forms/modern_select.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
 import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
@@ -274,7 +275,7 @@ class _FinancialHealthScreenState extends ConsumerState<FinancialHealthScreen> {
           },
           loading: () => const AppShimmerSkeleton(),
           error: (err, st) => Center(
-            child: Text(l10n.transactionsError(err.toString())),
+            child: Text(l10n.transactionsError(AppErrorMapper.from(err))),
           ),
         ),
       ),

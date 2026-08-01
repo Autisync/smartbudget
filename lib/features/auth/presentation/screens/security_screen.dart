@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/core/errors/app_error_mapper.dart';
 import 'package:smartbudget/core/services/biometric_auth_service.dart' as bio;
 import 'package:smartbudget/core/providers/core_providers.dart';
 import 'package:smartbudget/core/theme/app_surfaces.dart';
@@ -305,8 +306,9 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                       },
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
-                      error: (err, st) =>
-                          Text(l10n.securityErrorLoadingLogs(err.toString())),
+                      error: (err, st) => Text(
+                        l10n.securityErrorLoadingLogs(AppErrorMapper.from(err)),
+                      ),
                     ),
                   ],
                 ),
@@ -316,7 +318,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, st) => Center(
             child: Text(
-              l10n.securityErrorLoadingSettings(err.toString()),
+              l10n.securityErrorLoadingSettings(AppErrorMapper.from(err)),
             ),
           ),
         ),
