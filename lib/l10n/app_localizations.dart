@@ -4019,6 +4019,18 @@ abstract class AppLocalizations {
   /// **'Try again in a moment to view spending pace insights.'**
   String get dashboardBurnRateErrorMessage;
 
+  /// No description provided for @dashboardHealthCardErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load financial health'**
+  String get dashboardHealthCardErrorTitle;
+
+  /// No description provided for @dashboardHealthCardErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again in a moment to view your health score.'**
+  String get dashboardHealthCardErrorMessage;
+
   /// No description provided for @dashboardRecentTransactionsErrorTitle.
   ///
   /// In en, this message translates to:

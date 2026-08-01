@@ -387,7 +387,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         onViewDetails: () => context.go('/health'),
                       ),
                       loading: () => const _LoadingCard(),
-                      error: (_, __) => _ErrorCard(l10n: l10n),
+                      error: (_, __) => AppErrorState(
+                        title: l10n.dashboardHealthCardErrorTitle,
+                        message: l10n.dashboardHealthCardErrorMessage,
+                        actionLabel: l10n.commonRetry,
+                        onAction: () => ref.invalidate(financialHealthProvider),
+                      ),
                     ),
                     const SizedBox(height: 24),
                     HomeRecurringBalanceCard(
@@ -1553,20 +1558,3 @@ class _LoadingCard extends StatelessWidget {
   }
 }
 
-class _ErrorCard extends StatelessWidget {
-  const _ErrorCard({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 100,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Center(child: Text(l10n.dashboardFailedToLoadInsights)),
-    );
-  }
-}

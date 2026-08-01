@@ -1406,6 +1406,8 @@
   "dashboardSyncing": "Syncing dashboard data…",
   "dashboardBurnRateErrorTitle": "Unable to load burn rate",
   "dashboardBurnRateErrorMessage": "Try again in a moment to view spending pace insights.",
+  "dashboardHealthCardErrorTitle": "Unable to load financial health",
+  "dashboardHealthCardErrorMessage": "Try again in a moment to view your health score.",
   "dashboardRecentTransactionsErrorTitle": "Could not load recent transactions",
   "burnRateStatusCritical": "Critical",
   "burnRateStatusHigh": "High",

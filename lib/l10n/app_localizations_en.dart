@@ -2160,6 +2160,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardBurnRateErrorMessage => 'Try again in a moment to view spending pace insights.';
 
   @override
+  String get dashboardHealthCardErrorTitle => 'Unable to load financial health';
+
+  @override
+  String get dashboardHealthCardErrorMessage => 'Try again in a moment to view your health score.';
+
+  @override
   String get dashboardRecentTransactionsErrorTitle => 'Could not load recent transactions';
 
   @override

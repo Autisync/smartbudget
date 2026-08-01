@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:smartbudget/components/app_ui.dart';
+import 'package:smartbudget/core/theme/app_colors.dart';
 import 'package:smartbudget/core/widgets/fintech_components.dart';
 import 'package:smartbudget/core/widgets/app_shimmer.dart';
 import 'package:smartbudget/core/widgets/page_header.dart';
@@ -572,13 +573,18 @@ class _FinancialStressMeter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
     final score = result.stressScore;
-    final color = switch (score.status) {
-      FinancialStressState.low => Colors.green,
-      FinancialStressState.moderate => Colors.orange,
-      FinancialStressState.high => Colors.deepOrange,
-      FinancialStressState.critical => Colors.red,
+    // The documented money-color system (AppColors.statusFor) has three
+    // severity tiers (success/warning/danger); high and critical both map to
+    // danger rather than inventing a fourth ad hoc shade outside that system.
+    final status = switch (score.status) {
+      FinancialStressState.low => AppStatus.success,
+      FinancialStressState.moderate => AppStatus.warning,
+      FinancialStressState.high => AppStatus.danger,
+      FinancialStressState.critical => AppStatus.danger,
     };
+    final color = AppColors.statusFor(brightness, status);
 
     return SmartCard(
       radius: 24,
