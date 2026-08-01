@@ -126,11 +126,14 @@ def test_password_reset_flow_is_fully_audited(real_db, monkeypatch):
     from app.core.security import create_short_lived_token
     reset_token = create_short_lived_token(subject=user_id, token_type="reset_password", ttl_seconds=1800)
     auth_endpoints.reset_password(
-        ResetPasswordRequest(token=reset_token, new_password="NewStrongPass123"), request, db=real_db,
+        ResetPasswordRequest(token=reset_token, new_password="NewStrongPass123"),
+        request, db=real_db, rate_limiter=_NoopLimiter2(),
     )
 
     verify_token = create_short_lived_token(subject=user_id, token_type="verify_email", ttl_seconds=86400)
-    auth_endpoints.verify_email(VerifyEmailRequest(token=verify_token), request, db=real_db)
+    auth_endpoints.verify_email(
+        VerifyEmailRequest(token=verify_token), request, db=real_db, rate_limiter=_NoopLimiter2(),
+    )
 
     actions = _audit_actions_for(real_db, uuid.UUID(user_id))
     assert "auth.password_reset_requested" in actions

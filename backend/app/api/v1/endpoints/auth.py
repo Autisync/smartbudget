@@ -133,7 +133,22 @@ def forgot_password(
 
 
 @router.post("/reset-password", response_model=MessageResponse)
-def reset_password(payload: ResetPasswordRequest, request: Request, db: Session = Depends(db_session)):
+def reset_password(
+    payload: ResetPasswordRequest,
+    request: Request,
+    db: Session = Depends(db_session),
+    rate_limiter: RateLimiterService = Depends(limiter),
+):
+    # Re-audit fix: every other auth endpoint that takes untrusted input is
+    # rate-limited (login, forgot-password, social-login) — this one wasn't,
+    # despite accepting an attacker-suppliable token string on every request.
+    # Tokens are signed JWTs (infeasible to brute-force), so this is about
+    # bounding endpoint abuse/probing, not token guessing specifically.
+    ip_key = request.client.host if request.client else "unknown"
+    if not rate_limiter.check_once(
+        "reset-password", ip_key, max_attempts=10, window_seconds=900,
+    ):
+        raise errors.bad_request("Too many requests. Try again later.")
     try:
         token_payload = decode_token(payload.token)
         if token_payload.get("type") != "reset_password":
@@ -149,7 +164,18 @@ def reset_password(payload: ResetPasswordRequest, request: Request, db: Session 
 
 
 @router.post("/verify-email", response_model=MessageResponse)
-def verify_email(payload: VerifyEmailRequest, request: Request, db: Session = Depends(db_session)):
+def verify_email(
+    payload: VerifyEmailRequest,
+    request: Request,
+    db: Session = Depends(db_session),
+    rate_limiter: RateLimiterService = Depends(limiter),
+):
+    # Re-audit fix: same rationale as reset_password above.
+    ip_key = request.client.host if request.client else "unknown"
+    if not rate_limiter.check_once(
+        "verify-email", ip_key, max_attempts=10, window_seconds=900,
+    ):
+        raise errors.bad_request("Too many requests. Try again later.")
     try:
         token_payload = decode_token(payload.token)
         if token_payload.get("type") != "verify_email":
