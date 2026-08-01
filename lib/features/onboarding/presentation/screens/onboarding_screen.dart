@@ -331,6 +331,7 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         // Progress bar segments
@@ -388,7 +389,7 @@ class _TopBar extends StatelessWidget {
           GestureDetector(
             onTap: onSkip,
             child: Text(
-              'Skip',
+              l10n.onboardingSkip,
               style: TextStyle(
                 color: Colors.white.withOpacity( 0.6),
                 fontSize: 14,
