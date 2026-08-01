@@ -908,6 +908,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navExchangeRates => 'Taux de change';
 
   @override
+  String get navReports => 'Reports';
+
+  @override
+  String get navAiInsights => 'AI Insights';
+
+  @override
+  String get navScenarioLab => 'Scenario Lab';
+
+  @override
+  String get navLightMode => 'Light mode';
+
+  @override
+  String get navDarkMode => 'Dark mode';
+
+  @override
+  String get navHelp => 'Help';
+
+  @override
+  String get navUnableToOpenWebsite => 'Unable to open website right now.';
+
+  @override
+  String get quickAddTransaction => 'Transaction';
+
+  @override
+  String get quickAddSubscription => 'Subscription';
+
+  @override
+  String get quickAddBudget => 'Budget';
+
+  @override
   String get authSecureFinancialManagement => 'Gestion Financière Sécurisée';
 
   @override

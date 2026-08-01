@@ -1811,6 +1811,66 @@ abstract class AppLocalizations {
   /// **'Exchange Rates'**
   String get navExchangeRates;
 
+  /// No description provided for @navReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get navReports;
+
+  /// No description provided for @navAiInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Insights'**
+  String get navAiInsights;
+
+  /// No description provided for @navScenarioLab.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario Lab'**
+  String get navScenarioLab;
+
+  /// No description provided for @navLightMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Light mode'**
+  String get navLightMode;
+
+  /// No description provided for @navDarkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode'**
+  String get navDarkMode;
+
+  /// No description provided for @navHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get navHelp;
+
+  /// No description provided for @navUnableToOpenWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open website right now.'**
+  String get navUnableToOpenWebsite;
+
+  /// No description provided for @quickAddTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction'**
+  String get quickAddTransaction;
+
+  /// No description provided for @quickAddSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get quickAddSubscription;
+
+  /// No description provided for @quickAddBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get quickAddBudget;
+
   /// No description provided for @authSecureFinancialManagement.
   ///
   /// In en, this message translates to:

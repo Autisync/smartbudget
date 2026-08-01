@@ -551,6 +551,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   // -- Quick-add menu ---------------------------------------------------------
 
   List<NavActionItem> _buildAddItems() {
+    final l10n = AppLocalizations.of(context)!;
     final router = GoRouter.of(context);
     final container = ProviderScope.containerOf(context);
 
@@ -576,22 +577,22 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     return [
       NavActionItem(
         icon: AppIcons.transactionsFilled,
-        label: 'Transaction',
+        label: l10n.quickAddTransaction,
         onTap: () => gatedPush('/transactions/add'),
       ),
       NavActionItem(
         icon: AppIcons.subscriptionsFilled,
-        label: 'Subscription',
+        label: l10n.quickAddSubscription,
         onTap: () => gatedPush('/subscriptions/add'),
       ),
       NavActionItem(
         icon: AppIcons.savingsFilled,
-        label: 'Savings',
+        label: l10n.navSavings,
         onTap: () => gatedModal(QuickAddTarget.savings, '/savings'),
       ),
       NavActionItem(
         icon: AppIcons.budgetsFilled,
-        label: 'Budget',
+        label: l10n.quickAddBudget,
         onTap: () => gatedModal(QuickAddTarget.budget, '/budgets'),
       ),
     ];
@@ -626,7 +627,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       );
       if (!launched && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to open website right now.')),
+          SnackBar(content: Text(l10n.navUnableToOpenWebsite)),
         );
       }
     }
@@ -659,42 +660,42 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       ),
       NavActionItem(
         icon: Icons.account_balance_wallet_rounded,
-        label: 'Accounts',
+        label: l10n.accountsTitle,
         onTap: () => pushTo('/accounts'),
       ),
       NavActionItem(
         icon: AppIcons.balanceSheet,
-        label: 'Balance Sheet',
+        label: l10n.navBalanceSheet,
         onTap: () => goTo('/balance-sheet'),
       ),
       NavActionItem(
         icon: AppIcons.reportsFilled,
-        label: 'Reports',
+        label: l10n.navReports,
         onTap: () => goTo('/reports'),
       ),
       NavActionItem(
         icon: AppIcons.exchangeRates,
-        label: 'Exchange Rates',
+        label: l10n.navExchangeRates,
         onTap: () => goTo('/exchange-rates'),
       ),
       NavActionItem(
         icon: AppIcons.insightsFilled,
-        label: 'AI Insights',
+        label: l10n.navAiInsights,
         onTap: () => goTo('/insights'),
       ),
       NavActionItem(
         icon: Icons.science_rounded,
-        label: 'Scenario Lab',
+        label: l10n.navScenarioLab,
         onTap: () => goTo('/scenario-lab'),
       ),
       NavActionItem(
         icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-        label: isDark ? 'Light mode' : 'Dark mode',
+        label: isDark ? l10n.navLightMode : l10n.navDarkMode,
         onTap: toggleTheme,
       ),
       NavActionItem(
         icon: Icons.help_outline_rounded,
-        label: 'Help',
+        label: l10n.navHelp,
         onTap: openHelpWebsite,
       ),
       NavActionItem(
