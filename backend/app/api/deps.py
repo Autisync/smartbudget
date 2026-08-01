@@ -32,4 +32,14 @@ def current_user(
     if not user_id:
         return None
 
-    return UserRepository(db).get_by_id(user_id)
+    user = UserRepository(db).get_by_id(user_id)
+    # Re-audit fix: a deactivated account (e.g. banned for fraud, or a user
+    # who deleted their account) previously kept full API access on any
+    # access token issued before deactivation, until that token's normal TTL
+    # expiry — login/social_login/refresh already reject inactive users
+    # (auth_service.py), so the same check belongs here too, not just at the
+    # token-issuance boundary.
+    if user is not None and not user.is_active:
+        return None
+
+    return user
