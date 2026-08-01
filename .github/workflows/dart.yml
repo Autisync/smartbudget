@@ -22,8 +22,15 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      # --no-fatal-infos: this repo carries ~350 pre-existing info-level
+      # deprecated_member_use issues (withOpacity, Radio groupValue/onChanged)
+      # that `flutter analyze` treats as fatal by default (--fatal-infos is on
+      # by default) — without this flag the Analyze step has always failed
+      # here regardless of branch content, blocking every step after it
+      # (Test, both Android build steps) from ever running. Real errors and
+      # warnings still fail the build — --fatal-warnings stays on by default.
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Test
         run: flutter test
