@@ -1,0 +1,14 @@
+# Copy this file to android/key.properties (gitignored) and fill in real values
+# to produce a properly-signed Android release build. Without this file, release
+# builds silently fall back to debug signing (fine for local/CI testing, but the
+# resulting APK/AAB is rejected by Google Play).
+#
+# Generate a release keystore (keep it outside the repo, back it up securely —
+# losing it means you can never update the app under the same listing again):
+#   keytool -genkey -v -keystore ~/smartspend-release.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias smartspend
+#
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=smartspend
+storeFile=/absolute/path/to/smartspend-release.jks

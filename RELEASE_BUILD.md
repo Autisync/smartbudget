@@ -33,6 +33,34 @@ If any check fails, do **not** ship — investigate the SQLCipher linkage
 
 ---
 
+## Android Release Signing (Required for Google Play)
+
+`android/app/build.gradle.kts`'s release `buildType` signs with a real release
+keystore when `android/key.properties` is present, and otherwise **falls back to
+the debug keystore** so `flutter run --release` and CI builds without release
+secrets keep working. A debug-signed AAB/APK is rejected on upload to Google
+Play, so this file must exist before any real release build:
+
+1. Generate a release keystore once, and store it (and its passwords) somewhere
+   durable and access-controlled — **outside this repository**. Losing it means
+   you can never publish an update to the same Play listing again:
+   ```bash
+   keytool -genkey -v -keystore ~/smartspend-release.jks \
+     -keyalg RSA -keysize 2048 -validity 10000 -alias smartspend
+   ```
+2. Copy `android/key.properties.example` to `android/key.properties` (gitignored)
+   and fill in the real `storePassword`/`keyPassword`/`keyAlias`/`storeFile`.
+3. Build as normal — `flutter build appbundle --release` now signs with the real
+   key automatically.
+
+The release build type also enables `minifyEnabled`/`shrinkResources` with
+ProGuard rules at `android/app/proguard-rules.pro` (SQLCipher JNI bindings,
+`flutter_local_notifications` enum reflection, `workmanager` background
+dispatch, Firebase/Play Services keep rules) — verify a release build still
+completes cleanly after adding any new native-Android-facing plugin.
+
+---
+
 ## M-6: Code Obfuscation (Required for Production)
 
 All production releases **must** be built with `--obfuscate` and `--split-debug-info`.
