@@ -916,7 +916,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           format: format,
           icon: template.icon,
         );
-        AppFeedbackService.showError(context, 'Report generation failed: $e');
+        // The details go to ErrorMonitor above; the raw exception text means
+        // nothing to the person using the app.
+        AppFeedbackService.showError(context, 'Report generation failed');
       } finally {
         if (mounted) {
           setState(() {
@@ -947,7 +949,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         format: format,
         icon: template.icon,
       );
-      AppFeedbackService.showError(context, 'Report generation failed: $e');
+      AppFeedbackService.showError(context, 'Report generation failed');
     }
   }
 

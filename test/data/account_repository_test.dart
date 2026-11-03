@@ -84,14 +84,17 @@ void main() {
       expect(cash!.currentBalance, 125); // 0 + 200 − 75
     });
 
-    test('transfers are excluded from the balance', () async {
+    test('a transfer debits the source account', () async {
+      // Transfers are money set aside from an account (a savings goal
+      // contribution): they leave the account, so the balance drops, but they
+      // are not income or expense (see getNetTransactionDeltaByAccount).
       await addTx(
         accountId: DefaultAccountIds.bankTransfer,
         amount: 999,
         type: TransactionType.transfer,
       );
       final bank = await repo.getAccount(DefaultAccountIds.bankTransfer);
-      expect(bank!.currentBalance, 0);
+      expect(bank!.currentBalance, -999);
     });
 
     test('opening balance is included in current balance', () async {

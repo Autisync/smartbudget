@@ -31,7 +31,11 @@ class AppFeedbackToast {
   }
 
   static OverlayEntry? _toastEntry;
-  static Timer? _toastTimer;
+
+  /// Entries already taken out of the overlay. OverlayEntry.remove() asserts
+  /// when called twice, and a toast can be removed by its own timer, by the
+  /// next toast replacing it, or both in the same frame.
+  static final Expando<bool> _removed = Expando<bool>('toastRemoved');
 
   // Must match AppBottomNavigation's layout in app_router.dart so the toast
   // sits just above the navbar instead of behind it (or mid-screen, which the
@@ -76,7 +80,14 @@ class AppFeedbackToast {
     final bottomOffset =
         bottomInset + _kNavBarPaddingBottom + _kNavBarHeight + 12;
 
-    final entry = OverlayEntry(
+    // The toast removes itself when its time is up. The timer lives in the
+    // toast's own State, not here, so it is cancelled whenever the toast
+    // leaves the screen for any other reason (replaced by the next toast, the
+    // app's widget tree torn down). A static timer outlived the overlay: in
+    // widget tests that is the "A Timer is still pending even after the
+    // widget tree was disposed" failure.
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
       builder: (_) => Positioned(
         left: 16,
         right: 16,
@@ -85,20 +96,25 @@ class AppFeedbackToast {
           message: message,
           backgroundColor: backgroundColor,
           icon: icon,
+          duration: effectiveDuration,
+          onExpired: () => _removeEntry(entry),
         ),
       ),
     );
     _toastEntry = entry;
     overlay.insert(entry);
-
-    _toastTimer = Timer(effectiveDuration, _dismissToast);
   }
 
   static void _dismissToast() {
-    _toastTimer?.cancel();
-    _toastTimer = null;
-    _toastEntry?.remove();
-    _toastEntry = null;
+    final current = _toastEntry;
+    if (current != null) _removeEntry(current);
+  }
+
+  static void _removeEntry(OverlayEntry entry) {
+    if (identical(_toastEntry, entry)) _toastEntry = null;
+    if (_removed[entry] == true) return;
+    _removed[entry] = true;
+    entry.remove();
   }
 
   static void showLoadingOverlay(BuildContext context,
@@ -184,11 +200,17 @@ class _ToastCard extends StatefulWidget {
     required this.message,
     required this.backgroundColor,
     required this.icon,
+    required this.duration,
+    required this.onExpired,
   });
 
   final String message;
   final Color backgroundColor;
   final IconData icon;
+
+  /// How long the toast stays on screen before [onExpired] removes it.
+  final Duration duration;
+  final VoidCallback onExpired;
 
   @override
   State<_ToastCard> createState() => _ToastCardState();
@@ -204,8 +226,17 @@ class _ToastCardState extends State<_ToastCard>
   late final Animation<double> _curve =
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
 
+  Timer? _expiry;
+
+  @override
+  void initState() {
+    super.initState();
+    _expiry = Timer(widget.duration, widget.onExpired);
+  }
+
   @override
   void dispose() {
+    _expiry?.cancel();
     _controller.dispose();
     super.dispose();
   }
