@@ -554,6 +554,38 @@ class SessionController extends StateNotifier<SessionState> {
     }
   }
 
+  /// Deletes the account on the server and signs out on this device.
+  /// Returns false (with [SessionState.errorMessage] set) if it could not.
+  Future<bool> deleteAccount() async {
+    state = state.copyWith(errorMessage: null);
+    try {
+      await _repository.deleteAccount();
+      ErrorMonitor.clearUser();
+      state = const SessionState(
+        initializing: false,
+        authenticated: false,
+        localUnlockRequired: false,
+      );
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        errorMessage: _errorMessageFromDio(
+          e,
+          fallback: 'Unable to delete your account right now. Please try again.',
+        ),
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: AppErrorMapper.from(
+          e,
+          fallback: 'Unable to delete your account right now. Please try again.',
+        ),
+      );
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     ErrorMonitor.clearUser();

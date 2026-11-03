@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Security Disclosure Policy · SmartSpend</title>
+<meta name="description" content="SmartSpend Security Disclosure Policy.">
+<link rel="canonical" href="https://smaartspend.com/security-disclosure">
+<link rel="icon" type="image/png" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#7377F9;--brand-deep:#4C57D6;--ink:#14161D;--muted:#565D6B;--bg:#F6F7FB;--surface:#FFFFFF;--border:#E4E7F0;--danger:#C53B3B}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--brand-deep)}
+header.top{background:var(--surface);border-bottom:1px solid var(--border)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--ink);text-decoration:none}
+.brand img{border-radius:8px}
+.wrap{max-width:820px;margin:0 auto;padding-inline:20px}
+main.wrap{padding-block:36px 64px}
+.doc{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px clamp(18px,4vw,44px)}
+.doc h1{font-size:clamp(28px,4vw,38px);line-height:1.15;letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance}
+.doc h2{font-size:21px;margin:34px 0 8px;letter-spacing:-.01em}
+.doc h3{font-size:17px;margin:24px 0 6px}
+.doc p,.doc li{max-width:68ch}
+.doc table{border-collapse:collapse;width:100%;font-size:14.5px;display:block;overflow-x:auto}
+.doc th,.doc td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+.doc th{background:var(--bg)}
+.doc hr{border:0;border-top:1px solid var(--border);margin:24px 0}
+.doc code{background:var(--bg);padding:1px 5px;border-radius:5px}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;position:relative;padding-left:44px;margin:14px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:-2px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
+.note{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.btn{display:inline-block;background:var(--brand-deep);color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:12px}
+footer.site{color:var(--muted);font-size:14px}
+footer.site .wrap{display:flex;flex-wrap:wrap;gap:8px 18px;padding-block:24px}
+footer.site a{color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+<a class="brand" href="/"><img src="/assets/logo.png" width="30" height="30" alt=""> SmartSpend</a>
+<a href="/#support">Contact</a>
+</div></header>
+<main class="wrap"><article class="doc">
+<h1>Security Disclosure Policy</h1>
+<p><strong>App:</strong> SmartSpend<br />
+<strong>Operator:</strong> Firmeza Consulting cc<br />
+<strong>Effective Date:</strong> 05 April 2026<br />
+<strong>Last Updated:</strong> 05 April 2026  </p>
+<hr />
+<h2>1. Purpose</h2>
+<p>Firmeza Consulting cc is committed to the security of SmartSpend and its users worldwide. This
+Policy explains how we handle vulnerability reports and how we respond to confirmed security
+incidents.</p>
+<h2>2. Scope</h2>
+<p>This Policy applies to:</p>
+<ul>
+<li>The SmartSpend mobile application (Flutter client);</li>
+<li>The backend authentication service (FastAPI/PostgreSQL/Redis) hosted by Autisync on Hetzner
+  infrastructure in Germany;</li>
+<li>Public-facing API endpoints (<code>/api/v1/auth/*</code>);</li>
+<li>Exchange-rate integration points.</li>
+</ul>
+<p><strong>Out of scope:</strong><br />
+- Third-party service vulnerabilities (exchange-rate APIs, OS platforms) - report to vendors
+  directly;
+- Theoretical vulnerabilities without a demonstrable proof-of-concept;
+- Social engineering of personnel;
+- Physical access attacks against user devices;
+- Denial-of-service or load testing without prior written authorization.</p>
+<h2>3. Reporting a Vulnerability</h2>
+<p>3.1 If you believe you have discovered a security vulnerability in an in-scope component,
+report it to us <strong>before any public disclosure</strong> at:</p>
+<p><strong>support@smaartspend.com</strong> - Subject: <code>[SECURITY DISCLOSURE] &lt;brief description&gt;</code></p>
+<p>3.2 Please include where possible:</p>
+<ul>
+<li>A description of the vulnerability and affected component;</li>
+<li>Steps to reproduce (proof-of-concept only - do not exploit production data);</li>
+<li>Potential impact assessment;</li>
+<li>Any suggested remediation.</li>
+</ul>
+<p>3.3 Please <strong>do not</strong>:</p>
+<ul>
+<li>Access, modify, delete, or exfiltrate data beyond what is minimally necessary to confirm the
+  vulnerability;</li>
+<li>Degrade service availability or harm other users;</li>
+<li>Publicly disclose before coordinated disclosure is agreed;</li>
+<li>Exploit the vulnerability against live user data.</li>
+</ul>
+<h2>4. Our Commitments to Reporters</h2>
+<p>When you submit a good-faith report complying with this Policy:</p>
+<p>4.1 <strong>Acknowledgement:</strong> Within <strong>5 business days</strong>.</p>
+<p>4.2 <strong>Initial assessment:</strong> Within <strong>20 business days</strong>, including an estimated remediation
+timeline. Complex issues may take longer; we will keep you informed.</p>
+<p>4.3 <strong>Safe harbor:</strong> We will not pursue civil or criminal legal action against researchers who
+act in good faith under this Policy. This safe harbor does not extend to conduct that accesses
+real user data beyond what is minimally necessary, introduces malicious code, or constitutes an
+independent criminal act under applicable law.</p>
+<p>4.4 <strong>Coordinated disclosure:</strong> We request a remediation window before public disclosure
+(typically up to 90 days for critical issues). We will agree a disclosure date with you.</p>
+<p>4.5 <strong>Attribution:</strong> With your consent, we will acknowledge contributions in our security
+acknowledgements. We do not operate a formal bug bounty program at this time.</p>
+<h2>5. Severity and Response Targets</h2>
+<table>
+<thead>
+<tr>
+<th>Severity</th>
+<th>Description</th>
+<th>Target Remediation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Critical</strong></td>
+<td>Unauthenticated RCE, mass data exposure, authentication bypass</td>
+<td>14 days</td>
+</tr>
+<tr>
+<td><strong>High</strong></td>
+<td>Authenticated RCE, significant data leakage, JWT forgery</td>
+<td>30 days</td>
+</tr>
+<tr>
+<td><strong>Medium</strong></td>
+<td>Limited data exposure, CSRF, rate-limit bypass</td>
+<td>60 days</td>
+</tr>
+<tr>
+<td><strong>Low</strong></td>
+<td>Minor information disclosure, UX-level security issues</td>
+<td>90 days</td>
+</tr>
+</tbody>
+</table>
+<p>These are targets. We will communicate promptly if timelines cannot be met.</p>
+<h2>6. Incident Notification to Users</h2>
+<p>6.1 If we confirm a security incident affecting personal data, we will assess notification
+obligations under applicable data protection law, including GDPR Art. 33/34 (72-hour
+supervisory authority notification; user notification without undue delay where high risk),
+UK GDPR, LGPD, CCPA, and applicable breach notification statutes in users' jurisdictions.</p>
+<p>6.2 Given our server infrastructure is located in Germany (EU), our primary supervisory
+authority for GDPR breach notification is the Bundesbeauftragter fur den Datenschutz und die
+Informationsfreiheit (BfDI). We will also notify other relevant authorities as required by
+applicable law.</p>
+<p>6.3 <strong>Security commitment disclaimer.</strong> Despite implementing reasonable and industry-
+appropriate security measures, <strong>we cannot guarantee the absolute security of any software or
+networked system.</strong> Security measures described in this Policy reflect practices as of the
+stated date and are subject to continuous improvement. We do not warrant the App is free from
+all vulnerabilities.</p>
+<h2>7. Implemented Security Controls</h2>
+<p>The following controls are currently in place (not an exhaustive list):</p>
+<ul>
+<li>Argon2 password hashing (memory-hard, OWASP-recommended parameters);</li>
+<li>JWT access and refresh tokens with rotation, revocation, and configurable TTLs;</li>
+<li>Session records storing device name and platform for session management;</li>
+<li>Authentication endpoint rate-limiting;</li>
+<li>Local database encryption with key material in OS secure storage;</li>
+<li>OS-level biometric unlock; no biometric data stored or transmitted by the App;</li>
+<li>Email verification and single-use password-reset token flows with TTL enforcement;</li>
+<li>EU-based server infrastructure (Hetzner, Germany) managed by Autisync;</li>
+<li>Production logging controls preventing token or credential logging.</li>
+</ul>
+<h2>8. Contact</h2>
+<p><strong>Security reports:</strong> support@smaartspend.com - subject <code>[SECURITY DISCLOSURE]</code><br />
+<strong>General security enquiries:</strong> support@smaartspend.com<br />
+<strong>Postal:</strong> 030915, Namibia, Republic of Namibia  </p>
+</article></main>
+<footer class="site"><div class="wrap">
+<span>&copy; 2026 SmartSpend</span>
+<a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/security-disclosure">Security disclosure</a>
+<a href="/delete-account">Delete your account</a><a href="/#support">Contact</a>
+</div></footer>
+</body>
+</html>

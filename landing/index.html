@@ -761,13 +761,13 @@
         <div class="sec-grid">
           <div class="reveal">
             <h2>Your finances stay yours.</h2>
-            <p class="lede">SmartSpend is built privacy-first. Sensitive data is encrypted on your device, access is guarded by biometrics, and every connection to our servers is pinned and verified.</p>
+            <p class="lede">SmartSpend is built privacy-first. Sensitive data is encrypted on your device, access is guarded by biometrics, and every connection to our servers is encrypted.</p>
             <a class="btn btn--on-dark" href="#support" style="margin-top:24px">Ask us anything</a>
           </div>
           <div class="sec-list reveal d1">
             <div class="sec-item">
               <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-              <div><h4>On-device encryption</h4><p>Your financial records are encrypted locally with field-level encryption — they never live in plain text.</p></div>
+              <div><h4>On-device encryption</h4><p>Your financial records live in an encrypted database on your phone, locked with a key kept in the phone's secure keystore.</p></div>
             </div>
             <div class="sec-item">
               <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 11a4 4 0 1 0-4-4M6 20c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="12" cy="7" r="4"/></svg></div>
@@ -775,7 +775,7 @@
             </div>
             <div class="sec-item">
               <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2 4 5v6c0 5 3.4 7.8 8 9 4.6-1.2 8-4 8-9V5l-8-3Z"/><path d="M9 12l2 2 4-4"/></svg></div>
-              <div><h4>Pinned, verified connections</h4><p>Certificate pinning protects every request against interception and tampering.</p></div>
+              <div><h4>Encrypted connections</h4><p>Every request travels over HTTPS, and the app refuses plain, unencrypted traffic.</p></div>
             </div>
           </div>
         </div>
@@ -788,7 +788,7 @@
     <div class="wrap">
       <div class="card reveal">
         <h2>Calm money is coming to your pocket.</h2>
-        <p>SmartSpend launches soon on iPhone and Android. Add your email below and we'll tell you the day it's live — nothing else.</p>
+        <p>SmartSpend launches soon on iPhone and Android. Tap a store below, leave your email, and we'll tell you the day it's live — nothing else.</p>
         <div class="stores stores--light" aria-label="Download (coming soon)">
           <a class="store-badge" href="#support">
             <span class="soon">Soon</span>
@@ -845,6 +845,8 @@
               <label for="t-bug">Bug report</label>
               <input type="radio" id="t-idea" name="topic" value="Feature idea" />
               <label for="t-idea">Feature idea</label>
+              <input type="radio" id="t-launch" name="topic" value="Launch list" />
+              <label for="t-launch">Tell me at launch</label>
             </div>
           </div>
 
@@ -866,7 +868,7 @@
           <input type="hidden" name="_ts" id="form-ts" value="" />
 
           <div class="form-foot">
-            <p class="form-note">We'll only use your email to reply. No marketing, ever.</p>
+            <p class="form-note">We'll only use your email to reply, or once to tell you SmartSpend is live. No marketing, ever.</p>
             <button class="btn btn--lg" type="submit" id="submit-btn">Send message</button>
           </div>
           <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
@@ -887,21 +889,30 @@
           <a href="#screens">Screens</a>
           <a href="#features">Features</a>
           <a href="#security">Security</a>
-          <a href="https://smaartspend.com/app/legal/terms">Terms</a>
-          <a href="https://smaartspend.com/app/legal/privacy">Privacy</a>
-          <a href="https://smaartspend.com/app/legal/security-disclosure">Security disclosure</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/security-disclosure">Security disclosure</a>
+          <a href="/delete-account">Delete account</a>
           <a href="#support">Contact</a>
         </nav>
       </div>
       <div class="foot-bottom">
         <p class="foot-copy">© <span id="year">2026</span> SmartSpend. All rights reserved.</p>
-        <p class="foot-by">Designed &amp; developed by <a href="https://smaartspend.com/"><b>Autisync</b></a> <span class="heart" aria-hidden="true">●</span></p>
+        <p class="foot-by">Designed &amp; developed by <a href="https://www.autisync.com/" rel="noopener"><b>Autisync</b></a> <span class="heart" aria-hidden="true">●</span></p>
       </div>
     </div>
   </footer>
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    // "Coming soon" store badges: open the form ready for the launch list.
+    document.querySelectorAll('.store-badge').forEach((a) => a.addEventListener('click', () => {
+      const r = document.getElementById('t-launch');
+      const m = document.getElementById('message');
+      if (r) r.checked = true;
+      if (m && !m.value.trim()) { m.value = 'Please tell me when SmartSpend is live.'; m.dispatchEvent(new Event('input')); }
+    }));
 
     // Header border on scroll
     const header = document.getElementById('site-header');

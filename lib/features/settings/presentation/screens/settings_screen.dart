@@ -34,6 +34,51 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isAppBarScrolled = false;
 
+  /// Settings › Delete account: required by the App Store (5.1.1(v)) and
+  /// Google Play for any app where an account can be created. Asks once,
+  /// then deletes the account on the server and signs out here.
+  Future<void> _confirmDeleteAccount() async {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settingsDeleteAccountTitle),
+        content: Text(l10n.settingsDeleteAccountBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.settingsDeleteAccountCancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.settingsDeleteAccountConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final router = GoRouter.of(context);
+    final controller = ref.read(sessionControllerProvider.notifier);
+    final ok = await controller.deleteAccount();
+    if (!mounted) return;
+    if (ok) {
+      AppFeedbackService.showSuccess(context, l10n.settingsAccountDeleted);
+      router.go('/login');
+    } else {
+      AppFeedbackService.showError(
+        context,
+        ref.read(sessionControllerProvider).errorMessage ??
+            'Unable to delete your account right now. Please try again.',
+      );
+    }
+  }
+
   Future<void> _sendSupportFeedbackEmail() async {
     final emailUri = Uri(
       scheme: 'mailto',
@@ -793,6 +838,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     label: Text(l10n.settingsSignOut),
                   ),
                 ),
+                if (session.authenticated)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                    child: TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: colorScheme.error,
+                        minimumSize: const Size(double.infinity, 48),
+                      ),
+                      onPressed: _confirmDeleteAccount,
+                      icon: const Icon(Icons.delete_forever_outlined),
+                      label: Text(l10n.settingsDeleteAccount),
+                    ),
+                  ),
               ],
             ),
           ],

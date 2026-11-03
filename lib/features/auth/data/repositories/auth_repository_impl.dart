@@ -129,6 +129,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> deleteAccount() async {
+    await _remoteClient.deleteAccount();
+    // The account no longer exists: its tokens are useless, so forget them.
+    await _storage.clearTokens();
+  }
+
+  @override
   Future<AuthUser?> readCachedUser() => _storage.readUser();
 
   @override

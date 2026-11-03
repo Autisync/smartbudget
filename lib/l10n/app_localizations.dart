@@ -4925,6 +4925,42 @@ abstract class AppLocalizations {
   /// **'Sign out'**
   String get settingsSignOut;
 
+  /// No description provided for @settingsDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get settingsDeleteAccount;
+
+  /// No description provided for @settingsDeleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account?'**
+  String get settingsDeleteAccountTitle;
+
+  /// No description provided for @settingsDeleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your SmartSpend account and everything stored with it on our servers. It cannot be undone. The budgets and transactions saved on this phone stay here until you remove the app.'**
+  String get settingsDeleteAccountBody;
+
+  /// No description provided for @settingsDeleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my account'**
+  String get settingsDeleteAccountConfirm;
+
+  /// No description provided for @settingsDeleteAccountCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get settingsDeleteAccountCancel;
+
+  /// No description provided for @settingsAccountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been deleted.'**
+  String get settingsAccountDeleted;
+
   /// No description provided for @settingsProfileUpdated.
   ///
   /// In en, this message translates to:

@@ -2615,6 +2615,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsSignOut => 'Cerrar sesión';
 
   @override
+  String get settingsDeleteAccount => 'Eliminar cuenta';
+
+  @override
+  String get settingsDeleteAccountTitle => '¿Eliminar tu cuenta?';
+
+  @override
+  String get settingsDeleteAccountBody => 'Esto elimina para siempre tu cuenta de SmartSpend y todo lo guardado con ella en nuestros servidores. No se puede deshacer. Los presupuestos y movimientos guardados en este teléfono se quedan aquí hasta que elimines la app.';
+
+  @override
+  String get settingsDeleteAccountConfirm => 'Eliminar mi cuenta';
+
+  @override
+  String get settingsDeleteAccountCancel => 'Cancelar';
+
+  @override
+  String get settingsAccountDeleted => 'Tu cuenta se ha eliminado.';
+
+  @override
   String get settingsProfileUpdated => 'Perfil actualizado.';
 
   @override

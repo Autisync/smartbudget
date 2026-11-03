@@ -11,6 +11,7 @@ from app.core.security import decode_token
 from app.schemas.auth import (
     AuthResponse,
     AuthUserOut,
+    DeleteAccountRequest,
     ForgotPasswordRequest,
     LoginRequest,
     LogoutRequest,
@@ -201,3 +202,17 @@ def update_me(
         first_name=payload.first_name,
         last_name=payload.last_name,
     )
+
+
+@router.delete("/me", response_model=MessageResponse)
+def delete_me(
+    payload: DeleteAccountRequest,
+    user=Depends(current_user),
+    db: Session = Depends(db_session),
+):
+    """Deletes the signed-in person's account and its server data (Settings ›
+    Delete account in the app). The body must be {"confirm": "DELETE"}."""
+    if user is None:
+        raise errors.unauthorized("Not authenticated")
+    AuthService(db).delete_account(user=user)
+    return {"message": "Your account has been deleted."}

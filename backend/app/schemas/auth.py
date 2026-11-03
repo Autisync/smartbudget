@@ -77,3 +77,10 @@ class AuthResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class DeleteAccountRequest(BaseModel):
+    """The person typed DELETE to confirm. Required so a stray request with a
+    valid token cannot erase an account by accident."""
+
+    confirm: Literal["DELETE"]

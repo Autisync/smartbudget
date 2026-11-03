@@ -3,7 +3,7 @@
 **App:** SmartSpend
 **Operator:** Firmeza Consulting cc
 **Effective Date:** 05 April 2026
-**Last Updated:** 10 June 2026
+**Last Updated:** 03 November 2026
 
 ---
 
@@ -51,8 +51,18 @@ Union on Hetzner infrastructure.
 ## 4. Analytics
 
 SmartSpend uses **no third-party analytics provider**. No analytics SDK is embedded in the App,
-and no usage, telemetry, session, device, crash, or pseudonymous event data is collected or sent
-to any third party. In-app reports and insights are computed locally on your device.
+and no usage, telemetry, session or pseudonymous event data is collected. In-app reports and
+insights are computed locally on your device.
+
+## 4b. Crash Reports - Sentry
+
+| Item | Detail |
+|---|---|
+| **Provider** | Sentry (Functional Software, Inc.), EU data region (Frankfurt) |
+| **Purpose** | Finding and fixing crashes and errors |
+| **Data sent** | The error and stack trace, App version, device model, OS version, the random ID of your account if signed in |
+| **Financial data sent** | **None.** No transactions, balances, names, emails or screen recordings |
+| **Retention** | Up to 90 days |
 
 ## 4a. Push Notifications - Google Firebase Cloud Messaging (FCM)
 

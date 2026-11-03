@@ -72,17 +72,17 @@ class ErrorMonitor {
         // Privacy: this is a finance app, so do NOT attach PII (user IP,
         // request headers). Only an opaque user id is set elsewhere.
         options.sendDefaultPii = false;
-        // Sample lightly in production to control volume/cost; full in dev.
-        // Overridable via --dart-define=SENTRY_SAMPLE_RATE.
-        options.tracesSampleRate = _sampleRate;
-        // ignore: experimental_member_use
-        options.profilesSampleRate = _sampleRate;
-        // Structured logs.
-        options.enableLogs = true;
-        // Session Replay: 10% of sessions, 100% of sessions that hit an error.
-        // Text/images are masked by default, so on-screen balances are redacted.
-        options.replay.sessionSampleRate = 0.1;
-        options.replay.onErrorSampleRate = 1.0;
+        // Crash and error reports only. The privacy policy, the Play Store
+        // Data safety form and the App Store privacy label say "crash logs and
+        // diagnostics", nothing more: no session replay (it records the
+        // screen of a finance app), no profiling, and performance traces only
+        // when explicitly turned on for a test build with
+        // --dart-define=SENTRY_SAMPLE_RATE=<0..1>.
+        options.tracesSampleRate =
+            _sampleRateOverride.isNotEmpty ? _sampleRate : 0.0;
+        options.enableLogs = false;
+        options.replay.sessionSampleRate = 0.0;
+        options.replay.onErrorSampleRate = 0.0;
         options.debug = false;
       },
       appRunner: () async {

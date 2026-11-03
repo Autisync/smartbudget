@@ -57,6 +57,15 @@ class _FakeRepo implements AuthRepository {
   @override
   Future<void> clearTokens() async => clearTokensCalled = true;
 
+  bool deleteAccountCalled = false;
+  Object? deleteAccountError;
+
+  @override
+  Future<void> deleteAccount() async {
+    deleteAccountCalled = true;
+    if (deleteAccountError != null) throw deleteAccountError!;
+  }
+
   static AuthUser get sampleUser => _user;
 
   @override
@@ -164,5 +173,37 @@ void main() {
     await c.initialize();
     expect(c.state.initializing, false);
     expect(c.state.authenticated, false);
+  });
+
+  test('delete account: signs out once the server has deleted it', () async {
+    final repo = _FakeRepo(
+      tokens: _tokens,
+      meBehaviour: () => _FakeRepo.sampleUser,
+      refreshBehaviour: () => _tokens,
+    );
+    final c = _controller(repo);
+    await c.initialize();
+    expect(c.state.authenticated, true);
+
+    final ok = await c.deleteAccount();
+    expect(ok, true);
+    expect(repo.deleteAccountCalled, true);
+    expect(c.state.authenticated, false);
+  });
+
+  test('delete account: a failure keeps the person signed in and says why',
+      () async {
+    final repo = _FakeRepo(
+      tokens: _tokens,
+      meBehaviour: () => _FakeRepo.sampleUser,
+      refreshBehaviour: () => _tokens,
+    )..deleteAccountError = Exception('offline');
+    final c = _controller(repo);
+    await c.initialize();
+
+    final ok = await c.deleteAccount();
+    expect(ok, false);
+    expect(c.state.authenticated, true);
+    expect(c.state.errorMessage, isNotNull);
   });
 }

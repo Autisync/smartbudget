@@ -43,3 +43,10 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(user)
         return user
+
+    def delete(self, user: User) -> None:
+        """Deletes the user row. Sessions, transactions, budgets, savings goals,
+        subscriptions and notifications go with it (ON DELETE CASCADE in the
+        schema); audit log rows keep no link to the person (ON DELETE SET NULL)."""
+        self.db.delete(user)
+        self.db.commit()

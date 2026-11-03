@@ -63,3 +63,10 @@ sentry.properties
 
 # FVM (Flutter Version Management) — keep .fvmrc tracked, ignore the cache
 .fvm/
+
+# Android release signing: never commit the upload key or its passwords
+/android/key.properties
+*.jks
+*.keystore
+# Obfuscation symbols (keep them, privately, per release)
+/build/debug-info/

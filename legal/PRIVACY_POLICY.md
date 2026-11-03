@@ -3,7 +3,7 @@
 **App:** SmartSpend
 **Data Controller:** Firmeza Consulting cc, 030915, Namibia, Republic of Namibia
 **Effective Date:** 05 April 2026
-**Last Updated:** 10 June 2026
+**Last Updated:** 03 November 2026
 **Privacy Contact:** admin@smaartspend.com
 **Data Protection Officer / Representative:** info@smaartspend.com
 
@@ -97,8 +97,17 @@ and we do not embed any analytics SDK in the App. The aggregations and charts yo
 (spending summaries, budget progress, insights) are computed locally on your device and are not
 transmitted to us or to any third party.
 
-Because no analytics is collected, there is nothing to opt out of in this respect. Crash and
-error events are not collected by us.
+Because no analytics is collected, there is nothing to opt out of in this respect.
+
+### 3.4a Crash and Error Reports
+
+When the App crashes or hits an unexpected error, it sends a crash report to our error-monitoring
+provider, Sentry (Functional Software, Inc.), with data stored in the European Union (Frankfurt).
+A report contains the error and where it happened in the code, the App version, the device model
+and operating-system version, and, if you are signed in, the random ID of your account. It never
+contains your transactions, balances, budgets, savings goals, notes, name or email address, and
+the App never records your screen. We use these reports only to find and fix faults (legitimate
+interest, Art. 6(1)(f)) and keep them for up to 90 days.
 
 ### 3.5 Exchange-Rate Lookups
 
@@ -257,11 +266,13 @@ for complex requests; LGPD: 15 days; CCPA: 45 days):
 using email verification or account confirmation. We will not require disproportionate
 information.
 
-9.2 **Account deletion.** To delete your account and all associated backend data, email
-admin@smaartspend.com with subject line "Account Deletion Request - [your registered email address]."
-We will confirm receipt within 2 business days and complete deletion within 30 calendar days.
-You will receive a confirmation email when deletion is complete. See Section 12 for what
-happens to data after deletion.
+9.2 **Account deletion.** You can delete your account at any time in the App: **Settings ›
+Security › Delete account**. Your account and all data stored with it on our servers are deleted
+immediately, and you receive a confirmation email. If you no longer have the App, email
+admin@smaartspend.com from your registered address with the subject "Account Deletion Request";
+we confirm within 2 business days and complete the deletion within 30 calendar days. Instructions
+are also at https://smaartspend.com/delete-account. Data stored only on your phone is removed when
+you uninstall the App. See Section 12 for what happens to data after deletion.
 
 9.3 **CCPA rights.** California residents may exercise rights to know, delete, correct, and
 opt out of sale/sharing. We do not sell personal information.

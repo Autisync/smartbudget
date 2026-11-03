@@ -24,6 +24,7 @@ from app.schemas.auth import AuthResponse
 from app.tasks.email import (
     send_duplicate_signup_alert_email_task,
     send_login_alert_email_task,
+    send_notification_email_task,
     send_password_reset_email_task,
     send_verification_email_task,
     send_welcome_email_task,
@@ -225,6 +226,32 @@ class AuthService:
             email=user.email,
             token=verification_token,
             user_name=user.first_name,
+        )
+
+    def delete_account(self, *, user) -> None:
+        """Deletes the account and everything stored with it on the server, now.
+
+        App Store (5.1.1(v)) and Google Play both require that a person who can
+        create an account can also delete it from inside the app. Every session
+        is revoked first, then the user row is deleted; the database cascades to
+        their sessions and finance rows. The data on the phone is the app's to
+        wipe. A confirmation email goes to the address that was deleted (best
+        effort: a mail outage never blocks the deletion).
+        """
+        email, name, user_id = user.email, user.first_name or "there", str(user.id)
+        self.sessions.revoke_all_for_user(user_id)
+        self.users.delete(user)
+        logger.info("Account deleted at the user's request: %s", user_id)
+        _safe_delay(
+            send_notification_email_task,
+            email=email,
+            user_name=name,
+            action_url="https://smaartspend.com/",
+            notification_title="Your SmartSpend account has been deleted",
+            notification_message=(
+                "As you asked, your SmartSpend account and the data stored with it on our "
+                "servers have been deleted. If you did not ask for this, reply to this email."
+            ),
         )
 
     def update_profile(self, *, user, first_name: str | None, last_name: str | None):

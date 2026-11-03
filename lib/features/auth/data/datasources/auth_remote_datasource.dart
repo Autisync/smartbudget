@@ -328,6 +328,16 @@ class AuthApiClient {
     await _dio.post<void>('/api/v1/auth/resend-verification');
   }
 
+  /// Deletes the signed-in account and its server data (App Store 5.1.1(v),
+  /// Google Play account deletion). The server asks for the word DELETE as
+  /// confirmation.
+  Future<void> deleteAccount() async {
+    await _dio.delete<void>(
+      '/api/v1/auth/me',
+      data: <String, dynamic>{'confirm': 'DELETE'},
+    );
+  }
+
   Future<AuthUserModel> updateProfile({
     String? firstName,
     String? lastName,

@@ -51,6 +51,10 @@ class _InMemoryUserRepository:
         self._by_id[str(user.id)] = user
         return user
 
+    def delete(self, user) -> None:
+        self._by_email.pop(user.email, None)
+        self._by_id.pop(str(user.id), None)
+
     def update_profile(self, user, *, first_name=None, last_name=None):
         if first_name is not None:
             user.first_name = first_name.strip()
@@ -218,3 +222,46 @@ def test_verify_email_marks_user_verified(auth_service):
     service.verify_email(token_payload=decode_token(verify_token))
 
     assert user.is_verified is True
+
+
+def test_delete_account_removes_the_user_revokes_sessions_and_confirms(auth_service, monkeypatch):
+    service, users, sessions = auth_service
+    sent = []
+    monkeypatch.setattr(
+        "app.services.auth_service._safe_delay",
+        lambda task, **kwargs: sent.append((task.name, kwargs)),
+    )
+
+    signup = service.signup(
+        email="leaving@example.com",
+        password="StrongPass123",
+        first_name="Lee",
+        last_name="Ving",
+        device_name="Pixel",
+        platform="android",
+    )
+    user = users.get_by_email("leaving@example.com")
+    assert user is not None
+    sent.clear()
+
+    service.delete_account(user=user)
+
+    assert users.get_by_email("leaving@example.com") is None
+    assert users.get_by_id(str(user.id)) is None
+    assert sessions.get_active_by_token_hash(hash_token(signup.refresh_token)) is None
+    assert len(sent) == 1
+    name, kwargs = sent[0]
+    assert name == "app.tasks.email.send_notification_email"
+    assert kwargs["email"] == "leaving@example.com"
+    assert "deleted" in kwargs["notification_title"].lower()
+
+
+def test_delete_account_request_needs_the_word_delete():
+    from pydantic import ValidationError
+
+    from app.schemas.auth import DeleteAccountRequest
+
+    assert DeleteAccountRequest(confirm="DELETE").confirm == "DELETE"
+    for bad in ({}, {"confirm": "delete"}, {"confirm": "yes"}):
+        with pytest.raises(ValidationError):
+            DeleteAccountRequest(**bad)

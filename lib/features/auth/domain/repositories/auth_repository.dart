@@ -38,6 +38,9 @@ abstract class AuthRepository {
   Future<AuthUser> me();
   Future<AuthUser> updateProfile({String? firstName, String? lastName});
 
+  /// Deletes the account on the server, then forgets the tokens on this device.
+  Future<void> deleteAccount();
+
   /// Last-known user persisted locally, for offline session restore. Null if
   /// the user has never been cached or was cleared on logout.
   ///
