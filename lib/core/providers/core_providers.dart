@@ -24,7 +24,11 @@ part 'core_providers.g.dart';
 
 @Riverpod(keepAlive: true)
 AppDatabase database(Ref ref) {
-  return AppDatabase();
+  final db = AppDatabase();
+  // Close the connection when the ProviderScope goes away (tests, a hot
+  // restart), so two AppDatabase instances never share the same file.
+  ref.onDispose(db.close);
+  return db;
 }
 
 @Riverpod(keepAlive: true)

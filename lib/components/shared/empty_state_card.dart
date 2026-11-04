@@ -85,7 +85,7 @@ class _EmptyStateCardState extends State<EmptyStateCard>
                         height: 52,
                         decoration: BoxDecoration(
                           color:
-                              colorScheme.primary.withOpacity( 0.09),
+                              colorScheme.primary.withValues(alpha: 0.09),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(widget.icon,

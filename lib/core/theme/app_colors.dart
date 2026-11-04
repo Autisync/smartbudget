@@ -40,13 +40,13 @@ class AppColors {
 
   /// Soft tinted background for an income icon / chip.
   static Color incomeTint(Brightness brightness) => brightness == Brightness.dark
-      ? const Color(0xFF34D399).withOpacity( 0.16)
+      ? const Color(0xFF34D399).withValues(alpha: 0.16)
       : const Color(0xFFE6F4EC);
 
   /// Soft tinted background for an expense icon / chip.
   static Color expenseTint(Brightness brightness) =>
       brightness == Brightness.dark
-          ? const Color(0xFFFF8A8A).withOpacity( 0.16)
+          ? const Color(0xFFFF8A8A).withValues(alpha: 0.16)
           : const Color(0xFFFCE9E7);
 
   /// Resolve a status ramp (success / warning / danger / info) to an
@@ -69,7 +69,7 @@ class AppColors {
   /// Soft tinted background matching a status ramp.
   static Color statusTint(Brightness brightness, AppStatus status) {
     final base = statusFor(brightness, status);
-    return base.withOpacity( brightness == Brightness.dark ? 0.16 : 0.12);
+    return base.withValues(alpha: brightness == Brightness.dark ? 0.16 : 0.12);
   }
 
   // Minimalist neutrals — a near-white canvas, pure-white surfaces, and soft

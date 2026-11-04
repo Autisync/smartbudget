@@ -119,7 +119,7 @@ class SmartMetricTile extends StatelessWidget {
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: resolvedTone.withOpacity( 0.12),
+                color: resolvedTone.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: resolvedTone, size: 18),
@@ -173,7 +173,7 @@ class SmartInsightCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SmartCard(
       radius: 28,
-      color: tone.withOpacity( 0.08),
+      color: tone.withValues(alpha: 0.08),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -183,7 +183,7 @@ class SmartInsightCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: tone.withOpacity( 0.14),
+                  color: tone.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: tone, size: 18),
@@ -317,7 +317,7 @@ class SmartProgressBar extends StatelessWidget {
       color: color,
       height: 7,
       backgroundColor:
-          Theme.of(context).colorScheme.outlineVariant.withOpacity( 0.35),
+          Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
     );
   }
 }
@@ -595,7 +595,7 @@ class AppBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity( 0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -649,7 +649,7 @@ class AppMetricCard extends StatelessWidget {
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: resolvedTone.withOpacity( 0.12),
+                color: resolvedTone.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, size: 18, color: resolvedTone),
@@ -706,7 +706,7 @@ class AppInsightCard extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: resolvedTone.withOpacity( 0.12),
+              color: resolvedTone.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, size: 18, color: resolvedTone),
@@ -767,7 +767,7 @@ class AppTransactionTile extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: amountColor.withOpacity( 0.14),
+              color: amountColor.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: amountColor, size: 22),
@@ -901,9 +901,9 @@ class AppBottomNavigation extends StatelessWidget {
     const barHeight = 60.0;
     // Near-transparent, frosted fill so the screen shows through the bar.
     final capsuleColor =
-        colorScheme.surface.withOpacity( isDark ? 0.55 : 0.6);
+        colorScheme.surface.withValues(alpha: isDark ? 0.55 : 0.6);
     final floatShadow = AppShadows.floating(colorScheme.shadow);
-    final hairline = colorScheme.outline.withOpacity( isDark ? 0.55 : 0.9);
+    final hairline = colorScheme.outline.withValues(alpha: isDark ? 0.55 : 0.9);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 4, 16, bottomInset + 8),
@@ -1034,8 +1034,8 @@ class _CapsuleNavItem extends StatelessWidget {
     final isDark = colorScheme.brightness == Brightness.dark;
     // Active pill uses primaryContainer so it matches the action panel tiles.
     final pillColor = isDark
-        ? colorScheme.primaryContainer.withOpacity( 0.45)
-        : colorScheme.primaryContainer.withOpacity( 0.70);
+        ? colorScheme.primaryContainer.withValues(alpha: 0.45)
+        : colorScheme.primaryContainer.withValues(alpha: 0.70);
 
     return Semantics(
       button: true,
@@ -1126,9 +1126,9 @@ class _PlusNavButton extends StatelessWidget {
         onTap: onTap,
         child: _FrostedSurface(
           borderRadius: BorderRadius.circular(size / 2),
-          color: colorScheme.surface.withOpacity( isDark ? 0.55 : 0.6),
+          color: colorScheme.surface.withValues(alpha: isDark ? 0.55 : 0.6),
           borderColor:
-              colorScheme.outline.withOpacity( isDark ? 0.55 : 0.9),
+              colorScheme.outline.withValues(alpha: isDark ? 0.55 : 0.9),
           shadow: AppShadows.floating(colorScheme.shadow),
           child: SizedBox(
             width: size,
@@ -1259,7 +1259,7 @@ class AppFinancialBanner extends StatelessWidget {
                 child: Text(
                   title,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity( 0.78),
+                        color: Colors.white.withValues(alpha: 0.78),
                       ),
                 ),
               ),
@@ -1279,7 +1279,7 @@ class AppFinancialBanner extends StatelessWidget {
           Text(
             supportingText,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withOpacity( 0.72),
+                  color: Colors.white.withValues(alpha: 0.72),
                 ),
           ),
         ],
@@ -1307,7 +1307,7 @@ class AppAlertCard extends StatelessWidget {
     return AppCard(
       radius: UiTokens.radiusLg,
       padding: const EdgeInsets.all(UiTokens.space16),
-      color: tone.withOpacity( 0.08),
+      color: tone.withValues(alpha: 0.08),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1315,7 +1315,7 @@ class AppAlertCard extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: tone.withOpacity( 0.14),
+              color: tone.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: tone, size: 18),
@@ -1424,7 +1424,7 @@ class AppSettingsTile extends StatelessWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: resolvedTone.withOpacity( 0.12),
+          color: resolvedTone.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, size: 18, color: resolvedTone),
@@ -1561,7 +1561,7 @@ class _AppEmptyStateState extends State<AppEmptyState>
                               height: 80,
                               decoration: BoxDecoration(
                                 color:
-                                    colorScheme.primary.withOpacity( 0.10),
+                                    colorScheme.primary.withValues(alpha: 0.10),
                                 borderRadius:
                                     BorderRadius.circular(UiTokens.radiusXl),
                               ),
@@ -1668,8 +1668,8 @@ class AppSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Shimmer.fromColors(
-      baseColor: colorScheme.surfaceContainerHighest.withOpacity( 0.55),
-      highlightColor: colorScheme.surface.withOpacity( 0.90),
+      baseColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+      highlightColor: colorScheme.surface.withValues(alpha: 0.90),
       child: Container(
         height: height,
         decoration: BoxDecoration(
@@ -1698,7 +1698,7 @@ class StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity( 0.14),
+        color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -1747,7 +1747,7 @@ class AppActionSheet extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .outline
-                      .withOpacity( 0.4),
+                      .withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(999),
                 ),
               ),

@@ -43,7 +43,7 @@ class _ScenarioLabScreenState extends ConsumerState<ScenarioLabScreen> {
           title: l10n.scenarioLabTitle,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
             ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -210,7 +210,7 @@ class _Header extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: scheme.primary.withOpacity( 0.12),
+              color: scheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(18),
             ),
             alignment: Alignment.center,

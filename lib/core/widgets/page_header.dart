@@ -18,14 +18,14 @@ Widget buildFrostedAppBarTitle({
     fontWeight: FontWeight.w700,
     letterSpacing: -0.15,
     height: 1.1,
-    color: colorScheme.onSurface.withOpacity( 0.92),
+    color: colorScheme.onSurface.withValues(alpha: 0.92),
   );
   return AnimatedContainer(
     duration: const Duration(milliseconds: 180),
     curve: Curves.easeOut,
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
     decoration: BoxDecoration(
-      color: colorScheme.surfaceContainerHighest.withOpacity( isScrolled ? 0.9 : 0,
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: isScrolled ? 0.9 : 0,
       ),
       borderRadius: BorderRadius.circular(10),
     ),
@@ -45,12 +45,12 @@ Widget buildFrostedFlexibleSpace({
     curve: Curves.easeOut,
     decoration: BoxDecoration(
       color: isScrolled
-          ? colorScheme.surface.withOpacity( 0.92)
+          ? colorScheme.surface.withValues(alpha: 0.92)
           : Colors.transparent,
       border: isScrolled
           ? Border(
               bottom: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity( 0.5),
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                 width: 1,
               ),
             )
@@ -79,7 +79,7 @@ List<Widget> buildPageHeaderActions({
   bool includeSettings = true,
 }) {
   final colorScheme = Theme.of(context).colorScheme;
-  final actionBackground = colorScheme.surfaceContainerHighest.withOpacity( isScrolled ? 0.9 : 0,
+  final actionBackground = colorScheme.surfaceContainerHighest.withValues(alpha: isScrolled ? 0.9 : 0,
   );
   return [
     if (includeSettings)

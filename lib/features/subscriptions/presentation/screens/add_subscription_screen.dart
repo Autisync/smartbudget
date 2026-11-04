@@ -274,8 +274,8 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: theme.brightness == Brightness.dark
-                    ? Colors.white.withOpacity( 0.10)
-                    : Colors.black.withOpacity( 0.10),
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.10),
               ),
             ),
             child: Row(
@@ -284,7 +284,7 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity( 0.14),
+                    color: colorScheme.primary.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -330,7 +330,7 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: AppColors.statusFor(theme.brightness, AppStatus.danger)
-                      .withOpacity( 0.35),
+                      .withValues(alpha: 0.35),
                 ),
               ),
               child: Text(
@@ -548,7 +548,7 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
           title: title,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -561,7 +561,7 @@ class _SubscriptionFormSheetState extends ConsumerState<SubscriptionFormSheet> {
         ),
         leading: IconButton(
           style: IconButton.styleFrom(
-            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity( _isAppBarScrolled ? 0.9 : 0,
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: _isAppBarScrolled ? 0.9 : 0,
             ),
           ),
           icon: const Icon(Icons.close),
@@ -708,7 +708,7 @@ class _FormSectionLabel extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Divider(
-            color: scheme.outlineVariant.withOpacity( 0.6),
+            color: scheme.outlineVariant.withValues(alpha: 0.6),
             height: 1,
           ),
         ),
@@ -776,7 +776,7 @@ class _ImportanceChipSelector extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       color: selected
-                          ? color.withOpacity( 0.14)
+                          ? color.withValues(alpha: 0.14)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(

@@ -88,7 +88,7 @@ jobs:
           cache-dependency-path: backend/requirements*.txt
 
       - name: Install dependencies
-        run: pip install -r requirements.txt -r requirements-dev.txt
+        run: pip install -r requirements.txt -r requirements-dev.txt -c constraints.txt
 
       - name: Lint (ruff)
         run: ruff check .
@@ -130,33 +130,3 @@ jobs:
           files: backend/coverage.xml
           flags: backend
         continue-on-error: true
-
-  # ─── Security ────────────────────────────────────────────────────────────────
-  pin-drift:
-    name: Cert pin drift check
-    runs-on: ubuntu-latest
-    # Only run weekly (or on changes to cert_pinning.dart)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check cert pin against live server
-        run: |
-          LIVE_PIN=$(echo | openssl s_client \
-            -connect api.smaartspend.com:443 \
-            -servername api.smaartspend.com 2>/dev/null \
-            | openssl x509 -pubkey -noout \
-            | openssl pkey -pubin -outform DER \
-            | openssl dgst -sha256 -binary \
-            | base64)
-
-          echo "Live SPKI pin: $LIVE_PIN"
-
-          if grep -q "$LIVE_PIN" lib/core/network/cert_pinning.dart; then
-            echo "✅ Pin is current — cert_pinning.dart contains the live pin."
-          else
-            echo "⚠️  Pin drift detected — $LIVE_PIN is not in cert_pinning.dart"
-            echo "Update _productionPins in lib/core/network/cert_pinning.dart"
-            exit 1
-          fi

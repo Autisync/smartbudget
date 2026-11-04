@@ -132,8 +132,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              colors.primaryContainer.withOpacity( 0.62),
-              colors.secondaryContainer.withOpacity( 0.58),
+              colors.primaryContainer.withValues(alpha: 0.62),
+              colors.secondaryContainer.withValues(alpha: 0.58),
             ],
           ),
           borderRadius: BorderRadius.circular(28),
@@ -147,7 +147,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: colors.primary.withOpacity( 0.12),
+                    color: colors.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -203,7 +203,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
       constraints: const BoxConstraints(minWidth: 148),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
-        color: colors.surface.withOpacity( 0.86),
+        color: colors.surface.withValues(alpha: 0.86),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -349,7 +349,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: tone.withOpacity( 0.12),
+                  color: tone.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(_typeIcon(insight.type), color: tone, size: 20),
@@ -488,7 +488,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                       dotData: const FlDotData(show: false),
                       belowBarData: BarAreaData(
                         show: true,
-                        color: colors.primary.withOpacity( 0.12),
+                        color: colors.primary.withValues(alpha: 0.12),
                       ),
                     ),
                   ],
@@ -528,7 +528,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: colors.surfaceContainerHighest.withOpacity( 0.62),
+                  color: colors.surfaceContainerHighest.withValues(alpha: 0.62),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Column(
@@ -735,7 +735,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest.withOpacity( 0.62),
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.62),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -846,7 +846,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity( 0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(

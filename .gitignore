@@ -70,3 +70,8 @@ sentry.properties
 *.keystore
 # Obfuscation symbols (keep them, privately, per release)
 /build/debug-info/
+
+# Gradle caches and build output anywhere in the tree (they were committed by
+# accident under third_party/ and android/build/).
+**/.gradle/
+**/android/build/

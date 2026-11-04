@@ -38,11 +38,11 @@ class ModernInput extends StatelessWidget {
     final theme = Theme.of(context);
     final brightness = theme.brightness;
     final fillColor = brightness == Brightness.dark
-        ? theme.colorScheme.surfaceContainerHighest.withOpacity( 0.42)
-        : theme.colorScheme.surfaceContainerHighest.withOpacity( 0.55);
+        ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.42)
+        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.55);
     final borderColor = brightness == Brightness.dark
-        ? Colors.white.withOpacity( 0.16)
-        : Colors.black.withOpacity( 0.10);
+        ? Colors.white.withValues(alpha: 0.16)
+        : Colors.black.withValues(alpha: 0.10);
 
     return TextFormField(
       controller: controller,

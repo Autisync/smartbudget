@@ -22,8 +22,8 @@ class AppSurfaces {
       // the border is a touch stronger since shadows barely register.
       border: Border.all(
         color: isDark
-            ? colorScheme.outline.withOpacity( 0.55)
-            : colorScheme.outline.withOpacity( 0.9),
+            ? colorScheme.outline.withValues(alpha: 0.55)
+            : colorScheme.outline.withValues(alpha: 0.9),
         width: 1,
       ),
       boxShadow: AppShadows.card(

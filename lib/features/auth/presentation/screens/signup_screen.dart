@@ -208,7 +208,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withOpacity(0.35),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(

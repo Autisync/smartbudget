@@ -18,7 +18,7 @@ class InsightCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity( 0.08),
+        color: colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

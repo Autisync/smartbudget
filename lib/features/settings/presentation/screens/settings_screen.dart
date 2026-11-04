@@ -319,7 +319,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           includeSettings: false,
         ),
         backgroundColor:
-            colorScheme.surface.withOpacity(_isAppBarScrolled ? 0.88 : 0.0),
+            colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0.0),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -358,7 +358,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     children: [
                       CircleAvatar(
                         radius: 28,
-                        backgroundColor: colorScheme.primary.withOpacity(0.14),
+                        backgroundColor: colorScheme.primary.withValues(alpha: 0.14),
                         child: Text(
                           userDisplayName.characters.first.toUpperCase(),
                           style:
@@ -422,7 +422,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   SizedBox(
                     height: 42,
                     child: VerticalDivider(
-                      color: colorScheme.outlineVariant.withOpacity(0.28),
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.28),
                       thickness: 1,
                     ),
                   ),
@@ -470,7 +470,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   // intro from the included-features list.
                   Divider(
                     height: 1,
-                    color: colorScheme.outlineVariant.withOpacity(0.5),
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: 14),
                   _IncludedItem(label: l10n.settingsIncludedTransactions),
@@ -590,26 +590,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         return SimpleDialog(
                           title: Text(l10n.settingsAppearance),
                           children: [
-                            RadioListTile<ThemeMode>(
-                              value: ThemeMode.system,
+                            RadioGroup<ThemeMode>(
                               groupValue: themeMode,
                               onChanged: (value) =>
                                   Navigator.of(context).pop(value),
-                              title: Text(l10n.themeSystem),
-                            ),
-                            RadioListTile<ThemeMode>(
-                              value: ThemeMode.light,
-                              groupValue: themeMode,
-                              onChanged: (value) =>
-                                  Navigator.of(context).pop(value),
-                              title: Text(l10n.themeLight),
-                            ),
-                            RadioListTile<ThemeMode>(
-                              value: ThemeMode.dark,
-                              groupValue: themeMode,
-                              onChanged: (value) =>
-                                  Navigator.of(context).pop(value),
-                              title: Text(l10n.themeDark),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  RadioListTile<ThemeMode>(
+                                    value: ThemeMode.system,
+                                    title: Text(l10n.themeSystem),
+                                  ),
+                                  RadioListTile<ThemeMode>(
+                                    value: ThemeMode.light,
+                                    title: Text(l10n.themeLight),
+                                  ),
+                                  RadioListTile<ThemeMode>(
+                                    value: ThemeMode.dark,
+                                    title: Text(l10n.themeDark),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         );
@@ -639,14 +640,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         return SimpleDialog(
                           title: Text(l10n.language),
                           children: [
-                            for (final option in languageOptions)
-                              RadioListTile<String>(
-                                value: option.$1,
-                                groupValue: appLocale.languageCode,
-                                onChanged: (value) =>
-                                    Navigator.of(context).pop(value),
-                                title: Text(option.$2),
+                            RadioGroup<String>(
+                              groupValue: appLocale.languageCode,
+                              onChanged: (value) =>
+                                  Navigator.of(context).pop(value),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (final option in languageOptions)
+                                    RadioListTile<String>(
+                                      value: option.$1,
+                                      title: Text(option.$2),
+                                    ),
+                                ],
                               ),
+                            ),
                           ],
                         );
                       },
@@ -675,15 +683,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         return SimpleDialog(
                           title: Text(l10n.currency),
                           children: [
-                            for (final code
-                                in CurrencyService.supportedCurrencyCodes)
-                              RadioListTile<String>(
-                                value: code,
-                                groupValue: appCurrency,
-                                onChanged: (value) =>
-                                    Navigator.of(context).pop(value),
-                                title: Text(code),
+                            RadioGroup<String>(
+                              groupValue: appCurrency,
+                              onChanged: (value) =>
+                                  Navigator.of(context).pop(value),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (final code
+                                      in CurrencyService.supportedCurrencyCodes)
+                                    RadioListTile<String>(
+                                      value: code,
+                                      title: Text(code),
+                                    ),
+                                ],
                               ),
+                            ),
                           ],
                         );
                       },
@@ -897,7 +912,7 @@ class _ModernSettingsGroup extends StatelessWidget {
                     height: 1,
                     indent: 14,
                     endIndent: 14,
-                    color: colorScheme.outlineVariant.withOpacity(0.22),
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.22),
                   ),
               ],
             ],
@@ -1097,7 +1112,7 @@ class _MoreActionTile extends StatelessWidget {
         ),
         leading: showLeading
             ? CircleAvatar(
-                backgroundColor: colorScheme.primary.withOpacity(0.14),
+                backgroundColor: colorScheme.primary.withValues(alpha: 0.14),
                 child: Icon(
                   icon,
                   color: colorScheme.primary,
@@ -1233,15 +1248,15 @@ class _PersonalDetailsSheetState extends ConsumerState<_PersonalDetailsSheet> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: theme.brightness == Brightness.dark
-              ? Colors.white.withOpacity(0.10)
-              : Colors.black.withOpacity(0.10),
+              ? Colors.white.withValues(alpha: 0.10)
+              : Colors.black.withValues(alpha: 0.10),
         ),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundColor: colorScheme.primary.withOpacity(0.14),
+            backgroundColor: colorScheme.primary.withValues(alpha: 0.14),
             child: Text(
               liveName.isNotEmpty
                   ? liveName.characters.first.toUpperCase()
@@ -1386,7 +1401,7 @@ class _StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(

@@ -67,7 +67,7 @@ class AppBottomActionSheet extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 14),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.onSurfaceVariant
-                          .withOpacity( 0.28),
+                          .withValues(alpha: 0.28),
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -86,7 +86,7 @@ class AppBottomActionSheet extends StatelessWidget {
                   height: 1,
                   thickness: 1,
                   color:
-                      theme.colorScheme.outlineVariant.withOpacity( 0.5),
+                      theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 6),
                 ...actions.map((action) {

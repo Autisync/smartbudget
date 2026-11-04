@@ -315,7 +315,7 @@ class PushNotificationService {
     final messaging = _messaging;
     if (messaging == null) return null;
     try {
-      return messaging.getToken();
+      return await messaging.getToken();
     } catch (_) {
       return null;
     }
@@ -412,7 +412,7 @@ class NotificationService {
       if (Firebase.apps.isEmpty) {
         return PushPermissionState.unsupported;
       }
-      return _push.getPermissionState();
+      return await _push.getPermissionState();
     } catch (_) {
       return PushPermissionState.error;
     }
@@ -423,7 +423,7 @@ class NotificationService {
       if (Firebase.apps.isEmpty) {
         return PushPermissionState.unsupported;
       }
-      return _push.requestPermission();
+      return await _push.requestPermission();
     } catch (_) {
       return PushPermissionState.error;
     }

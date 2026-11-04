@@ -434,7 +434,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           title: l10n.savingsGoalsTitle,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -1250,15 +1250,15 @@ class _SavingsNudgeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity( 0.08),
+        color: Colors.blue.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.blue.withOpacity( 0.15),
+          color: Colors.blue.withValues(alpha: 0.15),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1273,7 +1273,7 @@ class _SavingsNudgeCard extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity( 0.14),
+                  color: Colors.blue.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -1356,11 +1356,11 @@ class _SavingsSurplusCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity( 0.08),
+        color: Colors.green.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1459,7 +1459,7 @@ class _SavingsGoalCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -1476,7 +1476,7 @@ class _SavingsGoalCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity( 0.12),
+                  color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
@@ -1505,7 +1505,7 @@ class _SavingsGoalCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity( 0.12),
+                        color: statusColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -1587,7 +1587,7 @@ class _SavingsGoalCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 6,
-              backgroundColor: Colors.grey.withOpacity( 0.15),
+              backgroundColor: Colors.grey.withValues(alpha: 0.15),
               valueColor: AlwaysStoppedAnimation<Color>(
                 _milestoneProgressColor(progress, Theme.of(context).brightness),
               ),
@@ -1647,7 +1647,7 @@ class _SavingsGoalCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity( 0.12),
+                color: Colors.green.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -1968,7 +1968,7 @@ class _SurplusSimulationSheetState extends State<_SurplusSimulationSheet> {
                   color: Theme.of(context)
                       .colorScheme
                       .surfaceContainerHighest
-                      .withOpacity( 0.45),
+                      .withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(
@@ -2173,8 +2173,8 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: theme.brightness == Brightness.dark
-                    ? Colors.white.withOpacity( 0.10)
-                    : Colors.black.withOpacity( 0.10),
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.10),
               ),
             ),
             child: Row(
@@ -2189,7 +2189,7 @@ class _SavingsGoalFormSheetState extends State<_SavingsGoalFormSheet> {
                         value: liveProgress.toDouble(),
                         strokeWidth: 3,
                         backgroundColor:
-                            colorScheme.primary.withOpacity( 0.12),
+                            colorScheme.primary.withValues(alpha: 0.12),
                         color: colorScheme.primary,
                       ),
                     ),
@@ -2481,7 +2481,7 @@ class _GoalPriorityChipSelector extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       color: selected
-                          ? color.withOpacity( 0.14)
+                          ? color.withValues(alpha: 0.14)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(

@@ -109,8 +109,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           title: l10n.reportsTitleExport,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withOpacity(
-          _isAppBarScrolled ? 0.88 : 0.0,
+        backgroundColor: colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0.0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -129,8 +128,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
           IconButton(
             style: IconButton.styleFrom(
-              backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(
-                _isAppBarScrolled ? 0.9 : 0.0,
+              backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: _isAppBarScrolled ? 0.9 : 0.0,
               ),
             ),
             icon: const Icon(Icons.ios_share_rounded),
@@ -403,7 +401,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .tertiary
-                                  .withOpacity(0.12),
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -444,7 +442,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .primary
-                                  .withOpacity(0.12),
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
@@ -649,7 +647,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           color: Theme.of(context)
                               .colorScheme
                               .primary
-                              .withOpacity(0.14),
+                              .withValues(alpha: 0.14),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(entry.icon,

@@ -69,7 +69,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           title: l10n.accountsTitle,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -248,7 +248,7 @@ class _TotalCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4F5FA7).withOpacity( isDark ? 0.0 : 0.28),
+            color: const Color(0xFF4F5FA7).withValues(alpha: isDark ? 0.0 : 0.28),
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
@@ -263,7 +263,7 @@ class _TotalCard extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity( 0.16),
+                  color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.account_balance_wallet_rounded,
@@ -273,7 +273,7 @@ class _TotalCard extends StatelessWidget {
               Text(
                 'Total balance',
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: Colors.white.withOpacity( 0.85),
+                  color: Colors.white.withValues(alpha: 0.85),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -293,7 +293,7 @@ class _TotalCard extends StatelessWidget {
           Text(
             '$count ${count == 1 ? 'account' : 'accounts'}',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withOpacity( 0.75),
+              color: Colors.white.withValues(alpha: 0.75),
             ),
           ),
         ],
@@ -333,7 +333,7 @@ class _AccountTile extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: color.withOpacity( 0.14),
+                color: color.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(_accountIcon(account.type), color: color, size: 22),
@@ -490,8 +490,8 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: theme.brightness == Brightness.dark
-                    ? Colors.white.withOpacity( 0.10)
-                    : Colors.black.withOpacity( 0.10),
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.10),
               ),
             ),
             child: Row(
@@ -500,7 +500,7 @@ class _AccountEditorSheetState extends ConsumerState<_AccountEditorSheet> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity( 0.14),
+                    color: colorScheme.primary.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child:
@@ -637,7 +637,7 @@ class _AccountTypeChipSelector extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: selected
-                      ? scheme.primary.withOpacity( 0.14)
+                      ? scheme.primary.withValues(alpha: 0.14)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(

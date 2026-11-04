@@ -48,16 +48,16 @@ bool _insecureTlsWarningSent = false;
 /// Add the NEW leaf pin before renewal so old clients keep working
 /// until all users have updated. Remove the previous leaf pin after
 /// the old cert has expired.
-const Set<String> _productionPins = {
-  // Leaf SPKI pin — CN=TRAEFIK DEFAULT CERT (self-signed, expires 2027-05-28).
-  // Obtained: 2026-06-07 via `openssl s_client … | openssl x509 -pubkey -noout | …`
-  // TODO: Replace with Let's Encrypt leaf pin once LE is configured on the server.
-  'NILeAobXrKJyjBkhewvvHgvQMwj3LdCAw2ayUrHku7E=',
-  // TODO: Add Let's Encrypt E5 (ECDSA) or R10 (RSA) intermediate CA backup pin
-  // once the server is switched to a CA-signed cert. Intermediate pins are stable
-  // across 90-day renewals and serve as the rotation safety net.
-  // 'REPLACE_WITH_LE_INTERMEDIATE_SPKI_PIN==',
-};
+// No pins on purpose. The API now serves a Let's Encrypt certificate: the
+// leaf key changes at every renewal (about every 60-90 days) and Let's
+// Encrypt rotates its intermediates (E5-E9, R10-R14) at random, so a pin here
+// would lock every installed app out of the API at the next renewal. The pin
+// that used to be here was Traefik's self-signed default certificate, which
+// the server no longer serves. The platform's normal certificate checks
+// (trusted roots + hostname) protect the connection. To pin again, pin a key
+// you control (e.g. a long-lived key reused across renewals) and ship the
+// backup pin first.
+const Set<String> _productionPins = {};
 
 /// Applies SPKI certificate pinning to [dio] for the production API host.
 ///
@@ -116,11 +116,12 @@ void applyCertificatePinning(Dio dio, String baseUrl) {
   if (uri.scheme != 'https') return;
   if (_isLocalHost(uri.host)) return;
 
-  if (_productionPins.any((p) => p.startsWith('REPLACE_WITH'))) {
+  if (_productionPins.isEmpty ||
+      _productionPins.any((p) => p.startsWith('REPLACE_WITH'))) {
     if (kDebugMode) {
       debugPrint(
-        '[SmartSpend Security] ⚠️  Certificate pinning is NOT active — '
-        'replace placeholder pins in cert_pinning.dart before release.',
+        '[SmartSpend Security] Certificate pinning requested but no pins '
+        'are configured in cert_pinning.dart; using normal TLS checks.',
       );
     }
     return;

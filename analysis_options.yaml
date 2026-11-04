@@ -1,12 +1,19 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
-  plugins:
-    - drift
+  # The drift analyzer plugin used the legacy plugin system, which the Dart
+  # SDK has deprecated; it only added lint hints inside .drift files.
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "third_party/**"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
   errors:
     invalid_annotation_target: ignore
 

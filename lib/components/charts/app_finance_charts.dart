@@ -110,7 +110,7 @@ class AppLineSparkChart extends StatelessWidget {
                   dotData: const FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: lineColor.withOpacity(0.12),
+                    color: lineColor.withValues(alpha: 0.12),
                   ),
                   // Scale y-values from baseline upward on entrance
                   spots: List.generate(

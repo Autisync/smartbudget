@@ -61,7 +61,7 @@ class MinimalStatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: tone.withOpacity(isSelected ? 0.22 : 0.12),
+        color: tone.withValues(alpha: isSelected ? 0.22 : 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -114,14 +114,14 @@ class MinimalInsightCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              scheme.surfaceContainerHigh.withOpacity(0.96),
-              scheme.surfaceContainer.withOpacity(0.92),
+              scheme.surfaceContainerHigh.withValues(alpha: 0.96),
+              scheme.surfaceContainer.withValues(alpha: 0.92),
             ],
           )
         : gradient;
     final borderColor = isDark
-        ? Colors.white.withOpacity(0.20)
-        : scheme.outlineVariant.withOpacity(0.42);
+        ? Colors.white.withValues(alpha: 0.20)
+        : scheme.outlineVariant.withValues(alpha: 0.42);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 6),
@@ -134,7 +134,7 @@ class MinimalInsightCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -149,7 +149,7 @@ class MinimalInsightCard extends StatelessWidget {
                 width: 26,
                 height: 26,
                 decoration: BoxDecoration(
-                  color: effectiveIconTint.withOpacity(0.10),
+                  color: effectiveIconTint.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: effectiveIconTint, size: 15),
@@ -251,10 +251,10 @@ class _DecisionCallout extends StatelessWidget {
       curve: Curves.easeOut,
       padding: const EdgeInsets.fromLTRB(12, 11, 14, 11),
       decoration: BoxDecoration(
-        color: tone.withOpacity(isDark ? 0.16 : 0.08),
+        color: tone.withValues(alpha: isDark ? 0.16 : 0.08),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: tone.withOpacity(isDark ? 0.34 : 0.20),
+          color: tone.withValues(alpha: isDark ? 0.34 : 0.20),
           width: 1,
         ),
       ),
@@ -271,7 +271,7 @@ class _DecisionCallout extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: isDark
                         ? Theme.of(context).colorScheme.onSurface
-                        : tone.withOpacity(0.92),
+                        : tone.withValues(alpha: 0.92),
                     height: 1.3,
                     fontWeight: FontWeight.w600,
                   ),
@@ -310,7 +310,7 @@ class InsightRingChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final f = fraction.isNaN ? 0.0 : fraction.clamp(0.0, 1.0);
-    final track = color.withOpacity(0.14);
+    final track = color.withValues(alpha: 0.14);
     final ringWidth = size * 0.12;
 
     return SizedBox(
@@ -421,8 +421,8 @@ class _MinimalMetricItem extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final tone = metric.tone ?? scheme.onSurface;
     final selectedBg = metric.tone != null
-        ? tone.withOpacity(isDark ? 0.24 : 0.16)
-        : scheme.primary.withOpacity(isDark ? 0.20 : 0.12);
+        ? tone.withValues(alpha: isDark ? 0.24 : 0.16)
+        : scheme.primary.withValues(alpha: isDark ? 0.20 : 0.12);
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1000,12 +1000,12 @@ class _SubscriptionFilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFF4F5FA7).withOpacity(0.30)
-              : scheme.surface.withOpacity(0.72),
+              ? const Color(0xFF4F5FA7).withValues(alpha: 0.30)
+              : scheme.surface.withValues(alpha: 0.72),
           border: Border.all(
             color: selected
-                ? const Color(0xFF4F5FA7).withOpacity(0.55)
-                : scheme.outlineVariant.withOpacity(0.35),
+                ? const Color(0xFF4F5FA7).withValues(alpha: 0.55)
+                : scheme.outlineVariant.withValues(alpha: 0.35),
             width: 1,
           ),
           borderRadius: BorderRadius.circular(999),

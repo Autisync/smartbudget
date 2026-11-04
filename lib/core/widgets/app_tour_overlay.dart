@@ -414,12 +414,12 @@ class _BottomPanel extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.fromLTRB(28, 32, 28, bottom + 28),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity( 0.35),
+            color: Colors.black.withValues(alpha: 0.35),
             borderRadius:
                 const BorderRadius.vertical(top: Radius.circular(32)),
             border: Border(
               top: BorderSide(
-                  color: Colors.white.withOpacity( 0.12), width: 1),
+                  color: Colors.white.withValues(alpha: 0.12), width: 1),
             ),
           ),
           child: Column(
@@ -449,7 +449,7 @@ class _BottomPanel extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: active
                                 ? Colors.white
-                                : Colors.white.withOpacity( 0.28),
+                                : Colors.white.withValues(alpha: 0.28),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         );
@@ -511,7 +511,7 @@ class _BottomPanel extends StatelessWidget {
                     stepSubtitle,
                     key: ValueKey(step),
                     style: TextStyle(
-                      color: Colors.white.withOpacity( 0.75),
+                      color: Colors.white.withValues(alpha: 0.75),
                       fontSize: 15,
                       height: 1.55,
                     ),
@@ -541,7 +541,7 @@ class _BottomPanel extends StatelessWidget {
                         child: Text(
                           'Skip',
                           style: TextStyle(
-                            color: Colors.white.withOpacity( 0.45),
+                            color: Colors.white.withValues(alpha: 0.45),
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
@@ -561,7 +561,7 @@ class _BottomPanel extends StatelessWidget {
                           borderRadius: BorderRadius.circular(50),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity( 0.18),
+                              color: Colors.black.withValues(alpha: 0.18),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -642,7 +642,7 @@ class _WelcomeIllustrationState extends State<_WelcomeIllustration>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Colors.white.withOpacity( 0.18),
+                    Colors.white.withValues(alpha: 0.18),
                     Colors.transparent,
                   ],
                 ),
@@ -655,10 +655,10 @@ class _WelcomeIllustrationState extends State<_WelcomeIllustration>
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity( 0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(
-                      color: Colors.white.withOpacity( 0.3), width: 1.5),
+                      color: Colors.white.withValues(alpha: 0.3), width: 1.5),
                 ),
                 child: const Icon(Icons.account_balance_wallet_rounded,
                     size: 48, color: Colors.white),
@@ -685,10 +685,10 @@ class _WelcomeIllustrationState extends State<_WelcomeIllustration>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity( 0.14),
+            color: Colors.white.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-                color: Colors.white.withOpacity( 0.2), width: 1),
+                color: Colors.white.withValues(alpha: 0.2), width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -750,10 +750,10 @@ class _TransactionsIllustration extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity( 0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                        color: Colors.white.withOpacity( 0.15), width: 1),
+                        color: Colors.white.withValues(alpha: 0.15), width: 1),
                   ),
                   child: Row(
                     children: [
@@ -762,7 +762,7 @@ class _TransactionsIllustration extends StatelessWidget {
                         height: 34,
                         decoration: BoxDecoration(
                           color: (isIncome ? AppColors.success : AppColors.danger)
-                              .withOpacity( 0.25),
+                              .withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(item.$3, size: 18,
@@ -866,7 +866,7 @@ class _BudgetsIllustration extends StatelessWidget {
                             Container(
                               height: 8,
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity( 0.12),
+                                color: Colors.white.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -879,7 +879,7 @@ class _BudgetsIllustration extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(4),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: item.$3.withOpacity( 0.5),
+                                      color: item.$3.withValues(alpha: 0.5),
                                       blurRadius: 6,
                                     ),
                                   ],
@@ -945,10 +945,10 @@ class _NavIllustration extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity( 0.14),
+                  color: Colors.white.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                      color: Colors.white.withOpacity( 0.2), width: 1),
+                      color: Colors.white.withValues(alpha: 0.2), width: 1),
                 ),
                 child: AnimatedBuilder(
                   animation: items,
@@ -977,7 +977,7 @@ class _NavIllustration extends StatelessWidget {
                                 width: 36,
                                 height: 36,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity( 0.12),
+                                  color: Colors.white.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(menuItems[i].$1,
@@ -1018,10 +1018,10 @@ class _NavIllustration extends StatelessWidget {
                       child: Container(
                         height: 52,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity( 0.15),
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(26),
                           border: Border.all(
-                              color: Colors.white.withOpacity( 0.25),
+                              color: Colors.white.withValues(alpha: 0.25),
                               width: 1),
                         ),
                         child: Row(
@@ -1041,10 +1041,10 @@ class _NavIllustration extends StatelessWidget {
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity( 0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: Colors.white.withOpacity( 0.3),
+                            color: Colors.white.withValues(alpha: 0.3),
                             width: 1),
                       ),
                       child: const Icon(Icons.add_rounded,

@@ -115,7 +115,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
           title: l10n.navExchangeRates,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
             ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -378,7 +378,7 @@ class _ExchangeRatesScreenState extends ConsumerState<ExchangeRatesScreen> {
                                           color: Theme.of(context)
                                               .colorScheme
                                               .primary
-                                              .withOpacity( 0.12),
+                                              .withValues(alpha: 0.12),
                                         ),
                                       ),
                                     ],

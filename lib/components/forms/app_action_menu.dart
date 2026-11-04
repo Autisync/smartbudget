@@ -64,7 +64,7 @@ class AppActionMenu extends StatelessWidget {
       width: 34,
       height: 34,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity( 0.6),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(
@@ -91,7 +91,7 @@ class AppActionMenu extends StatelessWidget {
       ),
       elevation: 10,
       color: theme.colorScheme.surface,
-      shadowColor: Colors.black.withOpacity( 0.12),
+      shadowColor: Colors.black.withValues(alpha: 0.12),
       surfaceTintColor: Colors.transparent,
       position: PopupMenuPosition.under,
       icon: iconButton,

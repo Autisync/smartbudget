@@ -43,7 +43,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           title: l10n.notificationsTitle,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -178,7 +178,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                   width: 44,
                                   height: 44,
                                   decoration: BoxDecoration(
-                                    color: tone.withOpacity( 0.14),
+                                    color: tone.withValues(alpha: 0.14),
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: Icon(icon, color: tone, size: 22),
@@ -307,7 +307,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       alignment: alignment,
       padding: const EdgeInsets.symmetric(horizontal: 18),
       decoration: BoxDecoration(
-        color: color.withOpacity( 0.16),
+        color: color.withValues(alpha: 0.16),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(

@@ -141,7 +141,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
           title: l10n.navBudgets,
           isScrolled: _isAppBarScrolled,
         ),
-        backgroundColor: colorScheme.surface.withOpacity( _isAppBarScrolled ? 0.88 : 0,
+        backgroundColor: colorScheme.surface.withValues(alpha: _isAppBarScrolled ? 0.88 : 0,
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -893,7 +893,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       color: Theme.of(context)
                           .colorScheme
                           .surfaceContainerHighest
-                          .withOpacity( 0.48),
+                          .withValues(alpha: 0.48),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: Theme.of(context).colorScheme.outlineVariant,
@@ -1061,7 +1061,7 @@ class _BudgetInsightCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1076,7 +1076,7 @@ class _BudgetInsightCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: tone.withOpacity( 0.16),
+                  color: tone.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -1311,7 +1311,7 @@ class _BudgetCategoryCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity( 0.12),
+                  color: iconColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child:
@@ -1335,7 +1335,7 @@ class _BudgetCategoryCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity( 0.12),
+                        color: statusColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -1589,8 +1589,8 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: theme.brightness == Brightness.dark
-                    ? Colors.white.withOpacity( 0.10)
-                    : Colors.black.withOpacity( 0.10),
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.10),
               ),
             ),
             child: Row(
@@ -1599,7 +1599,7 @@ class _BudgetFormSheetState extends State<_BudgetFormSheet> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity( 0.14),
+                    color: colorScheme.primary.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(Icons.pie_chart_rounded,
